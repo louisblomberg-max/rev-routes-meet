@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Plus, X, Calendar, Route, Wrench, Users, ShoppingBag } from 'lucide-react';
+import { Plus, X, Calendar, Route, Wrench, Users } from 'lucide-react';
 
 interface FloatingActionButtonProps {
   onAddEvent: () => void;
   onAddRoute: () => void;
   onAddService: () => void;
   onCommunityHub: () => void;
-  onMarketplace: () => void;
 }
 
 const FloatingActionButton = ({
@@ -14,7 +13,6 @@ const FloatingActionButton = ({
   onAddRoute,
   onAddService,
   onCommunityHub,
-  onMarketplace,
 }: FloatingActionButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,8 +20,7 @@ const FloatingActionButton = ({
     { icon: Calendar, label: 'Add Meet / Event', onClick: onAddEvent, color: 'text-events' },
     { icon: Route, label: 'Add Route', onClick: onAddRoute, color: 'text-routes' },
     { icon: Wrench, label: 'Add Service', onClick: onAddService, color: 'text-services' },
-    { icon: Users, label: 'Community Hub', onClick: onCommunityHub, color: 'text-clubs' },
-    { icon: ShoppingBag, label: 'Marketplace', onClick: onMarketplace, color: 'text-foreground' },
+    { icon: Users, label: 'Community', onClick: onCommunityHub, color: 'text-clubs' },
   ];
 
   return (

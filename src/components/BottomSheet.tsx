@@ -17,9 +17,9 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
 
   const getTitle = () => {
     switch (activeCategory) {
-      case 'events': return 'Nearby Events';
-      case 'routes': return 'Popular Routes';
-      case 'services': return 'Services Near You';
+      case 'events': return 'Nearby Meets & Events';
+      case 'routes': return 'Nearby Routes';
+      case 'services': return 'Nearby Services';
       default: return 'Discover';
     }
   };
@@ -85,7 +85,7 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
       ref={sheetRef}
       className={`bottom-sheet fixed left-0 right-0 transition-all duration-300 ease-out z-30 ${
         isVisible 
-          ? (isExpanded ? 'bottom-0 h-[70vh]' : 'bottom-0 h-auto max-h-[45vh]')
+          ? (isExpanded ? 'bottom-0 h-[70vh]' : 'bottom-0 h-auto max-h-[50vh]')
           : 'bottom-0 h-auto'
       }`}
     >
@@ -94,7 +94,7 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
         onClick={isVisible ? onToggle : undefined}
         className={`w-full flex flex-col items-center pt-3 pb-2 ${isVisible ? 'cursor-pointer' : 'cursor-default'}`}
       >
-        <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mb-2" />
+        <div className="w-12 h-1.5 bg-muted-foreground/40 rounded-full mb-2" />
         {isVisible && (
           <div className="flex items-center gap-1 text-muted-foreground text-xs">
             {isExpanded ? (
@@ -112,15 +112,26 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
         )}
       </button>
 
-      {/* Content - only show when category is selected */}
-      {isVisible && (
-        <div className="px-4 pb-6">
-          <h2 className="text-lg font-semibold text-foreground mb-3">{getTitle()}</h2>
-          <div className={`space-y-3 ${isExpanded ? 'overflow-y-auto max-h-[55vh]' : ''}`}>
-            {renderContent()}
+      {/* Content */}
+      <div className="px-4 pb-6">
+        {isVisible ? (
+          <>
+            <div className="mb-3">
+              <h2 className="text-lg font-semibold text-foreground">{getTitle()}</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Based on your current location</p>
+            </div>
+            <div className={`space-y-3 ${isExpanded ? 'overflow-y-auto max-h-[55vh]' : ''}`}>
+              {renderContent()}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              Select a category or search to explore nearby content
+            </p>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

@@ -13,9 +13,9 @@ const Home = () => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
   const [searchValue, setSearchValue] = useState('');
+  const [browseCategory, setBrowseCategory] = useState<string | null>(null);
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
-    // Navigate to appropriate detail page based on pin type
     if (pin.type === 'events') {
       navigate(`/event/${pin.id}`);
     } else if (pin.type === 'routes') {
@@ -29,19 +29,28 @@ const Home = () => {
     navigate(`/${type}/${id}`);
   };
 
+  const handleCloseSearch = () => {
+    setIsSearchActive(false);
+    setSearchValue('');
+    setBrowseCategory(null);
+  };
+
+  // Use browse category when in search mode, otherwise use home category
+  const effectiveCategory = isSearchActive ? browseCategory : activeCategory;
+
   return (
     <div className="mobile-container">
       {/* Map Background */}
       <MapView 
-        activeCategory={activeCategory} 
+        activeCategory={effectiveCategory} 
         onPinClick={handlePinClick}
       />
 
       {/* Search Overlay */}
       {isSearchActive && (
         <div 
-          className="absolute inset-0 bg-black/30 z-10"
-          onClick={() => setIsSearchActive(false)}
+          className="absolute inset-0 bg-black/30 z-10 transition-opacity duration-200"
+          onClick={handleCloseSearch}
         />
       )}
 
@@ -51,26 +60,27 @@ const Home = () => {
           onFocus={() => setIsSearchActive(true)}
           onProfileClick={() => navigate('/profile')}
           isSearchActive={isSearchActive}
-          onClose={() => {
-            setIsSearchActive(false);
-            setSearchValue('');
-          }}
+          onClose={handleCloseSearch}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
+          browseCategory={browseCategory}
+          onBrowseCategoryChange={setBrowseCategory}
         />
 
-        {/* Category Chips */}
-        <div className={`mt-3 transition-all duration-300 ${isSearchActive ? 'opacity-100' : 'opacity-100'}`}>
-          <CategoryChips 
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
-        </div>
+        {/* Category Chips - Only show when NOT in search mode */}
+        {!isSearchActive && (
+          <div className="mt-3">
+            <CategoryChips 
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
+            />
+          </div>
+        )}
       </div>
 
       {/* Bottom Sheet */}
       <BottomSheet 
-        activeCategory={activeCategory}
+        activeCategory={effectiveCategory}
         isExpanded={isBottomSheetExpanded}
         onToggle={() => setIsBottomSheetExpanded(!isBottomSheetExpanded)}
         onItemClick={handleItemClick}
@@ -82,7 +92,6 @@ const Home = () => {
         onAddRoute={() => navigate('/add/route')}
         onAddService={() => navigate('/add/service')}
         onCommunityHub={() => navigate('/community')}
-        onMarketplace={() => navigate('/marketplace')}
       />
     </div>
   );
