@@ -68,6 +68,16 @@ const SearchFilters = ({
             { id: 'parts', label: 'Parts' },
             { id: 'tuning', label: 'Tuning' },
           ];
+        case 'clubs':
+          return [
+            { id: 'local', label: 'Local' },
+            { id: 'nationwide', label: 'Nationwide' },
+            { id: 'porsche', label: 'Porsche' },
+            { id: 'bmw', label: 'BMW' },
+            { id: 'jdm', label: 'JDM' },
+            { id: 'car', label: 'Car' },
+            { id: 'bike', label: 'Bike' },
+          ];
         default:
           return [];
       }
