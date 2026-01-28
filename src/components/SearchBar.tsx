@@ -24,7 +24,17 @@ const SearchBar = ({
     "Porsche meets this weekend",
     "Scenic driving routes near me",
     "BMW specialist garage",
-    "Cars and coffee events",
+    "Motorbike clubs Southampton",
+  ];
+
+  const recentSearches = [
+    "Cars and coffee London",
+    "Classic car routes",
+  ];
+
+  const popularSearches = [
+    "JDM meets",
+    "Track days UK",
   ];
 
   return (
@@ -70,19 +80,58 @@ const SearchBar = ({
 
           {/* Search Suggestions (only when empty) */}
           {!searchValue && (
-            <div className="space-y-2 animate-fade-up">
-              <p className="text-xs text-muted-foreground">Try searching for:</p>
-              <div className="space-y-1.5">
-                {searchSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => onSearchChange(suggestion)}
-                    className="w-full text-left px-3 py-2 rounded-lg bg-card/80 hover:bg-card text-sm text-foreground transition-colors"
-                  >
-                    <Search className="w-3.5 h-3.5 inline mr-2 text-muted-foreground" />
-                    {suggestion}
-                  </button>
-                ))}
+            <div className="space-y-4 animate-fade-up max-h-[50vh] overflow-y-auto">
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Recent</p>
+                  <div className="space-y-1">
+                    {recentSearches.map((search, index) => (
+                      <button
+                        key={`recent-${index}`}
+                        onClick={() => onSearchChange(search)}
+                        className="w-full text-left px-3 py-2 rounded-lg bg-card/60 hover:bg-card text-sm text-foreground transition-colors"
+                      >
+                        <Search className="w-3.5 h-3.5 inline mr-2 text-muted-foreground" />
+                        {search}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Popular Searches */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">Popular</p>
+                <div className="space-y-1">
+                  {popularSearches.map((search, index) => (
+                    <button
+                      key={`popular-${index}`}
+                      onClick={() => onSearchChange(search)}
+                      className="w-full text-left px-3 py-2 rounded-lg bg-card/60 hover:bg-card text-sm text-foreground transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5 inline mr-2 text-muted-foreground" />
+                      {search}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Suggested Searches */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground font-medium">Try searching for</p>
+                <div className="space-y-1">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <button
+                      key={`suggestion-${index}`}
+                      onClick={() => onSearchChange(suggestion)}
+                      className="w-full text-left px-3 py-2 rounded-lg bg-card/60 hover:bg-card text-sm text-foreground transition-colors"
+                    >
+                      <Search className="w-3.5 h-3.5 inline mr-2 text-muted-foreground" />
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           )}

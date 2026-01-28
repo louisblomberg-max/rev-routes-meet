@@ -100,6 +100,9 @@ const Home = () => {
   // Get the selected route ID for highlighting on map
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
 
+  // Determine if FAB should be visible
+  const showFAB = !isSearchActive && !isFiltersOpen;
+
   return (
     <div className="mobile-container">
       {/* Map Background */}
@@ -107,12 +110,13 @@ const Home = () => {
         activeCategory={activeCategory} 
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
+        showEmptyPrompt={!activeCategory && !selectedItem && !isSearchActive}
       />
 
       {/* Search Overlay - dims map when search is active */}
       {isSearchActive && (
         <div 
-          className="absolute inset-0 bg-overlay/30 z-10 transition-opacity duration-200"
+          className="absolute inset-0 bg-overlay/40 z-10 transition-opacity duration-200"
           onClick={handleCloseSearch}
         />
       )}
@@ -138,33 +142,37 @@ const Home = () => {
                 onCategoryChange={setActiveCategory}
               />
             </div>
-            {/* Filter button for browse mode */}
-            {activeCategory && (
-              <button
-                onClick={() => setIsFiltersOpen(true)}
-                className="w-9 h-9 rounded-full bg-card shadow-md flex items-center justify-center hover:bg-muted transition-colors animate-scale-up"
-              >
-                <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-              </button>
-            )}
+            {/* Filter button for browse mode - always visible */}
+            <button
+              onClick={() => setIsFiltersOpen(true)}
+              className={`w-9 h-9 rounded-full bg-card shadow-md flex items-center justify-center hover:bg-muted transition-colors ${
+                activeCategory ? 'animate-scale-up' : ''
+              }`}
+            >
+              <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Item Detail Sheet - Only when a pin is tapped */}
-      <ItemDetailSheet 
-        item={selectedItem}
-        onClose={handleCloseDetail}
-        onViewFull={handleViewFull}
-      />
+      {/* Item Detail Sheet - Only when a pin is tapped and NOT in search mode */}
+      {!isSearchActive && (
+        <ItemDetailSheet 
+          item={selectedItem}
+          onClose={handleCloseDetail}
+          onViewFull={handleViewFull}
+        />
+      )}
 
-      {/* Floating Action Button */}
-      <FloatingActionButton 
-        onAddEvent={() => navigate('/add/event')}
-        onAddRoute={() => navigate('/add/route')}
-        onAddService={() => navigate('/add/service')}
-        onAddClub={() => navigate('/add/club')}
-      />
+      {/* Floating Action Button - Hidden during search or when filters open */}
+      {showFAB && (
+        <FloatingActionButton 
+          onAddEvent={() => navigate('/add/event')}
+          onAddRoute={() => navigate('/add/route')}
+          onAddService={() => navigate('/add/service')}
+          onAddClub={() => navigate('/add/club')}
+        />
+      )}
 
       {/* Search Filters Modal */}
       <SearchFilters

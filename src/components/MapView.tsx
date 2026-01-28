@@ -5,9 +5,10 @@ interface MapViewProps {
   activeCategory: string | null;
   onPinClick: (pin: typeof mockPins[0]) => void;
   selectedRouteId?: string | null;
+  showEmptyPrompt?: boolean;
 }
 
-const MapView = ({ activeCategory, onPinClick, selectedRouteId }: MapViewProps) => {
+const MapView = ({ activeCategory, onPinClick, selectedRouteId, showEmptyPrompt }: MapViewProps) => {
   const filteredPins = activeCategory 
     ? mockPins.filter(pin => pin.type === activeCategory)
     : mockPins;
@@ -154,6 +155,17 @@ const MapView = ({ activeCategory, onPinClick, selectedRouteId }: MapViewProps) 
       <button className="absolute top-24 right-4 w-10 h-10 bg-card rounded-full shadow-lg flex items-center justify-center">
         <Navigation className="w-5 h-5 text-foreground" />
       </button>
+
+      {/* Empty State Prompt */}
+      {showEmptyPrompt && (
+        <div className="absolute bottom-32 left-4 right-4 z-10 animate-fade-up">
+          <div className="bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
+            <p className="text-sm text-center text-muted-foreground">
+              Search for something specific, or explore nearby on the map.
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
