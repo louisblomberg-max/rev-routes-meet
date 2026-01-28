@@ -1,9 +1,10 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import EventCard from './cards/EventCard';
 import RouteCard from './cards/RouteCard';
 import ServiceCard from './cards/ServiceCard';
-import { mockEvents, mockRoutes, mockServices } from '@/data/mockData';
+import ClubCard from './cards/ClubCard';
+import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 
 interface BottomSheetProps {
   activeCategory: string | null;
@@ -20,6 +21,7 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
       case 'events': return 'Nearby Meets & Events';
       case 'routes': return 'Nearby Routes';
       case 'services': return 'Nearby Services';
+      case 'clubs': return 'Clubs Near You';
       default: return 'Discover';
     }
   };
@@ -53,6 +55,16 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
           key={service.id} 
           service={service}
           onClick={() => onItemClick('service', service.id)}
+        />
+      ));
+    }
+
+    if (activeCategory === 'clubs') {
+      return mockClubs.slice(0, items).map((club) => (
+        <ClubCard 
+          key={club.id} 
+          club={club}
+          onClick={() => onItemClick('club', club.id)}
         />
       ));
     }
