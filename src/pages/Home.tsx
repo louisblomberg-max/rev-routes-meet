@@ -156,22 +156,13 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Category Toggles + Filter button - hidden during search */}
+        {/* Category Toggles - hidden during search */}
         {!isSearchActive && (
-          <div className="mt-3 flex items-center gap-2">
-            <div className="flex-1">
-              <CategoryToggles 
-                activeCategories={activeCategories}
-                onCategoriesChange={setActiveCategories}
-              />
-            </div>
-            {/* Filter button */}
-            <button
-              onClick={() => setIsFiltersOpen(true)}
-              className="w-9 h-9 rounded-full bg-card shadow-md flex items-center justify-center hover:bg-muted transition-colors"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-            </button>
+          <div className="mt-3">
+            <CategoryToggles 
+              activeCategories={activeCategories}
+              onCategoriesChange={setActiveCategories}
+            />
           </div>
         )}
       </div>
