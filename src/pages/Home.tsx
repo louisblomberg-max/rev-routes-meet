@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
 import CategoryToggles from '@/components/CategoryToggles';
 import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import BottomNavigation from '@/components/BottomNavigation';
 import YouTab from '@/components/YouTab';
-import ContributeTab from '@/components/ContributeTab';
+import CommunityTab from '@/components/CommunityTab';
 import LocationButton from '@/components/LocationButton';
 import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import revnetLogo from '@/assets/revnet-logo.png';
 
-type Tab = 'discovery' | 'you' | 'contribute';
+type Tab = 'discovery' | 'community' | 'you';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -31,7 +30,6 @@ const Home = () => {
   });
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
-    // Find the full item data based on pin type and id
     if (pin.type === 'events') {
       const event = mockEvents.find(e => e.id === pin.id);
       if (event) {
@@ -104,18 +102,15 @@ const Home = () => {
     });
   };
 
-  // Get the selected route ID for highlighting on map
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
-
-  // Determine primary category for filtering context
   const primaryCategory = activeCategories.length === 1 ? activeCategories[0] : null;
 
-  // Discovery Tab Content
+  // Non-discovery tabs
   if (activeTab !== 'discovery') {
     return (
       <div className="mobile-container">
+        {activeTab === 'community' && <CommunityTab />}
         {activeTab === 'you' && <YouTab />}
-        {activeTab === 'contribute' && <ContributeTab />}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
@@ -128,13 +123,13 @@ const Home = () => {
         activeCategories={activeCategories}
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
-        showEmptyPrompt={activeCategories.length === 0 && !selectedItem && !isSearchActive}
+        showEmptyPrompt={false}
         isDimmed={isSearchActive}
       />
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-20 px-3 pt-3 safe-top">
-        {/* Logo + Search + Profile row */}
+        {/* Logo + Search row */}
         <div className="flex items-center gap-2">
           {/* RevNet Logo */}
           <img 
@@ -151,7 +146,6 @@ const Home = () => {
               onClose={handleCloseSearch}
               searchValue={searchValue}
               onSearchChange={setSearchValue}
-              onFilterClick={() => setIsFiltersOpen(true)}
             />
           </div>
         </div>
@@ -162,6 +156,9 @@ const Home = () => {
             <CategoryToggles 
               activeCategories={activeCategories}
               onCategoriesChange={setActiveCategories}
+              onFilterClick={(category) => {
+                setIsFiltersOpen(true);
+              }}
             />
           </div>
         )}

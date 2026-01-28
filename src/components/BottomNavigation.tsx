@@ -1,6 +1,6 @@
-import { Compass, User, Plus } from 'lucide-react';
+import { Compass, Users, User } from 'lucide-react';
 
-type Tab = 'discovery' | 'you' | 'contribute';
+type Tab = 'discovery' | 'community' | 'you';
 
 interface BottomNavigationProps {
   activeTab: Tab;
@@ -10,8 +10,8 @@ interface BottomNavigationProps {
 const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
   const tabs = [
     { id: 'discovery' as Tab, label: 'Discovery', icon: Compass },
+    { id: 'community' as Tab, label: 'Community', icon: Users },
     { id: 'you' as Tab, label: 'You', icon: User },
-    { id: 'contribute' as Tab, label: 'Contribute', icon: Plus },
   ];
 
   return (
