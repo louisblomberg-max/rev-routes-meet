@@ -91,7 +91,7 @@ const Home = () => {
         onAddEvent={() => navigate('/add/event')}
         onAddRoute={() => navigate('/add/route')}
         onAddService={() => navigate('/add/service')}
-        onCommunityHub={() => navigate('/community')}
+        onAddClub={() => navigate('/add/club')}
       />
     </div>
   );
