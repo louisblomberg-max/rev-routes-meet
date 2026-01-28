@@ -8,7 +8,7 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
+    { id: 'events', label: 'Events', icon: Calendar, chipClass: 'category-chip-events' },
     { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
     { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
     ...(showClubs ? [{ id: 'clubs', label: 'Clubs', icon: Users, chipClass: 'category-chip-clubs' }] : []),
