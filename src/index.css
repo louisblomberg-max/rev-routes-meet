@@ -135,7 +135,7 @@
   }
 
   .category-chip {
-    @apply px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer;
+    @apply px-2 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer;
   }
 
   .category-chip-events {
