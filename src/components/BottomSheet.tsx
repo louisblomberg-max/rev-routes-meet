@@ -18,11 +18,21 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
 
   const getTitle = () => {
     switch (activeCategory) {
-      case 'events': return 'Nearby Meets & Events';
-      case 'routes': return 'Nearby Routes';
-      case 'services': return 'Nearby Services';
-      case 'clubs': return 'Clubs Near You';
+      case 'events': return 'Upcoming Meets Near You';
+      case 'routes': return 'Popular Driving Routes Nearby';
+      case 'services': return 'Recommended Services';
+      case 'clubs': return 'Clubs Within 25 Miles';
       default: return 'Discover';
+    }
+  };
+
+  const getSubtitle = () => {
+    switch (activeCategory) {
+      case 'events': return 'Events happening in your area';
+      case 'routes': return 'Scenic and popular routes nearby';
+      case 'services': return 'Based on your location';
+      case 'clubs': return 'Active communities near you';
+      default: return null;
     }
   };
 
@@ -130,16 +140,21 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
           <>
             <div className="mb-3">
               <h2 className="text-lg font-semibold text-foreground">{getTitle()}</h2>
-              <p className="text-xs text-muted-foreground mt-0.5">Based on your current location</p>
+              {getSubtitle() && (
+                <p className="text-xs text-muted-foreground mt-0.5">{getSubtitle()}</p>
+              )}
             </div>
             <div className={`space-y-3 ${isExpanded ? 'overflow-y-auto max-h-[55vh]' : ''}`}>
               {renderContent()}
             </div>
           </>
         ) : (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground">
-              Select a category or search to explore nearby content
+          <div className="text-center py-6">
+            <p className="text-sm text-muted-foreground mb-1">
+              Select a category or search to explore
+            </p>
+            <p className="text-xs text-muted-foreground/70">
+              Discover meets, routes, and services near you
             </p>
           </div>
         )}

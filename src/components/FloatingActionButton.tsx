@@ -5,14 +5,14 @@ interface FloatingActionButtonProps {
   onAddEvent: () => void;
   onAddRoute: () => void;
   onAddService: () => void;
-  onCommunityHub: () => void;
+  onAddClub: () => void;
 }
 
 const FloatingActionButton = ({
   onAddEvent,
   onAddRoute,
   onAddService,
-  onCommunityHub,
+  onAddClub,
 }: FloatingActionButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -20,7 +20,7 @@ const FloatingActionButton = ({
     { icon: Calendar, label: 'Add Meet / Event', onClick: onAddEvent, color: 'text-events' },
     { icon: Route, label: 'Add Route', onClick: onAddRoute, color: 'text-routes' },
     { icon: Wrench, label: 'Add Service', onClick: onAddService, color: 'text-services' },
-    { icon: Users, label: 'Community', onClick: onCommunityHub, color: 'text-clubs' },
+    { icon: Users, label: 'Add Club', onClick: onAddClub, color: 'text-clubs' },
   ];
 
   return (
