@@ -32,7 +32,7 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex items-center gap-2 whitespace-nowrap`}
+            className={`category-chip ${category.chipClass} ${isActive ? 'active shadow-md scale-105' : ''} flex items-center gap-2 whitespace-nowrap transition-all duration-200`}
           >
             <Icon className="w-4 h-4" />
             <span>{category.label}</span>
