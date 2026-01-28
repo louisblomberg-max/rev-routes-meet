@@ -35,9 +35,9 @@ const ClubProfile = () => {
   const tabs = [
     { id: 'feed', label: 'Feed', icon: MessageCircle },
     { id: 'about', label: 'About', icon: Info },
-    { id: 'photos', label: 'Photos', icon: Image },
     { id: 'events', label: 'Events', icon: Calendar },
-    { id: 'announcements', label: 'Announcements', icon: Bell },
+    { id: 'announcements', label: 'News', icon: Bell },
+    { id: 'photos', label: 'Photos', icon: Image },
   ];
 
   return (
@@ -110,14 +110,14 @@ const ClubProfile = () => {
 
       {/* Tabs */}
       <div className="mt-6 border-b border-border">
-        <div className="flex overflow-x-auto px-4 gap-1">
+        <div className="flex px-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-3 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
+                className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium border-b-2 transition-colors ${
                   activeTab === tab.id
                     ? 'border-clubs text-clubs'
                     : 'border-transparent text-muted-foreground hover:text-foreground'
