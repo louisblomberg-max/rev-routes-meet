@@ -9,6 +9,7 @@ import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
 import Clubs from "./pages/Clubs";
+import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
 import AddEvent from "./pages/AddEvent";
 import AddRoute from "./pages/AddRoute";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/clubs" element={<Clubs />} />
+          <Route path="/club/:id" element={<ClubProfile />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/add/event" element={<AddEvent />} />
           <Route path="/add/route" element={<AddRoute />} />
