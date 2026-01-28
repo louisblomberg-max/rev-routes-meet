@@ -46,7 +46,7 @@ const SearchBar = ({
       {!isSearchActive && (
         <div className="search-bar cursor-pointer py-2 px-3" onClick={onFocus}>
           <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <span className="flex-1 text-muted-foreground text-sm">Search</span>
+          <span className="flex-1 text-muted-foreground text-xs truncate">Search events, routes, services or clubs</span>
         </div>
       )}
 
