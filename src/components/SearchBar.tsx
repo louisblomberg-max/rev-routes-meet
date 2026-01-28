@@ -1,4 +1,4 @@
-import { Search, X, Calendar, Route, Wrench, Users } from 'lucide-react';
+import { Search, X, Calendar, Route, Wrench } from 'lucide-react';
 import { useState } from 'react';
 
 interface SearchBarProps {
@@ -23,7 +23,6 @@ const SearchBar = ({
     { id: 'events', label: 'Events & Meets', icon: Calendar },
     { id: 'routes', label: 'Routes', icon: Route },
     { id: 'services', label: 'Services', icon: Wrench },
-    { id: 'clubs', label: 'Clubs', icon: Users },
   ];
 
   const handleCategorySelect = (categoryId: string) => {
@@ -72,7 +71,7 @@ const SearchBar = ({
           </div>
 
           {/* Category Selection Cards */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             {searchCategories.map((cat) => {
               const Icon = cat.icon;
               const isSelected = selectedSearchCategory === cat.id;
