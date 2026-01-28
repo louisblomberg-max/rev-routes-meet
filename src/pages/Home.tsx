@@ -7,12 +7,13 @@ import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import BottomNavigation from '@/components/BottomNavigation';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
+import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import revnetLogo from '@/assets/revnet-logo.png';
 
-type Tab = 'discovery' | 'community' | 'you';
+type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -110,6 +111,7 @@ const Home = () => {
     return (
       <div className="mobile-container">
         {activeTab === 'community' && <CommunityTab />}
+        {activeTab === 'marketplace' && <MarketplaceTab />}
         {activeTab === 'you' && <YouTab />}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
