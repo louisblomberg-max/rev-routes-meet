@@ -7,15 +7,19 @@ interface MapViewProps {
   onPinClick?: (pin: typeof mockPins[0]) => void;
   selectedRouteId?: string | null;
   showEmptyPrompt?: boolean;
+  isDimmed?: boolean;
 }
 
-const MapView = ({ activeCategories, activeCategory, onPinClick, selectedRouteId, showEmptyPrompt }: MapViewProps) => {
+const MapView = ({ activeCategories, activeCategory, onPinClick, selectedRouteId, showEmptyPrompt, isDimmed }: MapViewProps) => {
   // Support both multi-select (activeCategories) and single-select (activeCategory)
-  const filteredPins = activeCategories && activeCategories.length > 0
-    ? mockPins.filter(pin => activeCategories.includes(pin.type))
-    : activeCategory 
-      ? mockPins.filter(pin => pin.type === activeCategory)
-      : [];
+  // When dimmed, show no pins
+  const filteredPins = isDimmed 
+    ? []
+    : activeCategories && activeCategories.length > 0
+      ? mockPins.filter(pin => activeCategories.includes(pin.type))
+      : activeCategory 
+        ? mockPins.filter(pin => pin.type === activeCategory)
+        : [];
 
   const getPinColor = (type: string) => {
     switch (type) {
@@ -44,7 +48,7 @@ const MapView = ({ activeCategories, activeCategory, onPinClick, selectedRouteId
   const selectedRoute = selectedRouteId ? routePolylines[selectedRouteId] : null;
 
   return (
-    <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-muted">
+    <div className={`absolute inset-0 bg-gradient-to-b from-muted/50 to-muted transition-all duration-300 ${isDimmed ? 'opacity-40' : ''}`}>
       {/* Map placeholder with grid pattern */}
       <div 
         className="absolute inset-0 opacity-30"
