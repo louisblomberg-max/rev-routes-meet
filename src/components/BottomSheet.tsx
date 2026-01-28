@@ -78,41 +78,49 @@ const BottomSheet = ({ activeCategory, isExpanded, onToggle, onItemClick }: Bott
     );
   };
 
+  const isVisible = activeCategory !== null;
+
   return (
     <div 
       ref={sheetRef}
       className={`bottom-sheet fixed left-0 right-0 transition-all duration-300 ease-out z-30 ${
-        isExpanded ? 'bottom-0 h-[70vh]' : 'bottom-0 h-auto max-h-[45vh]'
+        isVisible 
+          ? (isExpanded ? 'bottom-0 h-[70vh]' : 'bottom-0 h-auto max-h-[45vh]')
+          : 'bottom-0 h-auto'
       }`}
     >
       {/* Handle */}
       <button 
-        onClick={onToggle}
-        className="w-full flex flex-col items-center pt-3 pb-2"
+        onClick={isVisible ? onToggle : undefined}
+        className={`w-full flex flex-col items-center pt-3 pb-2 ${isVisible ? 'cursor-pointer' : 'cursor-default'}`}
       >
         <div className="w-10 h-1 bg-muted-foreground/30 rounded-full mb-2" />
-        <div className="flex items-center gap-1 text-muted-foreground text-xs">
-          {isExpanded ? (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              <span>Collapse</span>
-            </>
-          ) : (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              <span>Expand</span>
-            </>
-          )}
-        </div>
+        {isVisible && (
+          <div className="flex items-center gap-1 text-muted-foreground text-xs">
+            {isExpanded ? (
+              <>
+                <ChevronDown className="w-4 h-4" />
+                <span>Collapse</span>
+              </>
+            ) : (
+              <>
+                <ChevronUp className="w-4 h-4" />
+                <span>Expand</span>
+              </>
+            )}
+          </div>
+        )}
       </button>
 
-      {/* Content */}
-      <div className="px-4 pb-6">
-        <h2 className="text-lg font-semibold text-foreground mb-3">{getTitle()}</h2>
-        <div className={`space-y-3 ${isExpanded ? 'overflow-y-auto max-h-[55vh]' : ''}`}>
-          {renderContent()}
+      {/* Content - only show when category is selected */}
+      {isVisible && (
+        <div className="px-4 pb-6">
+          <h2 className="text-lg font-semibold text-foreground mb-3">{getTitle()}</h2>
+          <div className={`space-y-3 ${isExpanded ? 'overflow-y-auto max-h-[55vh]' : ''}`}>
+            {renderContent()}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
