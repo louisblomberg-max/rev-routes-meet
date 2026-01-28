@@ -4,6 +4,18 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Profile from "./pages/Profile";
+import Settings from "./pages/Settings";
+import Community from "./pages/Community";
+import Forums from "./pages/Forums";
+import Clubs from "./pages/Clubs";
+import Marketplace from "./pages/Marketplace";
+import AddEvent from "./pages/AddEvent";
+import AddRoute from "./pages/AddRoute";
+import AddService from "./pages/AddService";
+import EventDetail from "./pages/EventDetail";
+import RouteDetail from "./pages/RouteDetail";
+import ServiceDetail from "./pages/ServiceDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,6 +28,18 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/forums" element={<Forums />} />
+          <Route path="/clubs" element={<Clubs />} />
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/add/event" element={<AddEvent />} />
+          <Route path="/add/route" element={<AddRoute />} />
+          <Route path="/add/service" element={<AddService />} />
+          <Route path="/event/:id" element={<EventDetail />} />
+          <Route path="/route/:id" element={<RouteDetail />} />
+          <Route path="/service/:id" element={<ServiceDetail />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

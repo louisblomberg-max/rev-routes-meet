@@ -1,0 +1,227 @@
+export const mockPins = [
+  { id: '1', type: 'events', x: 25, y: 35, title: 'Porsche Meet' },
+  { id: '2', type: 'events', x: 65, y: 45, title: 'JDM Night' },
+  { id: '3', type: 'routes', x: 40, y: 25, title: 'Coastal Run' },
+  { id: '4', type: 'routes', x: 75, y: 60, title: 'Mountain Pass' },
+  { id: '5', type: 'services', x: 30, y: 55, title: 'Euro Specialists' },
+  { id: '6', type: 'services', x: 55, y: 70, title: 'Quick Fit Garage' },
+  { id: '7', type: 'clubs', x: 80, y: 30, title: 'BMW Club UK' },
+  { id: '8', type: 'events', x: 15, y: 65, title: 'Classic Car Show' },
+];
+
+export const mockEvents = [
+  {
+    id: '1',
+    title: 'Porsche Owners Meet',
+    date: 'Sat, Feb 15 • 10:00 AM',
+    location: 'Ace Cafe, London',
+    vehicleType: 'Porsche Only',
+    attendees: 47,
+  },
+  {
+    id: '2',
+    title: 'JDM Night Drive',
+    date: 'Fri, Feb 21 • 8:00 PM',
+    location: 'Box Hill, Surrey',
+    vehicleType: 'Japanese Cars',
+    attendees: 89,
+  },
+  {
+    id: '3',
+    title: 'Classic Car Sunday',
+    date: 'Sun, Feb 23 • 9:00 AM',
+    location: 'Brooklands Museum',
+    vehicleType: 'Pre-1990 Classics',
+    attendees: 156,
+  },
+  {
+    id: '4',
+    title: 'Supercar Breakfast',
+    date: 'Sat, Mar 1 • 8:00 AM',
+    location: 'The Ivy, Chelsea',
+    vehicleType: 'Supercars Only',
+    attendees: 32,
+  },
+];
+
+export const mockRoutes = [
+  {
+    id: '1',
+    name: 'South Downs Scenic',
+    distance: '45 miles',
+    type: 'Scenic',
+    vehicleType: 'both' as const,
+    rating: 4.8,
+  },
+  {
+    id: '2',
+    name: 'Welsh Dragon Pass',
+    distance: '82 miles',
+    type: 'Twisty',
+    vehicleType: 'car' as const,
+    rating: 4.9,
+  },
+  {
+    id: '3',
+    name: 'Cotswolds Explorer',
+    distance: '67 miles',
+    type: 'Mixed',
+    vehicleType: 'both' as const,
+    rating: 4.6,
+  },
+  {
+    id: '4',
+    name: 'Scottish Highlands A82',
+    distance: '120 miles',
+    type: 'Scenic',
+    vehicleType: 'both' as const,
+    rating: 4.9,
+  },
+];
+
+export const mockServices = [
+  {
+    id: '1',
+    name: 'Euro Specialists',
+    category: 'Specialist',
+    rating: 4.9,
+    distance: '2.3 miles',
+    reviewCount: 127,
+  },
+  {
+    id: '2',
+    name: 'Quick Fit Garage',
+    category: 'Garage',
+    rating: 4.5,
+    distance: '0.8 miles',
+    reviewCount: 89,
+  },
+  {
+    id: '3',
+    name: 'Premium Detailing Co',
+    category: 'Detailing',
+    rating: 4.8,
+    distance: '3.1 miles',
+    reviewCount: 203,
+  },
+  {
+    id: '4',
+    name: 'Performance Parts UK',
+    category: 'Parts',
+    rating: 4.7,
+    distance: '5.2 miles',
+    reviewCount: 156,
+  },
+];
+
+export const mockClubs = [
+  {
+    id: '1',
+    name: 'BMW Enthusiasts UK',
+    location: 'Nationwide',
+    members: 2340,
+    image: null,
+  },
+  {
+    id: '2',
+    name: 'Porsche Club GB',
+    location: 'London & South East',
+    members: 1856,
+    image: null,
+  },
+  {
+    id: '3',
+    name: 'JDM Legends',
+    location: 'Manchester Area',
+    members: 987,
+    image: null,
+  },
+  {
+    id: '4',
+    name: 'Classic Mini Club',
+    location: 'Nationwide',
+    members: 3421,
+    image: null,
+  },
+];
+
+export const mockForumThreads = [
+  {
+    id: '1',
+    title: 'Best oil for E46 M3?',
+    topic: 'Maintenance',
+    author: 'BimmerFan92',
+    upvotes: 24,
+    replies: 18,
+    solved: true,
+    createdAt: '2h ago',
+  },
+  {
+    id: '2',
+    title: 'Ceramic coating worth it?',
+    topic: 'Detailing',
+    author: 'CleanFreak',
+    upvotes: 45,
+    replies: 32,
+    solved: false,
+    createdAt: '5h ago',
+  },
+  {
+    id: '3',
+    title: 'GTI vs Golf R for daily?',
+    topic: 'Buying Advice',
+    author: 'VWNewbie',
+    upvotes: 67,
+    replies: 89,
+    solved: false,
+    createdAt: '1d ago',
+  },
+  {
+    id: '4',
+    title: 'How to fix dashboard rattle?',
+    topic: 'DIY',
+    author: 'QuietRider',
+    upvotes: 12,
+    replies: 8,
+    solved: true,
+    createdAt: '2d ago',
+  },
+];
+
+export const mockMarketplaceListings = [
+  {
+    id: '1',
+    title: '2019 BMW M3 Competition',
+    price: '£52,995',
+    location: 'London',
+    category: 'Cars',
+    image: null,
+    mileage: '24,000 miles',
+  },
+  {
+    id: '2',
+    title: '2021 Ducati Panigale V4',
+    price: '£18,500',
+    location: 'Birmingham',
+    category: 'Bikes',
+    image: null,
+    mileage: '3,200 miles',
+  },
+  {
+    id: '3',
+    title: 'Genuine BBS LM Wheels 19"',
+    price: '£2,800',
+    location: 'Manchester',
+    category: 'Parts',
+    image: null,
+  },
+  {
+    id: '4',
+    title: '2018 Porsche 911 Carrera S',
+    price: '£79,995',
+    location: 'Surrey',
+    category: 'Cars',
+    image: null,
+    mileage: '18,500 miles',
+  },
+];
