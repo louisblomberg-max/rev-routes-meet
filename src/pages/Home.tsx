@@ -129,6 +129,7 @@ const Home = () => {
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
         showEmptyPrompt={activeCategories.length === 0 && !selectedItem && !isSearchActive}
+        isDimmed={isSearchActive}
       />
 
       {/* Top Bar */}
@@ -155,7 +156,7 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Category Toggles + Filter button */}
+        {/* Category Toggles + Filter button - hidden during search */}
         {!isSearchActive && (
           <div className="mt-3 flex items-center gap-2">
             <div className="flex-1">
@@ -175,17 +176,21 @@ const Home = () => {
         )}
       </div>
 
-      {/* Location Button - Google Maps style */}
-      <div className="absolute right-4 bottom-36 z-20">
-        <LocationButton onClick={() => console.log('Center on location')} />
-      </div>
+      {/* Location Button - hidden during search */}
+      {!isSearchActive && (
+        <div className="absolute right-4 bottom-36 z-20">
+          <LocationButton onClick={() => console.log('Center on location')} />
+        </div>
+      )}
 
-      {/* Item Detail Sheet - Fixed bottom sheet when pin is tapped */}
-      <ItemDetailSheet 
-        item={selectedItem}
-        onClose={handleCloseDetail}
-        onViewFull={handleViewFull}
-      />
+      {/* Item Detail Sheet - hidden during search */}
+      {!isSearchActive && (
+        <ItemDetailSheet 
+          item={selectedItem}
+          onClose={handleCloseDetail}
+          onViewFull={handleViewFull}
+        />
+      )}
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
