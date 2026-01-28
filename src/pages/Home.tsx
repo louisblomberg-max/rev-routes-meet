@@ -3,15 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
-import CategoryChips from '@/components/CategoryChips';
+import CategoryToggles from '@/components/CategoryToggles';
 import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
-import FloatingActionButton from '@/components/FloatingActionButton';
+import BottomNavigation from '@/components/BottomNavigation';
+import YouTab from '@/components/YouTab';
+import ContributeTab from '@/components/ContributeTab';
+import LocationButton from '@/components/LocationButton';
 import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 
+type Tab = 'discovery' | 'you' | 'contribute';
+
 const Home = () => {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('discovery');
+  const [activeCategories, setActiveCategories] = useState<string[]>(['events', 'routes', 'services']);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -100,54 +106,66 @@ const Home = () => {
   // Get the selected route ID for highlighting on map
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
 
-  // Determine if FAB should be visible
-  const showFAB = !isSearchActive && !isFiltersOpen;
+  // Determine primary category for filtering context
+  const primaryCategory = activeCategories.length === 1 ? activeCategories[0] : null;
+
+  // Discovery Tab Content
+  if (activeTab !== 'discovery') {
+    return (
+      <div className="mobile-container">
+        {activeTab === 'you' && <YouTab />}
+        {activeTab === 'contribute' && <ContributeTab />}
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+    );
+  }
 
   return (
     <div className="mobile-container">
       {/* Map Background */}
       <MapView 
-        activeCategory={activeCategory} 
+        activeCategories={activeCategories}
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
-        showEmptyPrompt={!activeCategory && !selectedItem && !isSearchActive}
+        showEmptyPrompt={activeCategories.length === 0 && !selectedItem && !isSearchActive}
       />
-
-      {/* Search Overlay - dims map when search is active */}
-      {isSearchActive && (
-        <div 
-          className="absolute inset-0 bg-overlay/40 z-10 transition-opacity duration-200"
-          onClick={handleCloseSearch}
-        />
-      )}
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-20 p-4 safe-top">
-        <SearchBar 
-          onFocus={() => setIsSearchActive(true)}
-          onProfileClick={() => navigate('/profile')}
-          isSearchActive={isSearchActive}
-          onClose={handleCloseSearch}
-          searchValue={searchValue}
-          onSearchChange={setSearchValue}
-          onFilterClick={() => setIsFiltersOpen(true)}
-        />
+        {/* Logo + Search + Profile row */}
+        <div className="flex items-center gap-3">
+          {/* RevNet Logo */}
+          <div className="flex-shrink-0">
+            <span className="text-lg font-bold text-foreground">RevNet</span>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="flex-1">
+            <SearchBar 
+              onFocus={() => setIsSearchActive(true)}
+              onProfileClick={() => setActiveTab('you')}
+              isSearchActive={isSearchActive}
+              onClose={handleCloseSearch}
+              searchValue={searchValue}
+              onSearchChange={setSearchValue}
+              onFilterClick={() => setIsFiltersOpen(true)}
+            />
+          </div>
+        </div>
 
-        {/* Category Chips - Only show when NOT in search mode */}
+        {/* Category Toggles + Filter button */}
         {!isSearchActive && (
           <div className="mt-3 flex items-center gap-2">
             <div className="flex-1">
-              <CategoryChips 
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
+              <CategoryToggles 
+                activeCategories={activeCategories}
+                onCategoriesChange={setActiveCategories}
               />
             </div>
-            {/* Filter button for browse mode - always visible */}
+            {/* Filter button */}
             <button
               onClick={() => setIsFiltersOpen(true)}
-              className={`w-9 h-9 rounded-full bg-card shadow-md flex items-center justify-center hover:bg-muted transition-colors ${
-                activeCategory ? 'animate-scale-up' : ''
-              }`}
+              className="w-9 h-9 rounded-full bg-card shadow-md flex items-center justify-center hover:bg-muted transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -155,24 +173,20 @@ const Home = () => {
         )}
       </div>
 
-      {/* Item Detail Sheet - Only when a pin is tapped and NOT in search mode */}
-      {!isSearchActive && (
-        <ItemDetailSheet 
-          item={selectedItem}
-          onClose={handleCloseDetail}
-          onViewFull={handleViewFull}
-        />
-      )}
+      {/* Location Button - Google Maps style */}
+      <div className="absolute right-4 bottom-36 z-20">
+        <LocationButton onClick={() => console.log('Center on location')} />
+      </div>
 
-      {/* Floating Action Button - Hidden during search or when filters open */}
-      {showFAB && (
-        <FloatingActionButton 
-          onAddEvent={() => navigate('/add/event')}
-          onAddRoute={() => navigate('/add/route')}
-          onAddService={() => navigate('/add/service')}
-          onAddClub={() => navigate('/add/club')}
-        />
-      )}
+      {/* Item Detail Sheet - Fixed bottom sheet when pin is tapped */}
+      <ItemDetailSheet 
+        item={selectedItem}
+        onClose={handleCloseDetail}
+        onViewFull={handleViewFull}
+      />
+
+      {/* Bottom Navigation */}
+      <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Search Filters Modal */}
       <SearchFilters
@@ -181,7 +195,7 @@ const Home = () => {
         activeFilters={searchFilters}
         onFiltersChange={setSearchFilters}
         mode={isSearchActive ? 'search' : 'browse'}
-        browseCategory={activeCategory}
+        browseCategory={primaryCategory}
       />
     </div>
   );

@@ -1,17 +1,21 @@
-import { MapPin, Navigation } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { mockPins } from '@/data/mockData';
 
 interface MapViewProps {
-  activeCategory: string | null;
-  onPinClick: (pin: typeof mockPins[0]) => void;
+  activeCategories?: string[];
+  activeCategory?: string | null;
+  onPinClick?: (pin: typeof mockPins[0]) => void;
   selectedRouteId?: string | null;
   showEmptyPrompt?: boolean;
 }
 
-const MapView = ({ activeCategory, onPinClick, selectedRouteId, showEmptyPrompt }: MapViewProps) => {
-  const filteredPins = activeCategory 
-    ? mockPins.filter(pin => pin.type === activeCategory)
-    : mockPins;
+const MapView = ({ activeCategories, activeCategory, onPinClick, selectedRouteId, showEmptyPrompt }: MapViewProps) => {
+  // Support both multi-select (activeCategories) and single-select (activeCategory)
+  const filteredPins = activeCategories && activeCategories.length > 0
+    ? mockPins.filter(pin => activeCategories.includes(pin.type))
+    : activeCategory 
+      ? mockPins.filter(pin => pin.type === activeCategory)
+      : [];
 
   const getPinColor = (type: string) => {
     switch (type) {
@@ -137,10 +141,8 @@ const MapView = ({ activeCategory, onPinClick, selectedRouteId, showEmptyPrompt 
         return (
           <button
             key={pin.id}
-            onClick={() => onPinClick(pin)}
-            className={`absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 ${
-              activeCategory && pin.type !== activeCategory ? 'opacity-30' : 'opacity-100'
-            } ${isSelected ? 'scale-125 z-20' : ''}`}
+            onClick={() => onPinClick?.(pin)}
+            className={`absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 ${isSelected ? 'scale-125 z-20' : ''}`}
             style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
           >
             <div className={`${getPinColor(pin.type)} p-2 rounded-full shadow-lg ${isSelected ? 'ring-4 ring-routes/30' : ''}`}>
@@ -150,11 +152,6 @@ const MapView = ({ activeCategory, onPinClick, selectedRouteId, showEmptyPrompt 
           </button>
         );
       })}
-
-      {/* Compass */}
-      <button className="absolute top-24 right-4 w-10 h-10 bg-card rounded-full shadow-lg flex items-center justify-center">
-        <Navigation className="w-5 h-5 text-foreground" />
-      </button>
 
       {/* Empty State Prompt */}
       {showEmptyPrompt && (
