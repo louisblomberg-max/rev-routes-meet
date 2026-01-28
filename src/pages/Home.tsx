@@ -4,18 +4,18 @@ import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
 import CategoryChips from '@/components/CategoryChips';
-import BottomSheet from '@/components/BottomSheet';
+import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import FloatingActionButton from '@/components/FloatingActionButton';
 import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
-import { mockPins } from '@/data/mockData';
+import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 
 const Home = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
-  const [isBottomSheetExpanded, setIsBottomSheetExpanded] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [searchFilters, setSearchFilters] = useState<SearchFilterState>({
     contentTypes: [],
     distanceRadius: 25,
@@ -24,16 +24,65 @@ const Home = () => {
   });
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
+    // Find the full item data based on pin type and id
     if (pin.type === 'events') {
-      navigate(`/event/${pin.id}`);
+      const event = mockEvents.find(e => e.id === pin.id);
+      if (event) {
+        setSelectedItem({
+          type: 'event',
+          id: event.id,
+          title: event.title,
+          date: event.date,
+          location: event.location,
+          vehicleType: event.vehicleType,
+          attendees: event.attendees,
+        });
+      }
     } else if (pin.type === 'routes') {
-      navigate(`/route/${pin.id}`);
+      const route = mockRoutes.find(r => r.id === pin.id);
+      if (route) {
+        setSelectedItem({
+          type: 'route',
+          id: route.id,
+          name: route.name,
+          distance: route.distance,
+          routeType: route.type,
+          vehicleType: route.vehicleType,
+          rating: route.rating,
+        });
+      }
     } else if (pin.type === 'services') {
-      navigate(`/service/${pin.id}`);
+      const service = mockServices.find(s => s.id === pin.id);
+      if (service) {
+        setSelectedItem({
+          type: 'service',
+          id: service.id,
+          name: service.name,
+          category: service.category,
+          rating: service.rating,
+          distance: service.distance,
+          reviewCount: service.reviewCount,
+        });
+      }
+    } else if (pin.type === 'clubs') {
+      const club = mockClubs.find(c => c.id === pin.id);
+      if (club) {
+        setSelectedItem({
+          type: 'club',
+          id: club.id,
+          name: club.name,
+          location: club.location,
+          members: club.members,
+        });
+      }
     }
   };
 
-  const handleItemClick = (type: string, id: string) => {
+  const handleCloseDetail = () => {
+    setSelectedItem(null);
+  };
+
+  const handleViewFull = (type: string, id: string) => {
     navigate(`/${type}/${id}`);
   };
 
@@ -48,26 +97,16 @@ const Home = () => {
     });
   };
 
-  // Determine effective category for map and bottom sheet
-  // In search mode, use content type filters if only one is selected
-  const getEffectiveCategory = () => {
-    if (isSearchActive) {
-      if (searchFilters.contentTypes.length === 1) {
-        return searchFilters.contentTypes[0];
-      }
-      return null; // Mixed results
-    }
-    return activeCategory;
-  };
-
-  const effectiveCategory = getEffectiveCategory();
+  // Get the selected route ID for highlighting on map
+  const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
 
   return (
     <div className="mobile-container">
       {/* Map Background */}
       <MapView 
-        activeCategory={effectiveCategory} 
+        activeCategory={activeCategory} 
         onPinClick={handlePinClick}
+        selectedRouteId={selectedRouteId}
       />
 
       {/* Search Overlay - dims map when search is active */}
@@ -112,15 +151,12 @@ const Home = () => {
         )}
       </div>
 
-      {/* Bottom Sheet - ONLY visible when NOT in search mode */}
-      {!isSearchActive && (
-        <BottomSheet 
-          activeCategory={activeCategory}
-          isExpanded={isBottomSheetExpanded}
-          onToggle={() => setIsBottomSheetExpanded(!isBottomSheetExpanded)}
-          onItemClick={handleItemClick}
-        />
-      )}
+      {/* Item Detail Sheet - Only when a pin is tapped */}
+      <ItemDetailSheet 
+        item={selectedItem}
+        onClose={handleCloseDetail}
+        onViewFull={handleViewFull}
+      />
 
       {/* Floating Action Button */}
       <FloatingActionButton 

@@ -4,9 +4,10 @@ import { mockPins } from '@/data/mockData';
 interface MapViewProps {
   activeCategory: string | null;
   onPinClick: (pin: typeof mockPins[0]) => void;
+  selectedRouteId?: string | null;
 }
 
-const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
+const MapView = ({ activeCategory, onPinClick, selectedRouteId }: MapViewProps) => {
   const filteredPins = activeCategory 
     ? mockPins.filter(pin => pin.type === activeCategory)
     : mockPins;
@@ -20,6 +21,22 @@ const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
       default: return 'bg-muted-foreground';
     }
   };
+
+  // Route polyline data (simplified for demo)
+  const routePolylines: Record<string, { path: string; start: { x: number; y: number }; end: { x: number; y: number } }> = {
+    '1': { 
+      path: 'M 160 100 Q 200 150 180 200 T 220 280 T 280 320', 
+      start: { x: 40, y: 25 }, 
+      end: { x: 70, y: 80 } 
+    },
+    '2': { 
+      path: 'M 300 240 Q 280 180 320 140 T 340 80', 
+      start: { x: 75, y: 60 }, 
+      end: { x: 85, y: 20 } 
+    },
+  };
+
+  const selectedRoute = selectedRouteId ? routePolylines[selectedRouteId] : null;
 
   return (
     <div className="absolute inset-0 bg-gradient-to-b from-muted/50 to-muted">
@@ -57,6 +74,51 @@ const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
         />
       </svg>
 
+      {/* Selected Route Polyline */}
+      {selectedRoute && (
+        <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+          {/* Route path glow */}
+          <path 
+            d={selectedRoute.path}
+            stroke="hsl(var(--routes))" 
+            strokeWidth="8" 
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.3"
+          />
+          {/* Route path main */}
+          <path 
+            d={selectedRoute.path}
+            stroke="hsl(var(--routes))" 
+            strokeWidth="4" 
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeDasharray="12 6"
+            className="animate-pulse"
+          />
+          {/* Start point */}
+          <circle 
+            cx={selectedRoute.start.x * 4} 
+            cy={selectedRoute.start.y * 4} 
+            r="8" 
+            fill="hsl(var(--routes))" 
+            stroke="white"
+            strokeWidth="3"
+          />
+          {/* End point */}
+          <circle 
+            cx={selectedRoute.end.x * 4} 
+            cy={selectedRoute.end.y * 4} 
+            r="8" 
+            fill="hsl(var(--routes))" 
+            stroke="white"
+            strokeWidth="3"
+          />
+        </svg>
+      )}
+
       {/* Current location indicator */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="relative">
@@ -68,24 +130,28 @@ const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
       </div>
 
       {/* Map pins */}
-      {filteredPins.map((pin) => (
-        <button
-          key={pin.id}
-          onClick={() => onPinClick(pin)}
-          className={`absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 ${
-            activeCategory && pin.type !== activeCategory ? 'opacity-30' : 'opacity-100'
-          }`}
-          style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
-        >
-          <div className={`${getPinColor(pin.type)} p-2 rounded-full shadow-lg`}>
-            <MapPin className="w-5 h-5 text-white" />
-          </div>
-          <div className={`${getPinColor(pin.type)} w-2 h-2 rounded-full mx-auto -mt-1`} />
-        </button>
-      ))}
+      {filteredPins.map((pin) => {
+        const isSelected = selectedRouteId && pin.type === 'routes' && pin.id === selectedRouteId;
+        
+        return (
+          <button
+            key={pin.id}
+            onClick={() => onPinClick(pin)}
+            className={`absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+              activeCategory && pin.type !== activeCategory ? 'opacity-30' : 'opacity-100'
+            } ${isSelected ? 'scale-125 z-20' : ''}`}
+            style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+          >
+            <div className={`${getPinColor(pin.type)} p-2 rounded-full shadow-lg ${isSelected ? 'ring-4 ring-routes/30' : ''}`}>
+              <MapPin className="w-5 h-5 text-white" />
+            </div>
+            <div className={`${getPinColor(pin.type)} w-2 h-2 rounded-full mx-auto -mt-1`} />
+          </button>
+        );
+      })}
 
       {/* Compass */}
-      <button className="absolute top-24 right-4 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">
+      <button className="absolute top-24 right-4 w-10 h-10 bg-card rounded-full shadow-lg flex items-center justify-center">
         <Navigation className="w-5 h-5 text-foreground" />
       </button>
     </div>
