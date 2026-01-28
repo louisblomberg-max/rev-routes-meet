@@ -11,6 +11,7 @@ import ContributeTab from '@/components/ContributeTab';
 import LocationButton from '@/components/LocationButton';
 import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
+import revnetLogo from '@/assets/revnet-logo.png';
 
 type Tab = 'discovery' | 'you' | 'contribute';
 
@@ -131,16 +132,18 @@ const Home = () => {
       />
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-4 safe-top">
+      <div className="absolute top-0 left-0 right-0 z-20 px-3 pt-3 safe-top">
         {/* Logo + Search + Profile row */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* RevNet Logo */}
-          <div className="flex-shrink-0">
-            <span className="text-lg font-bold text-foreground">RevNet</span>
-          </div>
+          <img 
+            src={revnetLogo} 
+            alt="RevNet" 
+            className="h-9 w-auto flex-shrink-0"
+          />
           
           {/* Search Bar */}
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <SearchBar 
               onFocus={() => setIsSearchActive(true)}
               onProfileClick={() => setActiveTab('you')}
