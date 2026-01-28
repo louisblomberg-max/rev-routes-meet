@@ -1,0 +1,45 @@
+import { Calendar, Route, Wrench } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+
+interface CategoryTogglesProps {
+  activeCategories: string[];
+  onCategoriesChange: (categories: string[]) => void;
+}
+
+const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryTogglesProps) => {
+  const categories = [
+    { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
+    { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
+    { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
+  ];
+
+  const handleToggle = (categoryId: string) => {
+    if (activeCategories.includes(categoryId)) {
+      onCategoriesChange(activeCategories.filter(c => c !== categoryId));
+    } else {
+      onCategoriesChange([...activeCategories, categoryId]);
+    }
+  };
+
+  return (
+    <div className="flex gap-1.5 w-full">
+      {categories.map((category) => {
+        const Icon = category.icon;
+        const isActive = activeCategories.includes(category.id);
+        
+        return (
+          <button
+            key={category.id}
+            onClick={() => handleToggle(category.id)}
+            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+            <span className="text-[11px]">{category.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+};
+
+export default CategoryToggles;

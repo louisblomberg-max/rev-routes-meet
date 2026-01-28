@@ -39,11 +39,11 @@ const SearchBar = ({
 
   return (
     <div className="space-y-3">
-      {/* Collapsed State */}
+      {/* Collapsed State - Simplified for logo layout */}
       {!isSearchActive && (
         <div className="search-bar cursor-pointer" onClick={onFocus}>
           <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <span className="flex-1 text-muted-foreground">Search events, routes, services or clubs</span>
+          <span className="flex-1 text-muted-foreground text-sm truncate">Search events, routes, services or clubs</span>
           <div onClick={(e) => { e.stopPropagation(); onProfileClick(); }}>
             <ProfileAvatar onClick={() => {}} />
           </div>
