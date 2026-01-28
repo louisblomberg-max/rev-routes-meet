@@ -2,95 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 220 13% 18%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 220 13% 18%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 220 13% 18%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 357 60% 30%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 18%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 13% 18%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 357 60% 30%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* RevNet Custom Colors */
+    --events: 357 60% 30%;
+    --events-foreground: 0 0% 100%;
+    --events-light: 357 60% 95%;
+    
+    --routes: 213 94% 45%;
+    --routes-foreground: 0 0% 100%;
+    --routes-light: 213 94% 95%;
+    
+    --services: 45 93% 47%;
+    --services-foreground: 220 13% 18%;
+    --services-light: 45 93% 95%;
+    
+    --clubs: 220 14% 40%;
+    --clubs-foreground: 0 0% 100%;
+    --clubs-light: 220 14% 95%;
+
+    /* Map overlay */
+    --overlay: 0 0% 0%;
+    --overlay-light: 220 14% 96%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--overlay) / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--overlay) / 0.1), 0 2px 4px -2px hsl(var(--overlay) / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--overlay) / 0.1), 0 4px 6px -4px hsl(var(--overlay) / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(var(--overlay) / 0.1), 0 8px 10px -6px hsl(var(--overlay) / 0.1);
 
     --sidebar-background: 0 0% 98%;
-
     --sidebar-foreground: 240 5.3% 26.1%;
-
     --sidebar-primary: 240 5.9% 10%;
-
     --sidebar-primary-foreground: 0 0% 98%;
-
     --sidebar-accent: 240 4.8% 95.9%;
-
     --sidebar-accent-foreground: 240 5.9% 10%;
-
     --sidebar-border: 220 13% 91%;
-
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 220 13% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 13% 12%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 13% 12%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 357 60% 45%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 13% 18%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 13% 18%;
+    --muted-foreground: 220 9% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 220 13% 18%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 220 13% 20%;
+    --input: 220 13% 20%;
+    --ring: 357 60% 45%;
+
+    --events: 357 60% 45%;
+    --routes: 213 94% 55%;
+    --services: 45 93% 55%;
+    --clubs: 220 14% 60%;
   }
 }
 
@@ -99,7 +114,188 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .search-bar {
+    @apply bg-white rounded-full shadow-lg px-4 py-3 flex items-center gap-3 transition-all duration-200;
+  }
+
+  .search-bar:focus-within {
+    @apply ring-2 ring-primary/20;
+  }
+
+  .category-chip {
+    @apply px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer;
+  }
+
+  .category-chip-events {
+    @apply bg-events-light text-events hover:bg-events hover:text-events-foreground;
+  }
+
+  .category-chip-events.active {
+    @apply bg-events text-events-foreground;
+  }
+
+  .category-chip-routes {
+    @apply bg-routes-light text-routes hover:bg-routes hover:text-routes-foreground;
+  }
+
+  .category-chip-routes.active {
+    @apply bg-routes text-routes-foreground;
+  }
+
+  .category-chip-services {
+    @apply bg-services-light text-services hover:bg-services hover:text-services-foreground;
+  }
+
+  .category-chip-services.active {
+    @apply bg-services text-services-foreground;
+  }
+
+  .category-chip-clubs {
+    @apply bg-clubs-light text-clubs hover:bg-clubs hover:text-clubs-foreground;
+  }
+
+  .category-chip-clubs.active {
+    @apply bg-clubs text-clubs-foreground;
+  }
+
+  .bottom-sheet {
+    @apply bg-white rounded-t-3xl shadow-xl;
+  }
+
+  .content-card {
+    @apply bg-white rounded-xl p-4 shadow-sm border border-border transition-all duration-200 hover:shadow-md;
+  }
+
+  .fab-button {
+    @apply w-14 h-14 rounded-full bg-events text-events-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
+  }
+
+  .fab-option {
+    @apply flex items-center gap-3 px-4 py-3 bg-white rounded-full shadow-md transition-all duration-200 hover:bg-muted cursor-pointer;
+  }
+
+  .pin-events {
+    @apply bg-events text-events-foreground;
+  }
+
+  .pin-routes {
+    @apply bg-routes text-routes-foreground;
+  }
+
+  .pin-services {
+    @apply bg-services text-services-foreground;
+  }
+
+  .pin-clubs {
+    @apply bg-clubs text-clubs-foreground;
+  }
+
+  .page-container {
+    @apply min-h-screen bg-background;
+  }
+
+  .mobile-container {
+    @apply max-w-md mx-auto min-h-screen relative overflow-hidden bg-background;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.3s ease-out forwards;
+  }
+
+  .animate-fade-down {
+    animation: fadeDown 0.3s ease-out forwards;
+  }
+
+  .animate-scale-up {
+    animation: scaleUp 0.2s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out forwards;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 20px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
   }
 }
