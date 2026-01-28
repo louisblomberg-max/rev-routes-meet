@@ -8,6 +8,8 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
+import CreateForumPost from "./pages/CreateForumPost";
+import ForumThread from "./pages/ForumThread";
 import Clubs from "./pages/Clubs";
 import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
@@ -34,6 +36,8 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
+          <Route path="/forums/create" element={<CreateForumPost />} />
+          <Route path="/forums/thread/:id" element={<ForumThread />} />
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/club/:id" element={<ClubProfile />} />
           <Route path="/marketplace" element={<Marketplace />} />
