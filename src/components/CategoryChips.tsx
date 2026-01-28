@@ -8,7 +8,7 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events', icon: Calendar, chipClass: 'category-chip-events' },
+    { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
     { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
     { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
     ...(showClubs ? [{ id: 'clubs', label: 'Clubs', icon: Users, chipClass: 'category-chip-clubs' }] : []),
@@ -23,7 +23,7 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
   };
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+    <div className="flex gap-1.5 w-full">
       {categories.map((category) => {
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
@@ -32,10 +32,10 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex items-center gap-2 whitespace-nowrap`}
+            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap`}
           >
-            <Icon className="w-4 h-4" />
-            <span>{category.label}</span>
+            <Icon className="w-3.5 h-3.5" />
+            <span className="text-[11px]">{category.label}</span>
           </button>
         );
       })}
