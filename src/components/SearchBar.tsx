@@ -1,9 +1,7 @@
 import { Search, X, SlidersHorizontal } from 'lucide-react';
-import ProfileAvatar from './ProfileAvatar';
 
 interface SearchBarProps {
   onFocus: () => void;
-  onProfileClick: () => void;
   isSearchActive: boolean;
   onClose: () => void;
   searchValue: string;
@@ -13,13 +11,18 @@ interface SearchBarProps {
 
 const SearchBar = ({ 
   onFocus, 
-  onProfileClick, 
   isSearchActive, 
   onClose,
   searchValue,
   onSearchChange,
   onFilterClick,
-}: SearchBarProps) => {
+}: Omit<SearchBarProps, 'onProfileClick'>) => {
+  const searchCategories = [
+    { id: 'events', label: 'Meets & Events' },
+    { id: 'routes', label: 'Routes' },
+    { id: 'services', label: 'Services' },
+    { id: 'clubs', label: 'Clubs' },
+  ];
   const searchSuggestions = [
     "Porsche meets this weekend",
     "Scenic driving routes near me",
@@ -43,10 +46,7 @@ const SearchBar = ({
       {!isSearchActive && (
         <div className="search-bar cursor-pointer py-2 px-3" onClick={onFocus}>
           <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <span className="flex-1 text-muted-foreground text-sm">Search specifics</span>
-          <div onClick={(e) => { e.stopPropagation(); onProfileClick(); }}>
-            <ProfileAvatar onClick={() => {}} />
-          </div>
+          <span className="flex-1 text-muted-foreground text-sm">Search</span>
         </div>
       )}
 
@@ -76,6 +76,19 @@ const SearchBar = ({
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
+          </div>
+
+          {/* Search Category Options */}
+          <div className="flex flex-wrap gap-2">
+            {searchCategories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => onSearchChange(cat.label)}
+                className="px-3 py-1.5 rounded-full bg-card border border-border text-xs font-medium text-foreground hover:bg-muted transition-colors"
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
 
           {/* Search Suggestions (only when empty) */}

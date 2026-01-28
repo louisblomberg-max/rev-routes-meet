@@ -1,4 +1,4 @@
-import { Route, Calendar, Store, Users, MessageSquare, Settings, ChevronRight } from 'lucide-react';
+import { Route, Calendar, Store, Users, MessageSquare, Settings, ChevronRight, HelpCircle, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileAvatar from './ProfileAvatar';
 
@@ -11,6 +11,8 @@ const YouTab = () => {
     { id: 'listings', label: 'My Listings', icon: Store, count: 1 },
     { id: 'clubs', label: 'My Clubs', icon: Users, count: 4 },
     { id: 'discussions', label: 'My Discussions', icon: MessageSquare, count: 7 },
+    { id: 'forums', label: 'Forums & Advice', icon: HelpCircle, path: '/forums' },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, path: '/marketplace' },
   ];
 
   return (
@@ -35,13 +37,14 @@ const YouTab = () => {
           return (
             <button
               key={item.id}
+              onClick={() => item.path && navigate(item.path)}
               className="w-full flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-muted transition-colors"
             >
               <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                 <Icon className="w-5 h-5 text-muted-foreground" />
               </div>
               <span className="flex-1 text-left font-medium text-foreground">{item.label}</span>
-              {item.count > 0 && (
+              {item.count && item.count > 0 && (
                 <span className="text-sm text-muted-foreground">{item.count}</span>
               )}
               <ChevronRight className="w-4 h-4 text-muted-foreground" />

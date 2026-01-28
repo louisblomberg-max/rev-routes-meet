@@ -1,4 +1,4 @@
-import { Calendar, Route, Wrench } from 'lucide-react';
+import { Calendar, Route, Wrench, Users } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface CategoryTogglesProps {
@@ -11,6 +11,7 @@ const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryToggl
     { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
     { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
     { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
+    { id: 'clubs', label: 'Clubs', icon: Users, chipClass: 'category-chip-clubs' },
   ];
 
   const handleToggle = (categoryId: string) => {
@@ -22,7 +23,7 @@ const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryToggl
   };
 
   return (
-    <div className="flex gap-1.5 w-full">
+    <div className="flex gap-1 w-full">
       {categories.map((category) => {
         const Icon = category.icon;
         const isActive = activeCategories.includes(category.id);
@@ -31,10 +32,10 @@ const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryToggl
           <button
             key={category.id}
             onClick={() => handleToggle(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap`}
+            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1 whitespace-nowrap px-2 py-1.5`}
           >
-            <Icon className="w-3.5 h-3.5" />
-            <span className="text-[11px]">{category.label}</span>
+            <Icon className="w-3 h-3" />
+            <span className="text-[10px] font-medium">{category.label}</span>
           </button>
         );
       })}

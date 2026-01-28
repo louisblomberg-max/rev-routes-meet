@@ -18,7 +18,7 @@ type Tab = 'discovery' | 'you' | 'contribute';
 const Home = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
-  const [activeCategories, setActiveCategories] = useState<string[]>(['events', 'routes', 'services']);
+  const [activeCategories, setActiveCategories] = useState<string[]>([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -146,7 +146,6 @@ const Home = () => {
           <div className="flex-1 min-w-0">
             <SearchBar 
               onFocus={() => setIsSearchActive(true)}
-              onProfileClick={() => setActiveTab('you')}
               isSearchActive={isSearchActive}
               onClose={handleCloseSearch}
               searchValue={searchValue}
