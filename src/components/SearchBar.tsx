@@ -1,4 +1,4 @@
-import { Search, X, SlidersHorizontal, Calendar, Route, Wrench, Users } from 'lucide-react';
+import { Search, X, Calendar, Route, Wrench, Users } from 'lucide-react';
 import { useState } from 'react';
 
 interface SearchBarProps {
@@ -16,8 +16,7 @@ const SearchBar = ({
   onClose,
   searchValue,
   onSearchChange,
-  onFilterClick,
-}: Omit<SearchBarProps, 'onProfileClick'>) => {
+}: Omit<SearchBarProps, 'onFilterClick'>) => {
   const [selectedSearchCategory, setSelectedSearchCategory] = useState<string | null>(null);
 
   const searchCategories = [
@@ -37,6 +36,7 @@ const SearchBar = ({
   };
 
   const hasSelectedCategory = selectedSearchCategory !== null;
+  const selectedCategoryLabel = searchCategories.find(c => c.id === selectedSearchCategory)?.label;
 
   return (
     <div className="space-y-3">
@@ -44,19 +44,19 @@ const SearchBar = ({
       {!isSearchActive && (
         <div className="search-bar cursor-pointer py-2 px-3" onClick={onFocus}>
           <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <span className="flex-1 text-muted-foreground text-xs truncate">Search events, routes, services or clubs</span>
+          <span className="flex-1 text-muted-foreground text-xs truncate">Search events, routes or services</span>
         </div>
       )}
 
       {/* Expanded State */}
       {isSearchActive && (
         <div className="space-y-4 animate-fade-up">
-          {/* Search Input - only active when category selected */}
+          {/* Search Input */}
           <div className={`search-bar ${hasSelectedCategory ? 'ring-2 ring-primary/20' : ''}`}>
             <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             <input
               type="text"
-              placeholder={hasSelectedCategory ? `Search ${searchCategories.find(c => c.id === selectedSearchCategory)?.label}...` : 'Select a category below'}
+              placeholder={hasSelectedCategory ? `Search ${selectedCategoryLabel}…` : 'Select a category below'}
               className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
               autoFocus={hasSelectedCategory}
               disabled={!hasSelectedCategory}
@@ -71,7 +71,7 @@ const SearchBar = ({
             </button>
           </div>
 
-          {/* Category Selection Boxes */}
+          {/* Category Selection Cards */}
           <div className="grid grid-cols-4 gap-2">
             {searchCategories.map((cat) => {
               const Icon = cat.icon;
@@ -94,14 +94,11 @@ const SearchBar = ({
             })}
           </div>
 
-          {/* Search Results - only shown when category selected and searching */}
+          {/* Search Results Indicator */}
           {hasSelectedCategory && searchValue && (
-            <div className="space-y-2 animate-fade-up">
+            <div className="animate-fade-up">
               <p className="text-xs text-muted-foreground">
-                Showing results for "{searchValue}" in {searchCategories.find(c => c.id === selectedSearchCategory)?.label}
-              </p>
-              <p className="text-sm text-foreground">
-                Results updating on map…
+                Showing results for "{searchValue}" in {selectedCategoryLabel}
               </p>
             </div>
           )}
@@ -110,7 +107,7 @@ const SearchBar = ({
           {hasSelectedCategory && !searchValue && (
             <div className="animate-fade-up">
               <p className="text-xs text-muted-foreground text-center">
-                Start typing to search {searchCategories.find(c => c.id === selectedSearchCategory)?.label}
+                Start typing to search {selectedCategoryLabel}
               </p>
             </div>
           )}

@@ -1,12 +1,12 @@
-import { Calendar, Route, Wrench, Users } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Calendar, Route, Wrench, SlidersHorizontal } from 'lucide-react';
 
 interface CategoryTogglesProps {
   activeCategories: string[];
   onCategoriesChange: (categories: string[]) => void;
+  onFilterClick?: (category: string) => void;
 }
 
-const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryTogglesProps) => {
+const CategoryToggles = ({ activeCategories, onCategoriesChange, onFilterClick }: CategoryTogglesProps) => {
   const categories = [
     { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
     { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
@@ -28,14 +28,23 @@ const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryToggl
         const isActive = activeCategories.includes(category.id);
         
         return (
-          <button
-            key={category.id}
-            onClick={() => handleToggle(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1 whitespace-nowrap px-2 py-1.5`}
-          >
-            <Icon className="w-3 h-3" />
-            <span className="text-[10px] font-medium">{category.label}</span>
-          </button>
+          <div key={category.id} className="flex-1 flex items-center gap-0.5">
+            <button
+              onClick={() => handleToggle(category.id)}
+              className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1 whitespace-nowrap px-2 py-1.5`}
+            >
+              <Icon className="w-3 h-3" />
+              <span className="text-[10px] font-medium">{category.label}</span>
+            </button>
+            {isActive && onFilterClick && (
+              <button
+                onClick={() => onFilterClick(category.id)}
+                className="w-6 h-6 rounded-full bg-card border border-border flex items-center justify-center hover:bg-muted transition-colors"
+              >
+                <SlidersHorizontal className="w-3 h-3 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         );
       })}
     </div>
