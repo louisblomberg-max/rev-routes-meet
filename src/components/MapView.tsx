@@ -9,7 +9,7 @@ interface MapViewProps {
 const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
   const filteredPins = activeCategory 
     ? mockPins.filter(pin => pin.type === activeCategory)
-    : [];
+    : mockPins;
 
   const getPinColor = (type: string) => {
     switch (type) {
@@ -67,12 +67,14 @@ const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
         </div>
       </div>
 
-      {/* Map pins - only show when category is selected */}
+      {/* Map pins */}
       {filteredPins.map((pin) => (
         <button
           key={pin.id}
           onClick={() => onPinClick(pin)}
-          className="absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 animate-scale-up"
+          className={`absolute transform -translate-x-1/2 -translate-y-full transition-all duration-300 hover:scale-110 active:scale-95 ${
+            activeCategory && pin.type !== activeCategory ? 'opacity-30' : 'opacity-100'
+          }`}
           style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
         >
           <div className={`${getPinColor(pin.type)} p-2 rounded-full shadow-lg`}>
@@ -81,17 +83,6 @@ const MapView = ({ activeCategory, onPinClick }: MapViewProps) => {
           <div className={`${getPinColor(pin.type)} w-2 h-2 rounded-full mx-auto -mt-1`} />
         </button>
       ))}
-
-      {/* Guidance overlay when no category selected */}
-      {!activeCategory && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center px-8 py-4 rounded-2xl bg-card/80 backdrop-blur-sm shadow-lg animate-fade-up">
-            <p className="text-sm text-muted-foreground">
-              Select a category above to see nearby pins
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Compass */}
       <button className="absolute top-24 right-4 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center">

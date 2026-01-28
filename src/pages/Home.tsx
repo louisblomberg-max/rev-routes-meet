@@ -15,6 +15,7 @@ const Home = () => {
   const [searchValue, setSearchValue] = useState('');
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
+    // Navigate to appropriate detail page based on pin type
     if (pin.type === 'events') {
       navigate(`/event/${pin.id}`);
     } else if (pin.type === 'routes') {
@@ -28,16 +29,6 @@ const Home = () => {
     navigate(`/${type}/${id}`);
   };
 
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearchValue(suggestion);
-    // Could trigger actual search here
-  };
-
-  const handleSearchClose = () => {
-    setIsSearchActive(false);
-    setSearchValue('');
-  };
-
   return (
     <div className="mobile-container">
       {/* Map Background */}
@@ -46,11 +37,11 @@ const Home = () => {
         onPinClick={handlePinClick}
       />
 
-      {/* Search Overlay - dims map when active */}
+      {/* Search Overlay */}
       {isSearchActive && (
         <div 
-          className="absolute inset-0 bg-black/40 z-10 transition-opacity duration-300"
-          onClick={handleSearchClose}
+          className="absolute inset-0 bg-black/30 z-10"
+          onClick={() => setIsSearchActive(false)}
         />
       )}
 
@@ -60,18 +51,19 @@ const Home = () => {
           onFocus={() => setIsSearchActive(true)}
           onProfileClick={() => navigate('/profile')}
           isSearchActive={isSearchActive}
-          onClose={handleSearchClose}
+          onClose={() => {
+            setIsSearchActive(false);
+            setSearchValue('');
+          }}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
-          onSuggestionClick={handleSuggestionClick}
         />
 
-        {/* Category Chips - Show Clubs only when searching */}
+        {/* Category Chips */}
         <div className={`mt-3 transition-all duration-300 ${isSearchActive ? 'opacity-100' : 'opacity-100'}`}>
           <CategoryChips 
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
-            showClubs={isSearchActive}
           />
         </div>
       </div>
@@ -84,12 +76,13 @@ const Home = () => {
         onItemClick={handleItemClick}
       />
 
-      {/* Floating Action Button - Marketplace removed */}
+      {/* Floating Action Button */}
       <FloatingActionButton 
         onAddEvent={() => navigate('/add/event')}
         onAddRoute={() => navigate('/add/route')}
         onAddService={() => navigate('/add/service')}
         onCommunityHub={() => navigate('/community')}
+        onMarketplace={() => navigate('/marketplace')}
       />
     </div>
   );
