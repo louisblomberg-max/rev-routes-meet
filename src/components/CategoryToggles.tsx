@@ -11,7 +11,6 @@ const CategoryToggles = ({ activeCategories, onCategoriesChange }: CategoryToggl
     { id: 'events', label: 'Meets & Events', icon: Calendar, chipClass: 'category-chip-events' },
     { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
     { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
-    { id: 'clubs', label: 'Clubs', icon: Users, chipClass: 'category-chip-clubs' },
   ];
 
   const handleToggle = (categoryId: string) => {
