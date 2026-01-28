@@ -157,16 +157,6 @@ const MapView = ({ activeCategories, activeCategory, onPinClick, selectedRouteId
         );
       })}
 
-      {/* Empty State Prompt */}
-      {showEmptyPrompt && (
-        <div className="absolute bottom-32 left-4 right-4 z-10 animate-fade-up">
-          <div className="bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border/50">
-            <p className="text-sm text-center text-muted-foreground">
-              Search for something specific, or explore nearby on the map.
-            </p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
