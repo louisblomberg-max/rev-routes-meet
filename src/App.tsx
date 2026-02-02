@@ -13,6 +13,8 @@ import ForumThread from "./pages/ForumThread";
 import Clubs from "./pages/Clubs";
 import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
+import Messages from "./pages/Messages";
+import Conversation from "./pages/Conversation";
 import AddEvent from "./pages/AddEvent";
 import AddRoute from "./pages/AddRoute";
 import AddService from "./pages/AddService";
@@ -41,6 +43,8 @@ const App = () => (
           <Route path="/clubs" element={<Clubs />} />
           <Route path="/club/:id" element={<ClubProfile />} />
           <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/messages" element={<Messages />} />
+          <Route path="/messages/:id" element={<Conversation />} />
           <Route path="/add/event" element={<AddEvent />} />
           <Route path="/add/route" element={<AddRoute />} />
           <Route path="/add/service" element={<AddService />} />
