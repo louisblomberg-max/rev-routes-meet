@@ -1,8 +1,22 @@
-import { Route, Calendar, Users, Car, MessageSquare, UserPlus, ShoppingBag, Settings, ChevronRight, UsersRound } from 'lucide-react';
+import { Route, Calendar, Users, Car, MessageSquare, UserPlus, ShoppingBag, Settings, ChevronRight, UsersRound, Crown, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 const YouTab = () => {
   const navigate = useNavigate();
+  const [currentPlan] = useState<'free' | 'enthusiast'>('free');
+
+  const plans = {
+    free: {
+      name: 'Free',
+      description: 'Access clubs, forums, events, messaging, and save routes',
+    },
+    enthusiast: {
+      name: 'Enthusiast',
+      description: 'Always-on location, group drives, priority help, and more',
+    },
+  };
 
   const activityItems = [
     { id: 'events', label: 'My Events', icon: Calendar, count: 2 },
@@ -58,6 +72,55 @@ const YouTab = () => {
             ))}
           </div>
         </button>
+      </div>
+
+      {/* Plan Card */}
+      <div className="px-5 pt-4">
+        <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden">
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                {currentPlan === 'enthusiast' ? (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-events to-primary flex items-center justify-center">
+                    <Crown className="w-4 h-4 text-primary-foreground" />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-semibold text-foreground">
+                    {plans[currentPlan].name} Plan
+                  </h3>
+                  {currentPlan === 'enthusiast' && (
+                    <span className="text-xs text-events">Active</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {plans[currentPlan].description}
+            </p>
+            {currentPlan === 'free' ? (
+              <Button 
+                className="w-full bg-gradient-to-r from-events to-primary hover:opacity-90 text-primary-foreground border-0"
+                onClick={() => {/* Future: navigate to upgrade flow */}}
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade to Enthusiast
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {/* Future: navigate to plan management */}}
+              >
+                Manage Plan
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* My Activity */}
