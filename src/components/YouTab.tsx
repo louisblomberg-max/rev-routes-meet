@@ -44,35 +44,6 @@ const YouTab = () => {
 
   return (
     <div className="h-full bg-background overflow-y-auto pb-24">
-      {/* Profile Card */}
-      <div className="px-5 pt-10 pb-2">
-        <button 
-          onClick={() => navigate('/profile')}
-          className="w-full bg-card rounded-2xl p-5 text-left border border-border/30 shadow-sm hover:shadow-md transition-all duration-200"
-        >
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border-2 border-primary/20">
-              <span className="text-2xl font-bold text-primary">A</span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-bold text-foreground">Alex Morgan</h1>
-              <p className="text-sm text-muted-foreground">@alexdrives</p>
-              <p className="text-xs text-muted-foreground/70 mt-0.5">Tap to view profile</p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground/50" />
-          </div>
-          
-          {/* Quick Stats */}
-          <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-3 gap-4">
-            {quickStats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <p className="text-lg font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs text-muted-foreground">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </button>
-      </div>
 
       {/* Plan Card */}
       <div className="px-5 pt-4">
