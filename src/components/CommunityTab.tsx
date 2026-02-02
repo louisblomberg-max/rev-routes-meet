@@ -1,4 +1,4 @@
-import { Users, MessageSquare, ChevronRight } from 'lucide-react';
+import { Users, MessageSquare, Mail, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const CommunityTab = () => {
@@ -20,6 +20,14 @@ const CommunityTab = () => {
       description: 'Ask questions, share knowledge, and discuss all things automotive',
       color: 'bg-events',
       route: '/forums',
+    },
+    {
+      id: 'messages',
+      icon: Mail,
+      title: 'Messages',
+      description: 'Private conversations with your friends and connections',
+      color: 'bg-primary',
+      route: '/messages',
     },
   ];
 
