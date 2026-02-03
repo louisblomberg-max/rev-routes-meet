@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, SlidersHorizontal, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +19,7 @@ interface EventsFiltersPanelProps {
 }
 
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
+  const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
   const distancePresets = [
@@ -84,107 +84,152 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     return preset.charAt(0).toUpperCase() + preset.slice(1);
   };
 
+  // Count active filters
+  const activeFilterCount = 
+    (filters.distance !== 25 ? 1 : 0) + 
+    filters.types.length + 
+    (filters.dateFilter ? 1 : 0);
+
   return (
-    <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
-      {/* Distance Filter */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-foreground">Distance</p>
-          <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
-        </div>
-        <Slider
-          value={[isDistanceNumeric ? distanceValue : 25]}
-          onValueChange={handleDistanceChange}
-          min={1}
-          max={50}
-          step={1}
-          className="w-full"
-          disabled={!isDistanceNumeric}
-        />
-        <div className="flex gap-1.5 mt-2">
-          {distancePresets.map((preset) => (
-            <button
-              key={preset.id}
-              onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                filters.distance === preset.id
-                  ? 'bg-green-500 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-green-500/10'
-              }`}
-            >
-              {preset.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-2 animate-fade-up">
+      {/* Filter Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${
+          isOpen || activeFilterCount > 0
+            ? 'bg-green-500 text-white border-green-500'
+            : 'bg-card text-muted-foreground border-border hover:border-green-500/50 hover:bg-green-500/10'
+        }`}
+      >
+        <SlidersHorizontal className="w-5 h-5" />
+        <span className="text-sm font-medium">
+          Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
+        </span>
+      </button>
 
-      {/* Type Filter */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-foreground">Type</p>
-        <div className="flex flex-wrap gap-1.5">
-          {typeOptions.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => toggleType(type.id)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                filters.types.includes(type.id)
-                  ? 'bg-green-500 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-green-500/10'
-              }`}
+      {/* Filter Panel */}
+      {isOpen && (
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
+          {/* Header with close */}
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
             >
-              {type.label}
+              <X className="w-3 h-3 text-muted-foreground" />
             </button>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Date Filter */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-foreground">Date</p>
-        <div className="flex flex-wrap gap-1.5">
-          {dateOptions.map((option) => (
-            <button
-              key={option.id}
-              onClick={() => handleDateFilter(option.id)}
-              className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                filters.dateFilter === option.id
-                  ? 'bg-green-500 text-white'
-                  : 'bg-muted text-muted-foreground hover:bg-green-500/10'
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
-          
-          {/* Specific Date Picker */}
-          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
-                  filters.dateFilter === 'specific'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-muted text-muted-foreground hover:bg-green-500/10'
-                }`}
-              >
-                <CalendarIcon className="w-3 h-3" />
-                {filters.specificDate 
-                  ? format(filters.specificDate, 'MMM d, yyyy')
-                  : 'Pick Date'
-                }
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={filters.specificDate}
-                onSelect={handleSpecificDate}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+          {/* Distance Filter */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Distance</p>
+              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+            </div>
+            <Slider
+              value={[isDistanceNumeric ? distanceValue : 25]}
+              onValueChange={handleDistanceChange}
+              min={1}
+              max={50}
+              step={1}
+              className="w-full"
+              disabled={!isDistanceNumeric}
+            />
+            <div className="flex gap-1.5 mt-2">
+              {distancePresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.distance === preset.id
+                      ? 'bg-green-500 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Type Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Type</p>
+            <div className="flex flex-wrap gap-1.5">
+              {typeOptions.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.types.includes(type.id)
+                      ? 'bg-green-500 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Date Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Date</p>
+            <div className="flex flex-wrap gap-1.5">
+              {dateOptions.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleDateFilter(option.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.dateFilter === option.id
+                      ? 'bg-green-500 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+              
+              {/* Specific Date Picker */}
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
+                      filters.dateFilter === 'specific'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                    }`}
+                  >
+                    <CalendarIcon className="w-3 h-3" />
+                    {filters.specificDate 
+                      ? format(filters.specificDate, 'MMM d, yyyy')
+                      : 'Pick Date'
+                    }
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filters.specificDate}
+                    onSelect={handleSpecificDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          {/* Apply Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
+          >
+            Apply Filters
+          </button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
