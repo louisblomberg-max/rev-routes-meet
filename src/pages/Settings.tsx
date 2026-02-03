@@ -79,21 +79,21 @@ const Settings = () => {
       </div>
 
       {/* Settings Sections */}
-      <div className="px-4 pt-2 flex-1">
+      <div className="px-4 pt-3">
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {settingsSections.map((section) => {
             const Icon = section.icon;
             return (
               <button
                 key={section.id}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
-                <div className={`w-8 h-8 rounded-lg ${section.color} flex items-center justify-center shrink-0`}>
-                  <Icon className={`w-4 h-4 ${section.iconColor}`} />
+                <div className={`w-9 h-9 rounded-lg ${section.color} flex items-center justify-center shrink-0`}>
+                  <Icon className={`w-[18px] h-[18px] ${section.iconColor}`} />
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <p className="text-sm font-medium text-foreground leading-tight">{section.label}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{section.description}</p>
+                  <p className="text-xs text-muted-foreground truncate">{section.description}</p>
                 </div>
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 shrink-0" />
               </button>
@@ -102,12 +102,15 @@ const Settings = () => {
         </div>
       </div>
 
+      {/* Spacer */}
+      <div className="flex-1" />
+
       {/* Bottom Section */}
-      <div className="px-4 pb-4 pt-2 space-y-3">
+      <div className="px-4 pb-4 space-y-3">
         {/* Logout Button */}
-        <button className="w-full bg-card rounded-xl border border-border/30 shadow-sm flex items-center gap-2.5 px-3 py-2.5 hover:bg-destructive/5 transition-colors">
-          <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center">
-            <LogOut className="w-4 h-4 text-destructive" />
+        <button className="w-full bg-card rounded-xl border border-border/30 shadow-sm flex items-center gap-3 px-3 py-3 hover:bg-destructive/5 transition-colors">
+          <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
+            <LogOut className="w-[18px] h-[18px] text-destructive" />
           </div>
           <span className="flex-1 text-left text-sm font-medium text-destructive">Log Out</span>
         </button>
