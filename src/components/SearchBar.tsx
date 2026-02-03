@@ -41,57 +41,69 @@ const SearchBar = ({
     <div className="space-y-3">
       {/* Collapsed State */}
       {!isSearchActive && (
-        <div className="search-bar cursor-pointer py-3 px-3" onClick={onFocus}>
+        <div 
+          onClick={onFocus}
+          className="group cursor-pointer bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 px-4 py-3.5 flex items-center gap-3 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
+        >
           <div className="relative flex-shrink-0">
-            <Search className="w-5 h-5 text-muted-foreground" />
-            <Sparkles className="w-2.5 h-2.5 text-amber-500 absolute -top-0.5 -right-0.5" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-md">
+              <Search className="w-5 h-5 text-white" />
+            </div>
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
           </div>
-          <span className="flex-1 text-muted-foreground text-sm">
-            AI Search: events, routes, services...
-          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground">AI Discovery Search</p>
+            <p className="text-xs text-muted-foreground truncate">Events, routes, services...</p>
+          </div>
         </div>
       )}
 
       {/* Expanded State */}
       {isSearchActive && (
-        <div className="space-y-4 animate-fade-up">
+        <div className="bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-white/50 overflow-hidden animate-fade-up">
           {/* AI Search Header */}
-          <div className="flex items-center gap-2 px-1">
-            <Sparkles className="w-4 h-4 text-amber-500" />
-            <span className="text-xs font-medium text-amber-600">AI Discovery Search</span>
-          </div>
-
-          {/* Search Input */}
-          <div className={`search-bar ${isFocused ? 'ring-2 ring-amber-500/30' : ''}`}>
-            <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-            <input
-              type="text"
-              placeholder="Try: 'Porsche meets near London this Saturday'"
-              className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
-              autoFocus
-              value={searchValue}
-              onChange={(e) => onSearchChange(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-            />
+          <div className="flex items-center justify-between gap-2 px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100/50">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center">
+                <Sparkles className="w-3.5 h-3.5 text-white" />
+              </div>
+              <span className="text-sm font-semibold text-amber-700">AI Discovery</span>
+            </div>
             <button 
               onClick={handleClose}
-              className="w-8 h-8 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+              className="w-8 h-8 rounded-full bg-white/80 flex items-center justify-center hover:bg-white transition-colors shadow-sm"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           </div>
 
+          {/* Search Input */}
+          <div className="p-3">
+            <div className={`flex items-center gap-3 bg-muted/50 rounded-xl px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-amber-400/40 bg-white' : ''}`}>
+              <Search className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Try: 'Porsche meets near London this Saturday'"
+                className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm"
+                autoFocus
+                value={searchValue}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+              />
+            </div>
+          </div>
+
           {/* Example Prompts */}
           {!searchValue && (
-            <div className="space-y-3 animate-fade-up">
-              <p className="text-xs text-muted-foreground px-1">Try asking...</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="px-3 pb-4 space-y-2">
+              <p className="text-xs text-muted-foreground px-1 font-medium">Try asking...</p>
+              <div className="flex flex-wrap gap-1.5">
                 {examplePrompts.map((prompt, index) => (
                   <button
                     key={index}
                     onClick={() => handleExampleClick(prompt)}
-                    className="px-3 py-2 rounded-full bg-muted/80 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-all border border-transparent hover:border-amber-500/30"
+                    className="px-3 py-1.5 rounded-full bg-muted/60 text-xs text-muted-foreground hover:bg-amber-100 hover:text-amber-700 transition-all"
                   >
                     {prompt}
                   </button>
@@ -102,15 +114,15 @@ const SearchBar = ({
 
           {/* Search Active State */}
           {searchValue && (
-            <div className="animate-fade-up space-y-2">
-              <div className="flex items-center gap-2 px-1">
+            <div className="px-4 pb-4 space-y-2">
+              <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-foreground font-medium">
                   Searching for "{searchValue}"
                 </p>
               </div>
-              <p className="text-[10px] text-muted-foreground/70 px-1">
-                AI will find events, routes, services & clubs matching your request
+              <p className="text-xs text-muted-foreground">
+                Finding events, routes, services & clubs...
               </p>
             </div>
           )}
