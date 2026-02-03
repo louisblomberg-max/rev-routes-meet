@@ -56,14 +56,20 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+            className={`relative flex flex-col items-center justify-center gap-2 p-3.5 rounded-2xl border transition-all duration-300 ${
               isActive 
-                ? `${category.activeClass} shadow-md` 
-                : `bg-card text-muted-foreground border-border ${category.hoverClass}`
+                ? `${category.activeClass} shadow-lg scale-[1.02]` 
+                : `bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md ${category.hoverClass} hover:scale-[1.02]`
             }`}
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-xs font-medium text-center leading-tight">{category.label}</span>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+              isActive 
+                ? 'bg-white/20' 
+                : 'bg-muted/50'
+            }`}>
+              <Icon className="w-5 h-5" />
+            </div>
+            <span className="text-[11px] font-semibold text-center leading-tight">{category.label}</span>
           </button>
         );
       })}
