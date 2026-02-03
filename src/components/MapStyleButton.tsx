@@ -32,11 +32,10 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className="h-12 w-full flex items-center justify-center gap-1.5 px-4 rounded-2xl border transition-all duration-300 bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md hover:bg-white hover:shadow-lg hover:scale-[1.02] active:scale-[0.99]"
+          className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg border border-white/50 flex items-center justify-center hover:bg-white hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"
           aria-label="Change map style"
         >
-          <Map className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">Map Style</span>
+          <Map className="w-5 h-5 text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent 
