@@ -1,4 +1,4 @@
-import { Car, Users, Route, Calendar, UsersRound, MapPin, Shield, Settings, ShoppingBag, ChevronRight, Crown, Sparkles } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, MapPin, Shield, Settings, ShoppingBag, ChevronRight, Crown, Sparkles, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Profile components
@@ -13,8 +13,10 @@ const YouTab = () => {
   const primaryActions = [
     { id: 'garage', label: 'My Garage', icon: Car, color: 'bg-muted/80', iconColor: 'text-foreground/70' },
     { id: 'clubs', label: 'My Clubs', icon: Users, color: 'bg-clubs/10', iconColor: 'text-clubs' },
-    { id: 'routes', label: 'My Routes', icon: Route, color: 'bg-routes/10', iconColor: 'text-routes' },
     { id: 'events', label: 'My Events', icon: Calendar, color: 'bg-events/10', iconColor: 'text-events' },
+    { id: 'routes', label: 'My Routes', icon: Route, color: 'bg-routes/10', iconColor: 'text-routes' },
+    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, color: 'bg-primary/10', iconColor: 'text-primary' },
+    { id: 'settings', label: 'My Settings', icon: Settings, color: 'bg-muted/80', iconColor: 'text-foreground/70', route: '/settings' },
   ];
 
   const socialItems = [
@@ -22,7 +24,6 @@ const YouTab = () => {
   ];
 
   const utilityItems = [
-    { id: 'settings', label: 'Settings', icon: Settings, route: '/settings' },
     { id: 'shop', label: 'RevNet Shop', icon: ShoppingBag },
   ];
 
@@ -58,20 +59,21 @@ const YouTab = () => {
         </div>
       </div>
 
-      {/* 3. Primary Actions (2x2 Grid) */}
+      {/* 3. Primary Actions (2x3 Grid) */}
       <div className="px-5 pt-6">
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2.5">
           {primaryActions.map((action) => {
             const Icon = action.icon;
             return (
               <button
                 key={action.id}
-                className="bg-card rounded-2xl border border-border/30 shadow-sm p-5 text-left hover:shadow-md transition-all duration-200 flex flex-col items-start gap-3"
+                onClick={() => action.route && navigate(action.route)}
+                className="bg-card rounded-xl border border-border/30 shadow-sm p-3.5 text-left hover:shadow-md transition-all duration-200 flex flex-col items-center gap-2"
               >
-                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center`}>
-                  <Icon className={`w-6 h-6 ${action.iconColor}`} />
+                <div className={`w-10 h-10 rounded-lg ${action.color} flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${action.iconColor}`} />
                 </div>
-                <span className="font-semibold text-foreground">{action.label}</span>
+                <span className="text-xs font-medium text-foreground text-center leading-tight">{action.label}</span>
               </button>
             );
           })}
@@ -163,7 +165,6 @@ const YouTab = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => item.route && navigate(item.route)}
                 className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-muted/50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
