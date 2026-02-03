@@ -29,6 +29,10 @@ const Home = () => {
     types: [],
     dateFilter: null,
     specificDate: undefined,
+    vehicleTypes: [],
+    eventSize: null,
+    entryFee: null,
+    clubHosted: false,
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25,
