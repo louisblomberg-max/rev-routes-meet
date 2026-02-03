@@ -9,6 +9,8 @@ import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
+import HelpButton from '@/components/HelpButton';
+import HelpSheet from '@/components/HelpSheet';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
@@ -48,6 +50,7 @@ const Home = () => {
     minRating: null,
     openNow: false,
   });
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
     if (pin.type === 'events') {
@@ -197,12 +200,16 @@ const Home = () => {
         )}
       </div>
 
-      {/* Location Button - hidden during search */}
+      {/* Location & Help Buttons - hidden during search */}
       {!isSearchActive && (
-        <div className="absolute right-4 bottom-36 z-20">
+        <div className="absolute right-4 bottom-36 z-20 flex flex-col gap-3">
+          <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={() => console.log('Center on location')} />
         </div>
       )}
+
+      {/* Help Sheet */}
+      <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
       {/* Item Detail Sheet - hidden during search */}
       {!isSearchActive && (
