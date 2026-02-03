@@ -38,20 +38,20 @@ const Settings = () => {
       iconColor: 'text-foreground/70',
     },
     {
-      id: 'social',
-      icon: Users,
-      label: 'Social & Discovery',
-      description: 'Invite, find friends, requests',
-      color: 'bg-clubs/10',
-      iconColor: 'text-clubs',
-    },
-    {
       id: 'billing',
       icon: CreditCard,
       label: 'Plan & Billing',
       description: 'Plan, upgrade, history',
       color: 'bg-services/10',
       iconColor: 'text-services',
+    },
+    {
+      id: 'social',
+      icon: Users,
+      label: 'Social & Discovery',
+      description: 'Invite, find friends, requests',
+      color: 'bg-clubs/10',
+      iconColor: 'text-clubs',
     },
     {
       id: 'support',
