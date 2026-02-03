@@ -1,8 +1,7 @@
-import { ArrowLeft, MessageCircle, Route, Calendar, Users, Trophy } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Route, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import GarageSection from '@/components/profile/GarageSection';
-import AchievementsSection from '@/components/profile/AchievementsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -29,7 +28,7 @@ const Profile = () => {
     forum_post: MessageCircle,
     forum_reply: MessageCircle,
     club_post: Users,
-    listing: Trophy,
+    listing: MessageCircle,
   };
 
   return (
@@ -51,27 +50,6 @@ const Profile = () => {
         {/* 1. Profile Header */}
         <ProfileHeader profile={mockUserProfile} />
 
-        {/* 2. Stats Snapshot */}
-        <div className="bg-card rounded-2xl border border-border/30 shadow-sm p-4">
-          <div className="grid grid-cols-4 gap-2">
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">{mockUserProfile.stats.routesSaved}</p>
-              <p className="text-xs text-muted-foreground">Routes</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">{mockUserProfile.stats.eventsAttended}</p>
-              <p className="text-xs text-muted-foreground">Events</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">{mockUserProfile.stats.clubsJoined}</p>
-              <p className="text-xs text-muted-foreground">Clubs</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-bold text-foreground">23</p>
-              <p className="text-xs text-muted-foreground">Posts</p>
-            </div>
-          </div>
-        </div>
 
         {/* 3. Garage (Public Vehicles Only) */}
         {publicVehicles.length > 0 && (
@@ -162,8 +140,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* 7. Achievements */}
-        <AchievementsSection achievements={mockUserProfile.achievements} />
       </div>
     </div>
   );
