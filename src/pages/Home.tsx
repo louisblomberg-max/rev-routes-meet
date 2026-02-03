@@ -10,6 +10,8 @@ import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
+import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
+import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import revnetLogo from '@/assets/revnet-logo.png';
 
@@ -28,6 +30,8 @@ const Home = () => {
     dateFilter: null,
     specificDate: undefined,
   });
+  const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({});
+  const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({});
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
     if (pin.type === 'events') {
@@ -154,11 +158,23 @@ const Home = () => {
               onCategoryChange={setActiveCategory}
             />
             
-            {/* Events & Drives Inline Filters */}
+            {/* Category-specific Inline Filters */}
             {activeCategory === 'events' && (
               <EventsFiltersPanel
                 filters={eventsFilters}
                 onFiltersChange={setEventsFilters}
+              />
+            )}
+            {activeCategory === 'routes' && (
+              <RoutesFiltersPanel
+                filters={routesFilters}
+                onFiltersChange={setRoutesFilters}
+              />
+            )}
+            {activeCategory === 'services' && (
+              <ServicesFiltersPanel
+                filters={servicesFilters}
+                onFiltersChange={setServicesFilters}
               />
             )}
           </div>
