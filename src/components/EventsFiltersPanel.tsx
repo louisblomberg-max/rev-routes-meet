@@ -97,8 +97,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${
           isOpen || activeFilterCount > 0
-            ? 'bg-green-500 text-white border-green-500'
-            : 'bg-card text-muted-foreground border-border hover:border-green-500/50 hover:bg-green-500/10'
+            ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80'
+            : 'bg-card text-muted-foreground border-border hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
         }`}
       >
         <SlidersHorizontal className="w-5 h-5" />
@@ -143,8 +143,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.distance === preset.id
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
                   }`}
                 >
                   {preset.label}
@@ -163,8 +163,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.types.includes(type.id)
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
                   }`}
                 >
                   {type.label}
@@ -183,8 +183,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   onClick={() => handleDateFilter(option.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.dateFilter === option.id
-                      ? 'bg-green-500 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
                   }`}
                 >
                   {option.label}
@@ -197,8 +197,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   <button
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
                       filters.dateFilter === 'specific'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-green-500/10'
+                        ? 'bg-[#1B4D3E]/80 text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
                     }`}
                   >
                     <CalendarIcon className="w-3 h-3" />
@@ -224,7 +224,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Apply Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#1B4D3E]/80 text-white hover:bg-[#1B4D3E] transition-colors"
           >
             Apply Filters
           </button>
