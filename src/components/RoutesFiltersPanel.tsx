@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { Slider } from '@/components/ui/slider';
 import { SlidersHorizontal, X } from 'lucide-react';
 
 export interface RoutesFilterState {
-  // Placeholder for future filters
+  distance: number | 'national' | 'continental' | 'global';
+  types: string[];
 }
 
 interface RoutesFiltersPanelProps {
@@ -12,6 +14,47 @@ interface RoutesFiltersPanelProps {
 
 const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const distancePresets = [
+    { id: 'national', label: 'National' },
+    { id: 'continental', label: 'Continental' },
+    { id: 'global', label: 'Global' },
+  ];
+
+  const typeOptions = [
+    { id: 'scenic', label: 'Scenic' },
+    { id: 'coastal', label: 'Coastal' },
+    { id: 'off-road', label: 'Off-road' },
+    { id: 'twisties', label: 'Twisties' },
+    { id: 'urban', label: 'Urban' },
+    { id: 'track', label: 'Track' },
+  ];
+
+  const toggleType = (typeId: string) => {
+    const newTypes = filters.types.includes(typeId)
+      ? filters.types.filter(t => t !== typeId)
+      : [...filters.types, typeId];
+    onFiltersChange({ ...filters, types: newTypes });
+  };
+
+  const handleDistanceChange = (value: number[]) => {
+    onFiltersChange({ ...filters, distance: value[0] });
+  };
+
+  const handleDistancePreset = (preset: 'national' | 'continental' | 'global') => {
+    onFiltersChange({ 
+      ...filters, 
+      distance: filters.distance === preset ? 25 : preset 
+    });
+  };
+
+  const isDistanceNumeric = typeof filters.distance === 'number';
+  const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
+  const getDistanceLabel = () => {
+    if (isDistanceNumeric) return `${filters.distance} miles`;
+    const preset = filters.distance as string;
+    return preset.charAt(0).toUpperCase() + preset.slice(1);
+  };
 
   return (
     <div className="space-y-2 animate-fade-up">
@@ -42,7 +85,57 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
             </button>
           </div>
 
-          <p className="text-xs text-muted-foreground">Route filters coming soon...</p>
+          {/* Distance Filter */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Distance</p>
+              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+            </div>
+            <Slider
+              value={[isDistanceNumeric ? distanceValue : 25]}
+              onValueChange={handleDistanceChange}
+              min={1}
+              max={50}
+              step={1}
+              className="w-full"
+              disabled={!isDistanceNumeric}
+            />
+            <div className="flex gap-1.5 mt-2">
+              {distancePresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.distance === preset.id
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Type Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Type</p>
+            <div className="flex flex-wrap gap-1.5">
+              {typeOptions.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.types.includes(type.id)
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Apply Button */}
           <button

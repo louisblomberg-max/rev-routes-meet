@@ -30,7 +30,10 @@ const Home = () => {
     dateFilter: null,
     specificDate: undefined,
   });
-  const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({});
+  const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
+    distance: 25,
+    types: [],
+  });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({});
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
