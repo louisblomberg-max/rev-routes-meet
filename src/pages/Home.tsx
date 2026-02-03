@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
 import CategoryChips from '@/components/CategoryChips';
@@ -10,7 +9,7 @@ import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
-import SearchFilters, { SearchFilterState } from '@/components/SearchFilters';
+import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import revnetLogo from '@/assets/revnet-logo.png';
 
@@ -22,13 +21,12 @@ const Home = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  const [searchFilters, setSearchFilters] = useState<SearchFilterState>({
-    contentTypes: [],
-    distanceRadius: 25,
+  const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
+    distance: 25,
+    types: [],
     dateFilter: null,
-    tags: [],
+    specificDate: undefined,
   });
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
@@ -96,12 +94,6 @@ const Home = () => {
   const handleCloseSearch = () => {
     setIsSearchActive(false);
     setSearchValue('');
-    setSearchFilters({
-      contentTypes: [],
-      distanceRadius: 25,
-      dateFilter: null,
-      tags: [],
-    });
   };
 
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
@@ -162,17 +154,12 @@ const Home = () => {
               onCategoryChange={setActiveCategory}
             />
             
-            {/* Contextual Filter Bar */}
-            {activeCategory && (
-              <button
-                onClick={() => setIsFiltersOpen(true)}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-card/95 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm"
-              >
-                <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
-                  Filter {activeCategory === 'events' ? 'Events & Drives' : activeCategory === 'routes' ? 'Routes' : 'Services'}
-                </span>
-              </button>
+            {/* Events & Drives Inline Filters */}
+            {activeCategory === 'events' && (
+              <EventsFiltersPanel
+                filters={eventsFilters}
+                onFiltersChange={setEventsFilters}
+              />
             )}
           </div>
         )}
@@ -196,16 +183,6 @@ const Home = () => {
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-
-      {/* Search Filters Modal */}
-      <SearchFilters
-        isOpen={isFiltersOpen}
-        onClose={() => setIsFiltersOpen(false)}
-        activeFilters={searchFilters}
-        onFiltersChange={setSearchFilters}
-        mode={isSearchActive ? 'search' : 'browse'}
-        browseCategory={activeCategory}
-      />
     </div>
   );
 };
