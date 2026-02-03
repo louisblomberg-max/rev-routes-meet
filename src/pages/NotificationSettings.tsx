@@ -100,94 +100,94 @@ const NotificationSettings = () => {
           </div>
 
           {/* 2. Social Notifications */}
-          <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
+          <div className={`bg-card rounded-xl border border-border/30 shadow-sm p-4 ${!pushEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <h2 className="text-sm font-semibold text-foreground">Social Activity</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Stay updated on friends and community interactions</p>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">New friend requests</span>
-                <Switch checked={friendRequests} onCheckedChange={setFriendRequests} />
+                <Switch checked={pushEnabled && friendRequests} onCheckedChange={setFriendRequests} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Friend accepts request</span>
-                <Switch checked={friendAccepts} onCheckedChange={setFriendAccepts} />
+                <Switch checked={pushEnabled && friendAccepts} onCheckedChange={setFriendAccepts} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">New messages</span>
-                <Switch checked={newMessages} onCheckedChange={setNewMessages} />
+                <Switch checked={pushEnabled && newMessages} onCheckedChange={setNewMessages} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Message reactions / replies</span>
-                <Switch checked={messageReactions} onCheckedChange={setMessageReactions} />
+                <Switch checked={pushEnabled && messageReactions} onCheckedChange={setMessageReactions} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Mentions or replies in discussions</span>
-                <Switch checked={mentions} onCheckedChange={setMentions} />
+                <Switch checked={pushEnabled && mentions} onCheckedChange={setMentions} disabled={!pushEnabled} />
               </div>
             </div>
           </div>
 
           {/* 3. Clubs & Community */}
-          <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
+          <div className={`bg-card rounded-xl border border-border/30 shadow-sm p-4 ${!pushEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <h2 className="text-sm font-semibold text-foreground">Clubs & Community</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Updates from clubs and forums you follow</p>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">New club posts</span>
-                <Switch checked={newClubPosts} onCheckedChange={setNewClubPosts} />
+                <Switch checked={pushEnabled && newClubPosts} onCheckedChange={setNewClubPosts} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Replies to my club posts</span>
-                <Switch checked={clubPostReplies} onCheckedChange={setClubPostReplies} />
+                <Switch checked={pushEnabled && clubPostReplies} onCheckedChange={setClubPostReplies} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">New forum replies</span>
-                <Switch checked={forumReplies} onCheckedChange={setForumReplies} />
+                <Switch checked={pushEnabled && forumReplies} onCheckedChange={setForumReplies} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Upvotes or likes on my posts</span>
-                <Switch checked={postUpvotes} onCheckedChange={setPostUpvotes} />
+                <Switch checked={pushEnabled && postUpvotes} onCheckedChange={setPostUpvotes} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">New members joining my clubs</span>
-                <Switch checked={newClubMembers} onCheckedChange={setNewClubMembers} />
+                <Switch checked={pushEnabled && newClubMembers} onCheckedChange={setNewClubMembers} disabled={!pushEnabled} />
               </div>
             </div>
           </div>
 
           {/* 4. Events & Drives */}
-          <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
+          <div className={`bg-card rounded-xl border border-border/30 shadow-sm p-4 ${!pushEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <h2 className="text-sm font-semibold text-foreground">Events & Drives</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Never miss a meet or drive</p>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Event invitations</span>
-                <Switch checked={eventInvitations} onCheckedChange={setEventInvitations} />
+                <Switch checked={pushEnabled && eventInvitations} onCheckedChange={setEventInvitations} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Event reminders</span>
-                <Switch checked={eventReminders} onCheckedChange={setEventReminders} />
+                <Switch checked={pushEnabled && eventReminders} onCheckedChange={setEventReminders} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Event changes or cancellations</span>
-                <Switch checked={eventChanges} onCheckedChange={setEventChanges} />
+                <Switch checked={pushEnabled && eventChanges} onCheckedChange={setEventChanges} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Group drive starting</span>
-                <Switch checked={groupDriveStarting} onCheckedChange={setGroupDriveStarting} />
+                <Switch checked={pushEnabled && groupDriveStarting} onCheckedChange={setGroupDriveStarting} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Group drive updates</span>
-                <Switch checked={groupDriveUpdates} onCheckedChange={setGroupDriveUpdates} />
+                <Switch checked={pushEnabled && groupDriveUpdates} onCheckedChange={setGroupDriveUpdates} disabled={!pushEnabled} />
               </div>
               
               <div className="pt-2 border-t border-border/30">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-foreground">Event reminder timing</span>
-                  <Select value={reminderTiming} onValueChange={setReminderTiming}>
+                  <Select value={reminderTiming} onValueChange={setReminderTiming} disabled={!pushEnabled}>
                     <SelectTrigger className="w-32 h-8 text-xs">
                       <SelectValue />
                     </SelectTrigger>
@@ -203,26 +203,26 @@ const NotificationSettings = () => {
           </div>
 
           {/* 5. Live & Safety Alerts */}
-          <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
+          <div className={`bg-card rounded-xl border border-border/30 shadow-sm p-4 ${!pushEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <h2 className="text-sm font-semibold text-foreground">Live & Safety</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Critical alerts when it matters most</p>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Breakdown requests nearby</span>
-                <Switch checked={breakdownNearby} onCheckedChange={setBreakdownNearby} />
+                <Switch checked={pushEnabled && breakdownNearby} onCheckedChange={setBreakdownNearby} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Someone responds to my breakdown</span>
-                <Switch checked={breakdownResponse} onCheckedChange={setBreakdownResponse} />
+                <Switch checked={pushEnabled && breakdownResponse} onCheckedChange={setBreakdownResponse} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Friend shares live location</span>
-                <Switch checked={friendSharesLocation} onCheckedChange={setFriendSharesLocation} />
+                <Switch checked={pushEnabled && friendSharesLocation} onCheckedChange={setFriendSharesLocation} disabled={!pushEnabled} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Group drive safety alerts</span>
-                <Switch checked={groupDriveSafety} onCheckedChange={setGroupDriveSafety} />
+                <Switch checked={pushEnabled && groupDriveSafety} onCheckedChange={setGroupDriveSafety} disabled={!pushEnabled} />
               </div>
               
               <p className="text-[11px] text-muted-foreground bg-primary/5 border border-primary/10 rounded-lg p-2">
@@ -232,17 +232,17 @@ const NotificationSettings = () => {
           </div>
 
           {/* 6. Quiet Hours */}
-          <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
+          <div className={`bg-card rounded-xl border border-border/30 shadow-sm p-4 ${!pushEnabled ? 'opacity-50 pointer-events-none' : ''}`}>
             <h2 className="text-sm font-semibold text-foreground">Quiet Hours</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Pause non-urgent notifications during specific times</p>
             
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-border/30">
                 <span className="text-sm font-medium text-foreground">Enable Quiet Hours</span>
-                <Switch checked={quietHoursEnabled} onCheckedChange={setQuietHoursEnabled} />
+                <Switch checked={pushEnabled && quietHoursEnabled} onCheckedChange={setQuietHoursEnabled} disabled={!pushEnabled} />
               </div>
               
-              {quietHoursEnabled && (
+              {quietHoursEnabled && pushEnabled && (
                 <>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-foreground">Start time</span>
