@@ -43,17 +43,16 @@ const SearchBar = ({
       {!isSearchActive && (
         <div 
           onClick={onFocus}
-          className="group cursor-pointer bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 px-4 py-3.5 flex items-center gap-3 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
+          className="group cursor-pointer h-12 bg-white/95 backdrop-blur-md rounded-2xl shadow-lg border border-white/50 px-3 flex items-center gap-2.5 transition-all duration-300 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
         >
           <div className="relative flex-shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-md">
-              <Search className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-md">
+              <Search className="w-4 h-4 text-white" />
             </div>
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 absolute -top-1 -right-1 animate-pulse" />
+            <Sparkles className="w-3 h-3 text-amber-500 absolute -top-0.5 -right-0.5 animate-pulse" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground">AI Discovery Search</p>
-            <p className="text-xs text-muted-foreground truncate">Events, routes, services...</p>
+            <p className="text-sm font-medium text-foreground truncate">AI Discovery Search</p>
           </div>
         </div>
       )}
