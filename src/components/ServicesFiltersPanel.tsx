@@ -20,8 +20,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${
           isOpen
-            ? 'bg-[#B45309]/80 text-white border-[#B45309]/80'
-            : 'bg-card text-muted-foreground border-border hover:border-[#B45309]/50 hover:bg-[#B45309]/10'
+            ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80'
+            : 'bg-card text-muted-foreground border-border hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
         }`}
       >
         <SlidersHorizontal className="w-5 h-5" />
@@ -47,7 +47,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           {/* Apply Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#B45309]/80 text-white hover:bg-[#B45309] transition-colors"
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#1B4D3E]/80 text-white hover:bg-[#1B4D3E] transition-colors"
           >
             Apply Filters
           </button>

@@ -26,8 +26,8 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
       id: 'services', 
       label: 'Services', 
       icon: Wrench, 
-      activeClass: 'bg-[#B45309]/80 text-white border-[#B45309]/80',
-      hoverClass: 'hover:border-[#B45309]/50 hover:bg-[#B45309]/10'
+      activeClass: 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80',
+      hoverClass: 'hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
     },
     ...(showClubs ? [{ 
       id: 'clubs', 
