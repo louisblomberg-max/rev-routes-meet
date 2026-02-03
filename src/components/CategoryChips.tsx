@@ -8,10 +8,34 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events & Drives', icon: Calendar, chipClass: 'category-chip-events' },
-    { id: 'routes', label: 'Routes', icon: Route, chipClass: 'category-chip-routes' },
-    { id: 'services', label: 'Services', icon: Wrench, chipClass: 'category-chip-services' },
-    ...(showClubs ? [{ id: 'clubs', label: 'Clubs', icon: Users, chipClass: 'category-chip-clubs' }] : []),
+    { 
+      id: 'events', 
+      label: 'Events & Drives', 
+      icon: Calendar, 
+      activeClass: 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80',
+      hoverClass: 'hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+    },
+    { 
+      id: 'routes', 
+      label: 'Routes', 
+      icon: Route, 
+      activeClass: 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80',
+      hoverClass: 'hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
+    },
+    { 
+      id: 'services', 
+      label: 'Services', 
+      icon: Wrench, 
+      activeClass: 'bg-[#B45309]/80 text-white border-[#B45309]/80',
+      hoverClass: 'hover:border-[#B45309]/50 hover:bg-[#B45309]/10'
+    },
+    ...(showClubs ? [{ 
+      id: 'clubs', 
+      label: 'Clubs', 
+      icon: Users, 
+      activeClass: 'bg-[#6B21A8]/80 text-white border-[#6B21A8]/80',
+      hoverClass: 'hover:border-[#6B21A8]/50 hover:bg-[#6B21A8]/10'
+    }] : []),
   ];
 
   const handleClick = (categoryId: string) => {
@@ -34,8 +58,8 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
             onClick={() => handleClick(category.id)}
             className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
               isActive 
-                ? 'bg-green-500 text-white border-green-500 shadow-md' 
-                : 'bg-card text-muted-foreground border-border hover:border-green-500/50 hover:bg-green-500/10'
+                ? `${category.activeClass} shadow-md` 
+                : `bg-card text-muted-foreground border-border ${category.hoverClass}`
             }`}
           >
             <Icon className="w-5 h-5" />
