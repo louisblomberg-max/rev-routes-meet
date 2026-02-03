@@ -56,14 +56,14 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`h-12 flex items-center justify-center gap-2 px-3 rounded-2xl border transition-all duration-300 ${
+            className={`h-12 flex items-center justify-center gap-1.5 px-2 rounded-2xl border transition-all duration-300 ${
               isActive 
                 ? `${category.activeClass} shadow-lg scale-[1.02]` 
                 : `bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md ${category.hoverClass} hover:scale-[1.02]`
             }`}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
-            <span className="text-[11px] font-semibold leading-tight truncate">{category.label}</span>
+            <span className="text-[10px] font-semibold leading-tight whitespace-nowrap">{category.label}</span>
           </button>
         );
       })}
