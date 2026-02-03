@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal, X, Star } from 'lucide-react';
 
 export interface RoutesFilterState {
   distance: number | 'national' | 'continental' | 'global';
   types: string[];
+  difficulty: string[];
+  duration: string | null;
+  surface: string[];
+  minRating: number | null;
 }
 
 interface RoutesFiltersPanelProps {
@@ -30,11 +34,52 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     { id: 'track', label: 'Track' },
   ];
 
+  const difficultyOptions = [
+    { id: 'easy', label: 'Easy' },
+    { id: 'moderate', label: 'Moderate' },
+    { id: 'challenging', label: 'Challenging' },
+    { id: 'expert', label: 'Expert' },
+  ];
+
+  const durationOptions = [
+    { id: 'under-1h', label: '< 1 hour' },
+    { id: '1-2h', label: '1-2 hours' },
+    { id: '2-4h', label: '2-4 hours' },
+    { id: 'over-4h', label: '4+ hours' },
+  ];
+
+  const surfaceOptions = [
+    { id: 'paved', label: 'Paved' },
+    { id: 'gravel', label: 'Gravel' },
+    { id: 'dirt', label: 'Dirt' },
+    { id: 'mixed', label: 'Mixed' },
+  ];
+
+  const ratingOptions = [
+    { value: 4, label: '4+' },
+    { value: 3, label: '3+' },
+    { value: 2, label: '2+' },
+  ];
+
   const toggleType = (typeId: string) => {
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
       : [...filters.types, typeId];
     onFiltersChange({ ...filters, types: newTypes });
+  };
+
+  const toggleDifficulty = (difficultyId: string) => {
+    const newDifficulty = filters.difficulty.includes(difficultyId)
+      ? filters.difficulty.filter(d => d !== difficultyId)
+      : [...filters.difficulty, difficultyId];
+    onFiltersChange({ ...filters, difficulty: newDifficulty });
+  };
+
+  const toggleSurface = (surfaceId: string) => {
+    const newSurface = filters.surface.includes(surfaceId)
+      ? filters.surface.filter(s => s !== surfaceId)
+      : [...filters.surface, surfaceId];
+    onFiltersChange({ ...filters, surface: newSurface });
   };
 
   const handleDistanceChange = (value: number[]) => {
@@ -45,6 +90,20 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     onFiltersChange({ 
       ...filters, 
       distance: filters.distance === preset ? 25 : preset 
+    });
+  };
+
+  const handleDurationChange = (durationId: string) => {
+    onFiltersChange({ 
+      ...filters, 
+      duration: filters.duration === durationId ? null : durationId 
+    });
+  };
+
+  const handleRatingChange = (rating: number) => {
+    onFiltersChange({ 
+      ...filters, 
+      minRating: filters.minRating === rating ? null : rating 
     });
   };
 
@@ -73,7 +132,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
 
       {/* Filter Panel */}
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[60vh] overflow-y-auto">
           {/* Header with close */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Routes</h3>
@@ -132,6 +191,87 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   }`}
                 >
                   {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Difficulty Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Difficulty</p>
+            <div className="flex flex-wrap gap-1.5">
+              {difficultyOptions.map((diff) => (
+                <button
+                  key={diff.id}
+                  onClick={() => toggleDifficulty(diff.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.difficulty.includes(diff.id)
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  {diff.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Duration Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Duration</p>
+            <div className="flex flex-wrap gap-1.5">
+              {durationOptions.map((dur) => (
+                <button
+                  key={dur.id}
+                  onClick={() => handleDurationChange(dur.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.duration === dur.id
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  {dur.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Surface Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Surface</p>
+            <div className="flex flex-wrap gap-1.5">
+              {surfaceOptions.map((surf) => (
+                <button
+                  key={surf.id}
+                  onClick={() => toggleSurface(surf.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.surface.includes(surf.id)
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  {surf.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
+            <div className="flex gap-1.5">
+              {ratingOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleRatingChange(option.value)}
+                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.minRating === option.value
+                      ? 'bg-[#1E40AF]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                  }`}
+                >
+                  <Star className="w-3 h-3" />
+                  {option.label}
                 </button>
               ))}
             </div>
