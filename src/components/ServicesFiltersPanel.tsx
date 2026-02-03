@@ -85,14 +85,14 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
       {/* Filter Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${
+        className={`h-12 w-full flex items-center justify-center gap-1.5 px-4 rounded-2xl border transition-all duration-300 ${
           isOpen
-            ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80'
-            : 'bg-card text-muted-foreground border-border hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
+            ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80 shadow-lg'
+            : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
         }`}
       >
-        <SlidersHorizontal className="w-5 h-5" />
-        <span className="text-sm font-medium">Filters</span>
+        <SlidersHorizontal className="w-4 h-4" />
+        <span className="text-[10px] font-semibold">Filters</span>
       </button>
 
       {/* Filter Panel */}
