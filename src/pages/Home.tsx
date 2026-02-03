@@ -11,6 +11,7 @@ import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
 import HelpSheet from '@/components/HelpSheet';
+import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
@@ -51,6 +52,7 @@ const Home = () => {
     openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
     if (pin.type === 'events') {
@@ -199,6 +201,13 @@ const Home = () => {
           </div>
         )}
       </div>
+
+      {/* Map Style Button - top right */}
+      {!isSearchActive && (
+        <div className="absolute right-4 top-4 z-10 safe-top">
+          <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
+        </div>
+      )}
 
       {/* Location & Help Buttons - hidden during search */}
       {!isSearchActive && (
