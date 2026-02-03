@@ -72,49 +72,6 @@ const YouTab = () => {
       </div>
 
 
-      {/* 4. Live & Safety Card */}
-      <div className="px-5 pt-6">
-        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-          Live & Safety
-        </h2>
-        <button className="w-full bg-card rounded-2xl border border-border/30 shadow-sm p-4 text-left hover:shadow-md transition-all duration-200">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-routes/10 flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-routes" />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">Live Tools</span>
-                <span className="text-xs text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full">
-                  Off
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Location, Group Drives, Breakdown Help
-              </p>
-            </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground/50 shrink-0" />
-          </div>
-          
-          {/* Quick Stats Row */}
-          <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <MapPin className="w-4 h-4" />
-              <span>Location off</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Route className="w-4 h-4" />
-              <span>{mockUserProfile.liveFeatures.groupDrivesCount} drives</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <Shield className="w-4 h-4" />
-              <span>{mockUserProfile.liveFeatures.breakdownHelpCount} assists</span>
-            </div>
-          </div>
-        </button>
-      </div>
-
-
       {/* 6. Utility (Bottom) */}
       <div className="px-5 pt-6 pb-8">
         <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
