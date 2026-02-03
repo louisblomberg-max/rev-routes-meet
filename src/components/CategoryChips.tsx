@@ -23,7 +23,7 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
   };
 
   return (
-    <div className="flex gap-1.5 w-full">
+    <div className="grid grid-cols-3 gap-2 w-full">
       {categories.map((category) => {
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
@@ -32,10 +32,14 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-2 whitespace-nowrap py-3 px-4`}
+            className={`flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
+              isActive 
+                ? 'bg-green-500 text-white border-green-500 shadow-md' 
+                : 'bg-card text-muted-foreground border-border hover:border-green-500/50 hover:bg-green-500/10'
+            }`}
           >
             <Icon className="w-5 h-5" />
-            <span className="text-sm font-medium">{category.label}</span>
+            <span className="text-xs font-medium text-center leading-tight">{category.label}</span>
           </button>
         );
       })}
