@@ -170,7 +170,7 @@ const Home = () => {
               >
                 <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Filter {activeCategory === 'events' ? 'Meets & Events' : activeCategory === 'routes' ? 'Routes' : 'Services'}
+                  Filter {activeCategory === 'events' ? 'Events & Drives' : activeCategory === 'routes' ? 'Routes' : 'Services'}
                 </span>
               </button>
             )}
