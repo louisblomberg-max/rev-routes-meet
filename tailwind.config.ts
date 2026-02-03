@@ -16,6 +16,9 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,25 +53,29 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          elevated: "hsl(var(--surface-elevated))",
+        },
         events: {
           DEFAULT: "hsl(var(--events))",
           foreground: "hsl(var(--events-foreground))",
-          light: "hsl(var(--events-light))",
+          muted: "hsl(var(--events-muted))",
         },
         routes: {
           DEFAULT: "hsl(var(--routes))",
           foreground: "hsl(var(--routes-foreground))",
-          light: "hsl(var(--routes-light))",
+          muted: "hsl(var(--routes-muted))",
         },
         services: {
           DEFAULT: "hsl(var(--services))",
           foreground: "hsl(var(--services-foreground))",
-          light: "hsl(var(--services-light))",
+          muted: "hsl(var(--services-muted))",
         },
         clubs: {
           DEFAULT: "hsl(var(--clubs))",
           foreground: "hsl(var(--clubs-foreground))",
-          light: "hsl(var(--clubs-light))",
+          muted: "hsl(var(--clubs-muted))",
         },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
@@ -87,9 +94,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'card': '0 0 0 1px rgba(0, 0, 0, 0.03), 0 2px 4px rgba(0, 0, 0, 0.05)',
-        'elevated': '0 10px 40px -10px rgba(0, 0, 0, 0.15)',
+        'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.08)',
+        'card': '0 1px 3px hsl(var(--shadow-color) / 0.05), 0 1px 2px hsl(var(--shadow-color) / 0.1)',
+        'elevated': '0 4px 20px -4px hsl(var(--shadow-color) / 0.15)',
+        'premium': '0 8px 30px -8px hsl(var(--shadow-color) / 0.2)',
       },
       keyframes: {
         "accordion-down": {
@@ -106,7 +114,7 @@ export default {
         },
         "pulse-subtle": {
           "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.8" },
+          "50%": { opacity: "0.7" },
         },
       },
       animation: {

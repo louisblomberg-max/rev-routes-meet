@@ -1,4 +1,4 @@
-import { Calendar, Route, Wrench, Users } from 'lucide-react';
+import { Calendar, Route, Wrench } from 'lucide-react';
 
 interface CategoryChipsProps {
   activeCategory: string | null;
@@ -6,36 +6,23 @@ interface CategoryChipsProps {
   showClubs?: boolean;
 }
 
-const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: CategoryChipsProps) => {
+const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
     { 
       id: 'events', 
       label: 'Events & Drives', 
       icon: Calendar, 
-      activeClass: 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80',
-      hoverClass: 'hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
     },
     { 
       id: 'routes', 
       label: 'Routes', 
       icon: Route, 
-      activeClass: 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80',
-      hoverClass: 'hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
     },
     { 
       id: 'services', 
       label: 'Services', 
       icon: Wrench, 
-      activeClass: 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80',
-      hoverClass: 'hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
     },
-    ...(showClubs ? [{ 
-      id: 'clubs', 
-      label: 'Clubs', 
-      icon: Users, 
-      activeClass: 'bg-[#6B21A8]/80 text-white border-[#6B21A8]/80',
-      hoverClass: 'hover:border-[#6B21A8]/50 hover:bg-[#6B21A8]/10'
-    }] : []),
   ];
 
   const handleClick = (categoryId: string) => {
@@ -52,18 +39,28 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
         
+        const colorClasses = {
+          events: isActive 
+            ? 'bg-events text-events-foreground border-events shadow-lg' 
+            : 'bg-card text-events border-border/50 hover:border-events/50 hover:bg-events-muted',
+          routes: isActive 
+            ? 'bg-routes text-routes-foreground border-routes shadow-lg' 
+            : 'bg-card text-routes border-border/50 hover:border-routes/50 hover:bg-routes-muted',
+          services: isActive 
+            ? 'bg-services text-services-foreground border-services shadow-lg' 
+            : 'bg-card text-services border-border/50 hover:border-services/50 hover:bg-services-muted',
+        };
+        
         return (
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`h-12 flex items-center justify-center gap-1.5 px-2 rounded-2xl border transition-all duration-300 ${
-              isActive 
-                ? `${category.activeClass} shadow-lg scale-[1.02]` 
-                : `bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md ${category.hoverClass} hover:scale-[1.02]`
+            className={`h-11 flex items-center justify-center gap-1.5 px-2 rounded-lg border transition-all duration-200 ${
+              colorClasses[category.id as keyof typeof colorClasses]
             }`}
           >
             <Icon className="w-4 h-4 flex-shrink-0" />
-            <span className="text-[10px] font-semibold leading-tight whitespace-nowrap">{category.label}</span>
+            <span className="text-2xs font-bold tracking-wide whitespace-nowrap">{category.label}</span>
           </button>
         );
       })}
