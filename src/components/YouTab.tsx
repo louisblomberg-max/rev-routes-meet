@@ -1,4 +1,4 @@
-import { Car, Users, Route, Calendar, MessageSquare, UsersRound, MapPin, Shield, Settings, ShoppingBag, CreditCard, ChevronRight } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, MapPin, Shield, Settings, ShoppingBag, ChevronRight, Crown, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 // Profile components
@@ -18,14 +18,12 @@ const YouTab = () => {
   ];
 
   const socialItems = [
-    { id: 'friends', label: 'Friends', icon: UsersRound, count: 23 },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, count: 3, route: '/messages' },
+    { id: 'friends', label: 'Friends', icon: UsersRound, count: 23, pending: 2 },
   ];
 
   const utilityItems = [
     { id: 'settings', label: 'Settings', icon: Settings, route: '/settings' },
     { id: 'shop', label: 'RevNet Shop', icon: ShoppingBag },
-    { id: 'plan', label: 'Manage Plan', icon: CreditCard },
   ];
 
   return (
@@ -64,13 +62,12 @@ const YouTab = () => {
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
           Social
         </h2>
-        <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
+        <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden">
           {socialItems.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
-                onClick={() => item.route && navigate(item.route)}
                 className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-muted/50 transition-colors"
               >
                 <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
@@ -80,6 +77,11 @@ const YouTab = () => {
                 {item.count > 0 && (
                   <span className="text-sm text-muted-foreground bg-muted/80 px-2.5 py-0.5 rounded-full">
                     {item.count}
+                  </span>
+                )}
+                {item.pending > 0 && (
+                  <span className="text-xs text-primary-foreground bg-primary px-2 py-0.5 rounded-full">
+                    {item.pending} pending
                   </span>
                 )}
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
@@ -131,7 +133,28 @@ const YouTab = () => {
         </button>
       </div>
 
-      {/* 5. Settings & Monetisation */}
+      {/* 5. Plan / Subscription Card */}
+      <div className="px-5 pt-6">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">Free Plan</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Basic access to clubs, forums & routes</p>
+            </div>
+          </div>
+          <button className="w-full mt-2 bg-primary text-primary-foreground font-medium py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+            <Crown className="w-4 h-4" />
+            Upgrade Plan
+          </button>
+        </div>
+      </div>
+
+      {/* 6. Utility (Bottom) */}
       <div className="px-5 pt-6 pb-8">
         <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {utilityItems.map((item) => {
