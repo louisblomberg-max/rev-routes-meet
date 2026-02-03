@@ -10,6 +10,7 @@ import PrivacySafetySettings from "./pages/PrivacySafetySettings";
 import NotificationSettings from "./pages/NotificationSettings";
 import AppPreferencesSettings from "./pages/AppPreferencesSettings";
 import AccountSettings from "./pages/AccountSettings";
+import SocialDiscoverySettings from "./pages/SocialDiscoverySettings";
 import PlanBillingSettings from "./pages/PlanBillingSettings";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
@@ -46,6 +47,7 @@ const App = () => (
           <Route path="/settings/preferences" element={<AppPreferencesSettings />} />
           <Route path="/settings/account" element={<AccountSettings />} />
           <Route path="/settings/billing" element={<PlanBillingSettings />} />
+          <Route path="/settings/social" element={<SocialDiscoverySettings />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/forums/create" element={<CreateForumPost />} />
