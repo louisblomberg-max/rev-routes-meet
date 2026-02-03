@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
 import CategoryChips from '@/components/CategoryChips';
@@ -155,11 +156,24 @@ const Home = () => {
 
         {/* Category Chips - hidden during search */}
         {!isSearchActive && (
-          <div className="mt-3">
+          <div className="mt-3 space-y-2">
             <CategoryChips 
               activeCategory={activeCategory}
               onCategoryChange={setActiveCategory}
             />
+            
+            {/* Contextual Filter Bar */}
+            {activeCategory && (
+              <button
+                onClick={() => setIsFiltersOpen(true)}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-card/95 backdrop-blur-sm rounded-lg border border-border/50 shadow-sm"
+              >
+                <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">
+                  Filter {activeCategory === 'events' ? 'Meets & Events' : activeCategory === 'routes' ? 'Routes' : 'Services'}
+                </span>
+              </button>
+            )}
           </div>
         )}
       </div>
