@@ -90,6 +90,7 @@ const Settings = () => {
                   if (section.id === 'privacy') navigate('/settings/privacy');
                   if (section.id === 'notifications') navigate('/settings/notifications');
                   if (section.id === 'preferences') navigate('/settings/preferences');
+                  if (section.id === 'account') navigate('/settings/account');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
