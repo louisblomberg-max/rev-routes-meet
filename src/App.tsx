@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import PrivacySafetySettings from "./pages/PrivacySafetySettings";
+import NotificationSettings from "./pages/NotificationSettings";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
 import CreateForumPost from "./pages/CreateForumPost";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/privacy" element={<PrivacySafetySettings />} />
+          <Route path="/settings/notifications" element={<NotificationSettings />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/forums/create" element={<CreateForumPost />} />
