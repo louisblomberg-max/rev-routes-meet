@@ -20,10 +20,10 @@ const YouTab = () => {
   ];
 
   return (
-    <div className="h-full bg-background pb-20">
+    <div className="h-full bg-background pb-20 flex flex-col">
       
       {/* 1. Profile Header (Compact) */}
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-5">
         <ProfileHeaderCompact 
           profile={mockUserProfile} 
           onTap={() => navigate('/profile')} 
@@ -31,18 +31,18 @@ const YouTab = () => {
       </div>
 
       {/* 2. Plan / Subscription Card */}
-      <div className="px-4 pt-3">
-        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm p-3">
+      <div className="px-4 pt-4">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm p-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary" />
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <span className="font-semibold text-foreground text-sm">Free Plan</span>
-              <p className="text-xs text-muted-foreground">Basic access to clubs, forums & routes</p>
+              <span className="font-semibold text-foreground">Free Plan</span>
+              <p className="text-sm text-muted-foreground">Basic access to clubs, forums & routes</p>
             </div>
-            <button className="bg-primary text-primary-foreground font-medium py-1.5 px-3 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-xs">
-              <Crown className="w-3.5 h-3.5" />
+            <button className="bg-primary text-primary-foreground font-medium py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm">
+              <Crown className="w-4 h-4" />
               Upgrade
             </button>
           </div>
@@ -50,19 +50,19 @@ const YouTab = () => {
       </div>
 
       {/* 3. Primary Actions (2x3 Grid) */}
-      <div className="px-4 pt-4">
-        <div className="grid grid-cols-3 gap-2">
+      <div className="px-4 pt-5 flex-1">
+        <div className="grid grid-cols-3 gap-3">
           {primaryActions.map((action) => {
             const Icon = action.icon;
             return (
               <button
                 key={action.id}
-                className="bg-card rounded-lg border border-border/30 shadow-sm p-2.5 text-left hover:shadow-md transition-all duration-200 flex flex-col items-center gap-1.5"
+                className="bg-card rounded-xl border border-border/30 shadow-sm p-4 text-left hover:shadow-md transition-all duration-200 flex flex-col items-center gap-2"
               >
-                <div className={`w-9 h-9 rounded-md ${action.color} flex items-center justify-center`}>
-                  <Icon className={`w-4.5 h-4.5 ${action.iconColor}`} />
+                <div className={`w-11 h-11 rounded-lg ${action.color} flex items-center justify-center`}>
+                  <Icon className={`w-5 h-5 ${action.iconColor}`} />
                 </div>
-                <span className="text-[11px] font-medium text-foreground text-center leading-tight">{action.label}</span>
+                <span className="text-xs font-medium text-foreground text-center leading-tight">{action.label}</span>
               </button>
             );
           })}
@@ -70,25 +70,25 @@ const YouTab = () => {
       </div>
 
       {/* 4. Utility (Bottom) */}
-      <div className="px-4 pt-4">
+      <div className="px-4 pt-4 pb-2">
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           <button
-            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-muted/80 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
+            <div className="w-9 h-9 rounded-lg bg-muted/80 flex items-center justify-center">
+              <ShoppingBag className="w-4.5 h-4.5 text-muted-foreground" />
             </div>
-            <span className="flex-1 text-left font-medium text-foreground text-sm">RevNet Shop</span>
+            <span className="flex-1 text-left font-medium text-foreground">RevNet Shop</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>
           <button
             onClick={() => navigate('/settings')}
-            className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-muted/80 flex items-center justify-center">
-              <Settings className="w-4 h-4 text-muted-foreground" />
+            <div className="w-9 h-9 rounded-lg bg-muted/80 flex items-center justify-center">
+              <Settings className="w-4.5 h-4.5 text-muted-foreground" />
             </div>
-            <span className="flex-1 text-left font-medium text-foreground text-sm">Settings</span>
+            <span className="flex-1 text-left font-medium text-foreground">Settings</span>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>
         </div>
