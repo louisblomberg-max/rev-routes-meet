@@ -1,122 +1,138 @@
-import { Settings, ShoppingBag, ChevronRight, Crown, Sparkles } from 'lucide-react';
+import { Car, Users, Route, Calendar, MessageSquare, UsersRound, MapPin, Shield, Settings, ShoppingBag, CreditCard, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 // Profile components
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import GarageSection from '@/components/profile/GarageSection';
-import ActivitySection from '@/components/profile/ActivitySection';
-import ClubsSection from '@/components/profile/ClubsSection';
-import FriendsSection from '@/components/profile/FriendsSection';
-import LiveFeaturesSection from '@/components/profile/LiveFeaturesSection';
-import AchievementsSection from '@/components/profile/AchievementsSection';
+import ProfileHeaderCompact from '@/components/profile/ProfileHeaderCompact';
 
 // Mock data
-import { mockUserProfile, mockActivities, mockFriends, mockClubMemberships } from '@/data/profileData';
+import { mockUserProfile } from '@/data/profileData';
 
 const YouTab = () => {
   const navigate = useNavigate();
 
+  const primaryActions = [
+    { id: 'garage', label: 'My Garage', icon: Car, color: 'bg-muted/80', iconColor: 'text-foreground/70' },
+    { id: 'clubs', label: 'My Clubs', icon: Users, color: 'bg-clubs/10', iconColor: 'text-clubs' },
+    { id: 'routes', label: 'My Routes', icon: Route, color: 'bg-routes/10', iconColor: 'text-routes' },
+    { id: 'events', label: 'My Events', icon: Calendar, color: 'bg-events/10', iconColor: 'text-events' },
+  ];
+
+  const socialItems = [
+    { id: 'friends', label: 'Friends', icon: UsersRound, count: 23 },
+    { id: 'messages', label: 'Messages', icon: MessageSquare, count: 3, route: '/messages' },
+  ];
+
   const utilityItems = [
     { id: 'settings', label: 'Settings', icon: Settings, route: '/settings' },
     { id: 'shop', label: 'RevNet Shop', icon: ShoppingBag },
+    { id: 'plan', label: 'Manage Plan', icon: CreditCard },
   ];
 
   return (
     <div className="h-full bg-background overflow-y-auto pb-24">
       
-      {/* 1. Profile Header */}
+      {/* 1. Profile Header (Compact) */}
       <div className="px-5 pt-6">
-        <ProfileHeader profile={mockUserProfile} />
+        <ProfileHeaderCompact 
+          profile={mockUserProfile} 
+          onTap={() => navigate('/profile')} 
+        />
       </div>
 
-      {/* 2. Garage */}
+      {/* 2. Primary Actions (2x2 Grid) */}
       <div className="px-5 pt-6">
-        <GarageSection vehicles={mockUserProfile.garage} isOwnProfile={true} />
-      </div>
-
-      {/* Plan Card */}
-      <div className="px-5 pt-6">
-        <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden">
-          <div className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                {mockUserProfile.plan === 'enthusiast' ? (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-events to-primary flex items-center justify-center">
-                    <Crown className="w-4 h-4 text-primary-foreground" />
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-muted-foreground" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="font-semibold text-foreground">
-                    {mockUserProfile.plan === 'free' ? 'Free' : 'Enthusiast'} Plan
-                  </h3>
-                  {mockUserProfile.plan === 'enthusiast' && (
-                    <span className="text-xs text-events">Active</span>
-                  )}
+        <div className="grid grid-cols-2 gap-3">
+          {primaryActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                className="bg-card rounded-2xl border border-border/30 shadow-sm p-5 text-left hover:shadow-md transition-all duration-200 flex flex-col items-start gap-3"
+              >
+                <div className={`w-12 h-12 rounded-xl ${action.color} flex items-center justify-center`}>
+                  <Icon className={`w-6 h-6 ${action.iconColor}`} />
                 </div>
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground mb-4">
-              {mockUserProfile.plan === 'free' 
-                ? 'Access clubs, forums, events, messaging, and save routes'
-                : 'Always-on location, group drives, priority help, and more'
-              }
-            </p>
-            {mockUserProfile.plan === 'free' ? (
-              <Button 
-                className="w-full bg-gradient-to-r from-events to-primary hover:opacity-90 text-primary-foreground border-0"
-                onClick={() => {/* Future: navigate to upgrade flow */}}
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Enthusiast
-              </Button>
-            ) : (
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {/* Future: navigate to plan management */}}
-              >
-                Manage Plan
-              </Button>
-            )}
-          </div>
+                <span className="font-semibold text-foreground">{action.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* 3. Recent Activity */}
+      {/* 3. Social (Compact) */}
       <div className="px-5 pt-6">
-        <ActivitySection activities={mockActivities} />
-      </div>
-
-      {/* 4. Clubs */}
-      <div className="px-5 pt-6">
-        <ClubsSection memberships={mockClubMemberships} />
-      </div>
-
-      {/* 5. Friends */}
-      <div className="px-5 pt-6">
-        <FriendsSection friends={mockFriends} isOwnProfile={true} />
-      </div>
-
-      {/* 6. Live Features */}
-      <div className="px-5 pt-6">
-        <LiveFeaturesSection liveFeatures={mockUserProfile.liveFeatures} isOwnProfile={true} />
-      </div>
-
-      {/* 7. Achievements */}
-      <div className="px-5 pt-6">
-        <AchievementsSection achievements={mockUserProfile.achievements} />
-      </div>
-
-      {/* Utility */}
-      <div className="px-5 pt-6 pb-8">
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
-          Utility
+          Social
         </h2>
+        <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
+          {socialItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.id}
+                onClick={() => item.route && navigate(item.route)}
+                className="w-full flex items-center gap-4 px-4 py-3.5 hover:bg-muted/50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-foreground/70" />
+                </div>
+                <span className="flex-1 text-left font-medium text-foreground">{item.label}</span>
+                {item.count > 0 && (
+                  <span className="text-sm text-muted-foreground bg-muted/80 px-2.5 py-0.5 rounded-full">
+                    {item.count}
+                  </span>
+                )}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 4. Live & Safety Card */}
+      <div className="px-5 pt-6">
+        <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-1">
+          Live & Safety
+        </h2>
+        <button className="w-full bg-card rounded-2xl border border-border/30 shadow-sm p-4 text-left hover:shadow-md transition-all duration-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-routes/10 flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-routes" />
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">Live Tools</span>
+                <span className="text-xs text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-full">
+                  Off
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Location, Group Drives, Breakdown Help
+              </p>
+            </div>
+            <ChevronRight className="w-5 h-5 text-muted-foreground/50 shrink-0" />
+          </div>
+          
+          {/* Quick Stats Row */}
+          <div className="mt-4 pt-3 border-t border-border/30 flex items-center justify-between text-sm">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <MapPin className="w-4 h-4" />
+              <span>Location off</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Route className="w-4 h-4" />
+              <span>{mockUserProfile.liveFeatures.groupDrivesCount} drives</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <Shield className="w-4 h-4" />
+              <span>{mockUserProfile.liveFeatures.breakdownHelpCount} assists</span>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* 5. Settings & Monetisation */}
+      <div className="px-5 pt-6 pb-8">
         <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {utilityItems.map((item) => {
             const Icon = item.icon;
