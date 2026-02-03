@@ -37,7 +37,28 @@ const YouTab = () => {
         />
       </div>
 
-      {/* 2. Primary Actions (2x2 Grid) */}
+      {/* 2. Plan / Subscription Card */}
+      <div className="px-5 pt-4">
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 shadow-sm p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-foreground">Free Plan</span>
+              </div>
+              <p className="text-sm text-muted-foreground">Basic access to clubs, forums & routes</p>
+            </div>
+          </div>
+          <button className="w-full mt-2 bg-primary text-primary-foreground font-medium py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
+            <Crown className="w-4 h-4" />
+            Upgrade Plan
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Primary Actions (2x2 Grid) */}
       <div className="px-5 pt-6">
         <div className="grid grid-cols-2 gap-3">
           {primaryActions.map((action) => {
@@ -133,26 +154,6 @@ const YouTab = () => {
         </button>
       </div>
 
-      {/* 5. Plan / Subscription Card */}
-      <div className="px-5 pt-6">
-        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-2xl border border-primary/20 shadow-sm p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-foreground">Free Plan</span>
-              </div>
-              <p className="text-sm text-muted-foreground">Basic access to clubs, forums & routes</p>
-            </div>
-          </div>
-          <button className="w-full mt-2 bg-primary text-primary-foreground font-medium py-2.5 px-4 rounded-xl hover:bg-primary/90 transition-colors flex items-center justify-center gap-2">
-            <Crown className="w-4 h-4" />
-            Upgrade Plan
-          </button>
-        </div>
-      </div>
 
       {/* 6. Utility (Bottom) */}
       <div className="px-5 pt-6 pb-8">
