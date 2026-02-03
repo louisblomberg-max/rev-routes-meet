@@ -45,9 +45,9 @@
     --routes-foreground: 0 0% 100%;
     --routes-light: 213 94% 95%;
     
-    --services: 45 93% 47%;
-    --services-foreground: 220 13% 18%;
-    --services-light: 45 93% 95%;
+    --services: 161 48% 20%;
+    --services-foreground: 0 0% 100%;
+    --services-light: 161 48% 95%;
     
     --clubs: 220 14% 40%;
     --clubs-foreground: 0 0% 100%;
@@ -104,7 +104,7 @@
 
     --events: 357 60% 45%;
     --routes: 213 94% 55%;
-    --services: 45 93% 55%;
+    --services: 161 48% 30%;
     --clubs: 220 14% 60%;
   }
 }
