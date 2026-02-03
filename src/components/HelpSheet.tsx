@@ -18,7 +18,9 @@ import {
   MessageSquare,
   ArrowRight,
   Heart,
-  Bell
+  Bell,
+  ShieldAlert,
+  ExternalLink
 } from 'lucide-react';
 
 interface HelpSheetProps {
@@ -100,6 +102,26 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             <Phone className="w-4 h-4 text-white" />
             <span className="text-sm text-white/90">In an emergency, call <span className="font-bold">999</span> first</span>
           </div>
+
+          {/* Stolen Vehicle Button - Critical Action */}
+          <button 
+            onClick={() => {
+              // This would typically open a modal or navigate to a dedicated stolen vehicle flow
+              window.open('tel:101', '_self');
+            }}
+            className="mt-3 w-full flex items-center justify-between gap-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl px-4 py-3 transition-all group border border-white/20"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
+                <ShieldAlert className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-white">Vehicle Stolen?</p>
+                <p className="text-[11px] text-white/70">Report to police immediately</p>
+              </div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
+          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
