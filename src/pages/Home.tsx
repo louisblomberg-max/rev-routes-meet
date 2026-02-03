@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
-import CategoryToggles from '@/components/CategoryToggles';
+import CategoryChips from '@/components/CategoryChips';
 import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import BottomNavigation from '@/components/BottomNavigation';
 import YouTab from '@/components/YouTab';
@@ -18,7 +18,7 @@ type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 const Home = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
-  const [activeCategories, setActiveCategories] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
@@ -104,7 +104,8 @@ const Home = () => {
   };
 
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
-  const primaryCategory = activeCategories.length === 1 ? activeCategories[0] : null;
+  // Convert single category to array for MapView compatibility
+  const activeCategories = activeCategory ? [activeCategory] : [];
 
   // Non-discovery tabs
   if (activeTab !== 'discovery') {
@@ -152,15 +153,12 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Category Toggles - hidden during search */}
+        {/* Category Chips - hidden during search */}
         {!isSearchActive && (
           <div className="mt-3">
-            <CategoryToggles 
-              activeCategories={activeCategories}
-              onCategoriesChange={setActiveCategories}
-              onFilterClick={(category) => {
-                setIsFiltersOpen(true);
-              }}
+            <CategoryChips 
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
             />
           </div>
         )}
@@ -192,7 +190,7 @@ const Home = () => {
         activeFilters={searchFilters}
         onFiltersChange={setSearchFilters}
         mode={isSearchActive ? 'search' : 'browse'}
-        browseCategory={primaryCategory}
+        browseCategory={activeCategory}
       />
     </div>
   );
