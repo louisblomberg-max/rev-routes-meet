@@ -33,6 +33,10 @@ const Home = () => {
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25,
     types: [],
+    difficulty: [],
+    duration: null,
+    surface: [],
+    minRating: null,
   });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
     distance: 25,
