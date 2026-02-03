@@ -179,6 +179,9 @@ const Home = () => {
               onCategoryChange={setActiveCategory}
             />
             
+            {/* Map Style Button - below tabs */}
+            <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
+            
             {/* Category-specific Inline Filters */}
             {activeCategory === 'events' && (
               <EventsFiltersPanel
@@ -201,13 +204,6 @@ const Home = () => {
           </div>
         )}
       </div>
-
-      {/* Map Style Button - top right */}
-      {!isSearchActive && (
-        <div className="absolute right-4 top-4 z-10 safe-top">
-          <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-        </div>
-      )}
 
       {/* Location & Help Buttons - hidden during search */}
       {!isSearchActive && (
