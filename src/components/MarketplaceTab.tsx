@@ -203,19 +203,16 @@ const MarketplaceTab = () => {
   const featuredListing = mockMarketplaceListings[0];
 
   return (
-    <div className="h-full bg-gradient-to-b from-muted/30 to-background overflow-y-auto pb-24">
+    <div className="h-full bg-background overflow-y-auto pb-24">
       {/* Header */}
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
-              <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">Buy & Sell</span>
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">Marketplace</h1>
+            <p className="text-label mb-1">Buy & Sell</p>
+            <h1 className="heading-display text-foreground">Marketplace</h1>
           </div>
-          <button className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
-            <Plus className="w-5 h-5 text-white" />
+          <button className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
+            <Plus className="w-5 h-5 text-primary-foreground" />
           </button>
         </div>
       </div>
@@ -224,21 +221,19 @@ const MarketplaceTab = () => {
       <div className="px-4 pt-2 relative">
         <div className="flex gap-2">
           <div className="flex-1 relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-              <Search className="w-4 h-4 text-muted-foreground" />
-            </div>
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text"
               placeholder="Search by name, category, location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              className="w-full h-12 pl-14 pr-10 bg-white/95 backdrop-blur-sm border border-white/50 rounded-2xl shadow-md text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all font-medium"
             />
             {searchQuery && (
               <button 
                 onClick={clearSearch}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-muted flex items-center justify-center hover:bg-border"
               >
                 <X className="w-3 h-3 text-muted-foreground" />
               </button>
@@ -249,15 +244,15 @@ const MarketplaceTab = () => {
               setIsFiltersOpen(!isFiltersOpen);
               setIsSearchFocused(false);
             }}
-            className={`relative w-12 h-12 rounded-2xl backdrop-blur-sm border shadow-md flex items-center justify-center transition-all ${
+            className={`relative w-11 h-11 rounded-lg border shadow-card flex items-center justify-center transition-all ${
               isFiltersOpen || activeFiltersCount > 0
-                ? 'bg-primary text-white border-primary'
-                : 'bg-white/95 border-white/50 hover:bg-white hover:shadow-lg'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
-            <SlidersHorizontal className="w-5 h-5" />
+            <SlidersHorizontal className="w-4 h-4" />
             {activeFiltersCount > 0 && !isFiltersOpen && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-2xs font-bold flex items-center justify-center">
                 {activeFiltersCount}
               </span>
             )}
@@ -266,19 +261,19 @@ const MarketplaceTab = () => {
 
         {/* Search Dropdown */}
         {isSearchFocused && !isFiltersOpen && (
-          <div className="absolute left-4 right-4 top-16 z-30 bg-white/95 backdrop-blur-md rounded-2xl border border-white/50 shadow-xl overflow-hidden animate-fade-up">
+          <div className="absolute left-4 right-4 top-14 z-30 bg-card border border-border/50 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
             {/* Live Suggestions */}
             {searchSuggestions.length > 0 && (
-              <div className="p-3 border-b border-border/30">
-                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Suggestions</p>
+              <div className="p-3 border-b border-border/50">
+                <p className="text-label mb-2">Suggestions</p>
                 {searchSuggestions.map((suggestion, i) => (
                   <button
                     key={i}
                     onClick={() => handleSearch(suggestion)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-left"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors text-left"
                   >
                     <Search className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{suggestion}</span>
+                    <span className="text-sm font-medium text-foreground">{suggestion}</span>
                   </button>
                 ))}
               </div>
@@ -576,10 +571,10 @@ const MarketplaceTab = () => {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(isActive ? null : cat.id)}
-                  className={`flex items-center gap-2 px-4 h-10 rounded-xl text-xs font-semibold transition-all duration-300 whitespace-nowrap ${
+                  className={`flex items-center gap-2 px-4 h-10 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap border ${
                     isActive
-                      ? `bg-gradient-to-r ${cat.gradient} text-white shadow-md`
-                      : 'bg-white/90 backdrop-blur-sm text-muted-foreground border border-white/50 shadow-sm hover:shadow-md'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -637,7 +632,7 @@ const MarketplaceTab = () => {
               View all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          <div className="relative bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-xl">
+          <div className="relative bg-foreground rounded-xl overflow-hidden shadow-elevated">
             <div className="aspect-[16/9] flex items-center justify-center">
               <Car className="w-20 h-20 text-white/10" />
             </div>
@@ -696,7 +691,7 @@ const MarketplaceTab = () => {
               return (
                 <button
                   key={listing.id}
-                  className="group bg-white/95 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/50 shadow-md text-left hover:shadow-xl hover:scale-[1.02] active:scale-[0.99] transition-all duration-300"
+                  className="group bg-card rounded-xl overflow-hidden border border-border/50 shadow-card text-left hover:shadow-elevated hover:border-border active:scale-[0.99] transition-all duration-200"
                 >
                   {/* Image Placeholder */}
                   <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
@@ -757,14 +752,14 @@ const MarketplaceTab = () => {
       {/* Saved Items Hint */}
       {savedListings.length > 0 && !isSearchFocused && (
         <div className="fixed bottom-24 left-4 right-4 z-10">
-          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-white/50 flex items-center justify-between">
+          <div className="bg-card border border-border/50 rounded-xl p-4 shadow-elevated flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
-                <Heart className="w-5 h-5 text-white fill-white" />
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
+                <Heart className="w-5 h-5 text-primary-foreground fill-current" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">{savedListings.length} saved items</p>
-                <p className="text-[10px] text-muted-foreground">Tap to view your wishlist</p>
+                <p className="text-sm font-bold text-foreground">{savedListings.length} saved items</p>
+                <p className="text-caption">Tap to view your wishlist</p>
               </div>
             </div>
             <ChevronRight className="w-5 h-5 text-muted-foreground" />

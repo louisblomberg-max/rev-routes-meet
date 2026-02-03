@@ -36,14 +36,14 @@ const helpSources = [
     icon: Users,
     title: 'Nearby Members',
     description: 'Community members near you',
-    gradient: 'from-blue-500 to-indigo-600',
+    colorClass: 'bg-routes',
   },
   {
     id: 'services',
     icon: MapPin,
     title: 'Recovery Services',
     description: 'Professional breakdown help',
-    gradient: 'from-emerald-500 to-teal-600',
+    colorClass: 'bg-services',
   },
 ];
 
@@ -97,15 +97,15 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   if (stolenAlertActive) {
     return (
       <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="rounded-t-[28px] max-h-[90vh] flex flex-col p-0 gap-0">
-          <div className="bg-gradient-to-br from-red-600 to-red-700 px-6 pt-6 pb-5 rounded-t-[28px]">
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <div className="bg-destructive px-6 pt-6 pb-5 rounded-t-2xl">
             <div className="flex items-center justify-center mb-3">
-              <div className="w-10 h-1 bg-white/30 rounded-full" />
+              <div className="w-10 h-1 bg-destructive-foreground/30 rounded-full" />
             </div>
             <SheetHeader className="text-left">
-              <SheetTitle className="flex items-center gap-3 text-xl text-white">
-                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5 text-white" />
+              <SheetTitle className="flex items-center gap-3 text-xl text-destructive-foreground">
+                <div className="w-10 h-10 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-destructive-foreground" />
                 </div>
                 Vehicle Stolen Alert
               </SheetTitle>
@@ -276,55 +276,54 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="rounded-t-[28px] max-h-[90vh] flex flex-col p-0 gap-0">
-        {/* Header with gradient */}
-        <div className="bg-gradient-to-br from-destructive/90 to-destructive px-6 pt-6 pb-5 rounded-t-[28px]">
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+        {/* Header */}
+        <div className="bg-destructive px-6 pt-6 pb-5 rounded-t-2xl">
           <div className="flex items-center justify-center mb-3">
-            <div className="w-10 h-1 bg-white/30 rounded-full" />
+            <div className="w-10 h-1 bg-destructive-foreground/30 rounded-full" />
           </div>
           <SheetHeader className="text-left">
-            <SheetTitle className="flex items-center gap-3 text-xl text-white">
-              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-white" />
+            <SheetTitle className="flex items-center gap-3 text-xl text-destructive-foreground">
+              <div className="w-10 h-10 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-destructive-foreground" />
               </div>
               Need Help?
             </SheetTitle>
           </SheetHeader>
           
           {/* Emergency Notice */}
-          <div className="mt-4 flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2.5">
-            <Phone className="w-4 h-4 text-white" />
-            <span className="text-sm text-white/90">In an emergency, call <span className="font-bold">999</span> first</span>
+          <div className="mt-4 flex items-center gap-2 bg-destructive-foreground/10 rounded-lg px-3 py-2.5">
+            <Phone className="w-4 h-4 text-destructive-foreground" />
+            <span className="text-sm text-destructive-foreground/90">In an emergency, call <span className="font-bold">999</span> first</span>
           </div>
 
           {/* Stolen Vehicle Button - Critical Action */}
           <button 
             onClick={() => setStolenAlertActive(true)}
-            className="mt-3 w-full flex items-center justify-between gap-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl px-4 py-3 transition-all group border border-white/20"
+            className="mt-3 w-full flex items-center justify-between gap-3 bg-destructive-foreground/10 hover:bg-destructive-foreground/20 rounded-lg px-4 py-3 transition-all group border border-destructive-foreground/20"
           >
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
-                <ShieldAlert className="w-5 h-5 text-white" />
+              <div className="w-9 h-9 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
+                <ShieldAlert className="w-5 h-5 text-destructive-foreground" />
               </div>
               <div className="text-left">
-                <p className="text-sm font-semibold text-white">Vehicle Stolen?</p>
-                <p className="text-[11px] text-white/70">Alert nearby members & emergency services</p>
+                <p className="text-sm font-bold text-destructive-foreground">Vehicle Stolen?</p>
+                <p className="text-caption text-destructive-foreground/70">Alert nearby members & emergency services</p>
               </div>
             </div>
-            <ArrowRight className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
+            <ArrowRight className="w-4 h-4 text-destructive-foreground/70 group-hover:text-destructive-foreground transition-colors" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-          {/* Available to Help Toggle - Prominent Section */}
-          <div className="relative overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-            <div className="relative p-4">
+          {/* Available to Help Toggle */}
+          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5">
+            <div className="p-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
                     isAvailableToHelp 
-                      ? 'bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25' 
+                      ? 'bg-primary' 
                       : 'bg-muted'
                   }`}>
                     <Heart className={`w-5 h-5 transition-colors ${isAvailableToHelp ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
@@ -388,21 +387,21 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                   <button
                     key={source.id}
                     onClick={() => setSelectedSource(source.id)}
-                    className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all text-center overflow-hidden ${
+                    className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all text-center ${
                       isSelected
-                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/10'
-                        : 'border-border bg-card hover:border-primary/30 hover:shadow-md'
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border/50 bg-card hover:border-border hover:shadow-card'
                     }`}
                   >
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${source.gradient} flex items-center justify-center shadow-lg`}>
-                      <Icon className="w-6 h-6 text-white" />
+                    <div className={`w-11 h-11 rounded-lg ${source.colorClass} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground text-sm">{source.title}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{source.description}</p>
+                      <p className="font-bold text-foreground text-sm">{source.title}</p>
+                      <p className="text-caption mt-0.5">{source.description}</p>
                     </div>
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-primary flex items-center justify-center">
                         <Check className="w-3 h-3 text-primary-foreground" />
                       </div>
                     )}
