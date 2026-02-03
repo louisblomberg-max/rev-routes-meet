@@ -1,8 +1,13 @@
 import { useState } from 'react';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
+import { SlidersHorizontal, X, Star } from 'lucide-react';
 
 export interface ServicesFilterState {
-  // Placeholder for future filters
+  distance: number | 'national' | 'continental' | 'global';
+  types: string[];
+  minRating: number | null;
+  openNow: boolean;
 }
 
 interface ServicesFiltersPanelProps {
@@ -12,6 +17,68 @@ interface ServicesFiltersPanelProps {
 
 const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
+
+  const distancePresets = [
+    { id: 'national', label: 'National' },
+    { id: 'continental', label: 'Continental' },
+    { id: 'global', label: 'Global' },
+  ];
+
+  const typeOptions = [
+    { id: 'mechanics', label: 'Mechanics' },
+    { id: 'detailing', label: 'Detailing' },
+    { id: 'parts', label: 'Parts' },
+    { id: 'tyres', label: 'Tyres' },
+    { id: 'mot', label: 'MOT' },
+    { id: 'tuning', label: 'Tuning' },
+    { id: 'bodywork', label: 'Bodywork' },
+    { id: 'car-wash', label: 'Car Wash' },
+    { id: 'fuel', label: 'Fuel' },
+    { id: 'ev-charging', label: 'EV Charging' },
+  ];
+
+  const ratingOptions = [
+    { value: 4, label: '4+' },
+    { value: 3, label: '3+' },
+    { value: 2, label: '2+' },
+  ];
+
+  const toggleType = (typeId: string) => {
+    const newTypes = filters.types.includes(typeId)
+      ? filters.types.filter(t => t !== typeId)
+      : [...filters.types, typeId];
+    onFiltersChange({ ...filters, types: newTypes });
+  };
+
+  const handleDistanceChange = (value: number[]) => {
+    onFiltersChange({ ...filters, distance: value[0] });
+  };
+
+  const handleDistancePreset = (preset: 'national' | 'continental' | 'global') => {
+    onFiltersChange({ 
+      ...filters, 
+      distance: filters.distance === preset ? 25 : preset 
+    });
+  };
+
+  const handleRatingChange = (rating: number) => {
+    onFiltersChange({ 
+      ...filters, 
+      minRating: filters.minRating === rating ? null : rating 
+    });
+  };
+
+  const handleOpenNowChange = (checked: boolean) => {
+    onFiltersChange({ ...filters, openNow: checked });
+  };
+
+  const isDistanceNumeric = typeof filters.distance === 'number';
+  const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
+  const getDistanceLabel = () => {
+    if (isDistanceNumeric) return `${filters.distance} miles`;
+    const preset = filters.distance as string;
+    return preset.charAt(0).toUpperCase() + preset.slice(1);
+  };
 
   return (
     <div className="space-y-2 animate-fade-up">
@@ -42,7 +109,88 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </button>
           </div>
 
-          <p className="text-xs text-muted-foreground">Service filters coming soon...</p>
+          {/* Distance Filter */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Distance</p>
+              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+            </div>
+            <Slider
+              value={[isDistanceNumeric ? distanceValue : 25]}
+              onValueChange={handleDistanceChange}
+              min={1}
+              max={50}
+              step={1}
+              className="w-full"
+              disabled={!isDistanceNumeric}
+            />
+            <div className="flex gap-1.5 mt-2">
+              {distancePresets.map((preset) => (
+                <button
+                  key={preset.id}
+                  onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.distance === preset.id
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Type Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Type</p>
+            <div className="flex flex-wrap gap-1.5">
+              {typeOptions.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.types.includes(type.id)
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
+                >
+                  {type.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
+            <div className="flex gap-1.5">
+              {ratingOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => handleRatingChange(option.value)}
+                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.minRating === option.value
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
+                >
+                  <Star className="w-3 h-3" />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Open Now Toggle */}
+          <div className="flex items-center justify-between py-1">
+            <p className="text-xs font-medium text-foreground">Open Now</p>
+            <Switch
+              checked={filters.openNow}
+              onCheckedChange={handleOpenNowChange}
+              className="data-[state=checked]:bg-[#1B4D3E]"
+            />
+          </div>
 
           {/* Apply Button */}
           <button
