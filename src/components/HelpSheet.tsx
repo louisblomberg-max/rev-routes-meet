@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { 
   Car, 
   Battery, 
@@ -56,6 +57,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
   const [details, setDetails] = useState('');
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
+  const [helpDistance, setHelpDistance] = useState(10);
 
   const handleConfirm = () => {
     console.log('Help request:', { source: selectedSource, problem: selectedProblem, details });
@@ -126,9 +128,27 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                 />
               </div>
               {isAvailableToHelp && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">
-                  <Bell className="w-3.5 h-3.5" />
-                  <span>You'll receive alerts when someone nearby needs assistance</span>
+                <div className="mt-4 space-y-3 pt-3 border-t border-primary/10">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground">Distance willing to travel</span>
+                    <span className="text-sm font-semibold text-primary">{helpDistance} miles</span>
+                  </div>
+                  <Slider
+                    value={[helpDistance]}
+                    onValueChange={(value) => setHelpDistance(value[0])}
+                    min={1}
+                    max={50}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground">
+                    <span>1 mile</span>
+                    <span>50 miles</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">
+                    <Bell className="w-3.5 h-3.5" />
+                    <span>You'll receive alerts for help requests within {helpDistance} miles</span>
+                  </div>
                 </div>
               )}
             </div>
