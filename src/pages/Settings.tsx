@@ -1,4 +1,4 @@
-import { ArrowLeft, User, Bell, Shield, HelpCircle, ChevronRight } from 'lucide-react';
+import { ArrowLeft, User, Bell, Shield, HelpCircle, ChevronRight, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
@@ -12,48 +12,58 @@ const Settings = () => {
   ];
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background h-screen flex flex-col">
       {/* Header */}
-      <div className="px-4 pt-4 pb-4 safe-top">
-        <div className="flex items-center gap-4">
+      <div className="px-4 pt-4 pb-3 safe-top">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Settings</h1>
+          <h1 className="text-lg font-bold text-foreground">Settings</h1>
         </div>
       </div>
 
       {/* Settings List */}
-      <div className="px-4 space-y-2">
-        {settingsItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.label}
-              className="w-full content-card flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+      <div className="px-4 flex-1">
+        <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
+          {settingsItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.label}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-lg bg-muted/80 flex items-center justify-center">
                   <Icon className="w-5 h-5 text-muted-foreground" />
                 </div>
-                <div className="text-left">
-                  <p className="font-medium text-foreground">{item.label}</p>
-                  <p className="text-sm text-muted-foreground">{item.description}</p>
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-foreground">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">{item.description}</p>
                 </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground" />
-            </button>
-          );
-        })}
+                <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-4">
+          <button className="w-full bg-card rounded-xl border border-border/30 shadow-sm flex items-center gap-3 px-4 py-3 hover:bg-destructive/5 transition-colors">
+            <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+              <LogOut className="w-5 h-5 text-destructive" />
+            </div>
+            <span className="flex-1 text-left text-sm font-medium text-destructive">Log Out</span>
+          </button>
+        </div>
       </div>
 
       {/* App Info */}
-      <div className="px-4 mt-8 text-center">
-        <p className="text-sm text-muted-foreground">RevNet v1.0.0</p>
-        <p className="text-xs text-muted-foreground mt-1">Made with ❤️ for car enthusiasts</p>
+      <div className="px-4 py-4 text-center">
+        <p className="text-xs text-muted-foreground">RevNet v1.0.0</p>
+        <p className="text-[10px] text-muted-foreground mt-0.5">Made with ❤️ for car enthusiasts</p>
       </div>
     </div>
   );
