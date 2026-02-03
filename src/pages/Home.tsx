@@ -34,7 +34,12 @@ const Home = () => {
     distance: 25,
     types: [],
   });
-  const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({});
+  const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
+    distance: 25,
+    types: [],
+    minRating: null,
+    openNow: false,
+  });
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
     if (pin.type === 'events') {
