@@ -41,9 +41,9 @@ const SearchBar = ({
     <div className="space-y-3">
       {/* Collapsed State */}
       {!isSearchActive && (
-        <div className="search-bar cursor-pointer py-2 px-3" onClick={onFocus}>
-          <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          <span className="flex-1 text-muted-foreground text-xs truncate">Search events, routes or services</span>
+        <div className="search-bar cursor-pointer py-4 px-4" onClick={onFocus}>
+          <Search className="w-6 h-6 text-muted-foreground flex-shrink-0" />
+          <span className="flex-1 text-muted-foreground text-base truncate">Search events, routes or services</span>
         </div>
       )}
 

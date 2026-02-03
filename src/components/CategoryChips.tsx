@@ -32,10 +32,10 @@ const CategoryChips = ({ activeCategory, onCategoryChange, showClubs = false }: 
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-1.5 whitespace-nowrap`}
+            className={`category-chip ${category.chipClass} ${isActive ? 'active' : ''} flex-1 flex items-center justify-center gap-2 whitespace-nowrap py-3 px-4`}
           >
-            <Icon className="w-3.5 h-3.5" />
-            <span className="text-[11px]">{category.label}</span>
+            <Icon className="w-5 h-5" />
+            <span className="text-sm font-medium">{category.label}</span>
           </button>
         );
       })}
