@@ -8,6 +8,7 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import PrivacySafetySettings from "./pages/PrivacySafetySettings";
 import NotificationSettings from "./pages/NotificationSettings";
+import AppPreferencesSettings from "./pages/AppPreferencesSettings";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
 import CreateForumPost from "./pages/CreateForumPost";
@@ -40,6 +41,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/privacy" element={<PrivacySafetySettings />} />
           <Route path="/settings/notifications" element={<NotificationSettings />} />
+          <Route path="/settings/preferences" element={<AppPreferencesSettings />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/forums/create" element={<CreateForumPost />} />
