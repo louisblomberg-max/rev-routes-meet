@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { 
   Car, 
   Battery, 
@@ -14,7 +15,9 @@ import {
   Users,
   Check,
   MessageSquare,
-  ArrowRight
+  ArrowRight,
+  Heart,
+  Bell
 } from 'lucide-react';
 
 interface HelpSheetProps {
@@ -52,6 +55,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
   const [details, setDetails] = useState('');
+  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
 
   const handleConfirm = () => {
     console.log('Help request:', { source: selectedSource, problem: selectedProblem, details });
@@ -97,6 +101,46 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
+          {/* Available to Help Toggle - Prominent Section */}
+          <div className="relative overflow-hidden rounded-2xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+            <div className="relative p-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all ${
+                    isAvailableToHelp 
+                      ? 'bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/25' 
+                      : 'bg-muted'
+                  }`}>
+                    <Heart className={`w-5 h-5 transition-colors ${isAvailableToHelp ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-foreground">Available to Help</p>
+                    <p className="text-xs text-muted-foreground">Get notified when others need help nearby</p>
+                  </div>
+                </div>
+                <Switch 
+                  checked={isAvailableToHelp} 
+                  onCheckedChange={setIsAvailableToHelp}
+                  className="data-[state=checked]:bg-primary"
+                />
+              </div>
+              {isAvailableToHelp && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">
+                  <Bell className="w-3.5 h-3.5" />
+                  <span>You'll receive alerts when someone nearby needs assistance</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Need help yourself?</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
           {/* Step 1: Help Source */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
