@@ -20,7 +20,9 @@ import {
   Heart,
   Bell,
   ShieldAlert,
-  ExternalLink
+  Radio,
+  MapPinned,
+  Loader2
 } from 'lucide-react';
 
 interface HelpSheetProps {
@@ -60,7 +62,8 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [details, setDetails] = useState('');
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
-
+  const [stolenAlertActive, setStolenAlertActive] = useState(false);
+  const [stolenAlertStep, setStolenAlertStep] = useState(0);
   const handleConfirm = () => {
     console.log('Help request:', { source: selectedSource, problem: selectedProblem, details });
     onOpenChange(false);
@@ -74,11 +77,202 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
       setSelectedSource(null);
       setSelectedProblem(null);
       setDetails('');
+      setStolenAlertActive(false);
+      setStolenAlertStep(0);
     }
     onOpenChange(isOpen);
   };
 
+  const handleStolenAlert = () => {
+    setStolenAlertStep(1);
+    // Simulate alerting nearby members
+    setTimeout(() => setStolenAlertStep(2), 1500);
+    // Simulate contacting emergency services
+    setTimeout(() => setStolenAlertStep(3), 3000);
+  };
+
   const canConfirm = selectedSource && selectedProblem;
+
+  // Stolen Vehicle Alert Flow
+  if (stolenAlertActive) {
+    return (
+      <Sheet open={open} onOpenChange={handleClose}>
+        <SheetContent side="bottom" className="rounded-t-[28px] max-h-[90vh] flex flex-col p-0 gap-0">
+          <div className="bg-gradient-to-br from-red-600 to-red-700 px-6 pt-6 pb-5 rounded-t-[28px]">
+            <div className="flex items-center justify-center mb-3">
+              <div className="w-10 h-1 bg-white/30 rounded-full" />
+            </div>
+            <SheetHeader className="text-left">
+              <SheetTitle className="flex items-center gap-3 text-xl text-white">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-white" />
+                </div>
+                Vehicle Stolen Alert
+              </SheetTitle>
+            </SheetHeader>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
+            {stolenAlertStep === 0 ? (
+              <>
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+                    <ShieldAlert className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground">Report Vehicle Theft</h3>
+                  <p className="text-sm text-muted-foreground">
+                    This will immediately alert all RevNet members within 10 miles and notify emergency services.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
+                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <Radio className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Broadcast Alert</p>
+                      <p className="text-xs text-muted-foreground">12 members nearby will be notified</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
+                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
+                      <MapPinned className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Share Location</p>
+                      <p className="text-xs text-muted-foreground">Your current location will be shared</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
+                    <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Emergency Services</p>
+                      <p className="text-xs text-muted-foreground">999 will be contacted automatically</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg font-semibold text-foreground">
+                    {stolenAlertStep === 3 ? 'Alert Sent!' : 'Sending Alert...'}
+                  </h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    stolenAlertStep >= 1 ? 'bg-blue-50 border-blue-200' : 'bg-muted/50 border-border'
+                  }`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      stolenAlertStep >= 2 ? 'bg-blue-600' : 'bg-blue-100'
+                    }`}>
+                      {stolenAlertStep === 1 ? (
+                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
+                      ) : stolenAlertStep >= 2 ? (
+                        <Check className="w-5 h-5 text-white" />
+                      ) : (
+                        <Radio className="w-5 h-5 text-blue-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Alerting Nearby Members</p>
+                      <p className="text-xs text-muted-foreground">
+                        {stolenAlertStep >= 2 ? '12 members notified' : 'Broadcasting to 12 members...'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    stolenAlertStep >= 2 ? 'bg-emerald-50 border-emerald-200' : 'bg-muted/50 border-border'
+                  }`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      stolenAlertStep >= 3 ? 'bg-emerald-600' : 'bg-emerald-100'
+                    }`}>
+                      {stolenAlertStep === 2 ? (
+                        <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
+                      ) : stolenAlertStep >= 3 ? (
+                        <Check className="w-5 h-5 text-white" />
+                      ) : (
+                        <MapPinned className="w-5 h-5 text-emerald-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Location Shared</p>
+                      <p className="text-xs text-muted-foreground">
+                        {stolenAlertStep >= 3 ? 'GPS coordinates sent' : 'Sharing your location...'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                    stolenAlertStep >= 3 ? 'bg-red-50 border-red-200' : 'bg-muted/50 border-border'
+                  }`}>
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                      stolenAlertStep >= 3 ? 'bg-red-600' : 'bg-red-100'
+                    }`}>
+                      {stolenAlertStep >= 3 ? (
+                        <Check className="w-5 h-5 text-white" />
+                      ) : (
+                        <Phone className="w-5 h-5 text-red-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm text-foreground">Emergency Services</p>
+                      <p className="text-xs text-muted-foreground">
+                        {stolenAlertStep >= 3 ? '999 contacted' : 'Waiting...'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {stolenAlertStep === 3 && (
+                  <div className="mt-6 p-4 rounded-xl bg-green-50 border border-green-200 text-center">
+                    <p className="text-sm font-medium text-green-800">
+                      Help is on the way. Stay safe and wait for authorities.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="p-5 pt-3 border-t bg-background/80 backdrop-blur-sm">
+            {stolenAlertStep === 0 ? (
+              <div className="space-y-2">
+                <Button 
+                  className="w-full h-12 rounded-xl text-base font-semibold bg-red-600 hover:bg-red-700"
+                  size="lg"
+                  onClick={handleStolenAlert}
+                >
+                  <ShieldAlert className="w-4 h-4 mr-2" />
+                  Send Emergency Alert
+                </Button>
+                <Button 
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => setStolenAlertActive(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : stolenAlertStep === 3 ? (
+              <Button 
+                className="w-full h-12 rounded-xl text-base font-semibold"
+                size="lg"
+                onClick={() => handleClose(false)}
+              >
+                Done
+              </Button>
+            ) : null}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  }
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
@@ -105,10 +299,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
           {/* Stolen Vehicle Button - Critical Action */}
           <button 
-            onClick={() => {
-              // This would typically open a modal or navigate to a dedicated stolen vehicle flow
-              window.open('tel:101', '_self');
-            }}
+            onClick={() => setStolenAlertActive(true)}
             className="mt-3 w-full flex items-center justify-between gap-3 bg-white/15 hover:bg-white/25 backdrop-blur-sm rounded-xl px-4 py-3 transition-all group border border-white/20"
           >
             <div className="flex items-center gap-3">
@@ -117,10 +308,10 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-semibold text-white">Vehicle Stolen?</p>
-                <p className="text-[11px] text-white/70">Report to police immediately</p>
+                <p className="text-[11px] text-white/70">Alert nearby members & emergency services</p>
               </div>
             </div>
-            <ExternalLink className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
+            <ArrowRight className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
           </button>
         </div>
 
