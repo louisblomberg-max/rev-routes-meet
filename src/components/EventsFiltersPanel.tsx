@@ -84,27 +84,19 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     return preset.charAt(0).toUpperCase() + preset.slice(1);
   };
 
-  // Count active filters
-  const activeFilterCount = 
-    (filters.distance !== 25 ? 1 : 0) + 
-    filters.types.length + 
-    (filters.dateFilter ? 1 : 0);
-
   return (
     <div className="space-y-2 animate-fade-up">
       {/* Filter Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all ${
-          isOpen || activeFilterCount > 0
-            ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80'
-            : 'bg-card text-muted-foreground border-border hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
+          isOpen
+            ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80'
+            : 'bg-card text-muted-foreground border-border hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
         }`}
       >
         <SlidersHorizontal className="w-5 h-5" />
-        <span className="text-sm font-medium">
-          Filters {activeFilterCount > 0 && `(${activeFilterCount})`}
-        </span>
+        <span className="text-sm font-medium">Filters</span>
       </button>
 
       {/* Filter Panel */}
