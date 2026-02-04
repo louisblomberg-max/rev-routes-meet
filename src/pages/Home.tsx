@@ -153,6 +153,9 @@ const Home = () => {
         selectedRouteId={selectedRouteId}
         showEmptyPrompt={false}
         isDimmed={isSearchActive}
+        eventsFilters={eventsFilters}
+        routesFilters={routesFilters}
+        servicesFilters={servicesFilters}
       />
 
       {/* Top Bar */}
