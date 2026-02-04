@@ -11,13 +11,65 @@ const YouTab = () => {
   const navigate = useNavigate();
 
   const primaryActions = [
-    { id: 'garage', label: 'My Garage', icon: Car, colorClass: 'bg-muted text-foreground' },
-    { id: 'friends', label: 'My Friends', icon: UsersRound, colorClass: 'bg-muted text-foreground' },
-    { id: 'clubs', label: 'My Clubs', icon: Users, colorClass: 'bg-clubs-muted text-clubs' },
-    { id: 'events', label: 'My Events', icon: Calendar, colorClass: 'bg-events-muted text-events' },
-    { id: 'routes', label: 'My Routes', icon: Route, colorClass: 'bg-routes-muted text-routes' },
-    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, colorClass: 'bg-primary/10 text-primary' },
+    { 
+      id: 'garage', 
+      label: 'My Garage', 
+      icon: Car, 
+      count: 2,
+      colorClass: 'bg-muted text-foreground',
+      route: '/profile',
+      description: 'vehicles'
+    },
+    { 
+      id: 'friends', 
+      label: 'My Friends', 
+      icon: UsersRound, 
+      count: 24,
+      colorClass: 'bg-muted text-foreground',
+      route: '/profile',
+      description: 'friends'
+    },
+    { 
+      id: 'clubs', 
+      label: 'My Clubs', 
+      icon: Users, 
+      count: 3,
+      colorClass: 'bg-clubs/15 text-clubs',
+      route: '/clubs',
+      description: 'joined'
+    },
+    { 
+      id: 'events', 
+      label: 'My Events', 
+      icon: Calendar, 
+      count: 5,
+      colorClass: 'bg-events/15 text-events',
+      route: '/',
+      description: 'upcoming'
+    },
+    { 
+      id: 'routes', 
+      label: 'My Routes', 
+      icon: Route, 
+      count: 8,
+      colorClass: 'bg-routes/15 text-routes',
+      route: '/',
+      description: 'saved'
+    },
+    { 
+      id: 'discussions', 
+      label: 'My Discussions', 
+      icon: MessageSquare, 
+      count: 12,
+      colorClass: 'bg-services/15 text-services',
+      route: '/forums',
+      description: 'posts'
+    },
   ];
+
+  const handleActionClick = (action: typeof primaryActions[0]) => {
+    navigate(action.route);
+  };
 
   return (
     <div className="h-full bg-background pb-20 flex flex-col">
@@ -53,18 +105,24 @@ const YouTab = () => {
 
       {/* 3. Primary Actions (2x3 Grid) */}
       <div className="px-4 pt-5 flex-1">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-2.5">
           {primaryActions.map((action) => {
             const Icon = action.icon;
             return (
               <button
                 key={action.id}
-                className="bg-card rounded-xl border border-border/50 shadow-card p-3 text-center hover:shadow-elevated hover:border-border transition-all duration-200 flex flex-col items-center gap-2 active:scale-[0.98]"
+                onClick={() => handleActionClick(action)}
+                className="bg-card rounded-xl border border-border/50 shadow-card p-3 text-center hover:shadow-elevated hover:border-border transition-all duration-200 flex flex-col items-center gap-1.5 active:scale-[0.97] group"
               >
-                <div className={`w-10 h-10 rounded-lg ${action.colorClass} flex items-center justify-center`}>
+                <div className={`w-11 h-11 rounded-xl ${action.colorClass} flex items-center justify-center transition-transform group-hover:scale-105`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className="text-2xs font-semibold text-foreground leading-tight">{action.label}</span>
+                <div className="flex flex-col items-center">
+                  <span className="text-2xs font-semibold text-foreground leading-tight">{action.label}</span>
+                  <span className="text-[10px] text-muted-foreground mt-0.5">
+                    {action.count} {action.description}
+                  </span>
+                </div>
               </button>
             );
           })}
