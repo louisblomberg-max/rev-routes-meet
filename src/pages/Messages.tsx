@@ -1,8 +1,15 @@
-import { ArrowLeft, Search, MoreVertical, Plus, Users } from 'lucide-react';
+import { ArrowLeft, Search, MoreVertical, Plus, Users, Pin, BellOff, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import NewConversationSheet from '@/components/messages/NewConversationSheet';
 
 interface Conversation {
@@ -14,6 +21,8 @@ interface Conversation {
   avatar: string | null;
   isGroup: boolean;
   participants?: string[];
+  isPinned: boolean;
+  isMuted: boolean;
 }
 
 const initialConversations: Conversation[] = [
@@ -25,6 +34,8 @@ const initialConversations: Conversation[] = [
     unread: true,
     avatar: null,
     isGroup: false,
+    isPinned: true,
+    isMuted: false,
   },
   {
     id: '2',
@@ -34,6 +45,8 @@ const initialConversations: Conversation[] = [
     unread: true,
     avatar: null,
     isGroup: false,
+    isPinned: false,
+    isMuted: false,
   },
   {
     id: '3',
@@ -44,6 +57,8 @@ const initialConversations: Conversation[] = [
     avatar: null,
     isGroup: true,
     participants: ['CleanFreak', 'TrackDayPro', 'BimmerFan92'],
+    isPinned: false,
+    isMuted: true,
   },
   {
     id: '4',
@@ -53,6 +68,8 @@ const initialConversations: Conversation[] = [
     unread: false,
     avatar: null,
     isGroup: false,
+    isPinned: false,
+    isMuted: false,
   },
   {
     id: '5',
@@ -62,6 +79,8 @@ const initialConversations: Conversation[] = [
     unread: false,
     avatar: null,
     isGroup: false,
+    isPinned: false,
+    isMuted: false,
   },
 ];
 
@@ -71,7 +90,14 @@ const Messages = () => {
   const [conversations, setConversations] = useState<Conversation[]>(initialConversations);
   const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
 
-  const filteredConversations = conversations.filter(conv =>
+  // Sort: pinned first, then by time
+  const sortedConversations = [...conversations].sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
+  });
+
+  const filteredConversations = sortedConversations.filter(conv =>
     conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -87,9 +113,31 @@ const Messages = () => {
       avatar: null,
       isGroup,
       participants: isGroup ? selectedUsers.map(u => u.name) : undefined,
+      isPinned: false,
+      isMuted: false,
     };
     setConversations(prev => [newConversation, ...prev]);
     navigate(`/messages/${newConversation.id}`);
+  };
+
+  const handleTogglePin = (id: string) => {
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === id ? { ...conv, isPinned: !conv.isPinned } : conv
+      )
+    );
+  };
+
+  const handleToggleMute = (id: string) => {
+    setConversations(prev =>
+      prev.map(conv =>
+        conv.id === id ? { ...conv, isMuted: !conv.isMuted } : conv
+      )
+    );
+  };
+
+  const handleDeleteConversation = (id: string) => {
+    setConversations(prev => prev.filter(conv => conv.id !== id));
   };
 
   return (
@@ -129,55 +177,82 @@ const Messages = () => {
       {/* Conversations List */}
       <div className="divide-y divide-border/30">
         {filteredConversations.map((conversation) => (
-          <button
+          <div
             key={conversation.id}
-            onClick={() => navigate(`/messages/${conversation.id}`)}
-            className="w-full flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors text-left"
+            className={`flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors ${conversation.isPinned ? 'bg-muted/20' : ''}`}
           >
-            <div className="relative">
-              <Avatar className="w-12 h-12">
-                <AvatarFallback className={`font-semibold ${conversation.isGroup ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'}`}>
-                  {conversation.isGroup ? (
-                    <Users className="w-5 h-5" />
-                  ) : (
-                    conversation.name.slice(0, 2).toUpperCase()
-                  )}
-                </AvatarFallback>
-              </Avatar>
-              {conversation.unread && (
-                <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background" />
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <span className={`font-semibold text-foreground ${conversation.unread ? '' : 'font-medium'}`}>
-                    {conversation.name}
-                  </span>
-                  {conversation.isGroup && (
-                    <span className="text-xs text-muted-foreground">
-                      · {conversation.participants?.length}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs text-muted-foreground flex-shrink-0">
-                  {conversation.time}
-                </span>
-              </div>
-              <p className={`text-sm truncate mt-0.5 ${conversation.unread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                {conversation.lastMessage}
-              </p>
-            </div>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                // Menu action
-              }}
-              className="p-1 text-muted-foreground hover:text-foreground"
+              onClick={() => navigate(`/messages/${conversation.id}`)}
+              className="flex items-center gap-3 flex-1 min-w-0 text-left"
             >
-              <MoreVertical className="w-4 h-4" />
+              <div className="relative">
+                <Avatar className="w-12 h-12">
+                  <AvatarFallback className={`font-semibold ${conversation.isGroup ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'}`}>
+                    {conversation.isGroup ? (
+                      <Users className="w-5 h-5" />
+                    ) : (
+                      conversation.name.slice(0, 2).toUpperCase()
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                {conversation.unread && (
+                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {conversation.isPinned && (
+                      <Pin className="w-3 h-3 text-primary flex-shrink-0" />
+                    )}
+                    <span className={`font-semibold text-foreground truncate ${conversation.unread ? '' : 'font-medium'}`}>
+                      {conversation.name}
+                    </span>
+                    {conversation.isGroup && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        · {conversation.participants?.length}
+                      </span>
+                    )}
+                    {conversation.isMuted && (
+                      <BellOff className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                    )}
+                  </div>
+                  <span className="text-xs text-muted-foreground flex-shrink-0">
+                    {conversation.time}
+                  </span>
+                </div>
+                <p className={`text-sm truncate mt-0.5 ${conversation.unread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                  {conversation.lastMessage}
+                </p>
+              </div>
             </button>
-          </button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="p-1 text-muted-foreground hover:text-foreground flex-shrink-0">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => handleTogglePin(conversation.id)}>
+                  <Pin className="w-4 h-4 mr-2" />
+                  {conversation.isPinned ? 'Unpin' : 'Pin conversation'}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleToggleMute(conversation.id)}>
+                  <BellOff className="w-4 h-4 mr-2" />
+                  {conversation.isMuted ? 'Unmute' : 'Mute notifications'}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => handleDeleteConversation(conversation.id)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete chat
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         ))}
       </div>
 
