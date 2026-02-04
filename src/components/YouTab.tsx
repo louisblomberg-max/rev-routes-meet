@@ -26,7 +26,7 @@ const YouTab = () => {
       icon: UsersRound, 
       count: 24,
       colorClass: 'bg-muted text-foreground',
-      route: '/profile',
+      route: '/my-friends',
       description: 'friends'
     },
     { 

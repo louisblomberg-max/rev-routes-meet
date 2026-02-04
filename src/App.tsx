@@ -14,6 +14,7 @@ import SocialDiscoverySettings from "./pages/SocialDiscoverySettings";
 import PlanBillingSettings from "./pages/PlanBillingSettings";
 import Upgrade from "./pages/Upgrade";
 import MyGarage from "./pages/MyGarage";
+import MyFriends from "./pages/MyFriends";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
 import CreateForumPost from "./pages/CreateForumPost";
@@ -52,6 +53,7 @@ const App = () => (
           <Route path="/settings/social" element={<SocialDiscoverySettings />} />
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/my-garage" element={<MyGarage />} />
+          <Route path="/my-friends" element={<MyFriends />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/forums/create" element={<CreateForumPost />} />
