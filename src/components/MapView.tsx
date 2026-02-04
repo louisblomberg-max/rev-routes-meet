@@ -48,13 +48,15 @@ const MapView = ({
         const event = mockEvents.find(e => e.id === pin.id);
         if (!event) return true;
         
-        // Filter by event type (maps to types filter: meets, events, track-days, drives)
+        // Filter by event type
         if (eventsFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
-            'meets': 'Meet',
-            'events': 'Event',
-            'track-days': 'Track Day',
-            'drives': 'Drive',
+            'meets': 'Meets',
+            'cars-coffee': 'Cars & Coffee',
+            'drive': 'Drive / Drive-Out',
+            'group-drive': 'Group Drive',
+            'track-day': 'Track Day',
+            'show': 'Show / Exhibition',
           };
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && !allowedTypes.includes(event.eventType)) {
