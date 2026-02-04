@@ -1,4 +1,4 @@
-import { Search, X } from 'lucide-react';
+import { Sparkles, X } from 'lucide-react';
 import { useState } from 'react';
 
 interface SearchBarProps {
@@ -41,23 +41,29 @@ const SearchBar = ({
       {!isSearchActive && (
         <div 
           onClick={onFocus}
-          className="group cursor-pointer h-11 bg-card border border-border/50 rounded-lg shadow-card px-4 flex items-center gap-3 transition-all duration-200 hover:shadow-elevated hover:border-border active:scale-[0.99]"
+          className="group cursor-pointer h-11 bg-card border border-amber-500/30 rounded-lg shadow-card px-4 flex items-center gap-3 transition-all duration-200 hover:shadow-elevated hover:border-amber-500/50 active:scale-[0.99]"
         >
-          <Search className="w-4 h-4 text-muted-foreground" />
-          <span className="flex-1 text-sm text-muted-foreground truncate">Search events, routes, services...</span>
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span className="flex-1 text-sm text-muted-foreground truncate">AI Search: events, routes, services...</span>
         </div>
       )}
 
       {/* Expanded State */}
       {isSearchActive && (
-        <div className="bg-card border border-border/50 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
+        <div className="bg-card border border-amber-500/30 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
+          {/* AI Header */}
+          <div className="px-4 pt-3 pb-2 border-b border-border/50 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-semibold text-amber-500 uppercase tracking-wide">AI Discovery</span>
+          </div>
+          
           {/* Search Input */}
           <div className="p-3">
-            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-primary/30 bg-background' : ''}`}>
-              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-amber-500/30 bg-background' : ''}`}>
+              <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="What are you looking for?"
+                placeholder="Ask anything about events, routes, services..."
                 className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground text-sm font-medium"
                 autoFocus
                 value={searchValue}
@@ -96,13 +102,13 @@ const SearchBar = ({
           {searchValue && (
             <div className="px-4 pb-4 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 <p className="text-sm text-foreground font-semibold">
-                  Searching "{searchValue}"
+                  AI searching "{searchValue}"
                 </p>
               </div>
               <p className="text-caption">
-                Finding events, routes, services & clubs...
+                Intelligently finding events, routes, services & clubs...
               </p>
             </div>
           )}
