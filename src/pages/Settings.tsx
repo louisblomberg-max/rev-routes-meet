@@ -1,4 +1,4 @@
-import { ArrowLeft, Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const Settings = () => {
@@ -61,6 +61,22 @@ const Settings = () => {
       color: 'bg-muted',
       iconColor: 'text-muted-foreground',
     },
+    {
+      id: 'faq',
+      icon: HelpCircle,
+      label: 'FAQ',
+      description: 'Common questions answered',
+      color: 'bg-primary/10',
+      iconColor: 'text-primary',
+    },
+    {
+      id: 'howto',
+      icon: BookOpen,
+      label: 'How to Use',
+      description: 'Get started with RevNet',
+      color: 'bg-routes/10',
+      iconColor: 'text-routes',
+    },
   ];
 
   return (
@@ -93,6 +109,8 @@ const Settings = () => {
                   if (section.id === 'account') navigate('/settings/account');
                   if (section.id === 'billing') navigate('/settings/billing');
                   if (section.id === 'social') navigate('/settings/social');
+                  if (section.id === 'faq') navigate('/settings/faq');
+                  if (section.id === 'howto') navigate('/settings/howto');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
