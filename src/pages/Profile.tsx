@@ -5,6 +5,7 @@ import AchievementsSection from '@/components/profile/AchievementsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { 
   mockUserProfile, 
   mockActivities, 
@@ -53,6 +54,60 @@ const Profile = () => {
   const currentBadge = planBadge[profile.plan];
   const BadgeIcon = currentBadge.icon;
 
+  const handleShare = () => {
+    toast.success('Profile link copied to clipboard!');
+  };
+
+  const handleMoreOptions = () => {
+    toast.info('More options coming soon');
+  };
+
+  const handleMessage = () => {
+    // Navigate to messages and start a new conversation
+    navigate('/messages');
+    toast.success('Opening messages...');
+  };
+
+  const handleAddFriend = () => {
+    toast.success('Friend request sent!');
+  };
+
+  const handleActivityClick = (activity: typeof mockActivities[0]) => {
+    switch (activity.type) {
+      case 'event_attended':
+      case 'event_hosted':
+        navigate('/event/1');
+        break;
+      case 'route_created':
+      case 'route_saved':
+        navigate('/route/1');
+        break;
+      case 'forum_post':
+      case 'forum_reply':
+        navigate('/forums');
+        break;
+      case 'club_post':
+        navigate('/club/1');
+        break;
+      case 'listing':
+        navigate('/marketplace');
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleViewAllFriends = () => {
+    // Navigate to the You tab which has My Friends section
+    navigate('/?tab=you');
+    toast.info('View all friends in My Friends section');
+  };
+
+  const handleFriendClick = (friendId: string) => {
+    // In a real app, this would go to the friend's profile
+    toast.info('Viewing friend profile...');
+  };
+
   return (
     <div className="mobile-container bg-background min-h-screen">
       {/* Header */}
@@ -68,10 +123,16 @@ const Profile = () => {
             <h1 className="text-lg font-semibold text-foreground">Profile</h1>
           </div>
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
+            <button 
+              onClick={handleShare}
+              className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
+            >
               <Share2 className="w-4 h-4 text-foreground" />
             </button>
-            <button className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
+            <button 
+              onClick={handleMoreOptions}
+              className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
+            >
               <MoreHorizontal className="w-4 h-4 text-foreground" />
             </button>
           </div>
@@ -120,36 +181,45 @@ const Profile = () => {
 
             {/* Stats Row */}
             <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-3 gap-2">
-              <div className="bg-muted/30 rounded-xl p-3 text-center">
+              <button 
+                onClick={() => navigate('/?tab=you')}
+                className="bg-muted/30 rounded-xl p-3 text-center hover:bg-muted/50 transition-colors active:scale-[0.98]"
+              >
                 <div className="flex items-center justify-center gap-1.5">
                   <Calendar className="w-4 h-4 text-events" />
                   <span className="text-lg font-bold text-foreground">{profile.stats.eventsAttended}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">Events</p>
-              </div>
-              <div className="bg-muted/30 rounded-xl p-3 text-center">
+              </button>
+              <button 
+                onClick={() => navigate('/?tab=you')}
+                className="bg-muted/30 rounded-xl p-3 text-center hover:bg-muted/50 transition-colors active:scale-[0.98]"
+              >
                 <div className="flex items-center justify-center gap-1.5">
                   <Route className="w-4 h-4 text-routes" />
                   <span className="text-lg font-bold text-foreground">{profile.stats.routesSaved}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">Routes</p>
-              </div>
-              <div className="bg-muted/30 rounded-xl p-3 text-center">
+              </button>
+              <button 
+                onClick={() => navigate('/clubs')}
+                className="bg-muted/30 rounded-xl p-3 text-center hover:bg-muted/50 transition-colors active:scale-[0.98]"
+              >
                 <div className="flex items-center justify-center gap-1.5">
                   <Users className="w-4 h-4 text-clubs" />
                   <span className="text-lg font-bold text-foreground">{profile.stats.clubsJoined}</span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">Clubs</p>
-              </div>
+              </button>
             </div>
 
             {/* Action Buttons */}
             <div className="mt-4 flex gap-2">
-              <Button className="flex-1" size="sm">
+              <Button className="flex-1" size="sm" onClick={handleMessage}>
                 <MessageCircle className="w-4 h-4 mr-1.5" />
                 Message
               </Button>
-              <Button variant="outline" className="flex-1" size="sm">
+              <Button variant="outline" className="flex-1" size="sm" onClick={handleAddFriend}>
                 <Users className="w-4 h-4 mr-1.5" />
                 Add Friend
               </Button>
@@ -167,9 +237,17 @@ const Profile = () => {
 
         {/* Clubs */}
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-            Clubs ({mockClubMemberships.length})
-          </h2>
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Clubs ({mockClubMemberships.length})
+            </h2>
+            <button 
+              onClick={() => navigate('/clubs')}
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              View all
+            </button>
+          </div>
           <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
             {mockClubMemberships.map((membership) => (
               <button
@@ -202,15 +280,19 @@ const Profile = () => {
               const Icon = activityIcons[activity.type] || MessageCircle;
               const colorClass = activityColors[activity.type] || 'text-muted-foreground';
               return (
-                <div key={activity.id} className="px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors">
+                <button 
+                  key={activity.id} 
+                  onClick={() => handleActivityClick(activity)}
+                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-muted/30 transition-colors active:bg-muted/50"
+                >
                   <div className="w-9 h-9 rounded-lg bg-muted/60 flex items-center justify-center shrink-0">
                     <Icon className={`w-4 h-4 ${colorClass}`} />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-foreground truncate">{activity.title}</p>
                     <p className="text-xs text-muted-foreground">{activity.date}</p>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -222,7 +304,10 @@ const Profile = () => {
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Friends ({acceptedFriends.length})
             </h2>
-            <button className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">
+            <button 
+              onClick={handleViewAllFriends}
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
               View all
             </button>
           </div>
@@ -230,17 +315,26 @@ const Profile = () => {
             <div className="flex items-center gap-3">
               <div className="flex -space-x-3">
                 {acceptedFriends.slice(0, 5).map((friend) => (
-                  <Avatar key={friend.id} className="w-10 h-10 border-2 border-card ring-1 ring-border/20">
-                    <AvatarImage src={friend.avatar || undefined} />
-                    <AvatarFallback className="bg-muted text-muted-foreground text-sm">
-                      {friend.displayName.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <button
+                    key={friend.id}
+                    onClick={() => handleFriendClick(friend.id)}
+                    className="hover:z-10 transition-transform hover:scale-110"
+                  >
+                    <Avatar className="w-10 h-10 border-2 border-card ring-1 ring-border/20">
+                      <AvatarImage src={friend.avatar || undefined} />
+                      <AvatarFallback className="bg-muted text-muted-foreground text-sm">
+                        {friend.displayName.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </button>
                 ))}
                 {acceptedFriends.length > 5 && (
-                  <div className="w-10 h-10 rounded-full border-2 border-card ring-1 ring-border/20 bg-muted flex items-center justify-center">
+                  <button 
+                    onClick={handleViewAllFriends}
+                    className="w-10 h-10 rounded-full border-2 border-card ring-1 ring-border/20 bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                  >
                     <span className="text-xs font-medium text-muted-foreground">+{acceptedFriends.length - 5}</span>
-                  </div>
+                  </button>
                 )}
               </div>
               <div className="flex-1">
