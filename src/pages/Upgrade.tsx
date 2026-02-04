@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Star, Crown, Building2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, Star, Crown, Building2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,7 +10,12 @@ import { toast } from 'sonner';
 const Upgrade = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const currentPlan = 'free';
+
+  const togglePlanExpanded = (planId: string) => {
+    setExpandedPlans(prev => ({ ...prev, [planId]: !prev[planId] }));
+  };
 
   const plans = [
     {
@@ -184,7 +189,10 @@ const Upgrade = () => {
                   </div>
                   
                   <ul className="space-y-2 mb-4">
-                    {plan.features.slice(0, plan.recommended ? 5 : 4).map((feature, idx) => (
+                    {(expandedPlans[plan.id] 
+                      ? plan.features 
+                      : plan.features.slice(0, plan.recommended ? 5 : 4)
+                    ).map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-xs">
                         <Check className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
                           idx === 0 && plan.id !== 'free' ? 'opacity-0' : plan.color
@@ -199,8 +207,23 @@ const Upgrade = () => {
                       </li>
                     ))}
                     {plan.features.length > (plan.recommended ? 5 : 4) && (
-                      <li className="text-xs text-primary font-medium pl-5">
-                        +{plan.features.length - (plan.recommended ? 5 : 4)} more features
+                      <li>
+                        <button 
+                          onClick={() => togglePlanExpanded(plan.id)}
+                          className="flex items-center gap-1 text-xs text-primary font-medium pl-5 hover:text-primary/80 transition-colors"
+                        >
+                          {expandedPlans[plan.id] ? (
+                            <>
+                              <ChevronUp className="w-3.5 h-3.5" />
+                              Show less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-3.5 h-3.5" />
+                              +{plan.features.length - (plan.recommended ? 5 : 4)} more features
+                            </>
+                          )}
+                        </button>
                       </li>
                     )}
                   </ul>
