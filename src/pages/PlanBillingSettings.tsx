@@ -49,7 +49,7 @@ const PlanBillingSettings = () => {
       color: 'text-primary',
       bgColor: 'bg-primary/10',
       borderColor: 'border-primary/30',
-      price: { monthly: 4.99, yearly: 49 },
+      price: { monthly: 4.99, yearly: 53.89 },
       features: [
         'Everything in Free, plus:',
         'Create & publish routes',
@@ -69,7 +69,7 @@ const PlanBillingSettings = () => {
       color: 'text-destructive',
       bgColor: 'bg-destructive/10',
       borderColor: 'border-destructive/30',
-      price: { monthly: 19.99, yearly: 199 },
+      price: { monthly: 19.99, yearly: 215.89 },
       features: [
         'Everything in Pro, plus:',
         'Create & manage clubs',
@@ -164,7 +164,7 @@ const PlanBillingSettings = () => {
           />
           <span className={`text-sm ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-green-100 text-green-700">Save 15%</Badge>
+            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-green-100 text-green-700">Save 10%</Badge>
           </span>
         </div>
       </div>
