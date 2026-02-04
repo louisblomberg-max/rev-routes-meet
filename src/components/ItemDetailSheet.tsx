@@ -1,4 +1,4 @@
-import { X, Calendar, MapPin, Car, Users, Star, Clock, Route, Navigation, Share2, Bookmark, Phone } from 'lucide-react';
+import { X, Calendar, MapPin, Car, Users, Star, Clock, Route, Navigation, Share2, Bookmark, Phone, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // Types for different content
@@ -20,10 +20,15 @@ interface ServiceItem {
   id: string;
   name: string;
   category: string;
+  serviceTypes: string[];
   rating: number;
   distance: string;
   reviewCount: number;
-  openingHours?: string;
+  openingHours: string;
+  phone: string;
+  address: string;
+  isOpen: boolean;
+  priceRange: string;
 }
 
 interface RouteItem {
@@ -122,13 +127,17 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
     <>
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-foreground">{service.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs px-2 py-0.5 bg-services/10 text-services rounded-full">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs px-2 py-0.5 bg-services/10 text-services rounded-full font-medium">
               {service.category}
             </span>
-            <span className="text-sm text-muted-foreground">{service.distance}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${service.isOpen ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-500'}`}>
+              {service.isOpen ? 'Open' : 'Closed'}
+            </span>
+            <span className="text-xs text-muted-foreground">{service.priceRange}</span>
           </div>
+          <h2 className="text-xl font-bold text-foreground">{service.name}</h2>
+          <p className="text-sm text-muted-foreground mt-1">{service.distance} away</p>
         </div>
         <button 
           onClick={onClose}
@@ -138,6 +147,15 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
         </button>
       </div>
 
+      {/* Service Types */}
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {service.serviceTypes.map((type, index) => (
+          <span key={index} className="text-xs px-2 py-1 bg-muted text-muted-foreground rounded-md">
+            {type}
+          </span>
+        ))}
+      </div>
+
       <div className="mt-4 space-y-3">
         <div className="flex items-center gap-3 text-foreground">
           <Star className="w-5 h-5 text-services flex-shrink-0" />
@@ -145,11 +163,15 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
         </div>
         <div className="flex items-center gap-3 text-foreground">
           <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <span>{service.distance} away</span>
+          <span className="text-sm">{service.address}</span>
         </div>
         <div className="flex items-center gap-3 text-foreground">
           <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <span>{service.openingHours || 'Mon-Sat: 8am - 6pm'}</span>
+          <span className="text-sm">{service.openingHours}</span>
+        </div>
+        <div className="flex items-center gap-3 text-foreground">
+          <Phone className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+          <span className="text-sm">{service.phone}</span>
         </div>
       </div>
 
