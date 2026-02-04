@@ -42,7 +42,7 @@ const Upgrade = () => {
       color: 'text-primary',
       bgColor: 'bg-primary/10',
       borderColor: 'border-primary',
-      price: { monthly: 4.99, yearly: 53.89 },
+      price: { monthly: 4.99, yearly: 49 },
       features: [
         'Everything in Free, plus:',
         'Create & publish routes',
@@ -62,7 +62,7 @@ const Upgrade = () => {
       color: 'text-clubs',
       bgColor: 'bg-clubs/10',
       borderColor: 'border-clubs/30',
-      price: { monthly: 19.99, yearly: 215.89 },
+      price: { monthly: 19.99, yearly: 199 },
       features: [
         'Everything in Pro, plus:',
         'Create & manage clubs',
@@ -137,7 +137,7 @@ const Upgrade = () => {
           <span className={`text-sm transition-colors ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Yearly
             <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              Save 10%
+              Save 15%
             </Badge>
           </span>
         </div>
