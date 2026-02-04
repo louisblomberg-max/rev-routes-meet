@@ -268,15 +268,15 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
   );
 
   return (
-    <div className="fixed left-0 right-0 bottom-0 z-40 animate-fade-up">
-      <div className="bg-card rounded-t-2xl shadow-xl border-t border-border">
+    <div className="fixed left-0 right-0 bottom-20 z-30 animate-fade-up">
+      <div className="bg-card rounded-2xl shadow-xl border border-border mx-3">
         {/* Handle */}
         <div className="flex justify-center pt-3 pb-2">
           <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
         </div>
 
         {/* Content */}
-        <div className="px-5 pb-8">
+        <div className="px-5 pb-5">
           {item.type === 'event' && renderEventDetails(item)}
           {item.type === 'service' && renderServiceDetails(item)}
           {item.type === 'route' && renderRouteDetails(item)}
