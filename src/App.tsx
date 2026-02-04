@@ -12,6 +12,8 @@ import AppPreferencesSettings from "./pages/AppPreferencesSettings";
 import AccountSettings from "./pages/AccountSettings";
 import SocialDiscoverySettings from "./pages/SocialDiscoverySettings";
 import PlanBillingSettings from "./pages/PlanBillingSettings";
+import FAQSettings from "./pages/FAQSettings";
+import HowToUseSettings from "./pages/HowToUseSettings";
 import Upgrade from "./pages/Upgrade";
 import MyGarage from "./pages/MyGarage";
 import MyFriends from "./pages/MyFriends";
@@ -54,6 +56,8 @@ const App = () => (
           <Route path="/settings/account" element={<AccountSettings />} />
           <Route path="/settings/billing" element={<PlanBillingSettings />} />
           <Route path="/settings/social" element={<SocialDiscoverySettings />} />
+          <Route path="/settings/faq" element={<FAQSettings />} />
+          <Route path="/settings/howto" element={<HowToUseSettings />} />
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/my-garage" element={<MyGarage />} />
           <Route path="/my-friends" element={<MyFriends />} />
