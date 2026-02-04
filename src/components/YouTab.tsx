@@ -17,7 +17,7 @@ const YouTab = () => {
       icon: Car, 
       count: 2,
       colorClass: 'bg-muted text-foreground',
-      route: '/profile',
+      route: '/my-garage',
       description: 'vehicles'
     },
     { 
