@@ -1,17 +1,31 @@
 export const mockPins = [
+  // Events & Drives
   { id: '1', type: 'events', x: 25, y: 35, title: 'Porsche Meet' },
   { id: '2', type: 'events', x: 65, y: 45, title: 'JDM Night' },
+  { id: '8', type: 'events', x: 15, y: 65, title: 'Classic Car Show' },
+  { id: '14', type: 'events', x: 50, y: 30, title: 'Supercar Breakfast' },
+  { id: '15', type: 'events', x: 35, y: 55, title: 'Brands Hatch Track Day' },
+  { id: '16', type: 'events', x: 80, y: 40, title: 'Euro Car Meet' },
+  { id: '17', type: 'events', x: 20, y: 25, title: 'Bike Night' },
+  { id: '18', type: 'events', x: 55, y: 65, title: 'Cars & Coffee' },
+  // Routes
   { id: '3', type: 'routes', x: 40, y: 25, title: 'Coastal Run' },
   { id: '4', type: 'routes', x: 75, y: 60, title: 'Mountain Pass' },
+  { id: '19', type: 'routes', x: 30, y: 40, title: 'South Downs Scenic' },
+  { id: '20', type: 'routes', x: 60, y: 35, title: 'Welsh Dragon Pass' },
+  { id: '21', type: 'routes', x: 45, y: 70, title: 'Cotswolds Explorer' },
+  { id: '22', type: 'routes', x: 85, y: 25, title: 'Scottish Highlands' },
+  { id: '23', type: 'routes', x: 15, y: 50, title: 'Peak District Loop' },
+  // Services
   { id: '5', type: 'services', x: 30, y: 55, title: 'Euro Specialists' },
   { id: '6', type: 'services', x: 55, y: 70, title: 'Quick Fit Garage' },
-  { id: '7', type: 'clubs', x: 80, y: 30, title: 'BMW Club UK' },
-  { id: '8', type: 'events', x: 15, y: 65, title: 'Classic Car Show' },
   { id: '9', type: 'services', x: 70, y: 35, title: 'Premium Detailing Co' },
   { id: '10', type: 'services', x: 45, y: 50, title: 'Performance Parts UK' },
   { id: '11', type: 'services', x: 20, y: 45, title: 'TyrePro Centre' },
   { id: '12', type: 'services', x: 60, y: 25, title: 'AutoElectric Solutions' },
   { id: '13', type: 'services', x: 85, y: 55, title: 'SpeedTune Garage' },
+  // Clubs
+  { id: '7', type: 'clubs', x: 80, y: 30, title: 'BMW Club UK' },
 ];
 
 export const mockEvents = [
@@ -34,7 +48,7 @@ export const mockEvents = [
     attendees: 89,
   },
   {
-    id: '3',
+    id: '8',
     title: 'Classic Car Sunday',
     date: 'Sun, Feb 23 • 9:00 AM',
     location: 'Brooklands Museum',
@@ -43,7 +57,7 @@ export const mockEvents = [
     attendees: 156,
   },
   {
-    id: '4',
+    id: '14',
     title: 'Supercar Breakfast',
     date: 'Sat, Mar 1 • 8:00 AM',
     location: 'The Ivy, Chelsea',
@@ -52,7 +66,7 @@ export const mockEvents = [
     attendees: 32,
   },
   {
-    id: '5',
+    id: '15',
     title: 'Brands Hatch Track Day',
     date: 'Sun, Mar 8 • 7:30 AM',
     location: 'Brands Hatch Circuit',
@@ -60,11 +74,54 @@ export const mockEvents = [
     eventType: 'Track Day',
     attendees: 64,
   },
+  {
+    id: '16',
+    title: 'Euro Car Meet',
+    date: 'Sat, Mar 15 • 11:00 AM',
+    location: 'Caffeine & Machine',
+    vehicleType: 'European Cars',
+    eventType: 'Meet',
+    attendees: 120,
+  },
+  {
+    id: '17',
+    title: 'Bike Night',
+    date: 'Thu, Mar 20 • 7:00 PM',
+    location: 'Ace Cafe, London',
+    vehicleType: 'Motorcycles Only',
+    eventType: 'Meet',
+    attendees: 78,
+  },
+  {
+    id: '18',
+    title: 'Cars & Coffee',
+    date: 'Sun, Mar 23 • 9:00 AM',
+    location: 'Goodwood Motor Circuit',
+    vehicleType: 'All Welcome',
+    eventType: 'Meet',
+    attendees: 245,
+  },
 ];
 
 export const mockRoutes = [
   {
-    id: '1',
+    id: '3',
+    name: 'Coastal Run',
+    distance: '38 miles',
+    type: 'Coastal',
+    vehicleType: 'both' as const,
+    rating: 4.7,
+  },
+  {
+    id: '4',
+    name: 'Mountain Pass',
+    distance: '52 miles',
+    type: 'Twisty',
+    vehicleType: 'both' as const,
+    rating: 4.8,
+  },
+  {
+    id: '19',
     name: 'South Downs Scenic',
     distance: '45 miles',
     type: 'Scenic',
@@ -72,7 +129,7 @@ export const mockRoutes = [
     rating: 4.8,
   },
   {
-    id: '2',
+    id: '20',
     name: 'Welsh Dragon Pass',
     distance: '82 miles',
     type: 'Twisty',
@@ -80,20 +137,28 @@ export const mockRoutes = [
     rating: 4.9,
   },
   {
-    id: '3',
+    id: '21',
     name: 'Cotswolds Explorer',
     distance: '67 miles',
-    type: 'Mixed',
+    type: 'Scenic',
     vehicleType: 'both' as const,
     rating: 4.6,
   },
   {
-    id: '4',
+    id: '22',
     name: 'Scottish Highlands A82',
     distance: '120 miles',
     type: 'Scenic',
     vehicleType: 'both' as const,
     rating: 4.9,
+  },
+  {
+    id: '23',
+    name: 'Peak District Loop',
+    distance: '55 miles',
+    type: 'Mixed',
+    vehicleType: 'bike' as const,
+    rating: 4.7,
   },
 ];
 
