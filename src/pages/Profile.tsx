@@ -1,10 +1,15 @@
-import { ArrowLeft, MessageCircle, Route, Calendar, Users, Share2, MoreHorizontal, MapPin, Crown, Sparkles, Star } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Route, Calendar, Users, Share2, MoreHorizontal, MapPin, Crown, Sparkles, Star, Pencil, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import GarageSection from '@/components/profile/GarageSection';
 import AchievementsSection from '@/components/profile/AchievementsSection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { 
   mockUserProfile, 
@@ -15,6 +20,16 @@ import {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  
+  // Editable profile state
+  const [editForm, setEditForm] = useState({
+    displayName: mockUserProfile.displayName,
+    username: mockUserProfile.username,
+    bio: mockUserProfile.bio || '',
+    location: mockUserProfile.location || '',
+  });
+  
   const profile = mockUserProfile;
 
   // Filter to only show public vehicles
@@ -104,8 +119,17 @@ const Profile = () => {
   };
 
   const handleFriendClick = (friendId: string) => {
-    // In a real app, this would go to the friend's profile
     toast.info('Viewing friend profile...');
+  };
+
+  const handleSaveProfile = () => {
+    // In a real app, this would save to the backend
+    toast.success('Profile updated successfully!');
+    setIsEditOpen(false);
+  };
+
+  const handleAvatarChange = () => {
+    toast.info('Photo upload coming soon!');
   };
 
   return (
@@ -154,11 +178,20 @@ const Profile = () => {
                   {profile.displayName.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 pb-1">
+              <div className="flex-1 pb-1 flex items-center justify-between">
                 <Badge className={`${currentBadge.className} gap-1 px-2 py-0.5 text-xs`}>
                   <BadgeIcon className="w-3 h-3" />
                   {currentBadge.label}
                 </Badge>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsEditOpen(true)}
+                  className="h-8 px-3 text-xs"
+                >
+                  <Pencil className="w-3 h-3 mr-1.5" />
+                  Edit
+                </Button>
               </div>
             </div>
 
@@ -350,6 +383,100 @@ const Profile = () => {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Sheet */}
+      <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl">
+          <SheetHeader className="text-left pb-4">
+            <SheetTitle>Edit Profile</SheetTitle>
+            <SheetDescription>Update your profile information</SheetDescription>
+          </SheetHeader>
+          
+          <div className="space-y-5 overflow-y-auto pb-8">
+            {/* Avatar Edit */}
+            <div className="flex justify-center">
+              <div className="relative">
+                <Avatar className="w-24 h-24 ring-4 ring-muted">
+                  <AvatarImage src={profile.avatar || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/30 to-primary/10 text-primary text-3xl font-bold">
+                    {editForm.displayName.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <button 
+                  onClick={handleAvatarChange}
+                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg hover:bg-primary/90 transition-colors active:scale-95"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Form Fields */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="displayName">Display Name</Label>
+                <Input
+                  id="displayName"
+                  value={editForm.displayName}
+                  onChange={(e) => setEditForm({ ...editForm, displayName: e.target.value })}
+                  placeholder="Your display name"
+                  className="h-11"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
+                  <Input
+                    id="username"
+                    value={editForm.username}
+                    onChange={(e) => setEditForm({ ...editForm, username: e.target.value })}
+                    placeholder="username"
+                    className="h-11 pl-8"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="location"
+                    value={editForm.location}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    placeholder="City, Country"
+                    className="h-11 pl-10"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="bio">Bio</Label>
+                <Textarea
+                  id="bio"
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
+                  placeholder="Tell others about yourself..."
+                  className="min-h-[100px] resize-none"
+                  maxLength={160}
+                />
+                <p className="text-xs text-muted-foreground text-right">
+                  {editForm.bio.length}/160
+                </p>
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div className="pt-2">
+              <Button onClick={handleSaveProfile} className="w-full h-11">
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
