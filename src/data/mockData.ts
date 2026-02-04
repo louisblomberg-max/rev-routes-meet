@@ -35,7 +35,7 @@ export const mockEvents = [
     date: 'Sat, Feb 15 • 10:00 AM',
     location: 'Ace Cafe, London',
     vehicleType: 'Porsche Only',
-    eventType: 'Meet',
+    eventType: 'Meets',
     attendees: 47,
   },
   {
@@ -44,7 +44,7 @@ export const mockEvents = [
     date: 'Fri, Feb 21 • 8:00 PM',
     location: 'Box Hill, Surrey',
     vehicleType: 'Japanese Cars',
-    eventType: 'Drive',
+    eventType: 'Group Drive',
     attendees: 89,
   },
   {
@@ -53,7 +53,7 @@ export const mockEvents = [
     date: 'Sun, Feb 23 • 9:00 AM',
     location: 'Brooklands Museum',
     vehicleType: 'Pre-1990 Classics',
-    eventType: 'Event',
+    eventType: 'Show / Exhibition',
     attendees: 156,
   },
   {
@@ -62,7 +62,7 @@ export const mockEvents = [
     date: 'Sat, Mar 1 • 8:00 AM',
     location: 'The Ivy, Chelsea',
     vehicleType: 'Supercars Only',
-    eventType: 'Meet',
+    eventType: 'Cars & Coffee',
     attendees: 32,
   },
   {
@@ -80,7 +80,7 @@ export const mockEvents = [
     date: 'Sat, Mar 15 • 11:00 AM',
     location: 'Caffeine & Machine',
     vehicleType: 'European Cars',
-    eventType: 'Meet',
+    eventType: 'Meets',
     attendees: 120,
   },
   {
@@ -89,7 +89,7 @@ export const mockEvents = [
     date: 'Thu, Mar 20 • 7:00 PM',
     location: 'Ace Cafe, London',
     vehicleType: 'Motorcycles Only',
-    eventType: 'Meet',
+    eventType: 'Meets',
     attendees: 78,
   },
   {
@@ -98,7 +98,7 @@ export const mockEvents = [
     date: 'Sun, Mar 23 • 9:00 AM',
     location: 'Goodwood Motor Circuit',
     vehicleType: 'All Welcome',
-    eventType: 'Meet',
+    eventType: 'Cars & Coffee',
     attendees: 245,
   },
 ];

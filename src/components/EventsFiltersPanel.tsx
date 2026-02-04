@@ -35,9 +35,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
   const typeOptions = [
     { id: 'meets', label: 'Meets' },
-    { id: 'events', label: 'Events' },
-    { id: 'track-days', label: 'Track Days' },
-    { id: 'drives', label: 'Drives' },
+    { id: 'cars-coffee', label: 'Cars & Coffee' },
+    { id: 'drive', label: 'Drive / Drive-Out' },
+    { id: 'group-drive', label: 'Group Drive' },
+    { id: 'track-day', label: 'Track Day' },
+    { id: 'show', label: 'Show / Exhibition' },
   ];
 
   const dateOptions = [
