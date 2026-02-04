@@ -15,6 +15,9 @@ import PlanBillingSettings from "./pages/PlanBillingSettings";
 import Upgrade from "./pages/Upgrade";
 import MyGarage from "./pages/MyGarage";
 import MyFriends from "./pages/MyFriends";
+import MyEvents from "./pages/MyEvents";
+import MyRoutes from "./pages/MyRoutes";
+import MyDiscussions from "./pages/MyDiscussions";
 import Community from "./pages/Community";
 import Forums from "./pages/Forums";
 import CreateForumPost from "./pages/CreateForumPost";
@@ -54,6 +57,9 @@ const App = () => (
           <Route path="/upgrade" element={<Upgrade />} />
           <Route path="/my-garage" element={<MyGarage />} />
           <Route path="/my-friends" element={<MyFriends />} />
+          <Route path="/my-events" element={<MyEvents />} />
+          <Route path="/my-routes" element={<MyRoutes />} />
+          <Route path="/my-discussions" element={<MyDiscussions />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
           <Route path="/forums/create" element={<CreateForumPost />} />

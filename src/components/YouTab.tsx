@@ -44,7 +44,7 @@ const YouTab = () => {
       icon: Calendar, 
       count: 5,
       colorClass: 'bg-events/15 text-events',
-      route: '/',
+      route: '/my-events',
       description: 'upcoming'
     },
     { 
@@ -53,7 +53,7 @@ const YouTab = () => {
       icon: Route, 
       count: 8,
       colorClass: 'bg-routes/15 text-routes',
-      route: '/',
+      route: '/my-routes',
       description: 'saved'
     },
     { 
@@ -62,7 +62,7 @@ const YouTab = () => {
       icon: MessageSquare, 
       count: 12,
       colorClass: 'bg-services/15 text-services',
-      route: '/forums',
+      route: '/my-discussions',
       description: 'posts'
     },
   ];
