@@ -66,21 +66,21 @@ const CommunityTab = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="px-4 mt-6">
-        <div className="bg-card rounded-xl p-4 border border-border/50 shadow-card">
-          <p className="text-label mb-3">Your Activity</p>
-          <div className="grid grid-cols-3 gap-3">
+      <div className="px-4 mt-4">
+        <div className="bg-card rounded-xl p-3 border border-border/50 shadow-card">
+          <p className="text-label mb-2">Your Activity</p>
+          <div className="grid grid-cols-3 gap-2">
             <div className="text-center">
-              <p className="text-2xl font-black text-foreground">3</p>
-              <p className="text-caption mt-0.5">Clubs</p>
+              <p className="text-xl font-black text-foreground">3</p>
+              <p className="text-caption">Clubs</p>
             </div>
             <div className="text-center border-x border-border/50">
-              <p className="text-2xl font-black text-foreground">12</p>
-              <p className="text-caption mt-0.5">Posts</p>
+              <p className="text-xl font-black text-foreground">12</p>
+              <p className="text-caption">Posts</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-black text-foreground">47</p>
-              <p className="text-caption mt-0.5">Friends</p>
+              <p className="text-xl font-black text-foreground">47</p>
+              <p className="text-caption">Friends</p>
             </div>
           </div>
         </div>
