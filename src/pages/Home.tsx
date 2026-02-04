@@ -65,6 +65,7 @@ const Home = () => {
           date: event.date,
           location: event.location,
           vehicleType: event.vehicleType,
+          eventType: event.eventType,
           attendees: event.attendees,
         });
       }

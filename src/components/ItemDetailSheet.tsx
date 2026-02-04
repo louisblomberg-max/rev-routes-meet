@@ -9,6 +9,7 @@ interface EventItem {
   date: string;
   location: string;
   vehicleType: string;
+  eventType: string;
   attendees: number;
   description?: string;
   distance?: string;
@@ -61,6 +62,11 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
     <>
       <div className="flex justify-between items-start">
         <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs px-2 py-0.5 bg-events/10 text-events rounded-full font-medium">
+              {event.eventType}
+            </span>
+          </div>
           <h2 className="text-xl font-bold text-foreground">{event.title}</h2>
           <p className="text-sm text-muted-foreground mt-1">{event.distance || '2.5 miles away'}</p>
         </div>

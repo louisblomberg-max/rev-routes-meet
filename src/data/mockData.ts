@@ -16,6 +16,7 @@ export const mockEvents = [
     date: 'Sat, Feb 15 • 10:00 AM',
     location: 'Ace Cafe, London',
     vehicleType: 'Porsche Only',
+    eventType: 'Meet',
     attendees: 47,
   },
   {
@@ -24,6 +25,7 @@ export const mockEvents = [
     date: 'Fri, Feb 21 • 8:00 PM',
     location: 'Box Hill, Surrey',
     vehicleType: 'Japanese Cars',
+    eventType: 'Drive',
     attendees: 89,
   },
   {
@@ -32,6 +34,7 @@ export const mockEvents = [
     date: 'Sun, Feb 23 • 9:00 AM',
     location: 'Brooklands Museum',
     vehicleType: 'Pre-1990 Classics',
+    eventType: 'Event',
     attendees: 156,
   },
   {
@@ -40,7 +43,17 @@ export const mockEvents = [
     date: 'Sat, Mar 1 • 8:00 AM',
     location: 'The Ivy, Chelsea',
     vehicleType: 'Supercars Only',
+    eventType: 'Meet',
     attendees: 32,
+  },
+  {
+    id: '5',
+    title: 'Brands Hatch Track Day',
+    date: 'Sun, Mar 8 • 7:30 AM',
+    location: 'Brands Hatch Circuit',
+    vehicleType: 'All Welcome',
+    eventType: 'Track Day',
+    attendees: 64,
   },
 ];
 
