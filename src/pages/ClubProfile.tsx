@@ -3,6 +3,7 @@ import { ArrowLeft, Users, Share2, Heart, MessageCircle, Pin, Calendar, MapPin, 
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 import { mockClubs, mockClubPosts, mockClubEvents } from '@/data/mockData';
 
 const ClubProfile = () => {
@@ -46,12 +47,13 @@ const ClubProfile = () => {
       <div className="relative h-40 bg-gradient-to-br from-clubs to-clubs/70">
         <button 
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-10"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-10 hover:bg-black/40 transition-colors active:scale-95"
         >
           <ArrowLeft className="w-5 h-5 text-white" />
         </button>
         <button 
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-10"
+          onClick={() => toast.success('Link copied to clipboard!')}
+          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center z-10 hover:bg-black/40 transition-colors active:scale-95"
         >
           <Share2 className="w-5 h-5 text-white" />
         </button>
@@ -89,18 +91,28 @@ const ClubProfile = () => {
               <Button 
                 variant="outline" 
                 className="flex-1 border-clubs text-clubs"
-                onClick={() => setIsJoined(false)}
+                onClick={() => {
+                  setIsJoined(false);
+                  toast.success('Left club');
+                }}
               >
                 Joined
               </Button>
-              <Button variant="outline" size="icon">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => toast.success('Link copied to clipboard!')}
+              >
                 <Share2 className="w-4 h-4" />
               </Button>
             </div>
           ) : (
             <Button 
               className="w-full bg-clubs hover:bg-clubs/90 text-white"
-              onClick={() => setIsJoined(true)}
+              onClick={() => {
+                setIsJoined(true);
+                toast.success(`Joined ${club.name}!`);
+              }}
             >
               Join Club
             </Button>
@@ -151,6 +163,10 @@ const ClubProfile = () => {
                     size="sm" 
                     className="bg-clubs hover:bg-clubs/90"
                     disabled={!newPost.trim()}
+                    onClick={() => {
+                      toast.success('Post shared with the club!');
+                      setNewPost('');
+                    }}
                   >
                     Post
                   </Button>

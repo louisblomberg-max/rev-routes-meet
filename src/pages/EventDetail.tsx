@@ -1,13 +1,33 @@
-import { ArrowLeft, Calendar, MapPin, Car, Users, Share2 } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, Calendar, MapPin, Car, Users, Share2, Bookmark, Check } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { mockEvents } from '@/data/mockData';
 
 const EventDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isSaved, setIsSaved] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
   
   const event = mockEvents.find(e => e.id === id) || mockEvents[0];
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    toast.success(isSaved ? 'Event unsaved' : 'Event saved!');
+  };
+
+  const handleShare = () => {
+    toast.success('Link copied to clipboard!');
+  };
+
+  const handleRSVP = () => {
+    setIsAttending(!isAttending);
+    toast.success(isAttending ? 'RSVP cancelled' : 'RSVP confirmed!', {
+      description: isAttending ? 'You are no longer attending' : `See you at ${event.title}!`,
+    });
+  };
 
   return (
     <div className="mobile-container bg-background min-h-screen">
@@ -15,20 +35,31 @@ const EventDetail = () => {
       <div className="relative h-48 bg-gradient-to-br from-events to-events/70">
         <button 
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top hover:bg-white transition-colors active:scale-95"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <button 
-          className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top"
-        >
-          <Share2 className="w-5 h-5 text-foreground" />
-        </button>
+        <div className="absolute top-4 right-4 flex gap-2 safe-top">
+          <button 
+            onClick={handleSave}
+            className={`w-10 h-10 rounded-full backdrop-blur flex items-center justify-center transition-colors active:scale-95 ${
+              isSaved ? 'bg-primary text-white' : 'bg-white/90 hover:bg-white'
+            }`}
+          >
+            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : 'text-foreground'}`} />
+          </button>
+          <button 
+            onClick={handleShare}
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors active:scale-95"
+          >
+            <Share2 className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 -mt-6 relative">
-        <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="px-4 -mt-6 relative pb-8">
+        <div className="bg-card rounded-xl shadow-lg p-6 border border-border/30">
           <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
           
           <div className="mt-4 space-y-3">
@@ -46,7 +77,7 @@ const EventDetail = () => {
             </div>
             <div className="flex items-center gap-3 text-muted-foreground">
               <Users className="w-5 h-5" />
-              <span>{event.attendees} attending</span>
+              <span>{event.attendees + (isAttending ? 1 : 0)} attending</span>
             </div>
           </div>
         </div>
@@ -69,9 +100,23 @@ const EventDetail = () => {
         </div>
 
         {/* RSVP Button */}
-        <div className="mt-6 pb-8">
-          <Button className="w-full bg-events hover:bg-events/90 text-events-foreground py-6 text-lg">
-            RSVP to Event
+        <div className="mt-6">
+          <Button 
+            onClick={handleRSVP}
+            className={`w-full py-6 text-lg gap-2 ${
+              isAttending 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-events hover:bg-events/90 text-white'
+            }`}
+          >
+            {isAttending ? (
+              <>
+                <Check className="w-5 h-5" />
+                Going
+              </>
+            ) : (
+              'RSVP to Event'
+            )}
           </Button>
         </div>
       </div>
