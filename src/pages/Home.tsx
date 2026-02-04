@@ -90,9 +90,15 @@ const Home = () => {
           id: service.id,
           name: service.name,
           category: service.category,
+          serviceTypes: service.serviceTypes,
           rating: service.rating,
           distance: service.distance,
           reviewCount: service.reviewCount,
+          openingHours: service.openingHours,
+          phone: service.phone,
+          address: service.address,
+          isOpen: service.isOpen,
+          priceRange: service.priceRange,
         });
       }
     } else if (pin.type === 'clubs') {
