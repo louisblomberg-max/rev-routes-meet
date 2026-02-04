@@ -41,7 +41,10 @@ const YouTab = () => {
               <span className="font-bold text-foreground">Free Plan</span>
               <p className="text-caption">Basic access to clubs, forums & routes</p>
             </div>
-            <button className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm active:scale-[0.98]">
+            <button 
+              onClick={() => navigate('/upgrade')}
+              className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm active:scale-[0.98]"
+            >
               Upgrade
             </button>
           </div>
