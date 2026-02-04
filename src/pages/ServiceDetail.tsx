@@ -1,13 +1,41 @@
-import { ArrowLeft, MapPin, Star, Phone, Globe, Clock, Share2 } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, MapPin, Star, Phone, Globe, Clock, Share2, Bookmark } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { mockServices } from '@/data/mockData';
 
 const ServiceDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [isSaved, setIsSaved] = useState(false);
   
   const service = mockServices.find(s => s.id === id) || mockServices[0];
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    toast.success(isSaved ? 'Service unsaved' : 'Service saved!');
+  };
+
+  const handleShare = () => {
+    toast.success('Link copied to clipboard!');
+  };
+
+  const handleCall = () => {
+    toast.success(`Calling ${service.phone}...`);
+  };
+
+  const handleWebsite = () => {
+    toast.success('Opening website...');
+  };
+
+  const handleDirections = () => {
+    toast.success('Opening directions...');
+  };
+
+  const handleContact = () => {
+    toast.success(`Contacting ${service.name}...`);
+  };
 
   return (
     <div className="mobile-container bg-background min-h-screen">
@@ -15,20 +43,33 @@ const ServiceDetail = () => {
       <div className="relative h-48 bg-gradient-to-br from-services to-services/70">
         <button 
           onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top"
+          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top hover:bg-white transition-colors active:scale-95"
         >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
-        <button className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top">
-          <Share2 className="w-5 h-5 text-foreground" />
-        </button>
+        <div className="absolute top-4 right-4 flex gap-2 safe-top">
+          <button 
+            onClick={handleSave}
+            className={`w-10 h-10 rounded-full backdrop-blur flex items-center justify-center transition-colors active:scale-95 ${
+              isSaved ? 'bg-primary text-white' : 'bg-white/90 hover:bg-white'
+            }`}
+          >
+            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : 'text-foreground'}`} />
+          </button>
+          <button 
+            onClick={handleShare}
+            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors active:scale-95"
+          >
+            <Share2 className="w-5 h-5 text-foreground" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="px-4 -mt-6 relative">
-        <div className="bg-white rounded-xl shadow-lg p-6">
+      <div className="px-4 -mt-6 relative pb-8">
+        <div className="bg-card rounded-xl shadow-lg p-6 border border-border/30">
           <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-services-light text-services">
+            <span className="px-3 py-1 rounded-full text-sm font-medium bg-services/15 text-services">
               {service.category}
             </span>
           </div>
@@ -36,7 +77,7 @@ const ServiceDetail = () => {
           
           <div className="mt-4 flex items-center gap-4">
             <div className="flex items-center gap-1">
-              <Star className="w-5 h-5 fill-services text-services" />
+              <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
               <span className="font-medium">{service.rating}</span>
               <span className="text-muted-foreground">({service.reviewCount} reviews)</span>
             </div>
@@ -50,15 +91,24 @@ const ServiceDetail = () => {
 
         {/* Quick Actions */}
         <div className="mt-4 grid grid-cols-3 gap-3">
-          <button className="content-card flex flex-col items-center gap-2 py-4">
+          <button 
+            onClick={handleCall}
+            className="bg-card rounded-xl border border-border/30 shadow-sm flex flex-col items-center gap-2 py-4 hover:bg-muted/50 transition-colors active:scale-[0.98]"
+          >
             <Phone className="w-6 h-6 text-services" />
             <span className="text-sm font-medium">Call</span>
           </button>
-          <button className="content-card flex flex-col items-center gap-2 py-4">
+          <button 
+            onClick={handleWebsite}
+            className="bg-card rounded-xl border border-border/30 shadow-sm flex flex-col items-center gap-2 py-4 hover:bg-muted/50 transition-colors active:scale-[0.98]"
+          >
             <Globe className="w-6 h-6 text-routes" />
             <span className="text-sm font-medium">Website</span>
           </button>
-          <button className="content-card flex flex-col items-center gap-2 py-4">
+          <button 
+            onClick={handleDirections}
+            className="bg-card rounded-xl border border-border/30 shadow-sm flex flex-col items-center gap-2 py-4 hover:bg-muted/50 transition-colors active:scale-[0.98]"
+          >
             <MapPin className="w-6 h-6 text-events" />
             <span className="text-sm font-medium">Directions</span>
           </button>
@@ -95,8 +145,11 @@ const ServiceDetail = () => {
         </div>
 
         {/* Contact Button */}
-        <div className="mt-6 pb-8">
-          <Button className="w-full bg-services hover:bg-services/90 text-services-foreground py-6 text-lg gap-2">
+        <div className="mt-6">
+          <Button 
+            onClick={handleContact}
+            className="w-full bg-services hover:bg-services/90 text-white py-6 text-lg gap-2"
+          >
             <Phone className="w-5 h-5" />
             Contact Business
           </Button>

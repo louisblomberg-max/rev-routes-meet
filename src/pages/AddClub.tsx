@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, MapPin, Globe, Camera } from 'lucide-react';
+import { ArrowLeft, Users, MapPin, Camera } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 const AddClub = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -17,23 +19,40 @@ const AddClub = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock submission
-    console.log('Club data:', formData);
-    navigate('/');
+    
+    if (!formData.name.trim()) {
+      toast.error('Please enter a club name');
+      return;
+    }
+    if (!formData.description.trim()) {
+      toast.error('Please add a description');
+      return;
+    }
+    
+    setIsSubmitting(true);
+    
+    // Simulate saving
+    setTimeout(() => {
+      toast.success('Club created successfully!', {
+        description: formData.name,
+      });
+      setIsSubmitting(false);
+      navigate('/clubs');
+    }, 500);
   };
 
   return (
     <div className="page-container">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur border-b border-border px-4 py-3 safe-top">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
+        <div className="px-4 py-3 flex items-center gap-3">
           <button 
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
           >
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-semibold text-foreground">Add Club</h1>
+          <h1 className="text-lg font-bold text-foreground">Create Club</h1>
         </div>
       </div>
 
@@ -129,9 +148,10 @@ const AddClub = () => {
         <div className="pt-4">
           <Button 
             type="submit" 
-            className="w-full bg-clubs hover:bg-clubs/90 text-clubs-foreground"
+            disabled={isSubmitting}
+            className="w-full bg-clubs hover:bg-clubs/90 text-white h-12 text-base font-semibold"
           >
-            Create Club
+            {isSubmitting ? 'Creating...' : 'Create Club'}
           </Button>
         </div>
       </form>

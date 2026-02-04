@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 import { mockClubs } from '@/data/mockData';
 import { PostType } from '@/data/forumData';
 
@@ -40,14 +41,8 @@ const CreateForumPost = () => {
   const handleSubmit = () => {
     if (!isValid) return;
     
-    // In a real app, this would create the post
-    console.log({
-      type: postType,
-      title,
-      body,
-      category,
-      linkedClub: linkedClub || undefined,
-      images,
+    toast.success('Post created successfully!', {
+      description: title,
     });
     
     navigate('/forums');
