@@ -109,6 +109,7 @@ const Settings = () => {
                   if (section.id === 'account') navigate('/settings/account');
                   if (section.id === 'billing') navigate('/settings/billing');
                   if (section.id === 'social') navigate('/settings/social');
+                  if (section.id === 'support') navigate('/settings/support');
                   if (section.id === 'faq') navigate('/settings/faq');
                   if (section.id === 'howto') navigate('/settings/howto');
                 }}
