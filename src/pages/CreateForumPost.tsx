@@ -168,7 +168,7 @@ const CreateForumPost = () => {
                 <SelectValue placeholder="Select a club (optional)" />
               </SelectTrigger>
               <SelectContent className="bg-card border-border">
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {joinedClubs.map((club) => (
                   <SelectItem key={club.id} value={club.id}>
                     {club.name}
