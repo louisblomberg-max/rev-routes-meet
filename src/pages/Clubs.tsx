@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, Users, Check } from 'lucide-react';
+import { ArrowLeft, Search, Users, Check, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,14 +21,24 @@ const Clubs = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Header */}
       <div className="px-4 pt-4 pb-4 safe-top sticky top-0 bg-background z-10">
-        <div className="flex items-center gap-4 mb-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-xl font-bold text-foreground">Clubs</h1>
+          </div>
+          <Button
+            onClick={() => navigate('/add/club')}
+            size="sm"
+            className="bg-clubs hover:bg-clubs/90 text-white gap-1.5"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h1 className="text-xl font-bold text-foreground">Clubs</h1>
+            <Plus className="w-4 h-4" />
+            Create
+          </Button>
         </div>
 
         {/* Search Bar */}
