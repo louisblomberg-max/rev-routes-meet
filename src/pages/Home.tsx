@@ -159,7 +159,7 @@ const Home = () => {
       />
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 px-3 pt-3 safe-top">
+      <div className="absolute top-0 left-0 right-0 z-30 px-3 pt-3 safe-top">
         {/* Logo + Search row */}
         <div className="flex items-center gap-2">
           {/* RevNet Logo */}
