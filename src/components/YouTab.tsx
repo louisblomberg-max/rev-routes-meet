@@ -1,5 +1,6 @@
-import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 // Profile components
 import ProfileHeaderCompact from '@/components/profile/ProfileHeaderCompact';
@@ -7,8 +8,12 @@ import ProfileHeaderCompact from '@/components/profile/ProfileHeaderCompact';
 // Mock data
 import { mockUserProfile } from '@/data/profileData';
 
+// Plan context
+import { usePlan } from '@/contexts/PlanContext';
+
 const YouTab = () => {
   const navigate = useNavigate();
+  const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan } = usePlan();
 
   const primaryActions = [
     { 
@@ -18,7 +23,8 @@ const YouTab = () => {
       count: 2,
       colorClass: 'bg-muted text-foreground',
       route: '/my-garage',
-      description: 'vehicles'
+      description: 'vehicles',
+      featureId: 'garage_showcase',
     },
     { 
       id: 'friends', 
@@ -27,7 +33,8 @@ const YouTab = () => {
       count: 24,
       colorClass: 'bg-muted text-foreground',
       route: '/my-friends',
-      description: 'friends'
+      description: 'friends',
+      featureId: 'my_friends',
     },
     { 
       id: 'clubs', 
@@ -36,7 +43,8 @@ const YouTab = () => {
       count: 3,
       colorClass: 'bg-clubs/15 text-clubs',
       route: '/clubs',
-      description: 'joined'
+      description: 'joined',
+      featureId: 'join_clubs',
     },
     { 
       id: 'events', 
@@ -45,7 +53,8 @@ const YouTab = () => {
       count: 5,
       colorClass: 'bg-events/15 text-events',
       route: '/my-events',
-      description: 'upcoming'
+      description: 'upcoming',
+      featureId: 'save_events',
     },
     { 
       id: 'routes', 
@@ -54,7 +63,8 @@ const YouTab = () => {
       count: 8,
       colorClass: 'bg-routes/15 text-routes',
       route: '/my-routes',
-      description: 'saved'
+      description: 'saved',
+      featureId: 'save_routes',
     },
     { 
       id: 'discussions', 
@@ -63,11 +73,23 @@ const YouTab = () => {
       count: 12,
       colorClass: 'bg-services/15 text-services',
       route: '/my-discussions',
-      description: 'posts'
+      description: 'posts',
+      featureId: 'my_discussions',
     },
   ];
 
   const handleActionClick = (action: typeof primaryActions[0]) => {
+    if (!hasAccess(action.featureId)) {
+      const required = getRequiredPlan(action.featureId);
+      toast.info(`${action.label} requires ${getPlanLabel(required)}`, {
+        description: 'Upgrade your plan to unlock this feature.',
+        action: {
+          label: 'Upgrade',
+          onClick: () => navigate('/upgrade'),
+        },
+      });
+      return;
+    }
     navigate(action.route);
   };
 
@@ -90,15 +112,21 @@ const YouTab = () => {
               <Crown className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <span className="font-bold text-foreground">Free Plan</span>
-              <p className="text-caption">Basic access to clubs, forums & routes</p>
+              <span className="font-bold text-foreground">{getPlanLabel(currentPlan)} Plan</span>
+              <p className="text-caption">
+                {currentPlan === 'free' && 'Basic access to clubs, forums & routes'}
+                {currentPlan === 'pro' && 'Create routes, events & live features'}
+                {currentPlan === 'club' && 'Full access including club management'}
+              </p>
             </div>
-            <button 
-              onClick={() => navigate('/upgrade')}
-              className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm active:scale-[0.98]"
-            >
-              Upgrade
-            </button>
+            {currentPlan !== 'club' && (
+              <button 
+                onClick={() => navigate('/upgrade')}
+                className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm active:scale-[0.98]"
+              >
+                Upgrade
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -108,19 +136,25 @@ const YouTab = () => {
         <div className="grid grid-cols-3 gap-2.5">
           {primaryActions.map((action) => {
             const Icon = action.icon;
+            const locked = !hasAccess(action.featureId);
             return (
               <button
                 key={action.id}
                 onClick={() => handleActionClick(action)}
-                className="bg-card rounded-xl border border-border/50 shadow-card p-3 text-center hover:shadow-elevated hover:border-border transition-all duration-200 flex flex-col items-center gap-1.5 active:scale-[0.97] group"
+                className={`relative bg-card rounded-xl border border-border/50 shadow-card p-3 text-center hover:shadow-elevated hover:border-border transition-all duration-200 flex flex-col items-center gap-1.5 active:scale-[0.97] group ${locked ? 'opacity-60' : ''}`}
               >
+                {locked && (
+                  <div className="absolute top-1.5 right-1.5">
+                    <Lock className="w-3 h-3 text-muted-foreground" />
+                  </div>
+                )}
                 <div className={`w-11 h-11 rounded-xl ${action.colorClass} flex items-center justify-center transition-transform group-hover:scale-105`}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col items-center">
                   <span className="text-2xs font-semibold text-foreground leading-tight">{action.label}</span>
                   <span className="text-[10px] text-muted-foreground mt-0.5">
-                    {action.count} {action.description}
+                    {locked ? getPlanLabel(getRequiredPlan(action.featureId)) : `${action.count} ${action.description}`}
                   </span>
                 </div>
               </button>

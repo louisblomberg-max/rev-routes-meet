@@ -1,7 +1,8 @@
-import { MapPin, Crown, Sparkles, Star, ChevronRight, Calendar, Route, Users } from 'lucide-react';
+import { MapPin, Crown, Sparkles, Star, Building2, ChevronRight, Calendar, Route, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserProfile } from '@/data/profileData';
+import { usePlan } from '@/contexts/PlanContext';
 
 interface ProfileHeaderCompactProps {
   profile: UserProfile;
@@ -9,13 +10,15 @@ interface ProfileHeaderCompactProps {
 }
 
 const ProfileHeaderCompact = ({ profile, onTap }: ProfileHeaderCompactProps) => {
+  const { currentPlan } = usePlan();
+  
   const planBadge = {
     free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
-    enthusiast: { label: 'Enthusiast', icon: Crown, className: 'bg-gradient-to-r from-events to-primary text-primary-foreground border-0' },
     pro: { label: 'Pro', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground border-0' },
+    club: { label: 'Club', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground border-0' },
   };
 
-  const currentBadge = planBadge[profile.plan];
+  const currentBadge = planBadge[currentPlan];
   const BadgeIcon = currentBadge.icon;
 
   return (
