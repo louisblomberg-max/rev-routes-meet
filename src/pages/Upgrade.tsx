@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { usePlan, PlanId } from '@/contexts/PlanContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
+  const { currentPlan, setPlan } = usePlan();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
-  const currentPlan = 'free';
 
   const togglePlanExpanded = (planId: string) => {
     setExpandedPlans(prev => ({ ...prev, [planId]: !prev[planId] }));
@@ -19,7 +20,7 @@ const Upgrade = () => {
 
   const plans = [
     {
-      id: 'free',
+      id: 'free' as PlanId,
       name: 'Free Member',
       icon: Sparkles,
       color: 'text-muted-foreground',
@@ -36,7 +37,7 @@ const Upgrade = () => {
       recommended: false,
     },
     {
-      id: 'pro',
+      id: 'pro' as PlanId,
       name: 'Pro Driver',
       icon: Star,
       color: 'text-primary',
@@ -56,7 +57,7 @@ const Upgrade = () => {
       recommended: true,
     },
     {
-      id: 'club',
+      id: 'club' as PlanId,
       name: 'Club / Business',
       icon: Building2,
       color: 'text-clubs',
@@ -77,22 +78,22 @@ const Upgrade = () => {
     },
   ];
 
-  const handleSelectPlan = (planId: string) => {
-    if (planId === 'free') {
-      navigate(-1);
-      return;
-    }
+  const handleSelectPlan = (planId: PlanId) => {
+    if (planId === currentPlan) return;
     
-    if (planId === 'club') {
-      toast.info('Contact us for Club/Business plans', {
-        description: 'We\'ll be in touch to discuss your needs.',
-      });
-      return;
-    }
-
-    toast.success(`Upgrading to ${planId === 'pro' ? 'Pro Driver' : 'Club / Business'}`, {
-      description: 'Payment processing would happen here.',
-    });
+    setPlan(planId);
+    
+    const planName = plans.find(p => p.id === planId)?.name || planId;
+    const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
+    
+    toast.success(
+      isDowngrade ? `Downgraded to ${planName}` : `Upgraded to ${planName}!`, 
+      {
+        description: isDowngrade 
+          ? 'Some features are now locked.' 
+          : 'You now have access to more features!',
+      }
+    );
   };
 
   return (
@@ -153,19 +154,22 @@ const Upgrade = () => {
               <Card 
                 key={plan.id} 
                 className={`relative overflow-hidden transition-all ${
-                  plan.recommended 
-                    ? `${plan.borderColor} border-2 shadow-md` 
-                    : 'border-border/50'
-                } ${isCurrentPlan ? 'bg-muted/30' : ''}`}
+                  isCurrentPlan
+                    ? 'border-primary border-2 shadow-md ring-2 ring-primary/20'
+                    : plan.recommended && !isCurrentPlan
+                      ? `${plan.borderColor} border-2 shadow-md` 
+                      : 'border-border/50'
+                }`}
               >
-                {plan.recommended && (
+                {plan.recommended && !isCurrentPlan && (
                   <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg">
                     ⭐ Most Popular
                   </div>
                 )}
                 {isCurrentPlan && (
-                  <div className="absolute top-0 left-0 bg-muted text-muted-foreground text-[10px] font-semibold px-2.5 py-1 rounded-br-lg">
-                    Current
+                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    Active Plan
                   </div>
                 )}
                 <CardContent className="p-4">
@@ -231,17 +235,19 @@ const Upgrade = () => {
                   <Button 
                     variant={isCurrentPlan ? 'secondary' : plan.recommended ? 'default' : 'outline'}
                     size="sm"
-                    className={`w-full h-10 ${plan.recommended ? 'font-semibold' : ''}`}
+                    className={`w-full h-10 ${plan.recommended && !isCurrentPlan ? 'font-semibold' : ''}`}
                     disabled={isCurrentPlan}
                     onClick={() => handleSelectPlan(plan.id)}
                   >
                     {isCurrentPlan 
-                      ? 'Current Plan' 
-                      : plan.id === 'club' 
-                        ? 'Contact Us' 
+                      ? '✓ Current Plan'
+                      : ['free', 'pro', 'club'].indexOf(plan.id) < ['free', 'pro', 'club'].indexOf(currentPlan)
+                        ? `Downgrade to ${plan.name}`
                         : plan.id === 'pro'
                           ? 'Upgrade to Pro'
-                          : 'Select'
+                          : plan.id === 'club'
+                            ? 'Upgrade to Club'
+                            : 'Select'
                     }
                   </Button>
                 </CardContent>
