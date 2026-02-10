@@ -1,4 +1,4 @@
-import { ArrowLeft, Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Download } from 'lucide-react';
+import { ArrowLeft, Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Download, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,110 +16,127 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import { usePlan, PlanId, FEATURE_REQUIREMENTS } from '@/contexts/PlanContext';
+
+const PLAN_FEATURES: Record<PlanId, { label: string; icon: any; route?: string; featureId: string }[]> = {
+  free: [
+    { label: 'Browse Routes', icon: Route, route: '/', featureId: 'browse_routes' },
+    { label: 'Browse Events', icon: CalendarIcon, route: '/', featureId: 'browse_events' },
+    { label: 'Browse Services', icon: Store, route: '/', featureId: 'browse_services' },
+    { label: 'Join Clubs', icon: Users, route: '/clubs', featureId: 'join_clubs' },
+    { label: 'Join Forums', icon: MessageSquare, route: '/forums', featureId: 'join_forums' },
+    { label: 'Basic Messaging', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
+    { label: 'Save Routes', icon: Route, route: '/my-routes', featureId: 'save_routes' },
+    { label: 'Save Events', icon: CalendarIcon, route: '/my-events', featureId: 'save_events' },
+    { label: 'My Friends', icon: Users, route: '/my-friends', featureId: 'my_friends' },
+    { label: 'My Discussions', icon: MessageSquare, route: '/my-discussions', featureId: 'my_discussions' },
+  ],
+  pro: [
+    { label: 'Create Routes', icon: Route, route: '/add-route', featureId: 'create_routes' },
+    { label: 'Create Events', icon: CalendarIcon, route: '/add-event', featureId: 'create_events' },
+    { label: 'Live Location', icon: MapPin, featureId: 'live_location' },
+    { label: 'Breakdown Help', icon: Shield, featureId: 'breakdown_help' },
+    { label: 'Advanced Filters', icon: Filter, featureId: 'advanced_filters' },
+    { label: 'Garage Showcase', icon: Car, route: '/my-garage', featureId: 'garage_showcase' },
+    { label: 'Priority Visibility', icon: Eye, featureId: 'priority_visibility' },
+  ],
+  club: [
+    { label: 'Create Clubs', icon: Users, route: '/add-club', featureId: 'create_clubs' },
+    { label: 'Club Announcements', icon: MessageSquare, featureId: 'club_announcements' },
+    { label: 'Event Ticketing', icon: Ticket, featureId: 'event_ticketing' },
+    { label: 'Business Listings', icon: Store, route: '/add-service', featureId: 'business_listings' },
+    { label: 'Analytics', icon: BarChart3, featureId: 'analytics' },
+    { label: 'Featured Placement', icon: MapPin, featureId: 'featured_placement' },
+    { label: 'Verified Badge', icon: BadgeCheck, featureId: 'verified_badge' },
+  ],
+};
 
 const PlanBillingSettings = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { currentPlan, setPlan, hasAccess, getPlanLabel } = usePlan();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
-  const [currentPlan] = useState<'free' | 'pro' | 'club'>('free');
 
   const plans = [
     {
-      id: 'free',
+      id: 'free' as PlanId,
       name: 'Free Member',
-      icon: Check,
-      color: 'text-green-600',
-      bgColor: 'bg-green-50',
-      borderColor: 'border-green-200',
+      icon: Sparkles,
+      color: 'text-muted-foreground',
+      bgColor: 'bg-muted',
+      borderColor: 'border-border/50',
       price: { monthly: 0, yearly: 0 },
-      features: [
-        'Browse routes, events & services',
-        'Join clubs & forums',
-        'Post questions & replies',
-        'Save routes & events',
-        'Basic messaging',
-      ],
-      recommended: false,
     },
     {
-      id: 'pro',
+      id: 'pro' as PlanId,
       name: 'Pro Driver',
       icon: Star,
       color: 'text-primary',
       bgColor: 'bg-primary/10',
-      borderColor: 'border-primary/30',
-      price: { monthly: 4.99, yearly: 49 },
-      features: [
-        'Everything in Free, plus:',
-        'Create & publish routes',
-        'Create events & drive-outs',
-        'Live location sharing (group drives)',
-        'Breakdown / Help requests',
-        'Advanced route filters',
-        'Profile & garage showcase',
-        'Priority community visibility',
-      ],
+      borderColor: 'border-primary',
+      price: { monthly: 4.99, yearly: 47.99 },
       recommended: true,
     },
     {
-      id: 'club',
+      id: 'club' as PlanId,
       name: 'Club / Business',
       icon: Building2,
-      color: 'text-destructive',
-      bgColor: 'bg-destructive/10',
-      borderColor: 'border-destructive/30',
-      price: { monthly: 19.99, yearly: 199 },
-      features: [
-        'Everything in Pro, plus:',
-        'Create & manage clubs',
-        'Club announcements & posts',
-        'Event ticketing',
-        'Business/service listings',
-        'Analytics (views, engagement)',
-        'Featured placement on map',
-        'Verified badge',
-      ],
-      recommended: false,
+      color: 'text-clubs',
+      bgColor: 'bg-clubs/10',
+      borderColor: 'border-clubs/30',
+      price: { monthly: 19.99, yearly: 189.99 },
     },
   ];
 
+  const currentPlanData = plans.find(p => p.id === currentPlan)!;
+  const price = billingCycle === 'monthly' ? currentPlanData.price.monthly : currentPlanData.price.yearly;
+
   const billingHistory = [
-    { date: '12 Feb 2026', amount: '£0.00', status: 'Paid', plan: 'Free Member' },
-    { date: '12 Jan 2026', amount: '£0.00', status: 'Paid', plan: 'Free Member' },
+    { date: '12 Feb 2026', amount: price === 0 ? '£0.00' : `£${price.toFixed(2)}`, status: 'Paid', plan: currentPlanData.name },
+    { date: '12 Jan 2026', amount: price === 0 ? '£0.00' : `£${price.toFixed(2)}`, status: 'Paid', plan: currentPlanData.name },
   ];
 
-  const handleUpgrade = (planId: string) => {
-    toast({
-      title: "Upgrade initiated",
-      description: `Starting upgrade to ${planId === 'pro' ? 'Pro Driver' : 'Club / Business'} plan.`,
-    });
-  };
-
-  const handleDowngrade = () => {
-    toast({
-      title: "Plan downgraded",
-      description: "Your plan will change at the end of the billing period.",
+  const handleChangePlan = (planId: PlanId) => {
+    if (planId === currentPlan) return;
+    const planName = plans.find(p => p.id === planId)?.name || planId;
+    const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
+    setPlan(planId);
+    toast.success(isDowngrade ? `Downgraded to ${planName}` : `Upgraded to ${planName}!`, {
+      description: isDowngrade ? 'Some features are now locked.' : 'You now have access to more features!',
     });
   };
 
   const handleCancel = () => {
-    toast({
-      title: "Subscription cancelled",
-      description: "Your current plan will remain active until the end of the billing period.",
+    setPlan('free');
+    toast.success('Subscription cancelled', {
+      description: 'You have been moved to the Free plan.',
     });
   };
+
+  // Get all features accessible with current plan
+  const accessibleFeatures = [
+    ...PLAN_FEATURES.free,
+    ...(currentPlan === 'pro' || currentPlan === 'club' ? PLAN_FEATURES.pro : []),
+    ...(currentPlan === 'club' ? PLAN_FEATURES.club : []),
+  ];
+
+  // Get locked features (next tier)
+  const lockedFeatures = currentPlan === 'free' 
+    ? [...PLAN_FEATURES.pro, ...PLAN_FEATURES.club]
+    : currentPlan === 'pro'
+      ? PLAN_FEATURES.club
+      : [];
 
   return (
     <div className="mobile-container bg-background min-h-screen pb-8">
       {/* Header */}
-      <div className="px-4 pt-4 pb-2 safe-top">
-        <div className="flex items-center gap-3">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
+        <div className="px-4 py-3 flex items-center gap-3">
           <button 
             onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30 flex items-center justify-center"
+            className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
           >
-            <ArrowLeft className="w-4 h-4 text-foreground" />
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <div>
             <h1 className="text-lg font-bold text-foreground">Plan & Billing</h1>
@@ -138,100 +155,94 @@ const PlanBillingSettings = () => {
                   <h3 className="text-base font-semibold text-foreground">Your plan</h3>
                 </div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-lg font-bold text-foreground">Free Member</span>
+                  <span className="text-lg font-bold text-foreground">{getPlanLabel(currentPlan)}</span>
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Active</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  Access to routes, events, clubs, and community features
+                  {currentPlan === 'free' && 'Basic access to clubs, forums & routes'}
+                  {currentPlan === 'pro' && 'Create routes, events & live features'}
+                  {currentPlan === 'club' && 'Full access including club management'}
                 </p>
-                <Button size="sm" className="h-8">
-                  <Crown className="w-3.5 h-3.5 mr-1.5" />
-                  Upgrade plan
-                </Button>
+                {currentPlan !== 'club' && (
+                  <Button size="sm" className="h-8" onClick={() => navigate('/upgrade')}>
+                    <Crown className="w-3.5 h-3.5 mr-1.5" />
+                    Upgrade plan
+                  </Button>
+                )}
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-bold text-foreground">
+                  {price === 0 ? 'Free' : `£${price.toFixed(2)}`}
+                </span>
+                {price > 0 && (
+                  <p className="text-xs text-muted-foreground">/ {billingCycle === 'monthly' ? 'month' : 'year'}</p>
+                )}
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Billing Cycle Toggle */}
+      {/* Your Features */}
       <div className="px-4 pt-6">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <span className={`text-sm ${billingCycle === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
-          <Switch 
-            checked={billingCycle === 'yearly'} 
-            onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
-          />
-          <span className={`text-sm ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-            Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-green-100 text-green-700">Save 15%</Badge>
-          </span>
+        <h2 className="text-sm font-semibold text-foreground mb-3">Your Features</h2>
+        <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
+          <div className="divide-y divide-border/20">
+            {accessibleFeatures.map((feature, idx) => {
+              const Icon = feature.icon;
+              return (
+                <button
+                  key={`${feature.featureId}-${idx}`}
+                  onClick={() => feature.route && navigate(feature.route)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors active:bg-muted"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span className="flex-1 text-left text-sm text-foreground">{feature.label}</span>
+                  {feature.route && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />}
+                  {!feature.route && <Check className="w-3.5 h-3.5 text-primary" />}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Plan Comparison */}
-      <div className="px-4 pt-2">
-        <h2 className="text-sm font-semibold text-foreground mb-3">Choose your plan</h2>
-        <div className="space-y-3">
-          {plans.map((plan) => {
-            const Icon = plan.icon;
-            const isCurrentPlan = plan.id === currentPlan;
-            const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
-            
-            return (
-              <Card 
-                key={plan.id} 
-                className={`relative overflow-hidden ${plan.recommended ? plan.borderColor + ' border-2' : 'border-border/50'}`}
-              >
-                {plan.recommended && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2 py-0.5 rounded-bl-lg">
-                    ⭐ Recommended
-                  </div>
-                )}
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-8 h-8 rounded-lg ${plan.bgColor} flex items-center justify-center`}>
-                      <Icon className={`w-4 h-4 ${plan.color}`} />
+      {/* Locked Features */}
+      {lockedFeatures.length > 0 && (
+        <div className="px-4 pt-4">
+          <h2 className="text-sm font-semibold text-muted-foreground mb-3">Unlock with Upgrade</h2>
+          <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
+            <div className="divide-y divide-border/20">
+              {lockedFeatures.map((feature, idx) => {
+                const Icon = feature.icon;
+                const requiredPlan = FEATURE_REQUIREMENTS[feature.featureId] as PlanId;
+                return (
+                  <button
+                    key={`locked-${feature.featureId}-${idx}`}
+                    onClick={() => navigate('/upgrade')}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center">
+                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
-                    <h3 className="font-semibold text-foreground">{plan.name}</h3>
-                  </div>
-                  
-                  <ul className="space-y-1.5 mb-4">
-                    {plan.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-xs text-muted-foreground">
-                        <Check className={`w-3 h-3 mt-0.5 shrink-0 ${idx === 0 && plan.id !== 'free' ? 'opacity-0' : plan.color}`} />
-                        <span className={idx === 0 && plan.id !== 'free' ? 'font-medium text-foreground' : ''}>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <span className="text-xl font-bold text-foreground">
-                        £{price.toFixed(price === 0 ? 0 : 2)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {price === 0 ? '' : ` / ${billingCycle === 'monthly' ? 'month' : 'year'}`}
-                      </span>
+                    <span className="flex-1 text-left text-sm text-muted-foreground">{feature.label}</span>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-muted-foreground/30 text-muted-foreground">
+                        {getPlanLabel(requiredPlan)}
+                      </Badge>
+                      <Lock className="w-3 h-3 text-muted-foreground" />
                     </div>
-                    <Button 
-                      variant={isCurrentPlan ? 'secondary' : 'default'}
-                      size="sm"
-                      className="h-8"
-                      disabled={isCurrentPlan}
-                      onClick={() => handleUpgrade(plan.id)}
-                    >
-                      {isCurrentPlan ? 'Current plan' : plan.id === 'club' ? 'Contact us' : 'Upgrade to Pro'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Billing Information */}
+      {/* Billing Details */}
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Billing details</h2>
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
@@ -242,13 +253,13 @@ const PlanBillingSettings = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-foreground">Payment method</p>
-                <p className="text-xs text-muted-foreground">No card on file</p>
+                <p className="text-xs text-muted-foreground">{currentPlan === 'free' ? 'No card on file' : '•••• 4242'}</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
           </button>
           
-          <button className="w-full flex items-center justify-between px-3 py-3 hover:bg-muted/50 transition-colors">
+          <div className="flex items-center justify-between px-3 py-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                 <Calendar className="w-4 h-4 text-muted-foreground" />
@@ -258,8 +269,16 @@ const PlanBillingSettings = () => {
                 <p className="text-xs text-muted-foreground capitalize">{billingCycle}</p>
               </div>
             </div>
-            <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-          </button>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs ${billingCycle === 'monthly' ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>Mo</span>
+              <Switch 
+                checked={billingCycle === 'yearly'} 
+                onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
+                className="scale-90"
+              />
+              <span className={`text-xs ${billingCycle === 'yearly' ? 'font-medium text-foreground' : 'text-muted-foreground'}`}>Yr</span>
+            </div>
+          </div>
           
           <button className="w-full flex items-center justify-between px-3 py-3 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
@@ -268,7 +287,7 @@ const PlanBillingSettings = () => {
               </div>
               <div className="text-left">
                 <p className="text-sm font-medium text-foreground">Next payment</p>
-                <p className="text-xs text-muted-foreground">N/A (Free plan)</p>
+                <p className="text-xs text-muted-foreground">{currentPlan === 'free' ? 'N/A (Free plan)' : '12 Mar 2026'}</p>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
@@ -280,38 +299,22 @@ const PlanBillingSettings = () => {
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Billing history</h2>
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
-          {billingHistory.length > 0 ? (
-            <div className="divide-y divide-border/30">
-              {billingHistory.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between px-3 py-3">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{item.date}</p>
-                    <p className="text-xs text-muted-foreground">{item.plan}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-foreground">{item.amount}</span>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <Download className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
+          <div className="divide-y divide-border/30">
+            {billingHistory.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between px-3 py-3">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{item.date}</p>
+                  <p className="text-xs text-muted-foreground">{item.plan}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="px-3 py-6 text-center">
-              <p className="text-sm text-muted-foreground">No billing history yet</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Assurance Text */}
-      <div className="px-4 pt-6">
-        <div className="bg-muted/30 rounded-xl p-4 text-center">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            You can change or cancel your plan at any time.<br />
-            No ads. No hidden fees. Your data stays yours.
-          </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-foreground">{item.amount}</span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Download className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -319,47 +322,77 @@ const PlanBillingSettings = () => {
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Manage plan</h2>
         <div className="space-y-2">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start" disabled={currentPlan === 'free'}>
-                Downgrade plan
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Downgrade your plan?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Your current plan will remain active until the end of the billing period. You'll then be moved to the Free plan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep my plan</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDowngrade}>Downgrade</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive" disabled={currentPlan === 'free'}>
-                Cancel subscription
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Your current plan will remain active until the end of the billing period. After that, you'll be moved to the Free plan.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Keep my plan</AlertDialogCancel>
-                <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+          {/* Downgrade */}
+          {currentPlan !== 'free' && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  Downgrade to {currentPlan === 'club' ? 'Pro Driver' : 'Free'}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Downgrade your plan?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {currentPlan === 'club' 
+                      ? 'You\'ll lose access to club management, analytics, and business features. Your plan will change to Pro Driver.'
+                      : 'You\'ll lose access to route creation, events, live features, and more. Your plan will change to Free.'}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep my plan</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => handleChangePlan(currentPlan === 'club' ? 'pro' : 'free')}>
+                    Downgrade
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {/* Cancel */}
+          {currentPlan !== 'free' && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
                   Cancel subscription
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Cancel your subscription?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    You'll be moved to the Free plan and lose access to all premium features. This cannot be undone automatically.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Keep my plan</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleCancel} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    Cancel subscription
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+
+          {currentPlan === 'free' && (
+            <div className="bg-muted/30 rounded-xl p-4 text-center">
+              <p className="text-xs text-muted-foreground">You're on the Free plan. Upgrade to unlock more features.</p>
+              <Button size="sm" className="mt-2" onClick={() => navigate('/upgrade')}>
+                <Crown className="w-3.5 h-3.5 mr-1.5" />
+                View plans
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Assurance */}
+      <div className="px-4 pt-6">
+        <div className="bg-muted/30 rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Cancel anytime. No hidden fees.<br />
+            Your data stays yours, always.
+          </p>
         </div>
       </div>
     </div>
