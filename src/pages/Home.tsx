@@ -16,7 +16,7 @@ import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFilter
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
-import revnetLogo from '@/assets/revnet-logo.png';
+import revnetLogo from '@/assets/revnet-logo-full.jpg';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
