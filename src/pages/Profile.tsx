@@ -30,7 +30,7 @@ const Profile = () => {
     location: mockUserProfile.location || '',
   });
   
-  const profile = mockUserProfile;
+  const [profile, setProfile] = useState({ ...mockUserProfile });
 
   // Filter to only show public vehicles
   const publicVehicles = profile.garage.filter(v => v.visibility === 'public');
@@ -123,7 +123,13 @@ const Profile = () => {
   };
 
   const handleSaveProfile = () => {
-    // In a real app, this would save to the backend
+    setProfile(prev => ({
+      ...prev,
+      displayName: editForm.displayName,
+      username: editForm.username,
+      bio: editForm.bio,
+      location: editForm.location,
+    }));
     toast.success('Profile updated successfully!');
     setIsEditOpen(false);
   };
