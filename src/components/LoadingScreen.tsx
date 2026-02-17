@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Settings } from 'lucide-react';
+import revnetLogo from '@/assets/revnet-logo-full.jpg';
 
 interface LoadingScreenProps {
   onComplete: () => void;
@@ -34,11 +35,11 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
         
         {/* Static Logo in Center */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              Rev<span className="text-primary">Net</span>
-            </h1>
-          </div>
+          <img 
+            src={revnetLogo} 
+            alt="RevNet" 
+            className="w-16 h-16 object-contain rounded-lg"
+          />
         </div>
       </div>
       
