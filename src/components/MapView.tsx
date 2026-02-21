@@ -184,9 +184,8 @@ const MapView = ({
     const filteredPins = getFilteredPins();
 
     filteredPins.forEach(pin => {
-      // Convert percentage positions to approximate lng/lat around the map center
-      const lng = -2.5 + (pin.x / 100) * 1.5;
-      const lat = 51.0 + (pin.y / 100) * 1.0;
+      const lng = pin.lng;
+      const lat = pin.lat;
 
       const el = document.createElement('div');
       el.className = 'mapbox-pin';

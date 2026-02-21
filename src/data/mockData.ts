@@ -1,4 +1,30 @@
-export const mockPins: { id: string; type: string; x: number; y: number; title: string }[] = [];
+export const mockPins: { id: string; type: string; lat: number; lng: number; title: string }[] = [
+  // Events
+  { id: '1', type: 'events', lat: 51.5414, lng: -0.2162, title: 'Porsche Owners Meet' },
+  { id: '2', type: 'events', lat: 51.2576, lng: -0.3015, title: 'JDM Night Drive' },
+  { id: '8', type: 'events', lat: 51.3482, lng: -0.3197, title: 'Classic Car Sunday' },
+  { id: '14', type: 'events', lat: 51.4875, lng: -0.1687, title: 'Supercar Breakfast' },
+  { id: '15', type: 'events', lat: 51.3570, lng: 0.2622, title: 'Brands Hatch Track Day' },
+  { id: '16', type: 'events', lat: 52.2893, lng: -1.5314, title: 'Euro Car Meet' },
+  { id: '17', type: 'events', lat: 51.5414, lng: -0.2162, title: 'Bike Night' },
+  { id: '18', type: 'events', lat: 50.8588, lng: -0.7513, title: 'Cars & Coffee' },
+  // Routes
+  { id: '3', type: 'routes', lat: 50.7156, lng: -1.9784, title: 'Coastal Run' },
+  { id: '4', type: 'routes', lat: 52.9862, lng: -3.8613, title: 'Mountain Pass' },
+  { id: '19', type: 'routes', lat: 50.9017, lng: -0.4505, title: 'South Downs Scenic' },
+  { id: '20', type: 'routes', lat: 52.7587, lng: -3.6240, title: 'Welsh Dragon Pass' },
+  { id: '21', type: 'routes', lat: 51.8330, lng: -1.7373, title: 'Cotswolds Explorer' },
+  { id: '22', type: 'routes', lat: 56.8230, lng: -5.0916, title: 'Scottish Highlands A82' },
+  { id: '23', type: 'routes', lat: 53.3498, lng: -1.7724, title: 'Peak District Loop' },
+  // Services
+  { id: '5', type: 'services', lat: 51.4974, lng: -0.1357, title: 'Euro Specialists' },
+  { id: '6', type: 'services', lat: 51.5155, lng: -0.0722, title: 'Quick Fit Garage' },
+  { id: '9', type: 'services', lat: 51.5567, lng: -0.1647, title: 'Premium Detailing Co' },
+  { id: '10', type: 'services', lat: 51.4735, lng: -0.0862, title: 'Performance Parts UK' },
+  { id: '11', type: 'services', lat: 51.5136, lng: -0.1795, title: 'TyrePro Centre' },
+  { id: '12', type: 'services', lat: 51.5362, lng: -0.1033, title: 'AutoElectric Solutions' },
+  { id: '13', type: 'services', lat: 51.5076, lng: -0.0198, title: 'SpeedTune Garage' },
+];
 
 export const mockEvents = [
   {
