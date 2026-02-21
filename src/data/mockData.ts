@@ -1,32 +1,4 @@
-export const mockPins = [
-  // Events & Drives
-  { id: '1', type: 'events', x: 25, y: 35, title: 'Porsche Meet' },
-  { id: '2', type: 'events', x: 65, y: 45, title: 'JDM Night' },
-  { id: '8', type: 'events', x: 15, y: 65, title: 'Classic Car Show' },
-  { id: '14', type: 'events', x: 50, y: 30, title: 'Supercar Breakfast' },
-  { id: '15', type: 'events', x: 35, y: 55, title: 'Brands Hatch Track Day' },
-  { id: '16', type: 'events', x: 80, y: 40, title: 'Euro Car Meet' },
-  { id: '17', type: 'events', x: 20, y: 25, title: 'Bike Night' },
-  { id: '18', type: 'events', x: 55, y: 65, title: 'Cars & Coffee' },
-  // Routes
-  { id: '3', type: 'routes', x: 40, y: 25, title: 'Coastal Run' },
-  { id: '4', type: 'routes', x: 75, y: 60, title: 'Mountain Pass' },
-  { id: '19', type: 'routes', x: 30, y: 40, title: 'South Downs Scenic' },
-  { id: '20', type: 'routes', x: 60, y: 35, title: 'Welsh Dragon Pass' },
-  { id: '21', type: 'routes', x: 45, y: 70, title: 'Cotswolds Explorer' },
-  { id: '22', type: 'routes', x: 85, y: 25, title: 'Scottish Highlands' },
-  { id: '23', type: 'routes', x: 15, y: 50, title: 'Peak District Loop' },
-  // Services
-  { id: '5', type: 'services', x: 30, y: 55, title: 'Euro Specialists' },
-  { id: '6', type: 'services', x: 55, y: 70, title: 'Quick Fit Garage' },
-  { id: '9', type: 'services', x: 70, y: 35, title: 'Premium Detailing Co' },
-  { id: '10', type: 'services', x: 45, y: 50, title: 'Performance Parts UK' },
-  { id: '11', type: 'services', x: 20, y: 45, title: 'TyrePro Centre' },
-  { id: '12', type: 'services', x: 60, y: 25, title: 'AutoElectric Solutions' },
-  { id: '13', type: 'services', x: 85, y: 55, title: 'SpeedTune Garage' },
-  // Clubs
-  { id: '7', type: 'clubs', x: 80, y: 30, title: 'BMW Club UK' },
-];
+export const mockPins: { id: string; type: string; x: number; y: number; title: string }[] = [];
 
 export const mockEvents = [
   {
