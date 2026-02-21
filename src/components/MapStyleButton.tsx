@@ -6,7 +6,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-export type MapStyle = 'standard' | 'clean' | 'night' | 'satellite';
+export type MapStyle = 'standard' | 'night' | 'satellite';
 
 interface MapStyleButtonProps {
   currentStyle: MapStyle;
@@ -15,7 +15,6 @@ interface MapStyleButtonProps {
 
 const mapStyles: { id: MapStyle; label: string; description: string }[] = [
   { id: 'standard', label: 'Standard', description: 'Default map view' },
-  { id: 'clean', label: 'Clean', description: 'Minimal details' },
   { id: 'night', label: 'Night', description: 'Dark mode map' },
   { id: 'satellite', label: 'Satellite', description: 'Aerial imagery' },
 ];
