@@ -11,7 +11,6 @@ mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LWNsdWIiLCJhIjoiY21sOGs2czd5MDc4dTNlc
 
 const MAP_STYLE_URLS: Record<MapStyle, string> = {
   standard: 'mapbox://styles/mapbox/streets-v12',
-  clean: 'mapbox://styles/mapbox/light-v11',
   night: 'mapbox://styles/mapbox/dark-v11',
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 };
