@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import mapboxgl from 'mapbox-gl';
 import { useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
 import SearchBar from '@/components/SearchBar';
@@ -53,6 +54,21 @@ const Home = () => {
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  const handleLocateUser = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        mapRef.current?.flyTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: 14,
+          duration: 1500,
+        });
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handlePinClick = (pin: typeof mockPins[0]) => {
     if (pin.type === 'events') {
@@ -157,6 +173,7 @@ const Home = () => {
         routesFilters={routesFilters}
         servicesFilters={servicesFilters}
         mapStyle={mapStyle}
+        onMapReady={(m) => { mapRef.current = m; }}
       />
 
       {/* Top Bar */}
@@ -224,7 +241,7 @@ const Home = () => {
       {!isSearchActive && (
         <div className="absolute right-4 bottom-36 z-20 flex flex-col gap-3">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
-          <LocationButton onClick={() => console.log('Center on location')} />
+          <LocationButton onClick={handleLocateUser} />
         </div>
       )}
 
