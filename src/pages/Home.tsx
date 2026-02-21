@@ -156,6 +156,7 @@ const Home = () => {
         eventsFilters={eventsFilters}
         routesFilters={routesFilters}
         servicesFilters={servicesFilters}
+        mapStyle={mapStyle}
       />
 
       {/* Top Bar */}
