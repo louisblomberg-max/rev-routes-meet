@@ -26,6 +26,7 @@ interface MapViewProps {
   routesFilters?: RoutesFilterState;
   servicesFilters?: ServicesFilterState;
   mapStyle?: MapStyle;
+  onMapReady?: (map: mapboxgl.Map) => void;
 }
 
 const PIN_COLORS: Record<string, string> = {
@@ -45,6 +46,7 @@ const MapView = ({
   routesFilters,
   servicesFilters,
   mapStyle = 'standard',
+  onMapReady,
 }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -65,7 +67,23 @@ const MapView = ({
 
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
 
-    map.current.on('load', () => setMapLoaded(true));
+    map.current.on('load', () => {
+      setMapLoaded(true);
+      onMapReady?.(map.current!);
+    });
+
+    // Center on user location on first load
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        map.current?.flyTo({
+          center: [pos.coords.longitude, pos.coords.latitude],
+          zoom: 13,
+          duration: 1500,
+        });
+      },
+      () => {}, // silently fail
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
 
     return () => {
       map.current?.remove();
