@@ -21,6 +21,8 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'save_events': 'free',
   'my_friends': 'free',
   'my_discussions': 'free',
+  'post_questions': 'free',
+  'post_replies': 'free',
   
   // Pro features
   'create_routes': 'pro',
@@ -30,6 +32,7 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'advanced_filters': 'pro',
   'garage_showcase': 'pro',
   'priority_visibility': 'pro',
+  'create_marketplace_listing': 'pro',
   
   // Club/Business features
   'create_clubs': 'club',
@@ -39,6 +42,7 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'analytics': 'club',
   'featured_placement': 'club',
   'verified_badge': 'club',
+  'manage_club': 'club',
 };
 
 const PLAN_HIERARCHY: Record<PlanId, number> = {
@@ -49,10 +53,13 @@ const PLAN_HIERARCHY: Record<PlanId, number> = {
 
 interface PlanContextType {
   currentPlan: PlanId;
+  subscriptionStatus: 'active' | 'inactive';
   setPlan: (plan: PlanId) => void;
+  setSubscriptionStatus: (status: 'active' | 'inactive') => void;
   hasAccess: (featureId: string) => boolean;
   getRequiredPlan: (featureId: string) => PlanId;
   getPlanLabel: (plan: PlanId) => string;
+  effectivePlan: PlanId;
 }
 
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
@@ -62,15 +69,27 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     return (localStorage.getItem('revnet_plan') as PlanId) || 'free';
   });
 
+  const [subscriptionStatus, setSubscriptionStatusState] = useState<'active' | 'inactive'>(() => {
+    return (localStorage.getItem('revnet_subscription_status') as 'active' | 'inactive') || 'active';
+  });
+
+  // If subscription is inactive, treat as free
+  const effectivePlan: PlanId = subscriptionStatus === 'active' ? currentPlan : 'free';
+
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
     localStorage.setItem('revnet_plan', plan);
   };
 
+  const setSubscriptionStatus = (status: 'active' | 'inactive') => {
+    setSubscriptionStatusState(status);
+    localStorage.setItem('revnet_subscription_status', status);
+  };
+
   const hasAccess = (featureId: string): boolean => {
     const required = FEATURE_REQUIREMENTS[featureId];
     if (!required) return true;
-    return PLAN_HIERARCHY[currentPlan] >= PLAN_HIERARCHY[required];
+    return PLAN_HIERARCHY[effectivePlan] >= PLAN_HIERARCHY[required];
   };
 
   const getRequiredPlan = (featureId: string): PlanId => {
@@ -87,7 +106,16 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <PlanContext.Provider value={{ currentPlan, setPlan, hasAccess, getRequiredPlan, getPlanLabel }}>
+    <PlanContext.Provider value={{ 
+      currentPlan, 
+      subscriptionStatus, 
+      setPlan, 
+      setSubscriptionStatus, 
+      hasAccess, 
+      getRequiredPlan, 
+      getPlanLabel, 
+      effectivePlan 
+    }}>
       {children}
     </PlanContext.Provider>
   );

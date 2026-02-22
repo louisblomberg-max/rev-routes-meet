@@ -1,8 +1,12 @@
-import { ArrowLeft, Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen } from 'lucide-react';
+import { ArrowLeft, Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen, FlaskConical } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePlan, PlanId } from '@/contexts/PlanContext';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { currentPlan, setPlan, subscriptionStatus, setSubscriptionStatus, effectivePlan, getPlanLabel } = usePlan();
 
   const settingsSections = [
     {
@@ -131,6 +135,50 @@ const Settings = () => {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Dev Plan Switcher */}
+      <div className="px-4 pt-3">
+        <div className="bg-card rounded-xl border border-dashed border-amber-400/60 shadow-sm overflow-hidden">
+          <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 text-amber-600" />
+            <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Dev: Plan Switcher</span>
+          </div>
+          <div className="p-3 space-y-3">
+            <div className="flex gap-1.5">
+              {(['free', 'pro', 'club'] as PlanId[]).map((plan) => (
+                <button
+                  key={plan}
+                  onClick={() => {
+                    setPlan(plan);
+                    toast.success(`Plan set to ${getPlanLabel(plan)}`);
+                  }}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
+                    currentPlan === plan
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  }`}
+                >
+                  {getPlanLabel(plan)}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">Subscription active</span>
+              <Switch
+                checked={subscriptionStatus === 'active'}
+                onCheckedChange={(checked) => {
+                  setSubscriptionStatus(checked ? 'active' : 'inactive');
+                  toast.success(checked ? 'Subscription activated' : 'Subscription deactivated — treated as Free');
+                }}
+                className="scale-90"
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              Effective plan: <span className="font-semibold text-foreground">{getPlanLabel(effectivePlan)}</span>
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Bottom Section */}
       <div className="px-4 pb-4 space-y-3">

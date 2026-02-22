@@ -13,7 +13,7 @@ import { usePlan } from '@/contexts/PlanContext';
 
 const YouTab = () => {
   const navigate = useNavigate();
-  const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan } = usePlan();
+  const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan, subscriptionStatus } = usePlan();
 
   const primaryActions = [
     { 
@@ -112,14 +112,19 @@ const YouTab = () => {
               <Crown className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1">
-              <span className="font-bold text-foreground">{getPlanLabel(currentPlan)} Plan</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-foreground">{getPlanLabel(currentPlan)} Plan</span>
+                {subscriptionStatus === 'inactive' && currentPlan !== 'free' && (
+                  <span className="text-[9px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">Inactive</span>
+                )}
+              </div>
               <p className="text-caption">
-                {currentPlan === 'free' && 'Basic access to clubs, forums & routes'}
-                {currentPlan === 'pro' && 'Create routes, events & live features'}
-                {currentPlan === 'club' && 'Full access including club management'}
+                {effectivePlan === 'free' && 'Basic access to clubs, forums & routes'}
+                {effectivePlan === 'pro' && 'Create routes, events & live features'}
+                {effectivePlan === 'club' && 'Full access including club management'}
               </p>
             </div>
-            {currentPlan !== 'club' && (
+            {effectivePlan !== 'club' && (
               <button 
                 onClick={() => navigate('/upgrade')}
                 className="bg-primary text-primary-foreground font-semibold py-2 px-4 rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1.5 text-sm active:scale-[0.98]"
