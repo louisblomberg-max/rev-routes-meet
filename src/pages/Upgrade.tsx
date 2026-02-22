@@ -10,7 +10,7 @@ import { usePlan, PlanId } from '@/contexts/PlanContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
-  const { currentPlan, setPlan } = usePlan();
+  const { currentPlan, setPlan, effectivePlan } = usePlan();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 

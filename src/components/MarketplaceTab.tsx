@@ -20,11 +20,15 @@ import {
   Calendar,
   PoundSterling,
   Sparkles,
-  History
+  History,
+  Lock
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { mockMarketplaceListings } from '@/data/mockData';
+import { usePlan } from '@/contexts/PlanContext';
+import { toast } from 'sonner';
 
 interface MarketplaceFilters {
   priceMin: number;
@@ -35,8 +39,43 @@ interface MarketplaceFilters {
   sellerType: string | null;
   negotiable: boolean;
 }
+// Gated create button for marketplace
+const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => void }) => {
+  const { hasAccess, getPlanLabel, getRequiredPlan } = usePlan();
+  const allowed = hasAccess('create_marketplace_listing');
+  
+  const handleClick = () => {
+    if (!allowed) {
+      const required = getRequiredPlan('create_marketplace_listing');
+      toast.info(`This requires ${getPlanLabel(required)}`, {
+        description: 'Upgrade your plan to create listings.',
+        action: {
+          label: 'Upgrade',
+          onClick: () => navigate('/upgrade'),
+        },
+      });
+      return;
+    }
+    toast.info('Create listing coming soon');
+  };
+
+  return (
+    <button 
+      onClick={handleClick}
+      className={`relative w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
+    >
+      <Plus className="w-5 h-5 text-primary-foreground" />
+      {!allowed && (
+        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-background flex items-center justify-center">
+          <Lock className="w-2.5 h-2.5 text-muted-foreground" />
+        </div>
+      )}
+    </button>
+  );
+};
 
 const MarketplaceTab = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -211,9 +250,7 @@ const MarketplaceTab = () => {
             <p className="text-label mb-1">Buy & Sell</p>
             <h1 className="heading-display text-foreground">Marketplace</h1>
           </div>
-          <button className="w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all">
-            <Plus className="w-5 h-5 text-primary-foreground" />
-          </button>
+          <MarketplaceCreateButton navigate={navigate} />
         </div>
       </div>
 
