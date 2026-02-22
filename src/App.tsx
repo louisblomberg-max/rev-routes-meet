@@ -45,6 +45,12 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import CompleteProfile from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
+import Welcome from "./pages/Welcome";
+import Permissions from "./pages/Permissions";
+import Notifications from "./pages/Notifications";
+import EventsList from "./pages/EventsList";
+import RoutesList from "./pages/RoutesList";
+import ServicesList from "./pages/ServicesList";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +102,12 @@ const App = () => (
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/route/:id" element={<RouteDetail />} />
           <Route path="/service/:id" element={<ServiceDetail />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/permissions" element={<Permissions />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/events" element={<EventsList />} />
+          <Route path="/routes" element={<RoutesList />} />
+          <Route path="/services" element={<ServicesList />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
