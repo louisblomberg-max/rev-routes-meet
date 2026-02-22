@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { UserProfile } from '@/data/profileData';
 import { usePlan } from '@/contexts/PlanContext';
+import { useUserStats } from '@/hooks/useUserStats';
 
 interface ProfileHeaderCompactProps {
   profile: UserProfile;
@@ -11,6 +12,7 @@ interface ProfileHeaderCompactProps {
 
 const ProfileHeaderCompact = ({ profile, onTap }: ProfileHeaderCompactProps) => {
   const { currentPlan } = usePlan();
+  const { eventsCount, routesCount, clubsCount } = useUserStats();
   
   const planBadge = {
     free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
@@ -63,19 +65,19 @@ const ProfileHeaderCompact = ({ profile, onTap }: ProfileHeaderCompactProps) => 
       <div className="px-4 py-2.5 bg-muted/30 border-t border-border/20 flex items-center justify-around">
         <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-events" />
-          <span className="text-xs font-semibold text-foreground">{profile.stats.eventsAttended}</span>
+          <span className="text-xs font-semibold text-foreground">{eventsCount}</span>
           <span className="text-xs text-muted-foreground">Events</span>
         </div>
         <div className="w-px h-4 bg-border/40" />
         <div className="flex items-center gap-1.5">
           <Route className="w-3.5 h-3.5 text-routes" />
-          <span className="text-xs font-semibold text-foreground">{profile.stats.routesSaved}</span>
+          <span className="text-xs font-semibold text-foreground">{routesCount}</span>
           <span className="text-xs text-muted-foreground">Routes</span>
         </div>
         <div className="w-px h-4 bg-border/40" />
         <div className="flex items-center gap-1.5">
           <Users className="w-3.5 h-3.5 text-clubs" />
-          <span className="text-xs font-semibold text-foreground">{profile.stats.clubsJoined}</span>
+          <span className="text-xs font-semibold text-foreground">{clubsCount}</span>
           <span className="text-xs text-muted-foreground">Clubs</span>
         </div>
       </div>
