@@ -5,8 +5,10 @@ import { toast } from 'sonner';
 // Profile components
 import ProfileHeaderCompact from '@/components/profile/ProfileHeaderCompact';
 
-import { mockUserProfile, mockFriends, mockActivities } from '@/data/profileData';
-import { mockClubs } from '@/data/mockData';
+import { mockUserProfile } from '@/data/profileData';
+
+// Hooks
+import { useUserStats } from '@/hooks/useUserStats';
 
 // Plan context
 import { usePlan } from '@/contexts/PlanContext';
@@ -15,13 +17,7 @@ const YouTab = () => {
   const navigate = useNavigate();
   const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan, subscriptionStatus } = usePlan();
 
-  // Derive counts from profile data
-  const garageCount = mockUserProfile.garage.length;
-  const friendsCount = mockFriends.filter(f => f.status === 'accepted').length;
-  const clubsCount = mockUserProfile.stats.clubsJoined;
-  const eventsCount = mockUserProfile.stats.eventsAttended;
-  const routesCount = mockUserProfile.stats.routesSaved;
-  const discussionsCount = mockActivities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length;
+  const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount } = useUserStats();
 
   const primaryActions = [
     { 
