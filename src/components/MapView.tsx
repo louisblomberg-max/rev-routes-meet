@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { mockPins, mockEvents, mockRoutes, mockServices } from '@/data/mockData';
@@ -6,6 +6,7 @@ import { EventsFilterState } from '@/components/EventsFiltersPanel';
 import { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { MapStyle } from '@/components/MapStyleButton';
+import { useMap } from '@/contexts/MapContext';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LWNsdWIiLCJhIjoiY21sOGs2czd5MDc4dTNlc2psZTFyaHFiNyJ9.nihTF3iHBqgGHqCY_0ePZA';
 
@@ -52,6 +53,20 @@ const MapView = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const { setViewport, setZoom: setMapZoom } = useMap();
+
+  // Track viewport bounds on map move
+  const handleViewportChange = useCallback(() => {
+    if (!map.current) return;
+    const bounds = map.current.getBounds();
+    setViewport({
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    });
+    setMapZoom(map.current.getZoom());
+  }, [setViewport, setMapZoom]);
 
   // Initialize map
   useEffect(() => {
@@ -70,7 +85,10 @@ const MapView = ({
     map.current.on('load', () => {
       setMapLoaded(true);
       onMapReady?.(map.current!);
+      handleViewportChange();
     });
+
+    map.current.on('moveend', handleViewportChange);
 
     // Center on user location on first load
     navigator.geolocation.getCurrentPosition(
