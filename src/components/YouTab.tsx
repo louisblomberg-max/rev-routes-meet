@@ -5,8 +5,8 @@ import { toast } from 'sonner';
 // Profile components
 import ProfileHeaderCompact from '@/components/profile/ProfileHeaderCompact';
 
-// Mock data
-import { mockUserProfile } from '@/data/profileData';
+import { mockUserProfile, mockFriends, mockActivities } from '@/data/profileData';
+import { mockClubs } from '@/data/mockData';
 
 // Plan context
 import { usePlan } from '@/contexts/PlanContext';
@@ -15,12 +15,20 @@ const YouTab = () => {
   const navigate = useNavigate();
   const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan, subscriptionStatus } = usePlan();
 
+  // Derive counts from profile data
+  const garageCount = mockUserProfile.garage.length;
+  const friendsCount = mockFriends.filter(f => f.status === 'accepted').length;
+  const clubsCount = mockUserProfile.stats.clubsJoined;
+  const eventsCount = mockUserProfile.stats.eventsAttended;
+  const routesCount = mockUserProfile.stats.routesSaved;
+  const discussionsCount = mockActivities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length;
+
   const primaryActions = [
     { 
       id: 'garage', 
       label: 'My Garage', 
       icon: Car, 
-      count: 2,
+      count: garageCount,
       colorClass: 'bg-muted text-foreground',
       route: '/my-garage',
       description: 'vehicles',
@@ -30,7 +38,7 @@ const YouTab = () => {
       id: 'friends', 
       label: 'My Friends', 
       icon: UsersRound, 
-      count: 24,
+      count: friendsCount,
       colorClass: 'bg-muted text-foreground',
       route: '/my-friends',
       description: 'friends',
@@ -40,7 +48,7 @@ const YouTab = () => {
       id: 'clubs', 
       label: 'My Clubs', 
       icon: Users, 
-      count: 3,
+      count: clubsCount,
       colorClass: 'bg-clubs/15 text-clubs',
       route: '/clubs',
       description: 'joined',
@@ -50,7 +58,7 @@ const YouTab = () => {
       id: 'events', 
       label: 'My Events', 
       icon: Calendar, 
-      count: 5,
+      count: eventsCount,
       colorClass: 'bg-events/15 text-events',
       route: '/my-events',
       description: 'upcoming',
@@ -60,7 +68,7 @@ const YouTab = () => {
       id: 'routes', 
       label: 'My Routes', 
       icon: Route, 
-      count: 8,
+      count: routesCount,
       colorClass: 'bg-routes/15 text-routes',
       route: '/my-routes',
       description: 'saved',
@@ -70,7 +78,7 @@ const YouTab = () => {
       id: 'discussions', 
       label: 'My Discussions', 
       icon: MessageSquare, 
-      count: 12,
+      count: discussionsCount,
       colorClass: 'bg-services/15 text-services',
       route: '/my-discussions',
       description: 'posts',
