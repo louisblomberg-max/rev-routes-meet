@@ -184,24 +184,16 @@ const Home = () => {
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-30">
-        <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 px-3 pt-3 pb-3 safe-top">
-          {/* Banner placeholder - replace with your banner image later */}
-          <div className="w-full h-20 rounded-xl bg-muted/50 border border-border/30 flex items-center justify-center mb-3 overflow-hidden">
-            <img 
-              src={revnetLogoDark} 
-              alt="RevNet" 
-              className="h-8 w-auto opacity-60"
+        <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
+          <div className="max-w-md mx-auto flex items-center justify-around py-2 px-3">
+            <CategoryChips 
+              activeCategory={activeCategory}
+              onCategoryChange={setActiveCategory}
             />
           </div>
-
-          {/* Category Chips */}
-          <CategoryChips 
-            activeCategory={activeCategory}
-            onCategoryChange={setActiveCategory}
-          />
         </div>
           
-        {/* Category-specific Inline Filters - outside the glass bar */}
+        {/* Category-specific Inline Filters */}
         {activeCategory && (
           <div className="px-3 pt-2">
             {activeCategory === 'events' && (
