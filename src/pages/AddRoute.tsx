@@ -26,6 +26,8 @@ const AddRoute = () => {
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<DraftRoute | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
+  // Guard to prevent Sheet onOpenChange from navigating when we're transitioning phases
+  const isTransitioningRef = useRef(false);
 
   // Map refs for record/draw phases
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -126,11 +128,14 @@ const AddRoute = () => {
 
   // Method selection handlers
   const handleMethodSelect = (method: RouteMethod) => {
+    isTransitioningRef.current = true;
     if (method === 'gpx') {
       setPhase('gpx');
     } else {
       setPhase(method);
     }
+    // Reset after React has committed the update
+    setTimeout(() => { isTransitioningRef.current = false; }, 0);
   };
 
   const handleDraftReady = (draft: DraftRoute) => {
@@ -229,12 +234,14 @@ const AddRoute = () => {
     );
   }
 
-  // Default: method picker
+  // Default: method picker / GPX import
   return (
     <>
       <RouteMethodSheet
         open={phase === 'pick'}
-        onOpenChange={(open) => { if (!open) navigate(-1); }}
+        onOpenChange={(open) => {
+          if (!open && !isTransitioningRef.current) navigate(-1);
+        }}
         onSelect={handleMethodSelect}
       />
       <GPXImportSheet
