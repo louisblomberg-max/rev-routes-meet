@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { PlanProvider } from "@/contexts/PlanContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MapProvider } from "@/contexts/MapContext";
+import { DataProvider } from "@/contexts/DataContext";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -58,6 +59,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
     <PlanProvider>
+    <DataProvider>
     <MapProvider>
     <TooltipProvider>
       <Toaster />
@@ -114,6 +116,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
     </MapProvider>
+    </DataProvider>
     </PlanProvider>
     </AuthProvider>
   </QueryClientProvider>
