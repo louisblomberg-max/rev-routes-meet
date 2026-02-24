@@ -17,15 +17,20 @@ import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
+import RouteLayer from '@/components/Map/RouteLayer';
+import NavigationSheet from '@/components/NavigationSheet';
 import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import { MapPin } from '@/contexts/MapContext';
+import { useNavigation } from '@/contexts/NavigationContext';
 import revnetLogo from '@/assets/revnet-logo-full.jpg';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
 const Home = () => {
   const navigate = useNavigate();
+  const { status: navStatus } = useNavigation();
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
+  const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -170,13 +175,17 @@ const Home = () => {
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
         showEmptyPrompt={false}
-        isDimmed={isSearchActive}
+        isDimmed={isSearchActive || isNavigating}
+        markerOpacity={isNavigating ? 0.3 : 1}
         eventsFilters={eventsFilters}
         routesFilters={routesFilters}
         servicesFilters={servicesFilters}
         mapStyle={mapStyle}
         onMapReady={(m) => { mapRef.current = m; }}
       />
+
+      {/* Navigation Route Layer */}
+      <RouteLayer map={mapRef.current} />
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-30 px-3 pt-3 safe-top">
@@ -264,6 +273,9 @@ const Home = () => {
           onViewFull={handleViewFull}
         />
       )}
+
+      {/* Navigation Sheet */}
+      <NavigationSheet />
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />

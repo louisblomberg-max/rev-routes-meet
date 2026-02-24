@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { mockEvents } from '@/data/mockData';
+import NavigateButton from '@/components/NavigateButton';
 
 const EventDetail = () => {
   const navigate = useNavigate();
@@ -97,6 +98,14 @@ const EventDetail = () => {
             Join us for an amazing car meet! All enthusiasts welcome. 
             Bring your vehicle and meet like-minded people in the community.
           </p>
+        </div>
+
+        {/* Navigate Button */}
+        <div className="mt-6">
+          <NavigateButton
+            destination={{ lat: 51.5406, lng: -0.2112, title: event.title }}
+            colorClass="bg-events hover:bg-events/90"
+          />
         </div>
 
         {/* RSVP Button */}
