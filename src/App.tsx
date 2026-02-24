@@ -7,6 +7,7 @@ import { PlanProvider } from "@/contexts/PlanContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MapProvider } from "@/contexts/MapContext";
 import { DataProvider } from "@/contexts/DataContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -61,6 +62,7 @@ const App = () => (
     <PlanProvider>
     <DataProvider>
     <MapProvider>
+    <NavigationProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -115,6 +117,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
+    </NavigationProvider>
     </MapProvider>
     </DataProvider>
     </PlanProvider>

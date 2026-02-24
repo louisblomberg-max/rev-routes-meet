@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { mockServices } from '@/data/mockData';
+import NavigateButton from '@/components/NavigateButton';
 
 const ServiceDetail = () => {
   const navigate = useNavigate();
@@ -144,11 +145,20 @@ const ServiceDetail = () => {
           </div>
         </div>
 
-        {/* Contact Button */}
+        {/* Navigate Button */}
         <div className="mt-6">
+          <NavigateButton
+            destination={{ lat: 51.5074, lng: -0.1278, title: service.name }}
+            colorClass="bg-services hover:bg-services/90"
+          />
+        </div>
+
+        {/* Contact Button */}
+        <div className="mt-3">
           <Button 
             onClick={handleContact}
-            className="w-full bg-services hover:bg-services/90 text-white py-6 text-lg gap-2"
+            variant="outline"
+            className="w-full py-6 text-lg gap-2"
           >
             <Phone className="w-5 h-5" />
             Contact Business

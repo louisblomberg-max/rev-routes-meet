@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, Ruler, Star, Car, Bike, Share2, Bookmark, Navigation } from 'lucide-react';
+import { ArrowLeft, Ruler, Star, Car, Bike, Share2, Bookmark } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { mockRoutes } from '@/data/mockData';
+import NavigateButton from '@/components/NavigateButton';
 
 const RouteDetail = () => {
   const navigate = useNavigate();
@@ -23,11 +23,8 @@ const RouteDetail = () => {
     toast.success('Link copied to clipboard!');
   };
 
-  const handleStartNavigation = () => {
-    toast.success('Starting navigation...', {
-      description: `Navigating to ${route.name}`,
-    });
-  };
+  // Route start coordinates (mock - would come from route data)
+  const routeStart = { lat: 51.28, lng: -1.08, title: route.name };
 
   return (
     <div className="mobile-container bg-background min-h-screen">
@@ -115,15 +112,12 @@ const RouteDetail = () => {
           </div>
         </div>
 
-        {/* Start Navigation Button */}
+        {/* Navigate Button */}
         <div className="mt-6">
-          <Button 
-            onClick={handleStartNavigation}
-            className="w-full bg-routes hover:bg-routes/90 text-white py-6 text-lg gap-2"
-          >
-            <Navigation className="w-5 h-5" />
-            Start Navigation
-          </Button>
+          <NavigateButton
+            destination={routeStart}
+            colorClass="bg-routes hover:bg-routes/90"
+          />
         </div>
       </div>
     </div>

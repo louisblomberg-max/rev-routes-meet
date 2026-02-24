@@ -23,6 +23,7 @@ interface MapViewProps {
   selectedRouteId?: string | null;
   showEmptyPrompt?: boolean;
   isDimmed?: boolean;
+  markerOpacity?: number;
   eventsFilters?: EventsFilterState;
   routesFilters?: RoutesFilterState;
   servicesFilters?: ServicesFilterState;
@@ -43,6 +44,7 @@ const MapView = ({
   onPinClick,
   selectedRouteId,
   isDimmed,
+  markerOpacity = 1,
   eventsFilters,
   routesFilters,
   servicesFilters,
@@ -224,8 +226,9 @@ const MapView = ({
         width: 32px; height: 32px; border-radius: 50%;
         background: ${PIN_COLORS[pin.type] || '#666'};
         border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer; transition: transform 0.2s;
+        cursor: pointer; transition: transform 0.2s, opacity 0.3s;
         display: flex; align-items: center; justify-content: center;
+        opacity: ${markerOpacity};
       `;
       el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
@@ -239,7 +242,7 @@ const MapView = ({
 
       markersRef.current.push(marker);
     });
-  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins]);
+  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity]);
 
   return (
     <div className={`absolute inset-0 transition-opacity duration-300 ${isDimmed ? 'opacity-40' : ''}`}>
