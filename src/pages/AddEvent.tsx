@@ -1,38 +1,47 @@
-import { useState } from 'react';
-import { ArrowLeft, Calendar, MapPin, Car, Camera, X, DollarSign, Users, Clock } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ArrowLeft, Calendar, Car, Camera, X, DollarSign, Users, Clock, ImagePlus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Calendar as CalendarUI } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import LocationPicker from '@/components/LocationPicker';
 
 const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Drive / Drive-Out', 'Group Drive', 'Track Day', 'Show / Exhibition'];
 const VEHICLE_TYPES = ['All Welcome', 'Cars Only', 'Motorcycles Only', 'Classic Cars', 'Supercars Only', 'JDM Only', 'European Cars', 'American Muscle'];
 
 const AddEvent = () => {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    date: '',
-    endDate: '',
     location: '',
+    locationCoords: undefined as { lat: number; lng: number } | undefined,
     eventType: '',
     vehicleType: '',
     entryFee: false,
     feeAmount: '',
     maxAttendees: '',
   });
-  const [images, setImages] = useState<string[]>([]);
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [startTime, setStartTime] = useState('12:00');
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [endTime, setEndTime] = useState('14:00');
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
-    if (!formData.date) errs.date = 'Date & time is required';
+    if (!startDate) errs.date = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
     if (!formData.eventType) errs.eventType = 'Select an event type';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
@@ -41,13 +50,30 @@ const AddEvent = () => {
   };
 
   const handleImageUpload = () => {
-    toast.info('Image upload will connect to storage');
-    // Placeholder for file picker
-    setImages(prev => [...prev, `placeholder-${prev.length + 1}`]);
+    fileInputRef.current?.click();
+  };
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (images.length + files.length > 5) {
+      toast.error('Maximum 5 photos allowed');
+      return;
+    }
+    const newImages = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setImages(prev => [...prev, ...newImages]);
+    // Reset input so same file can be selected again
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages(prev => {
+      const removed = prev[index];
+      URL.revokeObjectURL(removed.preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSubmit = () => {
@@ -60,7 +86,7 @@ const AddEvent = () => {
     }, 500);
   };
 
-  const update = (field: string, value: string | boolean) => {
+  const update = (field: string, value: string | boolean | { lat: number; lng: number } | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
@@ -79,24 +105,42 @@ const AddEvent = () => {
         </div>
       </div>
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFilesSelected}
+      />
+
       {/* Form */}
       <div className="px-4 py-5 space-y-5 pb-8">
-        {/* Image Upload */}
+        {/* Photo Upload */}
         <div className="space-y-2">
-          <Label>Photos</Label>
+          <Label>Photos <span className="text-muted-foreground font-normal text-xs">(up to 5)</span></Label>
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {images.map((_, i) => (
-              <div key={i} className="relative w-20 h-20 rounded-lg bg-muted flex-shrink-0 flex items-center justify-center">
-                <Camera className="w-6 h-6 text-muted-foreground" />
-                <button onClick={() => removeImage(i)} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
+            {images.map((img, i) => (
+              <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-border">
+                <img src={img.preview} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removeImage(i)}
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm"
+                >
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ))}
-            <button onClick={handleImageUpload} className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-colors">
-              <Camera className="w-5 h-5 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">Add</span>
-            </button>
+            {images.length < 5 && (
+              <button
+                onClick={handleImageUpload}
+                className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-muted/30 transition-colors"
+              >
+                <ImagePlus className="w-5 h-5 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground">Add</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -127,35 +171,94 @@ const AddEvent = () => {
           {errors.eventType && <p className="text-xs text-destructive">{errors.eventType}</p>}
         </div>
 
-        {/* Date & Time */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-2">
-            <Label htmlFor="date">Start *</Label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="date" type="datetime-local" className="pl-10 text-xs" value={formData.date} onChange={e => update('date', e.target.value)} />
+        {/* Date & Time with Calendar Popover */}
+        <div className="space-y-3">
+          <Label>Date & Time *</Label>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Start Date */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground">Start</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-10 text-xs",
+                      !startDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-3.5 w-3.5" />
+                    {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarUI
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(d) => { setStartDate(d); setErrors(prev => ({ ...prev, date: '' })); }}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="h-9 text-xs"
+              />
             </div>
-            {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="endDate">End</Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input id="endDate" type="datetime-local" className="pl-10 text-xs" value={formData.endDate} onChange={e => update('endDate', e.target.value)} />
+
+            {/* End Date */}
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground">End</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal h-10 text-xs",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <Clock className="mr-2 h-3.5 w-3.5" />
+                    {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarUI
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    disabled={(date) => date < (startDate || new Date())}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="h-9 text-xs"
+              />
             </div>
           </div>
+          {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
         </div>
 
+        {/* Location */}
         <div className="space-y-2">
-          <Label htmlFor="location">Location *</Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="location" placeholder="Search for a location" className="pl-10" value={formData.location} onChange={e => update('location', e.target.value)} />
-          </div>
-          {errors.location && <p className="text-xs text-destructive">{errors.location}</p>}
-          <div className="h-40 bg-muted rounded-lg flex items-center justify-center">
-            <span className="text-muted-foreground text-sm">Map picker</span>
-          </div>
+          <Label>Location *</Label>
+          <LocationPicker
+            value={formData.location}
+            onChange={(loc, coords) => {
+              update('location', loc);
+              update('locationCoords', coords);
+            }}
+            error={errors.location}
+          />
         </div>
 
         {/* Vehicle Type */}
