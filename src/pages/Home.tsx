@@ -183,43 +183,47 @@ const Home = () => {
       <RouteLayer map={mapRef.current} />
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 px-3 pt-3 safe-top">
-        {/* Centered Logo */}
-        <div className="flex justify-center">
-          <img 
-            src={revnetLogoDark} 
-            alt="RevNet" 
-            className="h-9 w-auto"
-          />
-        </div>
+      <div className="absolute top-0 left-0 right-0 z-30">
+        <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 px-3 pt-3 pb-3 safe-top">
+          {/* Banner placeholder - replace with your banner image later */}
+          <div className="w-full h-20 rounded-xl bg-muted/50 border border-border/30 flex items-center justify-center mb-3 overflow-hidden">
+            <img 
+              src={revnetLogoDark} 
+              alt="RevNet" 
+              className="h-8 w-auto opacity-60"
+            />
+          </div>
 
-        {/* Category Chips */}
-        <div className="mt-3 space-y-2">
+          {/* Category Chips */}
           <CategoryChips 
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
           />
-          
-          {/* Category-specific Inline Filters */}
-          {activeCategory === 'events' && (
-            <EventsFiltersPanel
-              filters={eventsFilters}
-              onFiltersChange={setEventsFilters}
-            />
-          )}
-          {activeCategory === 'routes' && (
-            <RoutesFiltersPanel
-              filters={routesFilters}
-              onFiltersChange={setRoutesFilters}
-            />
-          )}
-          {activeCategory === 'services' && (
-            <ServicesFiltersPanel
-              filters={servicesFilters}
-              onFiltersChange={setServicesFilters}
-            />
-          )}
         </div>
+          
+        {/* Category-specific Inline Filters - outside the glass bar */}
+        {activeCategory && (
+          <div className="px-3 pt-2">
+            {activeCategory === 'events' && (
+              <EventsFiltersPanel
+                filters={eventsFilters}
+                onFiltersChange={setEventsFilters}
+              />
+            )}
+            {activeCategory === 'routes' && (
+              <RoutesFiltersPanel
+                filters={routesFilters}
+                onFiltersChange={setRoutesFilters}
+              />
+            )}
+            {activeCategory === 'services' && (
+              <ServicesFiltersPanel
+                filters={servicesFilters}
+                onFiltersChange={setServicesFilters}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Right-side controls stack */}
