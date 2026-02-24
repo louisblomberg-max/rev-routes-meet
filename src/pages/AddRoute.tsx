@@ -67,7 +67,7 @@ const AddRoute = () => {
     mapRef.current = m;
 
     return () => {
-      m.remove();
+      try { m.remove(); } catch (_) {}
       mapRef.current = null;
       lineSourceRef.current = false;
     };
