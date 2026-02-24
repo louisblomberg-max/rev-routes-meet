@@ -28,7 +28,7 @@ const RouteMethodSheet = ({ open, onOpenChange, onSelect }: Props) => (
         {methods.map(m => (
           <button
             key={m.id}
-            onClick={() => { onSelect(m.id); onOpenChange(false); }}
+            onClick={() => { onSelect(m.id); }}
             className="w-full flex items-center gap-4 p-4 rounded-xl bg-muted/60 hover:bg-muted transition-colors active:scale-[0.98]"
           >
             <div className="w-11 h-11 rounded-full bg-routes/10 flex items-center justify-center flex-shrink-0">
