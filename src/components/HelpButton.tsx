@@ -17,10 +17,7 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
       const required = getRequiredPlan('breakdown_help');
       toast.info(`Help requires ${getPlanLabel(required)}`, {
         description: 'Upgrade your plan to request breakdown help.',
-        action: {
-          label: 'Upgrade',
-          onClick: () => navigate('/upgrade'),
-        },
+        action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
       });
       return;
     }
@@ -30,12 +27,12 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
   return (
     <button
       onClick={handleClick}
-      className={`relative w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-red-600 shadow-lg shadow-red-500/30 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-red-500/40 active:scale-95 ${!allowed ? 'opacity-70' : ''}`}
+      className={`relative w-11 h-11 rounded-full bg-gradient-to-br from-red-500 to-red-600 shadow-md shadow-red-500/25 flex items-center justify-center transition-all duration-200 hover:shadow-lg hover:shadow-red-500/35 active:scale-90 ${!allowed ? 'opacity-60' : ''}`}
       aria-label="Get help"
     >
-      <AlertCircle className="w-5 h-5 text-white" />
+      <AlertCircle className="w-[18px] h-[18px] text-white" />
       {!allowed && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-background flex items-center justify-center">
+        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-muted border-2 border-background flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 text-muted-foreground" />
         </div>
       )}

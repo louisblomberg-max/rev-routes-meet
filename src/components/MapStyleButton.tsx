@@ -31,37 +31,37 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <button
-          className="w-12 h-12 rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg border border-white/50 flex items-center justify-center hover:bg-white hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"
+          className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-md shadow-md border border-white/60 flex items-center justify-center hover:bg-white hover:shadow-lg active:scale-90 transition-all duration-200"
           aria-label="Change map style"
         >
-          <Map className="w-5 h-5 text-muted-foreground" />
+          <Map className="w-[18px] h-[18px] text-muted-foreground" />
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-48 p-2 bg-white/95 backdrop-blur-md border-white/50 shadow-xl rounded-2xl"
+        className="w-44 p-1.5 bg-white/95 backdrop-blur-lg border-white/60 shadow-xl rounded-2xl"
         align="end"
         sideOffset={8}
       >
-        <div className="space-y-1">
-          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide px-2 py-1">
+        <div className="space-y-0.5">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2.5 py-1">
             Map Style
           </p>
           {mapStyles.map((style) => (
             <button
               key={style.id}
               onClick={() => handleStyleSelect(style.id)}
-              className={`w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl text-left transition-all ${
+              className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-left transition-all ${
                 currentStyle === style.id
                   ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-muted text-foreground'
+                  : 'hover:bg-muted/80 text-foreground'
               }`}
             >
               <div>
-                <p className="text-sm font-medium">{style.label}</p>
+                <p className="text-xs font-semibold">{style.label}</p>
                 <p className="text-[10px] text-muted-foreground">{style.description}</p>
               </div>
               {currentStyle === style.id && (
-                <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                <Check className="w-3.5 h-3.5 text-primary flex-shrink-0" />
               )}
             </button>
           ))}

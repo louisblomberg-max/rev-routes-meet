@@ -242,16 +242,10 @@ const Home = () => {
         )}
       </div>
 
-      {/* Map Style Button - right side below tabs */}
+      {/* Right-side controls stack */}
       {!isSearchActive && (
-        <div className="absolute right-4 top-[140px] z-10 safe-top">
+        <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-2.5">
           <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-        </div>
-      )}
-
-      {/* Map action buttons - bottom right stack */}
-      {!isSearchActive && (
-        <div className="absolute right-4 bottom-36 z-20 flex flex-col gap-3">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
           <FloatingActionButton
