@@ -136,27 +136,36 @@ const AddRoute = () => {
   const handleDraftReady = (draft: DraftRoute) => {
     setDraftRoute(draft);
     setPhase('edit');
-    // Cleanup map
-    mapRef.current?.remove();
-    mapRef.current = null;
-    lineSourceRef.current = false;
+    // Cleanup map safely
+    markersRef.current.forEach(mk => mk.remove());
     markersRef.current = [];
+    if (mapRef.current) {
+      try { mapRef.current.remove(); } catch (_) {}
+      mapRef.current = null;
+    }
+    lineSourceRef.current = false;
     setDrawWaypoints([]);
   };
 
   const handlePublish = (data: PublishRouteData) => {
+    // Defensive: ensure draft has valid geometry
+    const draft = data.draft;
+    if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
+      toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
+      return;
+    }
     const userId = state.currentUser?.id || 'anon';
     routesRepo.create({
       name: data.name,
       description: data.description,
-      distance: `${(data.draft.distance / 1609.34).toFixed(1)} mi`,
+      distance: `${(draft.distance / 1609.34).toFixed(1)} mi`,
       type: data.routeTypes[0] || 'Mixed',
       vehicleType: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
       rating: 0,
       createdBy: userId,
-      lat: data.draft.startLat,
-      lng: data.draft.startLng,
-      polyline: JSON.stringify(data.draft.geometry),
+      lat: draft.startLat,
+      lng: draft.startLng,
+      polyline: JSON.stringify(draft.geometry),
       saves: 0,
       drives: 0,
     });
@@ -167,15 +176,22 @@ const AddRoute = () => {
 
   const handleSaveDraft = (data: PublishRouteData) => {
     toast.success('Draft saved locally');
-    // In future: persist to localStorage or Supabase
+  };
+
+  const cleanupMap = () => {
+    markersRef.current.forEach(mk => mk.remove());
+    markersRef.current = [];
+    if (mapRef.current) {
+      try { mapRef.current.remove(); } catch (_) {}
+      mapRef.current = null;
+    }
+    lineSourceRef.current = false;
+    setDrawWaypoints([]);
+    setDraftRoute(null);
   };
 
   const handleCancel = () => {
-    mapRef.current?.remove();
-    mapRef.current = null;
-    lineSourceRef.current = false;
-    markersRef.current = [];
-    setDrawWaypoints([]);
+    cleanupMap();
     navigate(-1);
   };
 

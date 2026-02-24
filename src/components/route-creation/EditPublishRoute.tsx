@@ -58,6 +58,10 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
     if (!name.trim()) errs.name = 'Route name is required';
     if (routeTypes.length === 0) errs.routeTypes = 'Select at least one type';
     if (vehicleTypes.length === 0) errs.vehicleTypes = 'Select vehicle type';
+    // Ensure draft has valid coordinates
+    if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
+      errs.draft = 'Route must have at least 2 points';
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -117,11 +121,12 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
       <div className="px-4 py-5 space-y-5 pb-8">
         {/* Route Stats */}
         <div className="grid grid-cols-2 gap-3 p-3 bg-muted/50 rounded-xl">
-          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Distance</p><p className="text-base font-bold text-foreground">{formatRouteDistance(draft.distance)}</p></div>
-          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Duration</p><p className="text-base font-bold text-foreground">{formatRouteDuration(draft.duration)}</p></div>
-          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Start</p><p className="text-xs text-foreground">{draft.startLat.toFixed(4)}, {draft.startLng.toFixed(4)}</p></div>
-          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">End</p><p className="text-xs text-foreground">{draft.endLat.toFixed(4)}, {draft.endLng.toFixed(4)}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Distance</p><p className="text-base font-bold text-foreground">{formatRouteDistance(draft?.distance ?? 0)}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Duration</p><p className="text-base font-bold text-foreground">{formatRouteDuration(draft?.duration ?? 0)}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">Start</p><p className="text-xs text-foreground">{(draft?.startLat ?? 0).toFixed(4)}, {(draft?.startLng ?? 0).toFixed(4)}</p></div>
+          <div><p className="text-[10px] uppercase text-muted-foreground tracking-wider">End</p><p className="text-xs text-foreground">{(draft?.endLat ?? 0).toFixed(4)}, {(draft?.endLng ?? 0).toFixed(4)}</p></div>
         </div>
+        {errors.draft && <p className="text-xs text-destructive">{errors.draft}</p>}
 
         {/* Photos */}
         <div className="space-y-2">
