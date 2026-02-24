@@ -8,7 +8,7 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events', icon: Calendar },
+    { id: 'events', label: 'Events & Drives', icon: Calendar },
     { id: 'routes', label: 'Routes', icon: Route },
     { id: 'services', label: 'Services', icon: Wrench },
   ];
@@ -18,29 +18,29 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
   };
 
   return (
-    <div className="inline-flex items-center bg-white/15 backdrop-blur-2xl rounded-full p-[3px] shadow-[0_4px_24px_-4px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.15)] border border-white/20">
+    <div className="flex gap-2 w-full">
       {categories.map((category) => {
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
 
-        const activeColorMap: Record<string, string> = {
-          events: 'bg-events text-white shadow-[0_2px_12px_-2px] shadow-events/50',
-          routes: 'bg-routes text-white shadow-[0_2px_12px_-2px] shadow-routes/50',
-          services: 'bg-services text-white shadow-[0_2px_12px_-2px] shadow-services/50',
+        const activeStyles: Record<string, string> = {
+          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
+          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
+          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
         };
+
+        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-white/60 shadow-sm hover:shadow-md hover:bg-white';
 
         return (
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex items-center gap-1.5 px-5 py-2.5 rounded-full transition-all duration-300 ease-out ${
-              isActive 
-                ? activeColorMap[category.id] 
-                : 'text-white/60 hover:text-white hover:bg-white/10'
+            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
+              isActive ? activeStyles[category.id] : inactiveStyles
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : ''}`} />
-            <span className={`text-[11px] font-semibold tracking-wider uppercase whitespace-nowrap transition-all duration-300 ${isActive ? 'tracking-[0.1em]' : ''}`}>
+            <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+            <span className={`text-[11px] font-semibold tracking-wide whitespace-nowrap ${isActive ? 'text-white' : ''}`}>
               {category.label}
             </span>
           </button>
