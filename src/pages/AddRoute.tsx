@@ -37,6 +37,13 @@ const AddRoute = () => {
 
   const showMap = phase === 'record' || phase === 'draw';
 
+  const clearMarkersSafely = () => {
+    markersRef.current.forEach((mk) => {
+      try { mk.remove(); } catch (_) {}
+    });
+    markersRef.current = [];
+  };
+
   // Init map for record/draw
   useEffect(() => {
     if (!showMap || !mapContainerRef.current || mapRef.current) return;
@@ -84,11 +91,13 @@ const AddRoute = () => {
     };
 
     m.on('click', handleClick);
-    m.getCanvas().style.cursor = 'crosshair';
+    const canvas = m.getCanvas?.();
+    if (canvas) canvas.style.cursor = 'crosshair';
 
     return () => {
-      m.off('click', handleClick);
-      m.getCanvas().style.cursor = '';
+      try { m.off('click', handleClick); } catch (_) {}
+      const cleanupCanvas = m.getCanvas?.();
+      if (cleanupCanvas) cleanupCanvas.style.cursor = '';
     };
   }, [phase]);
 
@@ -142,8 +151,7 @@ const AddRoute = () => {
     setDraftRoute(draft);
     setPhase('edit');
     // Cleanup map safely
-    markersRef.current.forEach(mk => mk.remove());
-    markersRef.current = [];
+    clearMarkersSafely();
     if (mapRef.current) {
       try { mapRef.current.remove(); } catch (_) {}
       mapRef.current = null;
@@ -184,8 +192,7 @@ const AddRoute = () => {
   };
 
   const cleanupMap = () => {
-    markersRef.current.forEach(mk => mk.remove());
-    markersRef.current = [];
+    clearMarkersSafely();
     if (mapRef.current) {
       try { mapRef.current.remove(); } catch (_) {}
       mapRef.current = null;
