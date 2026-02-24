@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal } from 'lucide-react';
 import MapView from '@/components/MapView';
-
 import CategoryChips from '@/components/CategoryChips';
 import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -22,7 +22,6 @@ import NavigationSheet from '@/components/NavigationSheet';
 import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
-
 import revnetLogoDark from '@/assets/revnet-logo-dark.png';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
@@ -61,6 +60,34 @@ const Home = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  // Compute active filter count
+  const activeFilterCount = useMemo(() => {
+    if (!activeCategory) return 0;
+    let count = 0;
+    if (activeCategory === 'events') {
+      if (eventsFilters.types.length) count += eventsFilters.types.length;
+      if (eventsFilters.dateFilter) count++;
+      if (eventsFilters.vehicleTypes.length) count += eventsFilters.vehicleTypes.length;
+      if (eventsFilters.eventSize) count++;
+      if (eventsFilters.entryFee) count++;
+      if (eventsFilters.clubHosted) count++;
+      if (typeof eventsFilters.distance !== 'number' || eventsFilters.distance !== 25) count++;
+    } else if (activeCategory === 'routes') {
+      if (routesFilters.types.length) count += routesFilters.types.length;
+      if (routesFilters.difficulty.length) count += routesFilters.difficulty.length;
+      if (routesFilters.duration) count++;
+      if (routesFilters.surface.length) count += routesFilters.surface.length;
+      if (routesFilters.minRating) count++;
+      if (typeof routesFilters.distance !== 'number' || routesFilters.distance !== 25) count++;
+    } else if (activeCategory === 'services') {
+      if (servicesFilters.types.length) count += servicesFilters.types.length;
+      if (servicesFilters.minRating) count++;
+      if (servicesFilters.openNow) count++;
+      if (typeof servicesFilters.distance !== 'number' || servicesFilters.distance !== 25) count++;
+    }
+    return count;
+  }, [activeCategory, eventsFilters, routesFilters, servicesFilters]);
 
   const handleLocateUser = () => {
     navigator.geolocation.getCurrentPosition(
@@ -145,9 +172,7 @@ const Home = () => {
     navigate(`/${type}/${id}`);
   };
 
-
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
-  // Convert single category to array for MapView compatibility
   const activeCategories = activeCategory ? [activeCategory] : [];
 
   // Non-discovery tabs
@@ -182,8 +207,11 @@ const Home = () => {
       {/* Navigation Route Layer */}
       <RouteLayer map={mapRef.current} />
 
+      {/* Top gradient overlay for readability */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/50 via-black/20 to-transparent z-20 pointer-events-none" />
+
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 z-30 px-3 pt-3 safe-top">
+      <div className="absolute top-0 left-0 right-0 z-30 px-6 pt-3 safe-top">
         {/* Centered Logo */}
         <div className="flex justify-center">
           <img 
@@ -193,40 +221,57 @@ const Home = () => {
           />
         </div>
 
-        {/* Category Chips */}
-        <div className="mt-3 space-y-2">
+        {/* Segmented Control - centered */}
+        <div className="flex justify-center mt-4">
           <CategoryChips 
             activeCategory={activeCategory}
             onCategoryChange={setActiveCategory}
           />
-          
-          {/* Category-specific Inline Filters */}
-          {activeCategory === 'events' && (
-            <EventsFiltersPanel
-              filters={eventsFilters}
-              onFiltersChange={setEventsFilters}
-            />
-          )}
-          {activeCategory === 'routes' && (
-            <RoutesFiltersPanel
-              filters={routesFilters}
-              onFiltersChange={setRoutesFilters}
-            />
-          )}
-          {activeCategory === 'services' && (
-            <ServicesFiltersPanel
-              filters={servicesFilters}
-              onFiltersChange={setServicesFilters}
-            />
-          )}
         </div>
+
+        {/* Active Filter Chip */}
+        {activeFilterCount > 0 && activeCategory && (
+          <div className="flex justify-center mt-3 animate-fade-up">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/90 backdrop-blur-xl text-white text-[11px] font-semibold shadow-md shadow-primary/30 transition-all hover:bg-primary active:scale-95">
+              <SlidersHorizontal className="w-3 h-3" />
+              {activeFilterCount} Filter{activeFilterCount > 1 ? 's' : ''} Active
+            </button>
+          </div>
+        )}
+
+        {/* Category-specific Inline Filters */}
+        {activeCategory && (
+          <div className="mt-3">
+            {activeCategory === 'events' && (
+              <EventsFiltersPanel
+                filters={eventsFilters}
+                onFiltersChange={setEventsFilters}
+              />
+            )}
+            {activeCategory === 'routes' && (
+              <RoutesFiltersPanel
+                filters={routesFilters}
+                onFiltersChange={setRoutesFilters}
+              />
+            )}
+            {activeCategory === 'services' && (
+              <ServicesFiltersPanel
+                filters={servicesFilters}
+                onFiltersChange={setServicesFilters}
+              />
+            )}
+          </div>
+        )}
       </div>
 
+      {/* Bottom gradient overlay above nav */}
+      <div className="absolute bottom-0 left-0 right-0 h-28 bg-gradient-to-t from-black/40 via-black/15 to-transparent z-10 pointer-events-none" />
+
       {/* Right-side controls stack */}
-      <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-2.5">
+      <div className="absolute right-6 bottom-28 z-20 flex flex-col items-center gap-4">
         <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-        <HelpButton onClick={() => setIsHelpOpen(true)} />
         <LocationButton onClick={handleLocateUser} />
+        <HelpButton onClick={() => setIsHelpOpen(true)} />
         <FloatingActionButton
           onAddEvent={() => navigate('/add/event')}
           onAddRoute={() => navigate('/add/route')}

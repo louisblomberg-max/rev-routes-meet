@@ -8,7 +8,7 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events & Drives', icon: Calendar },
+    { id: 'events', label: 'Events', icon: Calendar },
     { id: 'routes', label: 'Routes', icon: Route },
     { id: 'services', label: 'Services', icon: Wrench },
   ];
@@ -18,29 +18,29 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
   };
 
   return (
-    <div className="flex gap-2 w-full">
+    <div className="inline-flex items-center bg-black/40 backdrop-blur-xl rounded-[30px] p-1 shadow-lg shadow-black/20 border border-white/10">
       {categories.map((category) => {
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
 
-        const activeStyles: Record<string, string> = {
-          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
-          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
-          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
+        const activeColorMap: Record<string, string> = {
+          events: 'bg-events text-white shadow-md shadow-events/40',
+          routes: 'bg-routes text-white shadow-md shadow-routes/40',
+          services: 'bg-services text-white shadow-md shadow-services/40',
         };
-
-        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-white/60 shadow-sm hover:shadow-md hover:bg-white';
 
         return (
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
-              isActive ? activeStyles[category.id] : inactiveStyles
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-[26px] transition-all duration-200 ${
+              isActive 
+                ? activeColorMap[category.id] 
+                : 'text-white/70 hover:text-white/90'
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
-            <span className={`text-[11px] font-semibold tracking-wide whitespace-nowrap ${isActive ? 'text-white' : ''}`}>
+            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="text-[11px] font-semibold tracking-wide whitespace-nowrap">
               {category.label}
             </span>
           </button>
