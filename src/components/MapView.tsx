@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { mockPins, mockEvents, mockRoutes, mockServices } from '@/data/mockData';
 import { EventsFilterState } from '@/components/EventsFiltersPanel';
 import { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { MapStyle } from '@/components/MapStyleButton';
-import { useMap } from '@/contexts/MapContext';
+import { useMap, MapPin } from '@/contexts/MapContext';
+import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
@@ -19,7 +19,7 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
 interface MapViewProps {
   activeCategories?: string[];
   activeCategory?: string | null;
-  onPinClick?: (pin: typeof mockPins[0]) => void;
+  onPinClick?: (pin: MapPin) => void;
   selectedRouteId?: string | null;
   showEmptyPrompt?: boolean;
   isDimmed?: boolean;
@@ -53,7 +53,25 @@ const MapView = ({
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { setViewport, setZoom: setMapZoom } = useMap();
+  const { pins, setPins, setViewport, setZoom: setMapZoom, fetchPinsForViewport } = useMap();
+
+  // Subscribe to realtime pin changes
+  useRealtimeSubscription({
+    channel: 'pins',
+    enabled: true,
+    onInsert: (payload: unknown) => {
+      const newPin = payload as MapPin;
+      setPins([...pins, newPin]);
+    },
+    onUpdate: (payload: unknown) => {
+      const updated = payload as MapPin;
+      setPins(pins.map(p => p.id === updated.id ? updated : p));
+    },
+    onDelete: (payload: unknown) => {
+      const deleted = payload as { id: string };
+      setPins(pins.filter(p => p.id !== deleted.id));
+    },
+  });
 
   // Track viewport bounds on map move
   const handleViewportChange = useCallback(() => {
@@ -115,8 +133,8 @@ const MapView = ({
     map.current.setStyle(MAP_STYLE_URLS[mapStyle]);
   }, [mapStyle]);
 
-  // Filter pins
-  const getFilteredPins = () => {
+  // Filter pins from context
+  const getFilteredPins = useCallback((): MapPin[] => {
     if (isDimmed) return [];
 
     const categoryToFilter = activeCategories && activeCategories.length > 0
@@ -127,19 +145,18 @@ const MapView = ({
 
     if (categoryToFilter.length === 0) return [];
 
-    return mockPins.filter(pin => {
+    return pins.filter(pin => {
       if (!categoryToFilter.includes(pin.type)) return false;
 
+      // Category-specific filtering using pin metadata
       if (pin.type === 'events' && eventsFilters) {
-        const event = mockEvents.find(e => e.id === pin.id);
-        if (!event) return true;
         if (eventsFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
             'meets': 'Meets', 'cars-coffee': 'Cars & Coffee', 'drive': 'Drive / Drive-Out',
             'group-drive': 'Group Drive', 'track-day': 'Track Day', 'show': 'Show / Exhibition',
           };
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
-          if (allowedTypes.length > 0 && !allowedTypes.includes(event.eventType)) return false;
+          if (allowedTypes.length > 0 && pin.eventType && !allowedTypes.includes(pin.eventType as string)) return false;
         }
         if (eventsFilters.vehicleTypes.length > 0) {
           const vehicleTypeMapping: Record<string, string[]> = {
@@ -153,27 +170,23 @@ const MapView = ({
             'off-road': ['Off-road', 'All Welcome'],
           };
           const allowedVehicles = eventsFilters.vehicleTypes.flatMap(v => vehicleTypeMapping[v] || []);
-          if (allowedVehicles.length > 0 && !allowedVehicles.includes(event.vehicleType)) return false;
+          if (allowedVehicles.length > 0 && pin.vehicleType && !allowedVehicles.includes(pin.vehicleType as string)) return false;
         }
       }
 
       if (pin.type === 'routes' && routesFilters) {
-        const route = mockRoutes.find(r => r.id === pin.id);
-        if (!route) return true;
         if (routesFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
             'scenic': 'Scenic', 'coastal': 'Coastal', 'off-road': 'Off-road',
             'twisties': 'Twisty', 'urban': 'Urban', 'track': 'Track', 'mixed': 'Mixed',
           };
           const allowedTypes = routesFilters.types.map(t => typeMapping[t]).filter(Boolean);
-          if (allowedTypes.length > 0 && !allowedTypes.includes(route.type)) return false;
+          if (allowedTypes.length > 0 && pin.routeType && !allowedTypes.includes(pin.routeType as string)) return false;
         }
-        if (routesFilters.minRating && route.rating < routesFilters.minRating) return false;
+        if (routesFilters.minRating && typeof pin.rating === 'number' && pin.rating < routesFilters.minRating) return false;
       }
 
       if (pin.type === 'services' && servicesFilters) {
-        const service = mockServices.find(s => s.id === pin.id);
-        if (!service) return true;
         if (servicesFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
             'mechanics': 'Mechanic', 'detailing': 'Detailing', 'parts': 'Parts',
@@ -181,15 +194,15 @@ const MapView = ({
             'car-wash': 'Car Wash', 'fuel': 'Fuel', 'ev-charging': 'EV Charging',
           };
           const allowedTypes = servicesFilters.types.map(t => typeMapping[t]).filter(Boolean);
-          if (allowedTypes.length > 0 && !allowedTypes.includes(service.category)) return false;
+          if (allowedTypes.length > 0 && pin.category && !allowedTypes.includes(pin.category as string)) return false;
         }
-        if (servicesFilters.minRating && service.rating < servicesFilters.minRating) return false;
-        if (servicesFilters.openNow && !service.isOpen) return false;
+        if (servicesFilters.minRating && typeof pin.rating === 'number' && pin.rating < servicesFilters.minRating) return false;
+        if (servicesFilters.openNow && !pin.isOpen) return false;
       }
 
       return true;
     });
-  };
+  }, [pins, activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters]);
 
   // Update markers when filters/pins change
   useEffect(() => {
@@ -226,7 +239,7 @@ const MapView = ({
 
       markersRef.current.push(marker);
     });
-  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded]);
+  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins]);
 
   return (
     <div className={`absolute inset-0 transition-opacity duration-300 ${isDimmed ? 'opacity-40' : ''}`}>

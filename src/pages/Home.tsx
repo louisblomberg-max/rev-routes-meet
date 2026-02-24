@@ -17,7 +17,8 @@ import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
-import { mockPins, mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
+import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
+import { MapPin } from '@/contexts/MapContext';
 import revnetLogo from '@/assets/revnet-logo-full.jpg';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
@@ -71,7 +72,7 @@ const Home = () => {
     );
   };
 
-  const handlePinClick = (pin: typeof mockPins[0]) => {
+  const handlePinClick = (pin: MapPin) => {
     if (pin.type === 'events') {
       const event = mockEvents.find(e => e.id === pin.id);
       if (event) {
