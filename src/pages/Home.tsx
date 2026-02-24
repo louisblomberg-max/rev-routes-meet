@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
-import SearchBar from '@/components/SearchBar';
+
 import CategoryChips from '@/components/CategoryChips';
 import ItemDetailSheet, { SelectedItem } from '@/components/ItemDetailSheet';
 import BottomNavigation from '@/components/BottomNavigation';
@@ -22,7 +22,7 @@ import NavigationSheet from '@/components/NavigationSheet';
 import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
-import revnetLogoLight from '@/assets/revnet-logo-light.jpg';
+
 import revnetLogoDark from '@/assets/revnet-logo-dark.png';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
@@ -33,8 +33,6 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [isSearchActive, setIsSearchActive] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
     distance: 25,
@@ -147,10 +145,6 @@ const Home = () => {
     navigate(`/${type}/${id}`);
   };
 
-  const handleCloseSearch = () => {
-    setIsSearchActive(false);
-    setSearchValue('');
-  };
 
   const selectedRouteId = selectedItem?.type === 'route' ? selectedItem.id : null;
   // Convert single category to array for MapView compatibility
@@ -176,7 +170,7 @@ const Home = () => {
         onPinClick={handlePinClick}
         selectedRouteId={selectedRouteId}
         showEmptyPrompt={false}
-        isDimmed={isSearchActive || isNavigating}
+        isDimmed={isNavigating}
         markerOpacity={isNavigating ? 0.3 : 1}
         eventsFilters={eventsFilters}
         routesFilters={routesFilters}
@@ -190,84 +184,66 @@ const Home = () => {
 
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-30 px-3 pt-3 safe-top">
-        {/* Logo + Search row */}
-        <div className="flex items-center gap-2">
-          {/* RevNet Logo */}
+        {/* Centered Logo */}
+        <div className="flex justify-center">
           <img 
             src={revnetLogoDark} 
             alt="RevNet" 
-            className="h-9 w-auto flex-shrink-0"
+            className="h-9 w-auto"
           />
-          
-          {/* Search Bar */}
-          <div className="flex-1 min-w-0">
-            <SearchBar 
-              onFocus={() => setIsSearchActive(true)}
-              isSearchActive={isSearchActive}
-              onClose={handleCloseSearch}
-              searchValue={searchValue}
-              onSearchChange={setSearchValue}
-            />
-          </div>
         </div>
 
-        {/* Category Chips - hidden during search */}
-        {!isSearchActive && (
-          <div className="mt-3 space-y-2">
-            <CategoryChips 
-              activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
+        {/* Category Chips */}
+        <div className="mt-3 space-y-2">
+          <CategoryChips 
+            activeCategory={activeCategory}
+            onCategoryChange={setActiveCategory}
+          />
+          
+          {/* Category-specific Inline Filters */}
+          {activeCategory === 'events' && (
+            <EventsFiltersPanel
+              filters={eventsFilters}
+              onFiltersChange={setEventsFilters}
             />
-            
-            {/* Category-specific Inline Filters */}
-            {activeCategory === 'events' && (
-              <EventsFiltersPanel
-                filters={eventsFilters}
-                onFiltersChange={setEventsFilters}
-              />
-            )}
-            {activeCategory === 'routes' && (
-              <RoutesFiltersPanel
-                filters={routesFilters}
-                onFiltersChange={setRoutesFilters}
-              />
-            )}
-            {activeCategory === 'services' && (
-              <ServicesFiltersPanel
-                filters={servicesFilters}
-                onFiltersChange={setServicesFilters}
-              />
-            )}
-          </div>
-        )}
+          )}
+          {activeCategory === 'routes' && (
+            <RoutesFiltersPanel
+              filters={routesFilters}
+              onFiltersChange={setRoutesFilters}
+            />
+          )}
+          {activeCategory === 'services' && (
+            <ServicesFiltersPanel
+              filters={servicesFilters}
+              onFiltersChange={setServicesFilters}
+            />
+          )}
+        </div>
       </div>
 
       {/* Right-side controls stack */}
-      {!isSearchActive && (
-        <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-2.5">
-          <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-          <HelpButton onClick={() => setIsHelpOpen(true)} />
-          <LocationButton onClick={handleLocateUser} />
-          <FloatingActionButton
-            onAddEvent={() => navigate('/add/event')}
-            onAddRoute={() => navigate('/add/route')}
-            onAddService={() => navigate('/add/service')}
-            onAddClub={() => navigate('/add/club')}
-          />
-        </div>
-      )}
+      <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-2.5">
+        <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
+        <HelpButton onClick={() => setIsHelpOpen(true)} />
+        <LocationButton onClick={handleLocateUser} />
+        <FloatingActionButton
+          onAddEvent={() => navigate('/add/event')}
+          onAddRoute={() => navigate('/add/route')}
+          onAddService={() => navigate('/add/service')}
+          onAddClub={() => navigate('/add/club')}
+        />
+      </div>
 
       {/* Help Sheet */}
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
-      {/* Item Detail Sheet - hidden during search */}
-      {!isSearchActive && (
-        <ItemDetailSheet 
-          item={selectedItem}
-          onClose={handleCloseDetail}
-          onViewFull={handleViewFull}
-        />
-      )}
+      {/* Item Detail Sheet */}
+      <ItemDetailSheet 
+        item={selectedItem}
+        onClose={handleCloseDetail}
+        onViewFull={handleViewFull}
+      />
 
       {/* Navigation Sheet */}
       <NavigationSheet />
