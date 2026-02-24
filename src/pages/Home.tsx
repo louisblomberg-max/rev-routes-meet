@@ -22,7 +22,7 @@ import NavigationSheet from '@/components/NavigationSheet';
 import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
-import revnetLogoLight from '@/assets/revnet-logo-light.png';
+import revnetLogoLight from '@/assets/revnet-logo-light.jpg';
 import revnetLogoDark from '@/assets/revnet-logo-dark.png';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
