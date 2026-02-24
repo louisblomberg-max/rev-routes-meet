@@ -11,6 +11,7 @@ import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
+import FloatingActionButton from '@/components/FloatingActionButton';
 import HelpSheet from '@/components/HelpSheet';
 import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
@@ -237,12 +238,22 @@ const Home = () => {
         </div>
       )}
 
-      {/* Location & Help Buttons - hidden during search */}
+      {/* Location, Help & FAB Buttons - hidden during search */}
       {!isSearchActive && (
         <div className="absolute right-4 bottom-36 z-20 flex flex-col gap-3">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
         </div>
+      )}
+
+      {/* Floating Action Button for creating content */}
+      {!isSearchActive && (
+        <FloatingActionButton
+          onAddEvent={() => navigate('/add/event')}
+          onAddRoute={() => navigate('/add/route')}
+          onAddService={() => navigate('/add/service')}
+          onAddClub={() => navigate('/add/club')}
+        />
       )}
 
       {/* Help Sheet */}
