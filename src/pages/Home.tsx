@@ -194,7 +194,7 @@ const Home = () => {
         <div className="flex items-center gap-2">
           {/* RevNet Logo */}
           <img 
-            src={mapStyle === 'night' ? revnetLogoDark : revnetLogoLight} 
+            src={mapStyle === 'standard' ? revnetLogoLight : revnetLogoDark} 
             alt="RevNet" 
             className="h-9 w-auto flex-shrink-0"
           />
