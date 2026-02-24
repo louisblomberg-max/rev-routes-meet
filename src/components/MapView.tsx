@@ -8,7 +8,7 @@ import { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { MapStyle } from '@/components/MapStyleButton';
 import { useMap } from '@/contexts/MapContext';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LWNsdWIiLCJhIjoiY21sOGs2czd5MDc4dTNlc2psZTFyaHFiNyJ9.nihTF3iHBqgGHqCY_0ePZA';
+mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
 const MAP_STYLE_URLS: Record<MapStyle, string> = {
   standard: 'mapbox://styles/mapbox/streets-v12',
