@@ -1,185 +1,232 @@
-import { useState } from 'react';
-import { ArrowLeft, Route, Ruler, Camera, X, Star } from 'lucide-react';
+/**
+ * AddRoute page — orchestrates the 3 creation methods and the publish flow.
+ * All business logic is in routeService.ts; this page is pure UI orchestration.
+ */
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { toast } from 'sonner';
+import RouteMethodSheet, { type RouteMethod } from '@/components/route-creation/RouteMethodSheet';
+import RecordDriveOverlay from '@/components/route-creation/RecordDriveOverlay';
+import DrawRouteOverlay from '@/components/route-creation/DrawRouteOverlay';
+import GPXImportSheet from '@/components/route-creation/GPXImportSheet';
+import EditPublishRoute, { type PublishRouteData } from '@/components/route-creation/EditPublishRoute';
+import type { DraftRoute } from '@/services/routeService';
+import { useData } from '@/contexts/DataContext';
 
-const ROUTE_TYPES = ['Scenic', 'Coastal', 'Off-road', 'Twisty', 'Urban', 'Track', 'Mixed'];
-const DIFFICULTY_LEVELS = ['Easy', 'Moderate', 'Challenging', 'Expert'];
-const SURFACE_TYPES = ['Paved', 'Gravel', 'Dirt', 'Mixed'];
+mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
+
+type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'edit';
 
 const AddRoute = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: '',
-    difficulty: '',
-    surface: '',
-    estimatedDuration: '',
-  });
-  const [images, setImages] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { routes: routesRepo, state } = useData();
 
-  const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!formData.name.trim()) errs.name = 'Route name is required';
-    if (!formData.type) errs.type = 'Select a route type';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+  const [phase, setPhase] = useState<Phase>('pick');
+  const [draftRoute, setDraftRoute] = useState<DraftRoute | null>(null);
+  const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
+
+  // Map refs for record/draw phases
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const lineSourceRef = useRef<boolean>(false);
+
+  const showMap = phase === 'record' || phase === 'draw';
+
+  // Init map for record/draw
+  useEffect(() => {
+    if (!showMap || !mapContainerRef.current || mapRef.current) return;
+
+    const m = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-1.8, 51.5],
+      zoom: 13,
+      attributionControl: false,
+    });
+
+    m.on('load', () => {
+      // Add empty line source for drawing
+      m.addSource('draw-route', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } });
+      m.addLayer({ id: 'draw-route-casing', type: 'line', source: 'draw-route', paint: { 'line-color': '#1a56db', 'line-width': 8, 'line-opacity': 0.3 } });
+      m.addLayer({ id: 'draw-route-line', type: 'line', source: 'draw-route', paint: { 'line-color': '#3b82f6', 'line-width': 4, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
+      lineSourceRef.current = true;
+    });
+
+    // Center on user
+    navigator.geolocation.getCurrentPosition(
+      (pos) => m.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1000 }),
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+
+    mapRef.current = m;
+
+    return () => {
+      m.remove();
+      mapRef.current = null;
+      lineSourceRef.current = false;
+    };
+  }, [showMap]);
+
+  // Draw mode: add waypoints on map click
+  useEffect(() => {
+    if (phase !== 'draw' || !mapRef.current) return;
+    const m = mapRef.current;
+
+    const handleClick = (e: mapboxgl.MapMouseEvent) => {
+      const pt: [number, number] = [e.lngLat.lng, e.lngLat.lat];
+      setDrawWaypoints(prev => [...prev, pt]);
+    };
+
+    m.on('click', handleClick);
+    m.getCanvas().style.cursor = 'crosshair';
+
+    return () => {
+      m.off('click', handleClick);
+      m.getCanvas().style.cursor = '';
+    };
+  }, [phase]);
+
+  // Update line + markers when waypoints change
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m || !lineSourceRef.current) return;
+
+    // Update line
+    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
+    if (src) {
+      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: drawWaypoints } });
+    }
+
+    // Update markers
+    markersRef.current.forEach(mk => mk.remove());
+    markersRef.current = [];
+
+    drawWaypoints.forEach((pt, i) => {
+      const el = document.createElement('div');
+      const isStart = i === 0;
+      const isEnd = i === drawWaypoints.length - 1 && drawWaypoints.length > 1;
+      const color = isStart ? '#22c55e' : isEnd ? '#ef4444' : '#3b82f6';
+      el.style.cssText = `width:${isStart || isEnd ? 16 : 12}px;height:${isStart || isEnd ? 16 : 12}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);`;
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat(pt).addTo(m);
+      markersRef.current.push(marker);
+    });
+  }, [drawWaypoints]);
+
+  // Update line for recording
+  const updateRecordLine = useCallback((coords: [number, number][]) => {
+    const m = mapRef.current;
+    if (!m || !lineSourceRef.current) return;
+    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
+    if (src) src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+  }, []);
+
+  // Method selection handlers
+  const handleMethodSelect = (method: RouteMethod) => {
+    if (method === 'gpx') {
+      setPhase('gpx');
+    } else {
+      setPhase(method);
+    }
   };
 
-  const handleImageUpload = () => {
-    toast.info('Image upload will connect to storage');
-    setImages(prev => [...prev, `placeholder-${prev.length + 1}`]);
+  const handleDraftReady = (draft: DraftRoute) => {
+    setDraftRoute(draft);
+    setPhase('edit');
+    // Cleanup map
+    mapRef.current?.remove();
+    mapRef.current = null;
+    lineSourceRef.current = false;
+    markersRef.current = [];
+    setDrawWaypoints([]);
   };
 
-  const handleSubmit = () => {
-    if (!validate()) return;
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success('Route saved successfully!', { description: formData.name });
-      setIsSubmitting(false);
-      navigate(-1);
-    }, 500);
+  const handlePublish = (data: PublishRouteData) => {
+    const userId = state.currentUser?.id || 'anon';
+    routesRepo.create({
+      name: data.name,
+      description: data.description,
+      distance: `${(data.draft.distance / 1609.34).toFixed(1)} mi`,
+      type: data.routeTypes[0] || 'Mixed',
+      vehicleType: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
+      rating: 0,
+      createdBy: userId,
+      lat: data.draft.startLat,
+      lng: data.draft.startLng,
+      polyline: JSON.stringify(data.draft.geometry),
+      saves: 0,
+      drives: 0,
+    });
+
+    toast.success('Route published!', { description: data.name });
+    navigate('/');
   };
 
-  const update = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: '' }));
+  const handleSaveDraft = (data: PublishRouteData) => {
+    toast.success('Draft saved locally');
+    // In future: persist to localStorage or Supabase
   };
 
+  const handleCancel = () => {
+    mapRef.current?.remove();
+    mapRef.current = null;
+    lineSourceRef.current = false;
+    markersRef.current = [];
+    setDrawWaypoints([]);
+    navigate(-1);
+  };
+
+  // Edit & Publish phase
+  if (phase === 'edit' && draftRoute) {
+    return (
+      <EditPublishRoute
+        draft={draftRoute}
+        onPublish={handlePublish}
+        onSaveDraft={handleSaveDraft}
+        onBack={() => setPhase('pick')}
+      />
+    );
+  }
+
+  // Map-based phases (record / draw)
+  if (showMap) {
+    return (
+      <div className="mobile-container relative">
+        <div ref={mapContainerRef} className="absolute inset-0" />
+
+        {phase === 'record' && (
+          <RecordDriveOverlay onFinish={handleDraftReady} onCancel={handleCancel} />
+        )}
+
+        {phase === 'draw' && (
+          <DrawRouteOverlay
+            waypoints={drawWaypoints}
+            onSetWaypoints={setDrawWaypoints}
+            onFinish={handleDraftReady}
+            onCancel={handleCancel}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Default: method picker
   return (
-    <div className="mobile-container bg-background min-h-screen">
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h1 className="text-lg font-bold text-foreground">Add Route</h1>
-        </div>
-      </div>
-
-      <div className="px-4 py-5 space-y-5 pb-8">
-        {/* Photos */}
-        <div className="space-y-2">
-          <Label>Photos</Label>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {images.map((_, i) => (
-              <div key={i} className="relative w-20 h-20 rounded-lg bg-muted flex-shrink-0 flex items-center justify-center">
-                <Camera className="w-6 h-6 text-muted-foreground" />
-                <button onClick={() => setImages(prev => prev.filter((_, j) => j !== i))} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-            <button onClick={handleImageUpload} className="w-20 h-20 rounded-lg border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1 hover:border-routes/50 transition-colors">
-              <Camera className="w-5 h-5 text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground">Add</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="name">Route Name *</Label>
-          <Input id="name" placeholder="e.g. South Downs Scenic" value={formData.name} onChange={e => update('name', e.target.value)} />
-          {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" placeholder="Describe the route, highlights, and tips..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} />
-        </div>
-
-        {/* Map Drawing Area */}
-        <div className="space-y-2">
-          <Label>Draw Route</Label>
-          <div className="h-64 bg-muted rounded-lg flex flex-col items-center justify-center gap-2">
-            <Route className="w-10 h-10 text-muted-foreground/50" />
-            <span className="text-muted-foreground text-sm">Tap to draw your route on the map</span>
-            <span className="text-muted-foreground text-xs">Routes auto-snap to roads</span>
-          </div>
-        </div>
-
-        {/* Distance */}
-        <div className="space-y-2">
-          <Label>Distance</Label>
-          <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-            <Ruler className="w-5 h-5 text-routes" />
-            <span className="text-muted-foreground text-sm">Calculated automatically from drawn route</span>
-          </div>
-        </div>
-
-        {/* Route Type */}
-        <div className="space-y-2">
-          <Label>Route Type *</Label>
-          <div className="flex flex-wrap gap-2">
-            {ROUTE_TYPES.map(type => (
-              <button key={type} onClick={() => update('type', type)}
-                className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                  formData.type === type ? 'border-routes bg-routes/10 text-routes' : 'border-border hover:border-routes/50'
-                }`}>
-                {type}
-              </button>
-            ))}
-          </div>
-          {errors.type && <p className="text-xs text-destructive">{errors.type}</p>}
-        </div>
-
-        {/* Difficulty */}
-        <div className="space-y-2">
-          <Label>Difficulty</Label>
-          <div className="flex gap-2">
-            {DIFFICULTY_LEVELS.map(level => (
-              <button key={level} onClick={() => update('difficulty', level)}
-                className={`flex-1 px-2 py-2 rounded-lg border text-xs font-medium transition-colors text-center ${
-                  formData.difficulty === level ? 'border-routes bg-routes/10 text-routes' : 'border-border hover:border-routes/50'
-                }`}>
-                {level}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Surface */}
-        <div className="space-y-2">
-          <Label>Surface</Label>
-          <div className="flex gap-2">
-            {SURFACE_TYPES.map(type => (
-              <button key={type} onClick={() => update('surface', type)}
-                className={`flex-1 px-2 py-2 rounded-lg border text-xs font-medium transition-colors text-center ${
-                  formData.surface === type ? 'border-routes bg-routes/10 text-routes' : 'border-border hover:border-routes/50'
-                }`}>
-                {type}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Duration */}
-        <div className="space-y-2">
-          <Label htmlFor="duration">Estimated Duration</Label>
-          <div className="flex gap-2">
-            {['< 1h', '1-2h', '2-4h', '4+ h'].map(d => (
-              <button key={d} onClick={() => update('estimatedDuration', d)}
-                className={`flex-1 px-2 py-2 rounded-lg border text-xs font-medium transition-colors text-center ${
-                  formData.estimatedDuration === d ? 'border-routes bg-routes/10 text-routes' : 'border-border hover:border-routes/50'
-                }`}>
-                {d}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-routes hover:bg-routes/90 text-routes-foreground h-12 text-base font-semibold">
-          {isSubmitting ? 'Saving...' : 'Save Route'}
-        </Button>
-      </div>
-    </div>
+    <>
+      <RouteMethodSheet
+        open={phase === 'pick'}
+        onOpenChange={(open) => { if (!open) navigate(-1); }}
+        onSelect={handleMethodSelect}
+      />
+      <GPXImportSheet
+        open={phase === 'gpx'}
+        onOpenChange={(open) => { if (!open) setPhase('pick'); }}
+        onImport={handleDraftReady}
+      />
+    </>
   );
 };
 
