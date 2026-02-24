@@ -23,6 +23,7 @@ import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogoDark from '@/assets/revnet-logo-dark.png';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
@@ -193,7 +194,7 @@ const Home = () => {
         <div className="flex items-center gap-2">
           {/* RevNet Logo */}
           <img 
-            src={revnetLogo} 
+            src={mapStyle === 'night' ? revnetLogoDark : revnetLogo} 
             alt="RevNet" 
             className="h-9 w-auto flex-shrink-0"
           />
