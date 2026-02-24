@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { toast } from 'sonner';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { EventsFilterState } from '@/components/EventsFiltersPanel';
@@ -54,7 +55,9 @@ const MapView = ({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const { pins, setPins, setViewport, setZoom: setMapZoom, fetchPinsForViewport } = useMap();
 
   // Subscribe to realtime pin changes
@@ -113,17 +116,19 @@ const MapView = ({
     // Center on user location on first load
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        map.current?.flyTo({
-          center: [pos.coords.longitude, pos.coords.latitude],
-          zoom: 13,
-          duration: 1500,
-        });
+        const loc: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+        setUserLocation(loc);
+        map.current?.flyTo({ center: loc, zoom: 13, duration: 1500 });
       },
-      () => {}, // silently fail
+      () => {
+        toast('Location unavailable', { description: 'Enable location services to see your position on the map.' });
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
 
     return () => {
+      userMarkerRef.current?.remove();
+      userMarkerRef.current = null;
       map.current?.remove();
       map.current = null;
     };
@@ -243,6 +248,42 @@ const MapView = ({
       markersRef.current.push(marker);
     });
   }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity]);
+
+  // User location blue dot marker
+  useEffect(() => {
+    if (!map.current || !userLocation) return;
+
+    // Remove old marker
+    userMarkerRef.current?.remove();
+
+    const el = document.createElement('div');
+    el.style.cssText = `
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #4285F4; border: 3px solid white;
+      box-shadow: 0 0 0 2px rgba(66,133,244,0.3), 0 2px 6px rgba(0,0,0,0.3);
+    `;
+    userMarkerRef.current = new mapboxgl.Marker({ element: el })
+      .setLngLat(userLocation)
+      .addTo(map.current);
+  }, [userLocation, mapLoaded]);
+
+  // Expose recenter helper
+  const recenterToUser = useCallback(() => {
+    if (!userLocation) {
+      // Re-request
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc: [number, number] = [pos.coords.longitude, pos.coords.latitude];
+          setUserLocation(loc);
+          map.current?.flyTo({ center: loc, zoom: 14, duration: 1500 });
+        },
+        () => toast('Location unavailable'),
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+      return;
+    }
+    map.current?.flyTo({ center: userLocation, zoom: 14, duration: 1500 });
+  }, [userLocation]);
 
   return (
     <div className={`absolute inset-0 transition-opacity duration-300 ${isDimmed ? 'opacity-40' : ''}`}>
