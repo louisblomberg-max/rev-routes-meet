@@ -238,22 +238,18 @@ const Home = () => {
         </div>
       )}
 
-      {/* Location, Help & FAB Buttons - hidden during search */}
+      {/* Map action buttons - bottom right stack */}
       {!isSearchActive && (
         <div className="absolute right-4 bottom-36 z-20 flex flex-col gap-3">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
+          <FloatingActionButton
+            onAddEvent={() => navigate('/add/event')}
+            onAddRoute={() => navigate('/add/route')}
+            onAddService={() => navigate('/add/service')}
+            onAddClub={() => navigate('/add/club')}
+          />
         </div>
-      )}
-
-      {/* Floating Action Button for creating content */}
-      {!isSearchActive && (
-        <FloatingActionButton
-          onAddEvent={() => navigate('/add/event')}
-          onAddRoute={() => navigate('/add/route')}
-          onAddService={() => navigate('/add/service')}
-          onAddClub={() => navigate('/add/club')}
-        />
       )}
 
       {/* Help Sheet */}

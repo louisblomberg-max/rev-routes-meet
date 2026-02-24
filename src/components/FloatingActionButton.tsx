@@ -46,11 +46,19 @@ const FloatingActionButton = ({
   };
 
   return (
-    <div className="fixed bottom-28 right-4 z-40">
+    <>
+      {/* Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/20 z-30"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
       {/* Options */}
-      <div className={`absolute bottom-16 right-0 space-y-2 transition-all duration-300 ${
+      <div className={`absolute bottom-0 right-0 mb-14 space-y-2 transition-all duration-300 ${
         isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
-      }`}>
+      }`} style={{ zIndex: 31 }}>
         {options.map((option, index) => {
           const Icon = option.icon;
           const locked = !hasAccess(option.featureId);
@@ -58,7 +66,7 @@ const FloatingActionButton = ({
             <button
               key={option.label}
               onClick={() => handleOptionClick(option)}
-              className={`fab-option animate-fade-up ${locked ? 'opacity-60' : ''}`}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg border border-white/50 transition-all duration-200 hover:bg-white hover:shadow-xl hover:scale-105 active:scale-95 ${locked ? 'opacity-60' : ''}`}
               style={{ animationDelay: `${index * 50}ms` }}
             >
               <Icon className={`w-5 h-5 ${locked ? 'text-muted-foreground' : option.color}`} />
@@ -71,26 +79,15 @@ const FloatingActionButton = ({
         })}
       </div>
 
-      {/* Main FAB */}
+      {/* Main Button - matches Help & Location button sizing */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fab-button transition-transform duration-300 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
+        className={`relative w-12 h-12 rounded-2xl bg-primary shadow-lg shadow-primary/30 flex items-center justify-center transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/40 active:scale-95 ${isOpen ? 'rotate-45' : 'rotate-0'}`}
+        aria-label="Create new content"
       >
-        {isOpen ? (
-          <X className="w-6 h-6" />
-        ) : (
-          <Plus className="w-6 h-6" />
-        )}
+        <Plus className="w-5 h-5 text-primary-foreground" />
       </button>
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/20 -z-10"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </div>
+    </>
   );
 };
 
