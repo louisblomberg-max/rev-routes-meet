@@ -7,11 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
+import { useData } from '@/contexts/DataContext';
 
 const SERVICE_CATEGORIES = ['Mechanic', 'Detailing', 'Parts', 'Tyres', 'MOT', 'Tuning', 'Bodywork', 'Car Wash', 'Fuel', 'EV Charging'];
 
 const AddService = () => {
   const navigate = useNavigate();
+  const { services: servicesRepo, state } = useData();
+  const currentUser = state.currentUser;
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -42,12 +46,36 @@ const AddService = () => {
 
   const handleSubmit = () => {
     if (!validate()) return;
+    if (!currentUser) {
+      toast.error('You must be logged in to add a service');
+      return;
+    }
+
     setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success('Service submitted successfully!', { description: `${formData.name} is now pending review.` });
+
+    try {
+      servicesRepo.create({
+        name: formData.name.trim(),
+        category: formData.category,
+        serviceTypes: [formData.category],
+        rating: 0,
+        distance: '0 mi',
+        reviewCount: 0,
+        openingHours: formData.is24h ? '24 Hours' : (formData.openingHours || 'Not specified'),
+        phone: formData.phone || '',
+        address: formData.location.trim(),
+        isOpen: true,
+        priceRange: '$$',
+        createdBy: currentUser.id,
+      });
+
+      toast.success('Service added successfully!', { description: `${formData.name} is now listed.` });
+      navigate('/services');
+    } catch {
+      toast.error('Failed to add service. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      navigate(-1);
-    }, 500);
+    }
   };
 
   const update = (field: string, value: string | boolean) => {
