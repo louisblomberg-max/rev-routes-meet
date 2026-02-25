@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { ArrowLeft, Calendar, Car, Camera, X, DollarSign, Users, Clock, ImagePlus } from 'lucide-react';
+import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,22 @@ import LocationPicker from '@/components/LocationPicker';
 
 const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Drive / Drive-Out', 'Group Drive', 'Track Day', 'Show / Exhibition'];
 const VEHICLE_TYPES = ['All Welcome', 'Cars Only', 'Motorcycles Only', 'Classic Cars', 'Supercars Only', 'JDM Only', 'European Cars', 'American Muscle'];
+
+// ── Shared layout components (matching Add Service) ──
+const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
+  <div className={`bg-card rounded-2xl border border-border/50 shadow-card p-5 ${className}`}>
+    {children}
+  </div>
+);
+
+const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) => (
+  <div className="flex items-center gap-2.5 mb-4">
+    <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+      <Icon className="w-4 h-4 text-events" />
+    </div>
+    <h2 className="text-base font-bold text-foreground">{children}</h2>
+  </div>
+);
 
 const AddEvent = () => {
   const navigate = useNavigate();
@@ -64,7 +80,6 @@ const AddEvent = () => {
       preview: URL.createObjectURL(file),
     }));
     setImages(prev => [...prev, ...newImages]);
-    // Reset input so same file can be selected again
     e.target.value = '';
   };
 
@@ -93,15 +108,13 @@ const AddEvent = () => {
 
   return (
     <div className="mobile-container bg-background min-h-screen">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-lg font-bold text-foreground">Add Event</h1>
-          </div>
+      {/* ── HEADER ── */}
+      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
+            <ArrowLeft className="w-5 h-5 text-foreground" />
+          </button>
+          <h1 className="text-lg font-bold text-foreground">Add Event</h1>
         </div>
       </div>
 
@@ -115,18 +128,19 @@ const AddEvent = () => {
         onChange={handleFilesSelected}
       />
 
-      {/* Form */}
-      <div className="px-4 py-5 space-y-5 pb-8">
-        {/* Photo Upload */}
-        <div className="space-y-2">
-          <Label>Photos <span className="text-muted-foreground font-normal text-xs">(up to 5)</span></Label>
+      <div className="px-4 py-6 space-y-6 pb-28">
+
+        {/* ── PHOTOS ── */}
+        <SectionCard>
+          <SectionTitle icon={Camera}>Photos</SectionTitle>
+          <Label className="text-xs text-muted-foreground mb-2 block">Up to 5 photos</Label>
           <div className="flex gap-2 overflow-x-auto pb-1">
             {images.map((img, i) => (
-              <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-border">
+              <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-border/50">
                 <img src={img.preview} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
                 <button
                   onClick={() => removeImage(i)}
-                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 text-white flex items-center justify-center backdrop-blur-sm"
+                  className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -135,55 +149,62 @@ const AddEvent = () => {
             {images.length < 5 && (
               <button
                 onClick={handleImageUpload}
-                className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1 hover:border-primary/50 hover:bg-muted/30 transition-colors"
+                className="w-20 h-20 rounded-2xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1.5 hover:border-events/50 transition-colors bg-muted/30"
               >
                 <ImagePlus className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] text-muted-foreground">Add</span>
+                <span className="text-[10px] font-medium text-muted-foreground">Add</span>
               </button>
             )}
           </div>
-        </div>
+        </SectionCard>
 
-        <div className="space-y-2">
-          <Label htmlFor="name">Event Name *</Label>
-          <Input id="name" placeholder="e.g. Monthly Porsche Meet" value={formData.name} onChange={e => update('name', e.target.value)} />
-          {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-        </div>
+        {/* ── EVENT INFO ── */}
+        <SectionCard>
+          <SectionTitle icon={Calendar}>Event Info</SectionTitle>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
+              <Input id="name" placeholder="e.g. Monthly Porsche Meet" value={formData.name} onChange={e => update('name', e.target.value)} className="rounded-xl h-11" />
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="description" className="text-xs text-muted-foreground">Description</Label>
+              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
+            </div>
+          </div>
+        </SectionCard>
 
-        <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
-          <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} />
-        </div>
-
-        {/* Event Type */}
-        <div className="space-y-2">
-          <Label>Event Type *</Label>
+        {/* ── EVENT TYPE ── */}
+        <SectionCard>
+          <SectionTitle icon={Calendar}>Event Type</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPES.map(type => (
               <button key={type} onClick={() => update('eventType', type)}
-                className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                  formData.eventType === type ? 'border-events bg-events/10 text-events' : 'border-border hover:border-events/50'
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  formData.eventType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}>
                 {type}
               </button>
             ))}
           </div>
-          {errors.eventType && <p className="text-xs text-destructive">{errors.eventType}</p>}
-        </div>
+          {errors.eventType && <p className="text-xs text-destructive mt-2">{errors.eventType}</p>}
+        </SectionCard>
 
-        {/* Date & Time with Calendar Popover */}
-        <div className="space-y-3">
-          <Label>Date & Time *</Label>
+        {/* ── DATE & TIME ── */}
+        <SectionCard>
+          <SectionTitle icon={Clock}>Date & Time</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
-            {/* Start Date */}
+            {/* Start */}
             <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground">Start</span>
+              <span className="text-xs text-muted-foreground font-medium">Start *</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal h-10 text-xs",
+                      "w-full justify-start text-left font-normal h-11 text-xs rounded-xl",
                       !startDate && "text-muted-foreground"
                     )}
                   >
@@ -206,19 +227,19 @@ const AddEvent = () => {
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="h-9 text-xs"
+                className="h-9 text-xs rounded-xl"
               />
             </div>
 
-            {/* End Date */}
+            {/* End */}
             <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground">End</span>
+              <span className="text-xs text-muted-foreground font-medium">End</span>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal h-10 text-xs",
+                      "w-full justify-start text-left font-normal h-11 text-xs rounded-xl",
                       !endDate && "text-muted-foreground"
                     )}
                   >
@@ -241,16 +262,16 @@ const AddEvent = () => {
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="h-9 text-xs"
+                className="h-9 text-xs rounded-xl"
               />
             </div>
           </div>
-          {errors.date && <p className="text-xs text-destructive">{errors.date}</p>}
-        </div>
+          {errors.date && <p className="text-xs text-destructive mt-2">{errors.date}</p>}
+        </SectionCard>
 
-        {/* Location */}
-        <div className="space-y-2">
-          <Label>Location *</Label>
+        {/* ── LOCATION ── */}
+        <SectionCard>
+          <SectionTitle icon={MapPin}>Location</SectionTitle>
           <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => {
@@ -259,54 +280,64 @@ const AddEvent = () => {
             }}
             error={errors.location}
           />
-        </div>
+        </SectionCard>
 
-        {/* Vehicle Type */}
-        <div className="space-y-2">
-          <Label>Vehicle Type</Label>
+        {/* ── VEHICLE TYPE ── */}
+        <SectionCard>
+          <SectionTitle icon={Car}>Vehicle Type</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {VEHICLE_TYPES.map(type => (
               <button key={type} onClick={() => update('vehicleType', type)}
-                className={`px-3 py-1.5 rounded-full border text-xs font-medium transition-colors ${
-                  formData.vehicleType === type ? 'border-primary bg-primary/10 text-primary' : 'border-border hover:border-primary/50'
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  formData.vehicleType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}>
                 {type}
               </button>
             ))}
           </div>
-        </div>
+        </SectionCard>
 
-        {/* Max Attendees */}
-        <div className="space-y-2">
-          <Label htmlFor="maxAttendees">Max Attendees</Label>
+        {/* ── MAX ATTENDEES ── */}
+        <SectionCard>
+          <SectionTitle icon={Users}>Max Attendees</SectionTitle>
           <div className="relative">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="maxAttendees" type="number" placeholder="Unlimited" className="pl-10" value={formData.maxAttendees} onChange={e => update('maxAttendees', e.target.value)} />
+            <Input id="maxAttendees" type="number" placeholder="Unlimited" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => update('maxAttendees', e.target.value)} />
           </div>
-        </div>
+        </SectionCard>
 
-        {/* Entry Fee */}
-        <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
-          <div className="flex items-center gap-3">
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
+        {/* ── ENTRY FEE ── */}
+        <SectionCard>
+          <SectionTitle icon={DollarSign}>Entry Fee</SectionTitle>
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
             <div>
-              <p className="text-sm font-medium text-foreground">Entry Fee</p>
-              <p className="text-xs text-muted-foreground">Charge attendees?</p>
+              <p className="text-xs font-medium text-foreground">Charge attendees?</p>
             </div>
+            <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
           </div>
-          <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
-        </div>
-        {formData.entryFee && (
-          <div className="space-y-2">
-            <Label htmlFor="feeAmount">Fee Amount (£)</Label>
-            <Input id="feeAmount" type="number" placeholder="0.00" value={formData.feeAmount} onChange={e => update('feeAmount', e.target.value)} />
-            {errors.feeAmount && <p className="text-xs text-destructive">{errors.feeAmount}</p>}
-          </div>
-        )}
+          {formData.entryFee && (
+            <div className="space-y-1.5 mt-4">
+              <Label htmlFor="feeAmount" className="text-xs text-muted-foreground">Fee Amount (£)</Label>
+              <Input id="feeAmount" type="number" placeholder="0.00" value={formData.feeAmount} onChange={e => update('feeAmount', e.target.value)} className="rounded-xl h-11" />
+              {errors.feeAmount && <p className="text-xs text-destructive">{errors.feeAmount}</p>}
+            </div>
+          )}
+        </SectionCard>
+      </div>
 
-        <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-events hover:bg-events/90 text-events-foreground h-12 text-base font-semibold">
-          {isSubmitting ? 'Creating...' : 'Create Event'}
-        </Button>
+      {/* ── STICKY SUBMIT ── */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 safe-bottom">
+        <div className="max-w-md mx-auto px-4 pb-4 pt-3 bg-gradient-to-t from-background via-background to-background/0">
+          <Button
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            className="w-full bg-events hover:bg-events/90 text-events-foreground h-12 text-base font-semibold rounded-2xl shadow-elevated"
+          >
+            {isSubmitting ? 'Creating...' : 'Create Event'}
+          </Button>
+        </div>
       </div>
     </div>
   );
