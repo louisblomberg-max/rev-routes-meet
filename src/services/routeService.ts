@@ -1,9 +1,10 @@
 /**
  * Route Creation Service — abstracted for future swap to native/Supabase.
- * Handles: Record Drive, Draw Route, Import GPX
+ * Handles: Record Drive, Draw Route, Import GPX, Snap to Roads
  */
 
 import mapboxgl from 'mapbox-gl';
+import type { RouteDraft, RouteGeometry } from '@/models/route';
 
 const DIRECTIONS_BASE = 'https://api.mapbox.com/directions/v5/mapbox/driving';
 
@@ -13,17 +14,12 @@ function getMapboxToken(): string {
   return typeof token === 'string' ? token : '';
 }
 
-// ---- Types ----
-
-export interface RouteGeometry {
-  type: 'LineString';
-  coordinates: [number, number][];
-}
+// ---- Legacy types (kept for backward compat during migration) ----
 
 export interface DraftRoute {
-  geometry: RouteGeometry;
-  distance: number;  // meters
-  duration: number;  // seconds
+  geometry: { type: 'LineString'; coordinates: [number, number][] };
+  distance: number;
+  duration: number;
   startLat: number;
   startLng: number;
   endLat: number;
@@ -36,15 +32,11 @@ export interface RecordingState {
   coordinates: [number, number][];
   distance: number;
   startTime: number | null;
-  elapsed: number; // seconds
+  elapsed: number;
 }
 
-// ---- Snap to Roads ----
+// ---- Snap to Roads (full route) ----
 
-/**
- * Snap waypoints to roads via Mapbox Directions API.
- * Only called on explicit user action.
- */
 export async function snapToRoads(
   waypoints: [number, number][],
 ): Promise<DraftRoute> {
@@ -75,6 +67,66 @@ export async function snapToRoads(
   };
 }
 
+// ---- Snap single segment between two points ----
+
+export interface SnappedSegment {
+  coordinates: [number, number][];
+  distance: number;  // meters
+  duration: number;  // seconds
+}
+
+/**
+ * Snap a single segment between two points via Mapbox Directions API.
+ */
+export async function snapSegment(
+  from: [number, number],
+  to: [number, number],
+): Promise<SnappedSegment> {
+  const coords = `${from[0]},${from[1]};${to[0]},${to[1]}`;
+  const url = `${DIRECTIONS_BASE}/${coords}?` + new URLSearchParams({
+    access_token: getMapboxToken(),
+    geometries: 'geojson',
+    overview: 'full',
+  });
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Directions API error: ${res.status}`);
+  const data = await res.json();
+  if (!data.routes?.length) throw new Error('No route found for segment');
+
+  const route = data.routes[0];
+  return {
+    coordinates: route.geometry.coordinates as [number, number][],
+    distance: route.distance,
+    duration: route.duration,
+  };
+}
+
+/**
+ * Build a complete snapped geometry from segments.
+ * Each segment shares an endpoint with the next.
+ */
+export function mergeSegments(segments: SnappedSegment[]): {
+  coordinates: [number, number][];
+  totalDistance: number;
+  totalDuration: number;
+} {
+  if (segments.length === 0) return { coordinates: [], totalDistance: 0, totalDuration: 0 };
+
+  const coordinates: [number, number][] = [...segments[0].coordinates];
+  let totalDistance = segments[0].distance;
+  let totalDuration = segments[0].duration;
+
+  for (let i = 1; i < segments.length; i++) {
+    // Skip first point of subsequent segments (shared with previous endpoint)
+    coordinates.push(...segments[i].coordinates.slice(1));
+    totalDistance += segments[i].distance;
+    totalDuration += segments[i].duration;
+  }
+
+  return { coordinates, totalDistance, totalDuration };
+}
+
 // ---- Distance calculation (haversine) ----
 
 function haversine(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -87,9 +139,6 @@ function haversine(lat1: number, lon1: number, lat2: number, lon2: number): numb
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/**
- * Calculate total distance of a coordinate array.
- */
 export function calculateDistance(coords: [number, number][]): number {
   let total = 0;
   for (let i = 1; i < coords.length; i++) {
@@ -98,16 +147,10 @@ export function calculateDistance(coords: [number, number][]): number {
   return total;
 }
 
-/**
- * Estimate duration based on average driving speed (~50 km/h).
- */
 export function estimateDuration(distanceMeters: number): number {
-  return distanceMeters / (50000 / 3600); // seconds
+  return distanceMeters / (50000 / 3600); // ~50 km/h average
 }
 
-/**
- * Build a DraftRoute from raw coordinates (no snapping).
- */
 export function buildDraftFromCoords(coords: [number, number][]): DraftRoute {
   const distance = calculateDistance(coords);
   return {
@@ -121,12 +164,35 @@ export function buildDraftFromCoords(coords: [number, number][]): DraftRoute {
   };
 }
 
-// ---- GPX Parsing (basic, extendable later) ----
-
 /**
- * Parse a GPX file string into coordinates.
- * Handles <trkpt> elements with lat/lon attributes.
+ * Build a new-style RouteDraft from coordinates.
  */
+export function buildRouteDraft(
+  coords: [number, number][],
+  waypoints: [number, number][],
+  snapped: boolean,
+  distance?: number,
+  duration?: number,
+): RouteDraft {
+  const dist = distance ?? calculateDistance(coords);
+  const dur = duration ?? estimateDuration(dist);
+  return {
+    geometry: {
+      type: 'LineString',
+      coordinates: coords,
+      snapped,
+      waypoints,
+    },
+    stats: { distanceMeters: dist, durationSeconds: dur },
+    startLat: coords[0][1],
+    startLng: coords[0][0],
+    endLat: coords[coords.length - 1][1],
+    endLng: coords[coords.length - 1][0],
+  };
+}
+
+// ---- GPX Parsing ----
+
 export function parseGPX(gpxString: string): [number, number][] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(gpxString, 'application/xml');
@@ -156,4 +222,22 @@ export function formatRouteDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.round((seconds % 3600) / 60);
   return `${h}h ${m}m`;
+}
+
+// ---- Reverse Geocoding ----
+
+export async function reverseGeocode(lng: number, lat: number): Promise<string> {
+  try {
+    const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?` + new URLSearchParams({
+      access_token: getMapboxToken(),
+      types: 'place,locality,neighborhood',
+      limit: '1',
+    });
+    const res = await fetch(url);
+    if (!res.ok) return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    const data = await res.json();
+    return data.features?.[0]?.place_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  } catch {
+    return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+  }
 }
