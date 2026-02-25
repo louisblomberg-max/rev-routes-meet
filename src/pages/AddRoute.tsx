@@ -1,6 +1,6 @@
 /**
- * AddRoute page — orchestrates the 3 creation methods and the publish flow.
- * All business logic is in routeService.ts; this page is pure UI orchestration.
+ * AddRoute page — orchestrates route creation methods and the publish flow.
+ * Uses the new RouteDraft model. All business logic in routeService.ts.
  */
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -11,8 +11,9 @@ import RouteMethodSheet, { type RouteMethod } from '@/components/route-creation/
 import RecordDriveOverlay from '@/components/route-creation/RecordDriveOverlay';
 import DrawRouteOverlay from '@/components/route-creation/DrawRouteOverlay';
 import GPXImportSheet from '@/components/route-creation/GPXImportSheet';
-import EditPublishRoute, { type PublishRouteData } from '@/components/route-creation/EditPublishRoute';
-import type { DraftRoute } from '@/services/routeService';
+import EditPublishRoute from '@/components/route-creation/EditPublishRoute';
+import { buildRouteDraft } from '@/services/routeService';
+import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
@@ -24,16 +25,17 @@ const AddRoute = () => {
   const { routes: routesRepo, state } = useData();
 
   const [phase, setPhase] = useState<Phase>('pick');
-  const [draftRoute, setDraftRoute] = useState<DraftRoute | null>(null);
+  const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
-  // Guard to prevent Sheet onOpenChange from navigating when we're transitioning phases
   const isTransitioningRef = useRef(false);
 
-  // Map refs for record/draw phases
+  // Map refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const lineSourceRef = useRef<boolean>(false);
+  // Track snapped coordinates for the draw line
+  const snappedCoordsRef = useRef<[number, number][] | null>(null);
 
   const showMap = phase === 'record' || phase === 'draw';
 
@@ -57,14 +59,12 @@ const AddRoute = () => {
     });
 
     m.on('load', () => {
-      // Add empty line source for drawing
       m.addSource('draw-route', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } });
       m.addLayer({ id: 'draw-route-casing', type: 'line', source: 'draw-route', paint: { 'line-color': '#1a56db', 'line-width': 8, 'line-opacity': 0.3 } });
       m.addLayer({ id: 'draw-route-line', type: 'line', source: 'draw-route', paint: { 'line-color': '#3b82f6', 'line-width': 4, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
       lineSourceRef.current = true;
     });
 
-    // Center on user
     navigator.geolocation.getCurrentPosition(
       (pos) => m.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1000 }),
       () => {},
@@ -106,34 +106,42 @@ const AddRoute = () => {
     const m = mapRef.current;
     if (!m || !lineSourceRef.current) return;
 
-    // Update line
+    // Use snapped coords for line if available, otherwise raw waypoints
+    const lineCoords = snappedCoordsRef.current && snappedCoordsRef.current.length > 0
+      ? snappedCoordsRef.current
+      : drawWaypoints;
+
     const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
     if (src) {
-      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: drawWaypoints } });
+      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: lineCoords } });
     }
 
-    // Update markers
-    markersRef.current.forEach(mk => mk.remove());
-    markersRef.current = [];
-
+    // Update markers for waypoints
+    clearMarkersSafely();
     drawWaypoints.forEach((pt, i) => {
       const el = document.createElement('div');
       const isStart = i === 0;
       const isEnd = i === drawWaypoints.length - 1 && drawWaypoints.length > 1;
       const color = isStart ? '#22c55e' : isEnd ? '#ef4444' : '#3b82f6';
-      el.style.cssText = `width:${isStart || isEnd ? 16 : 12}px;height:${isStart || isEnd ? 16 : 12}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);`;
-      const marker = new mapboxgl.Marker({ element: el }).setLngLat(pt).addTo(m);
+      const size = isStart || isEnd ? 16 : 12;
+      el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
+      const marker = new mapboxgl.Marker({ element: el, draggable: false }).setLngLat(pt).addTo(m);
       markersRef.current.push(marker);
     });
   }, [drawWaypoints]);
 
-  // Update line for recording
-  const updateRecordLine = useCallback((coords: [number, number][]) => {
+  // Handle snapped coordinates update from DrawRouteOverlay
+  const handleSnappedCoordsUpdate = useCallback((coords: [number, number][]) => {
+    snappedCoordsRef.current = coords.length > 0 ? coords : null;
+    // Force re-render of the line
     const m = mapRef.current;
     if (!m || !lineSourceRef.current) return;
+    const lineCoords = coords.length > 0 ? coords : drawWaypoints;
     const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
-    if (src) src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
-  }, []);
+    if (src) {
+      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: lineCoords } });
+    }
+  }, [drawWaypoints]);
 
   // Method selection handlers
   const handleMethodSelect = (method: RouteMethod) => {
@@ -143,25 +151,49 @@ const AddRoute = () => {
     } else {
       setPhase(method);
     }
-    // Reset after React has committed the update
     setTimeout(() => { isTransitioningRef.current = false; }, 0);
   };
 
-  const handleDraftReady = (draft: DraftRoute) => {
+  const handleDraftReady = useCallback((draft: RouteDraft) => {
     setDraftRoute(draft);
     setPhase('edit');
-    // Cleanup map safely
     clearMarkersSafely();
+    snappedCoordsRef.current = null;
     if (mapRef.current) {
       try { mapRef.current.remove(); } catch (_) {}
       mapRef.current = null;
     }
     lineSourceRef.current = false;
     setDrawWaypoints([]);
-  };
+  }, []);
 
-  const handlePublish = (data: PublishRouteData) => {
-    // Defensive: ensure draft has valid geometry
+  // Handle GPX import — convert old DraftRoute to new RouteDraft
+  const handleGPXImport = useCallback((oldDraft: any) => {
+    const coords = oldDraft.geometry?.coordinates || [];
+    if (coords.length < 2) {
+      toast.error('GPX must have at least 2 points');
+      return;
+    }
+    const draft = buildRouteDraft(coords, [coords[0], coords[coords.length - 1]], false);
+    handleDraftReady(draft);
+  }, [handleDraftReady]);
+
+  // Record drive: update map line with new coords
+  const handleRecordCoordsUpdate = useCallback((coords: [number, number][]) => {
+    const m = mapRef.current;
+    if (!m || !lineSourceRef.current) return;
+    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
+    if (src) {
+      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+    }
+    // Pan to latest point
+    if (coords.length > 0) {
+      const last = coords[coords.length - 1];
+      m.panTo(last, { duration: 500 });
+    }
+  }, []);
+
+  const handlePublish = (data: PublishRouteFormData) => {
     const draft = data.draft;
     if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
@@ -171,8 +203,8 @@ const AddRoute = () => {
     routesRepo.create({
       name: data.name,
       description: data.description,
-      distance: `${(draft.distance / 1609.34).toFixed(1)} mi`,
-      type: data.routeTypes[0] || 'Mixed',
+      distance: `${(draft.stats.distanceMeters / 1609.34).toFixed(1)} mi`,
+      type: data.routeType || 'Mixed',
       vehicleType: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
       rating: 0,
       createdBy: userId,
@@ -187,12 +219,13 @@ const AddRoute = () => {
     navigate('/');
   };
 
-  const handleSaveDraft = (data: PublishRouteData) => {
+  const handleSaveDraft = (data: PublishRouteFormData) => {
     toast.success('Draft saved locally');
   };
 
   const cleanupMap = () => {
     clearMarkersSafely();
+    snappedCoordsRef.current = null;
     if (mapRef.current) {
       try { mapRef.current.remove(); } catch (_) {}
       mapRef.current = null;
@@ -214,7 +247,7 @@ const AddRoute = () => {
         draft={draftRoute}
         onPublish={handlePublish}
         onSaveDraft={handleSaveDraft}
-        onBack={() => setPhase('pick')}
+        onBack={() => { setDraftRoute(null); setPhase('pick'); }}
       />
     );
   }
@@ -226,13 +259,18 @@ const AddRoute = () => {
         <div ref={mapContainerRef} className="absolute inset-0" />
 
         {phase === 'record' && (
-          <RecordDriveOverlay onFinish={handleDraftReady} onCancel={handleCancel} />
+          <RecordDriveOverlay
+            onFinish={handleDraftReady}
+            onCancel={handleCancel}
+            onCoordsUpdate={handleRecordCoordsUpdate}
+          />
         )}
 
         {phase === 'draw' && (
           <DrawRouteOverlay
             waypoints={drawWaypoints}
             onSetWaypoints={setDrawWaypoints}
+            onSnappedCoordsUpdate={handleSnappedCoordsUpdate}
             onFinish={handleDraftReady}
             onCancel={handleCancel}
           />
@@ -254,7 +292,7 @@ const AddRoute = () => {
       <GPXImportSheet
         open={phase === 'gpx'}
         onOpenChange={(open) => { if (!open) setPhase('pick'); }}
-        onImport={handleDraftReady}
+        onImport={handleGPXImport}
       />
     </>
   );

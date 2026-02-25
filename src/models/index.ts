@@ -298,3 +298,9 @@ export interface UserStats {
   routesCount: number;
   discussionsCount: number;
 }
+
+// ---- Route Models (detailed) ----
+export type {
+  Waypoint, RouteGeometry, RouteStats, RouteVisibility,
+  RouteMedia, RouteDraft, PublishedRoute, PublishRouteFormData,
+} from './route';
