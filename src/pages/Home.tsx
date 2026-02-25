@@ -235,10 +235,14 @@ const Home = () => {
         )}
       </div>
 
+      {/* Left-side help button */}
+      <div className="absolute left-3 bottom-28 z-20">
+        <HelpButton onClick={() => setIsHelpOpen(true)} />
+      </div>
+
       {/* Right-side controls stack */}
       <div className="absolute right-3 bottom-28 z-20 flex flex-col items-center gap-2.5">
         <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-        <HelpButton onClick={() => setIsHelpOpen(true)} />
         <LocationButton onClick={handleLocateUser} />
         <FloatingActionButton
           onAddEvent={() => navigate('/add/event')}
