@@ -13,7 +13,7 @@ import type { RouteDraft, PublishRouteFormData, RouteVisibility } from '@/models
 import { toast } from 'sonner';
 import { mockClubs } from '@/data/mockData';
 
-const VEHICLE_TYPES = ['Cars', 'Motorcycles', 'Classic', 'Supercars', 'JDM', 'Euro', 'American', 'Off-road'];
+const VEHICLE_TYPES = ['Cars', 'Motorcycles'];
 const ROUTE_TYPES = ['Scenic', 'Coastal', 'Off-road', 'Twisties', 'Urban', 'Track'];
 const DIFFICULTY_LEVELS = ['Easy', 'Moderate', 'Challenging', 'Expert'];
 const SURFACE_TYPES = ['Tarmac', 'Gravel', 'Mixed', 'Dirt'];
@@ -54,9 +54,6 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
   const [description, setDescription] = useState(draft.description || '');
   const [bestTime, setBestTime] = useState(draft.bestTime || '');
   const [tips, setTips] = useState(draft.tips || '');
-  const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>(
-    draft.vehicleTypes?.length ? 'selected' : 'all'
-  );
   const [vehicleTypes, setVehicleTypes] = useState<string[]>(draft.vehicleTypes || []);
   const [routeType, setRouteType] = useState(draft.routeType || '');
   const [difficulty, setDifficulty] = useState(draft.difficulty || '');
@@ -86,7 +83,7 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Route name is required';
     if (!routeType) errs.routeType = 'Select a route type';
-    if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
+    // Vehicle types are optional — user can select both, one, or none
     if (visibility.level === 'club' && !visibility.clubId) errs.club = 'Select a club';
     if (!draft.geometry?.coordinates || draft.geometry.coordinates.length < 2) errs.draft = 'Route must have at least 2 points';
     setErrors(errs);
@@ -95,7 +92,7 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
 
   const buildData = (): PublishRouteFormData => ({
     name, description, bestTime, tips,
-    vehicleTypeMode, vehicleTypes,
+    vehicleTypeMode: vehicleTypes.length > 0 ? 'selected' : 'all', vehicleTypes,
     routeType, difficulty, surfaceType, safetyTags,
     visibility, photos, draft,
   });
@@ -219,43 +216,19 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
         {/* ── VEHICLE TYPES ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Types</SectionTitle>
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(p => ({ ...p, vehicleType: '' })); }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'all'
-                  ? 'bg-routes text-routes-foreground border-routes shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              All Welcome
-            </button>
-            <button
-              onClick={() => setVehicleTypeMode('selected')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'selected'
-                  ? 'bg-routes text-routes-foreground border-routes shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              Choose Types
-            </button>
+          <p className="text-xs text-muted-foreground mb-3">Select one, both, or none</p>
+          <div className="flex gap-2">
+            {VEHICLE_TYPES.map(type => (
+              <button key={type} onClick={() => toggleChip(vehicleTypes, setVehicleTypes, type)}
+                className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-200 border ${
+                  vehicleTypes.includes(type)
+                    ? 'bg-routes text-routes-foreground border-routes shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-routes/40'
+                }`}>
+                {type}
+              </button>
+            ))}
           </div>
-          {vehicleTypeMode === 'selected' && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {VEHICLE_TYPES.map(type => (
-                <button key={type} onClick={() => { toggleChip(vehicleTypes, setVehicleTypes, type); setErrors(p => ({ ...p, vehicleType: '' })); }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                    vehicleTypes.includes(type)
-                      ? 'bg-routes text-routes-foreground border-routes shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-routes/40'
-                  }`}>
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
-          {errors.vehicleType && <p className="text-xs text-destructive mt-2">{errors.vehicleType}</p>}
         </SectionCard>
 
         {/* ── ROUTE TYPE ── */}
