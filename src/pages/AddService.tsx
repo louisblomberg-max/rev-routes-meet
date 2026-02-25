@@ -504,25 +504,6 @@ const AddService = () => {
           </div>
         </SectionCard>
 
-        {/* ── 9. PRICE RANGE ── */}
-        <SectionCard>
-          <SectionTitle icon={Star}>Price Range</SectionTitle>
-          <div className="flex gap-2">
-            {PRICE_RANGES.map(p => (
-              <button
-                key={p}
-                onClick={() => update('priceRange', formData.priceRange === p ? '' : p)}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all border ${
-                  formData.priceRange === p
-                    ? 'bg-services text-services-foreground border-services shadow-sm'
-                    : 'bg-muted/30 text-muted-foreground border-border/50 hover:border-services/40'
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-        </SectionCard>
 
         {/* ── 10. BUSINESS DETAILS (Collapsible) ── */}
         <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
