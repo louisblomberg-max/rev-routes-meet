@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate } from 'react-router-dom';
 import MapView from '@/components/MapView';
@@ -185,6 +186,18 @@ const Home = () => {
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-30">
         <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
+          {/* Search Bar */}
+          <div className="max-w-md mx-auto px-3 pt-2">
+            <div className="h-10 flex items-center gap-2 bg-muted/50 rounded-xl px-3 border border-border/30">
+              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search events, routes, services..."
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
+          </div>
+          {/* Category Chips */}
           <div className="max-w-md mx-auto flex items-center justify-around py-2 px-3">
             <CategoryChips 
               activeCategory={activeCategory}
