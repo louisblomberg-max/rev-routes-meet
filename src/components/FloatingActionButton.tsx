@@ -85,7 +85,7 @@ const FloatingActionButton = ({
       {/* Main FAB */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-14 h-14 rounded-xl bg-primary shadow-lg shadow-primary/30 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}
+        className={`relative w-10 h-10 rounded-xl bg-primary shadow-lg shadow-primary/30 flex items-center justify-center transition-all duration-300 hover:shadow-xl hover:shadow-primary/40 active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}
         aria-label="Create new content"
       >
         <Plus className="w-6 h-6 text-primary-foreground" />
