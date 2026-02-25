@@ -23,8 +23,8 @@ const FloatingActionButton = ({
 
   const options = [
     { icon: Calendar, label: 'Add Event', onClick: onAddEvent, color: 'text-events', featureId: 'create_events' },
-    { icon: Route, label: 'Add Route', onClick: onAddRoute, color: 'text-routes', featureId: 'create_routes' },
     { icon: Wrench, label: 'Add Service', onClick: onAddService, color: 'text-services', featureId: 'business_listings' },
+    { icon: Route, label: 'Add Route', onClick: onAddRoute, color: 'text-routes', featureId: 'create_routes' },
     { icon: Users, label: 'Add Club', onClick: onAddClub, color: 'text-clubs', featureId: 'create_clubs' },
   ];
 
