@@ -5,9 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useData } from '@/contexts/DataContext';
 
 const AddClub = () => {
   const navigate = useNavigate();
+  const { clubs: clubsRepo, state } = useData();
+  const currentUser = state.currentUser;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -28,17 +32,37 @@ const AddClub = () => {
       toast.error('Please add a description');
       return;
     }
+    if (!currentUser) {
+      toast.error('You must be logged in to create a club');
+      return;
+    }
     
     setIsSubmitting(true);
     
-    // Simulate saving
-    setTimeout(() => {
+    try {
+      const newClub = clubsRepo.create({
+        name: formData.name.trim(),
+        tagline: formData.brand ? `${formData.brand} · ${formData.type || 'Local'}` : undefined,
+        location: formData.location.trim() || 'Not specified',
+        members: 1,
+        image: null,
+        description: formData.description.trim(),
+        rules: [],
+        createdBy: currentUser.id,
+      });
+
+      // Auto-join the creator as admin
+      clubsRepo.join(currentUser.id, newClub.id);
+
       toast.success('Club created successfully!', {
         description: formData.name,
       });
+      navigate(`/clubs/${newClub.id}`);
+    } catch {
+      toast.error('Failed to create club. Please try again.');
+    } finally {
       setIsSubmitting(false);
-      navigate('/clubs');
-    }, 500);
+    }
   };
 
   return (
