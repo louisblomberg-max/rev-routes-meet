@@ -5,8 +5,13 @@
 
 import mapboxgl from 'mapbox-gl';
 
-const MAPBOX_TOKEN = mapboxgl.accessToken as string;
 const DIRECTIONS_BASE = 'https://api.mapbox.com/directions/v5/mapbox/driving';
+
+function getMapboxToken(): string {
+  const token = mapboxgl.accessToken;
+  if (!token) throw new Error('Mapbox access token not set');
+  return typeof token === 'string' ? token : '';
+}
 
 // ---- Types ----
 
@@ -47,7 +52,7 @@ export async function snapToRoads(
 
   const coords = waypoints.map(c => `${c[0]},${c[1]}`).join(';');
   const url = `${DIRECTIONS_BASE}/${coords}?` + new URLSearchParams({
-    access_token: MAPBOX_TOKEN,
+    access_token: getMapboxToken(),
     geometries: 'geojson',
     overview: 'full',
   });
