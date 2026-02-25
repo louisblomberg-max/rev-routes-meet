@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate } from 'react-router-dom';
+import revnetLogoNew from '@/assets/revnet-logo-new.png';
 import MapView from '@/components/MapView';
 
 import CategoryChips from '@/components/CategoryChips';
@@ -24,7 +25,7 @@ import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 
-import revnetLogoDark from '@/assets/revnet-logo-dark.png';
+
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
@@ -186,15 +187,18 @@ const Home = () => {
       {/* Top Bar */}
       <div className="absolute top-0 left-0 right-0 z-30">
         <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
-          {/* Search Bar */}
-          <div className="max-w-md mx-auto px-3 pt-2">
-            <div className="h-10 flex items-center gap-2 bg-muted/50 rounded-xl px-3 border border-border/30">
+          {/* Search Bar + Logo */}
+          <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
+            <div className="h-10 flex-1 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-white/60 shadow-sm">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Search events, routes, services..."
                 className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
               />
+            </div>
+            <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-white/90 backdrop-blur-md rounded-xl border border-white/60 shadow-sm">
+              <img src={revnetLogoNew} alt="RevNet" className="h-6 w-6 object-contain" />
             </div>
           </div>
           {/* Category Chips */}
