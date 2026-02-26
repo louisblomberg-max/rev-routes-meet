@@ -81,6 +81,8 @@ export interface IClubsRepository {
   getAll(): Club[];
   getById(id: string): Club | undefined;
   create(club: Omit<Club, 'id' | 'createdAt'>): Club;
+  update(id: string, updates: Partial<Club>): Club;
+  isHandleAvailable(handle: string): boolean;
   getMemberships(userId: string): ClubMembership[];
   join(userId: string, clubId: string): ClubMembership;
   leave(userId: string, clubId: string): void;

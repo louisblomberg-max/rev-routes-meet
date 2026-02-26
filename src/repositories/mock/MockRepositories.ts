@@ -274,9 +274,22 @@ export class MockClubsRepository implements IClubsRepository {
   getById(id: string): Club | undefined { return this.store.clubs.get().find(c => c.id === id); }
 
   create(club: Omit<Club, 'id' | 'createdAt'>): Club {
-    const newClub = { ...club, id: uid(), createdAt: now() } as Club;
+    const newClub = { ...club, id: uid(), createdAt: now(), updatedAt: now() } as Club;
     this.store.clubs.set(prev => [...prev, newClub]);
     return newClub;
+  }
+
+  update(id: string, updates: Partial<Club>): Club {
+    let updated: Club | undefined;
+    this.store.clubs.set(prev => prev.map(c => {
+      if (c.id === id) { updated = { ...c, ...updates, updatedAt: now() }; return updated; }
+      return c;
+    }));
+    return updated!;
+  }
+
+  isHandleAvailable(handle: string): boolean {
+    return !this.store.clubs.get().some(c => c.handle?.toLowerCase() === handle.toLowerCase());
   }
 
   getMemberships(userId: string): ClubMembership[] {
