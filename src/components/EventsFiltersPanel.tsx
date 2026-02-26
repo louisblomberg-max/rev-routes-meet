@@ -142,18 +142,51 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`h-12 w-full flex items-center justify-center gap-1.5 px-4 rounded-2xl border transition-all duration-300 ${
-          isOpen
-            ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
-            : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
-        }`}
-      >
-        <SlidersHorizontal className="w-4 h-4" />
-        <span className="text-[10px] font-semibold">Filters</span>
-      </button>
+      {/* Filter Bar Row */}
+      <div className="flex items-center gap-2">
+        {/* Filter Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen
+              ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+          }`}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">Filters</span>
+        </button>
+
+        {/* Quick Date Picker */}
+        <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={`h-10 flex items-center gap-1.5 px-3 rounded-xl border transition-all duration-300 ${
+                filters.dateFilter === 'specific'
+                  ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
+                  : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+              }`}
+            >
+              <CalendarIcon className="w-4 h-4" />
+              <span className="text-[10px] font-semibold whitespace-nowrap">
+                {filters.specificDate 
+                  ? format(filters.specificDate, 'MMM d')
+                  : 'Date'
+                }
+              </span>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="end">
+            <Calendar
+              mode="single"
+              selected={filters.specificDate}
+              onSelect={handleSpecificDate}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
 
       {/* Filter Panel */}
       {isOpen && (
