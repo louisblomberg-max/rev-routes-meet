@@ -4,7 +4,7 @@ import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const CODE_LENGTH = 6;
 

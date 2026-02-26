@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const OnboardingFinish = () => {
   const navigate = useNavigate();

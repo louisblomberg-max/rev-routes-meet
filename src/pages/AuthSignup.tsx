@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const PASSWORD_RULES = [
   { test: (p: string) => p.length >= 8, label: 'At least 8 characters' },

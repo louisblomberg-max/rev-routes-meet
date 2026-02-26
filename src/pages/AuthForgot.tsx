@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const AuthForgot = () => {
   const navigate = useNavigate();

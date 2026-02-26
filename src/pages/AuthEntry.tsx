@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
