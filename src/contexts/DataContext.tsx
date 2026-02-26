@@ -32,6 +32,8 @@ import {
   seedClubPosts, seedClubEvents,
   seedForumPosts, seedForumComments,
   seedMarketplaceListings,
+  seedUserVehicles, seedUserFriends, seedUserActivities,
+  seedUserClubMemberships, seedUserSavedRoutes, seedUserAttendingEvents,
 } from '@/repositories/mock/seedData';
 
 // ---- Context Type ----
@@ -109,19 +111,19 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [routes, setRoutes] = useState<RevRoute[]>(seedRoutes);
   const [services, setServices] = useState<RevService[]>(seedServices);
   const [clubs, setClubs] = useState<Club[]>(seedClubs);
-  const [clubMemberships, setClubMemberships] = useState<ClubMembership[]>([]);
+  const [clubMemberships, setClubMemberships] = useState<ClubMembership[]>(seedUserClubMemberships);
   const [clubPosts, setClubPosts] = useState<ClubPost[]>(seedClubPosts);
   const [clubEvents, setClubEvents] = useState<ClubEvent[]>(seedClubEvents);
   const [forumPosts, setForumPosts] = useState<ForumPost[]>(seedForumPosts);
   const [forumComments, setForumComments] = useState<ForumComment[]>(seedForumComments);
   const [marketplace, setMarketplace] = useState<MarketplaceListing[]>(seedMarketplaceListings);
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [activities, setActivities] = useState<UserActivity[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>(seedUserVehicles);
+  const [friends, setFriends] = useState<Friend[]>(seedUserFriends);
+  const [activities, setActivities] = useState<UserActivity[]>(seedUserActivities);
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [savedRoutes, setSavedRoutes] = useState<string[]>([]);
+  const [savedRoutes, setSavedRoutes] = useState<string[]>(seedUserSavedRoutes);
   const [savedListings, setSavedListings] = useState<string[]>([]);
-  const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>([]);
+  const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>(seedUserAttendingEvents);
   const [userHostedEvents, setUserHostedEvents] = useState<string[]>([]);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
 

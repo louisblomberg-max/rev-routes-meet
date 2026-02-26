@@ -31,6 +31,7 @@ import Forums from "./pages/Forums";
 import CreateForumPost from "./pages/CreateForumPost";
 import ForumThread from "./pages/ForumThread";
 import Clubs from "./pages/Clubs";
+import MyClubs from "./pages/MyClubs";
 import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
 import Messages from "./pages/Messages";
@@ -122,6 +123,7 @@ const App = () => (
           <Route path="/forums/create" element={<CreateForumPost />} />
           <Route path="/forums/thread/:id" element={<ForumThread />} />
           <Route path="/clubs" element={<Clubs />} />
+          <Route path="/my-clubs" element={<MyClubs />} />
           <Route path="/club/:id" element={<ClubProfile />} />
           <Route path="/marketplace" element={<Marketplace />} />
           <Route path="/messages" element={<Messages />} />

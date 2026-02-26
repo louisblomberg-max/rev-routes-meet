@@ -7,6 +7,7 @@
 import type {
   RevEvent, RevRoute, RevService, Club, ClubPost, ClubEvent,
   ForumPost, ForumComment, MarketplaceListing,
+  Vehicle, Friend, UserActivity, ClubMembership,
 } from '@/models';
 
 export const seedEvents: RevEvent[] = [
@@ -90,3 +91,39 @@ export const seedMarketplaceListings: MarketplaceListing[] = [
   { id: 'ml5', title: 'Akrapovic Exhaust - S1000RR', price: '£1,200', location: 'Leeds', category: 'Parts', image: null, createdBy: 'user-seed', createdAt: '2024-02-01' },
   { id: 'ml6', title: '2020 Honda CBR1000RR-R', price: '£16,995', location: 'Bristol', category: 'Bikes', image: null, mileage: '5,800 miles', createdBy: 'user-seed', createdAt: '2024-02-01' },
 ];
+
+// ============================
+// User-Specific Seed Data
+// ============================
+// Personal data for the current (demo) user.
+// When Supabase is connected, this will come from the database instead.
+
+export const seedUserVehicles: Vehicle[] = [
+  { id: 'uv1', userId: 'user-1', type: 'car', make: 'BMW', model: 'M3 E46', year: 2004, engineTrim: '3.2L S54 Manual', mods: ['KW V3 Coilovers', 'CSL Airbox', 'Supersprint Exhaust'], photos: [], notes: 'My weekend toy. Fully rebuilt engine at 120k miles.', visibility: 'public' },
+  { id: 'uv2', userId: 'user-1', type: 'bike', make: 'Ducati', model: 'Panigale V4S', year: 2022, engineTrim: '1103cc', mods: ['Akrapovic Full System', 'Öhlins Suspension'], photos: [], notes: 'Track weapon. 2,500 miles.', visibility: 'friends' },
+];
+
+export const seedUserFriends: Friend[] = [
+  { id: 'uf1', userId: 'user-1', friendUserId: 'f1', username: 'petrolhead99', displayName: 'James Wilson', avatar: null, mutualFriends: 5, status: 'accepted' },
+  { id: 'uf2', userId: 'user-1', friendUserId: 'f2', username: 'e30steve', displayName: 'Steve Harris', avatar: null, mutualFriends: 3, status: 'accepted' },
+  { id: 'uf3', userId: 'user-1', friendUserId: 'f3', username: 'trackmike', displayName: 'Mike Chen', avatar: null, mutualFriends: 8, status: 'accepted' },
+  { id: 'uf4', userId: 'user-1', friendUserId: 'f4', username: 'bikerJane', displayName: 'Jane Cooper', avatar: null, mutualFriends: 2, status: 'pending_received' },
+];
+
+export const seedUserActivities: UserActivity[] = [
+  { id: 'ua1', userId: 'user-1', type: 'event_attended', title: 'Porsche Owners Meet', date: '2 days ago' },
+  { id: 'ua2', userId: 'user-1', type: 'route_created', title: 'South Downs Scenic', date: '5 days ago' },
+  { id: 'ua3', userId: 'user-1', type: 'forum_post', title: 'Best oil for E46 M3?', date: '1 week ago' },
+  { id: 'ua4', userId: 'user-1', type: 'club_post', title: 'Just finished my M3 restoration!', date: '2 weeks ago' },
+  { id: 'ua5', userId: 'user-1', type: 'event_hosted', title: 'BMW Sunday Cruise', date: '3 weeks ago' },
+];
+
+export const seedUserClubMemberships: ClubMembership[] = [
+  { id: 'um1', userId: 'user-1', clubId: 'c1', clubName: 'BMW Enthusiasts UK', role: 'member', joinedAt: '2023-06-15' },
+  { id: 'um2', userId: 'user-1', clubId: 'c2', clubName: 'Porsche Club GB', role: 'member', joinedAt: '2023-08-20' },
+  { id: 'um3', userId: 'user-1', clubId: 'c5', clubName: 'Track Day Addicts', role: 'admin', joinedAt: '2022-11-01' },
+  { id: 'um4', userId: 'user-1', clubId: 'c3', clubName: 'JDM Legends', role: 'member', joinedAt: '2024-01-10' },
+];
+
+export const seedUserSavedRoutes: string[] = ['r1', 'r3', 'r5'];
+export const seedUserAttendingEvents: string[] = ['e1', 'e5', 'e8'];
