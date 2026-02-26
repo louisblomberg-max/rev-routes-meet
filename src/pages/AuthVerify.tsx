@@ -63,7 +63,7 @@ const AuthVerify = () => {
     const valid = await verifyCode(full);
     if (valid) {
       toast.success('Verified!');
-      navigate('/onboarding/profile');
+      navigate('/choose-plan');
     } else {
       toast.error('Invalid code. Try again.');
       setCode(Array(CODE_LENGTH).fill(''));

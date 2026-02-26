@@ -61,6 +61,7 @@ import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingInterests from "./pages/OnboardingInterests";
 import OnboardingPermissions from "./pages/OnboardingPermissions";
 import OnboardingFinish from "./pages/OnboardingFinish";
+import ChoosePlan from "./pages/ChoosePlan";
 
 const queryClient = new QueryClient();
 
@@ -84,6 +85,7 @@ const App = () => (
           <Route path="/auth/login" element={<AuthLogin />} />
           <Route path="/auth/forgot" element={<AuthForgot />} />
           <Route path="/auth/verify" element={<AuthVerify />} />
+          <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding */}
           <Route path="/onboarding/profile" element={<OnboardingProfile />} />
