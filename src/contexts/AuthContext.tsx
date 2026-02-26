@@ -2,10 +2,37 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 
 export interface AuthUser {
   id: string;
-  email: string;
+  email?: string;
+  phone?: string;
   displayName?: string;
+  username?: string;
   avatar?: string | null;
+  location?: string;
+  locationCoords?: { lat: number; lng: number };
+  bio?: string;
+  membershipPlan: 'free' | 'pro' | 'club';
   isProfileComplete: boolean;
+  isVerified: boolean;
+  onboardingComplete: boolean;
+  onboardingStep: number; // 0-4
+  interests: {
+    events: string[];
+    routes: string[];
+    services: string[];
+  };
+  vehicles: AuthVehicle[];
+  createdAt: string;
+}
+
+export interface AuthVehicle {
+  id: string;
+  type: 'car' | 'motorcycle';
+  make: string;
+  model: string;
+  year?: string;
+  trim?: string;
+  color?: string;
+  isPrimary: boolean;
 }
 
 interface AuthContextType {
@@ -13,10 +40,16 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginPhone: (phone: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
+  registerPhone: (phone: string) => Promise<void>;
   logout: () => void;
   resetPassword: (email: string) => Promise<void>;
+  requestVerificationCode: (destination: string) => Promise<void>;
+  verifyCode: (code: string) => Promise<boolean>;
   updateProfile: (updates: Partial<AuthUser>) => void;
+  completeOnboarding: () => void;
+  setOnboardingStep: (step: number) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,30 +69,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
+  const createUser = (partial: Partial<AuthUser>): AuthUser => ({
+    id: crypto.randomUUID(),
+    email: undefined,
+    phone: undefined,
+    displayName: undefined,
+    username: undefined,
+    avatar: null,
+    bio: '',
+    membershipPlan: 'free',
+    isProfileComplete: false,
+    isVerified: false,
+    onboardingComplete: false,
+    onboardingStep: 0,
+    interests: { events: [], routes: [], services: [] },
+    vehicles: [],
+    createdAt: new Date().toISOString(),
+    ...partial,
+  });
+
+  // -- Auth methods (mock — swap for Supabase later) --
+
   const login = useCallback(async (email: string, _password: string) => {
     setIsLoading(true);
-    // Simulate API call — will be replaced by Supabase auth
     await new Promise(r => setTimeout(r, 800));
-    setUser({
-      id: crypto.randomUUID(),
+    setUser(prev => prev ?? createUser({
       email,
       displayName: email.split('@')[0],
-      avatar: null,
+      isVerified: true,
       isProfileComplete: true,
-    });
+      onboardingComplete: true,
+    }));
+    setIsLoading(false);
+  }, []);
+
+  const loginPhone = useCallback(async (phone: string) => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 800));
+    // Phone login goes through verify step
+    setUser(createUser({ phone, isVerified: false }));
     setIsLoading(false);
   }, []);
 
   const register = useCallback(async (email: string, _password: string, displayName: string) => {
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    setUser({
-      id: crypto.randomUUID(),
+    setUser(createUser({
       email,
       displayName,
-      avatar: null,
-      isProfileComplete: false,
-    });
+      isVerified: false,
+      onboardingComplete: false,
+    }));
+    setIsLoading(false);
+  }, []);
+
+  const registerPhone = useCallback(async (phone: string) => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 800));
+    setUser(createUser({ phone, isVerified: false }));
     setIsLoading(false);
   }, []);
 
@@ -74,8 +141,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(false);
   }, []);
 
+  const requestVerificationCode = useCallback(async (_destination: string) => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 600));
+    setIsLoading(false);
+  }, []);
+
+  const verifyCode = useCallback(async (code: string) => {
+    setIsLoading(true);
+    await new Promise(r => setTimeout(r, 800));
+    // Mock: any 6 digit code works
+    const valid = code.length === 6;
+    if (valid) {
+      setUser(prev => prev ? { ...prev, isVerified: true } : null);
+    }
+    setIsLoading(false);
+    return valid;
+  }, []);
+
   const updateProfile = useCallback((updates: Partial<AuthUser>) => {
     setUser(prev => prev ? { ...prev, ...updates } : null);
+  }, []);
+
+  const completeOnboarding = useCallback(() => {
+    setUser(prev => prev ? { ...prev, onboardingComplete: true, isProfileComplete: true } : null);
+  }, []);
+
+  const setOnboardingStep = useCallback((step: number) => {
+    setUser(prev => prev ? { ...prev, onboardingStep: step } : null);
   }, []);
 
   return (
@@ -84,10 +177,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isLoading,
       isAuthenticated: !!user,
       login,
+      loginPhone,
       register,
+      registerPhone,
       logout,
       resetPassword,
+      requestVerificationCode,
+      verifyCode,
       updateProfile,
+      completeOnboarding,
+      setOnboardingStep,
     }}>
       {children}
     </AuthContext.Provider>

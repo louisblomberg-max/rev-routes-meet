@@ -42,10 +42,6 @@ import AddClub from "./pages/AddClub";
 import EventDetail from "./pages/EventDetail";
 import RouteDetail from "./pages/RouteDetail";
 import ServiceDetail from "./pages/ServiceDetail";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import ForgotPassword from "./pages/ForgotPassword";
-import CompleteProfile from "./pages/CompleteProfile";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Permissions from "./pages/Permissions";
@@ -53,6 +49,18 @@ import Notifications from "./pages/Notifications";
 import EventsList from "./pages/EventsList";
 import RoutesList from "./pages/RoutesList";
 import ServicesList from "./pages/ServicesList";
+
+// Auth + Onboarding screens
+import AuthEntry from "./pages/AuthEntry";
+import AuthSignup from "./pages/AuthSignup";
+import AuthLogin from "./pages/AuthLogin";
+import AuthForgot from "./pages/AuthForgot";
+import AuthVerify from "./pages/AuthVerify";
+import OnboardingProfile from "./pages/OnboardingProfile";
+import OnboardingVehicle from "./pages/OnboardingVehicle";
+import OnboardingInterests from "./pages/OnboardingInterests";
+import OnboardingPermissions from "./pages/OnboardingPermissions";
+import OnboardingFinish from "./pages/OnboardingFinish";
 
 const queryClient = new QueryClient();
 
@@ -69,10 +77,27 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
+
+          {/* Auth */}
+          <Route path="/auth" element={<AuthEntry />} />
+          <Route path="/auth/signup" element={<AuthSignup />} />
+          <Route path="/auth/login" element={<AuthLogin />} />
+          <Route path="/auth/forgot" element={<AuthForgot />} />
+          <Route path="/auth/verify" element={<AuthVerify />} />
+
+          {/* Onboarding */}
+          <Route path="/onboarding/profile" element={<OnboardingProfile />} />
+          <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
+          <Route path="/onboarding/interests" element={<OnboardingInterests />} />
+          <Route path="/onboarding/permissions" element={<OnboardingPermissions />} />
+          <Route path="/onboarding/finish" element={<OnboardingFinish />} />
+
+          {/* Legacy auth routes (redirect to new) */}
+          <Route path="/login" element={<AuthLogin />} />
+          <Route path="/register" element={<AuthSignup />} />
+          <Route path="/forgot-password" element={<AuthForgot />} />
+          <Route path="/complete-profile" element={<OnboardingProfile />} />
+
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/settings/privacy" element={<PrivacySafetySettings />} />
