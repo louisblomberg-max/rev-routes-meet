@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Compass, Users, ShoppingBag, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import revnetLogo from '@/assets/revnet-logo-full.jpg';
+import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const slides = [
   {
