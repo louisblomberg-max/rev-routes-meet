@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, Users, Check, Plus } from 'lucide-react';
+import { ArrowLeft, Search, Users, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,60 +20,54 @@ const Clubs = () => {
   return (
     <div className="mobile-container bg-background min-h-screen">
       {/* Header */}
-      <div className="px-4 pt-4 pb-4 safe-top sticky top-0 bg-background z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
-            <h1 className="text-xl font-bold text-foreground">Clubs</h1>
-          </div>
-          <Button
-            onClick={() => navigate('/add/club')}
-            size="sm"
-            className="bg-clubs hover:bg-clubs/90 text-white gap-1.5"
+      <div className="sticky top-0 bg-background z-10 border-b border-border/50">
+        <div className="flex items-center gap-3 px-4 pt-12 pb-4 safe-top">
+          <button 
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"
           >
-            <Plus className="w-4 h-4" />
-            Create
-          </Button>
+            <ArrowLeft className="w-4 h-4 text-foreground" />
+          </button>
+          <h1 className="heading-md text-foreground flex-1">Clubs</h1>
         </div>
 
         {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input 
-            placeholder="Search clubs"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 bg-card border-border/50"
-          />
+        <div className="px-4 pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search clubs"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-card border-border/50 h-9 text-sm"
+            />
+          </div>
         </div>
 
         {/* Segmented Toggle */}
-        <div className="flex bg-muted rounded-lg p-1">
-          <button
-            onClick={() => setActiveTab('my')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'my'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground'
-            }`}
-          >
-            My Clubs
-          </button>
-          <button
-            onClick={() => setActiveTab('discover')}
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'discover'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground'
-            }`}
-          >
-            Discover
-          </button>
+        <div className="px-4 pb-3">
+          <div className="flex bg-muted rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('my')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'my'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              My Clubs
+            </button>
+            <button
+              onClick={() => setActiveTab('discover')}
+              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'discover'
+                  ? 'bg-background text-foreground shadow-sm'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              Discover
+            </button>
+          </div>
         </div>
       </div>
 
