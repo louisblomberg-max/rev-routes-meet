@@ -1,19 +1,27 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, Users, Check, ChevronRight, MapPin, Crown } from 'lucide-react';
+import { ArrowLeft, Search, Users, ChevronRight, MapPin, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { mockClubs } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
 
 const Clubs = () => {
   const navigate = useNavigate();
+  const { state } = useData();
+  const currentUser = state.currentUser;
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const myClubs = mockClubs.filter(club => club.joined);
-  const discoverClubs = mockClubs.filter(club => !club.joined);
+  const myClubIds = new Set(
+    state.clubMemberships
+      .filter(m => m.userId === currentUser?.id)
+      .map(m => m.clubId)
+  );
 
-  const filteredClubs = activeTab === 'my' 
+  const myClubs = state.clubs.filter(club => myClubIds.has(club.id));
+  const discoverClubs = state.clubs.filter(club => !myClubIds.has(club.id));
+
+  const filteredClubs = activeTab === 'my'
     ? myClubs.filter(club => club.name.toLowerCase().includes(searchQuery.toLowerCase()))
     : discoverClubs.filter(club => club.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -22,20 +30,28 @@ const Clubs = () => {
       {/* Header */}
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
-          <button 
+          <button
             onClick={() => navigate(-1)}
             className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"
           >
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
           <h1 className="heading-md text-foreground flex-1">Clubs</h1>
+          <Button
+            size="sm"
+            onClick={() => navigate('/add/club')}
+            className="bg-clubs hover:bg-clubs/90 text-clubs-foreground h-8 text-xs gap-1 rounded-lg"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Create
+          </Button>
         </div>
 
         {/* Search */}
         <div className="px-4 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
+            <Input
               placeholder="Search clubs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -78,7 +94,7 @@ const Clubs = () => {
             <p className="text-label">Popular near you</p>
           </div>
         )}
-        
+
         <div className="px-4 py-3 space-y-2.5">
           {filteredClubs.map((club) => (
             <button
@@ -117,7 +133,7 @@ const Clubs = () => {
               {activeTab === 'my' ? (
                 <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
               ) : (
-                <Button 
+                <Button
                   variant="outline"
                   size="sm"
                   className="border-clubs text-clubs hover:bg-clubs hover:text-white flex-shrink-0 h-8 text-xs"
@@ -140,19 +156,28 @@ const Clubs = () => {
                 {activeTab === 'my' ? "No clubs yet" : "No clubs found"}
               </h3>
               <p className="text-sm text-muted-foreground max-w-[240px]">
-                {activeTab === 'my' 
-                  ? "Join a club to connect with like-minded enthusiasts" 
+                {activeTab === 'my'
+                  ? "Join a club or create your own"
                   : "Try a different search term"}
               </p>
               {activeTab === 'my' && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="mt-4 border-clubs text-clubs hover:bg-clubs hover:text-white"
-                  onClick={() => setActiveTab('discover')}
-                >
-                  Discover clubs
-                </Button>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-clubs text-clubs hover:bg-clubs hover:text-white"
+                    onClick={() => setActiveTab('discover')}
+                  >
+                    Discover clubs
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-clubs hover:bg-clubs/90 text-clubs-foreground"
+                    onClick={() => navigate('/add/club')}
+                  >
+                    Create Club
+                  </Button>
+                </div>
               )}
             </div>
           )}

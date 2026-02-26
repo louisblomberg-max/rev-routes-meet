@@ -161,17 +161,49 @@ export interface RevService {
 }
 
 // ---- Clubs ----
+export type ClubVisibility = 'public' | 'private' | 'inviteOnly';
+export type ClubJoinApproval = 'auto' | 'adminApproval';
+export type ClubPostingPermission = 'anyMember' | 'adminsOnly';
+
+export interface ClubSocialLinks {
+  instagram?: string;
+  website?: string;
+  tiktok?: string;
+  youtube?: string;
+  x?: string;
+}
+
+export interface ClubRoles {
+  ownerId: string;
+  adminIds: string[];
+  moderatorIds: string[];
+}
+
 export interface Club {
   id: string;
   name: string;
+  handle?: string;
   tagline?: string;
-  location: string;
-  members: number;
-  image: string | null;
   description?: string;
+  location: string;
+  locationCoords?: { lat: number; lng: number };
+  coverPhoto?: string | null;
+  logo?: string | null;
+  image: string | null; // legacy compat
+  members: number;
+  categories?: string[];
+  clubType?: string;
+  vehicleFocus?: string[];
+  membershipType?: 'free' | 'paidLaterPlaceholder';
+  visibility?: ClubVisibility;
+  postingPermissions?: ClubPostingPermission;
+  joinApproval?: ClubJoinApproval;
+  roles?: ClubRoles;
+  socialLinks?: ClubSocialLinks;
   rules?: string[];
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ClubMembership {
