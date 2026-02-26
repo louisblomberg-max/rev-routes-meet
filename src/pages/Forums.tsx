@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, Plus, MessageSquare, HelpCircle, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Search, Plus, MessageSquare, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -13,21 +13,20 @@ const Forums = () => {
   const [sortBy, setSortBy] = useState<'relevant' | 'newest' | 'upvoted'>('relevant');
 
   const categories = [
-    { id: 'general', name: 'General', color: 'bg-muted text-foreground' },
-    { id: 'mods', name: 'Mods & Tuning', color: 'bg-routes text-white' },
-    { id: 'troubleshooting', name: 'Troubleshooting', color: 'bg-events text-white' },
-    { id: 'buying', name: 'Buying & Selling', color: 'bg-primary text-primary-foreground' },
-    { id: 'track', name: 'Track & Motorsport', color: 'bg-clubs text-white' },
-    { id: 'insurance', name: 'Insurance & Ownership', color: 'bg-services text-foreground' },
+    { id: 'general', name: 'General' },
+    { id: 'mods', name: 'Mods & Tuning' },
+    { id: 'troubleshooting', name: 'Troubleshooting' },
+    { id: 'buying', name: 'Buying & Selling' },
+    { id: 'track', name: 'Track & Motorsport' },
+    { id: 'insurance', name: 'Insurance' },
   ];
 
   const sortOptions = [
-    { id: 'relevant', label: 'Most relevant' },
+    { id: 'relevant', label: 'Relevant' },
     { id: 'newest', label: 'Newest' },
-    { id: 'upvoted', label: 'Most upvoted' },
+    { id: 'upvoted', label: 'Top' },
   ];
 
-  // Filter and sort posts
   const filteredPosts = mockForumPosts
     .filter(post => {
       const matchesSearch = searchQuery === '' || 
@@ -37,58 +36,54 @@ const Forums = () => {
       return matchesSearch && matchesCategory;
     })
     .sort((a, b) => {
-      if (sortBy === 'newest') {
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }
-      if (sortBy === 'upvoted') {
-        return b.upvotes - a.upvotes;
-      }
-      // Most relevant - combination of upvotes and recency
+      if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === 'upvoted') return b.upvotes - a.upvotes;
       return (b.upvotes * 2 + b.comments) - (a.upvotes * 2 + a.comments);
     });
 
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       {/* Header */}
-      <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
-        <div className="flex items-center gap-4 mb-4">
+      <div className="sticky top-0 bg-background z-10 border-b border-border/50">
+        <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
           <button 
             onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
+            className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-4 h-4 text-foreground" />
           </button>
-          <h1 className="text-xl font-bold text-foreground">Advice & Forums</h1>
+          <h1 className="heading-md text-foreground flex-1">Advice & Forums</h1>
+          <Button 
+            size="sm" 
+            className="gap-1.5 h-8"
+            onClick={() => navigate('/forums/create')}
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Post
+          </Button>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative mb-3">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input 
-            placeholder="Search questions, topics, or keywords"
-            className="pl-10 bg-card border-border/50"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        {/* Search */}
+        <div className="px-4 pb-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search questions & topics..."
+              className="pl-10 bg-card border-border/50 h-9 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-
-        {/* Create Post Button */}
-        <Button 
-          onClick={() => navigate('/forums/create')}
-          className="w-full mb-3 gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          Ask a question / Create post
-        </Button>
 
         {/* Category Pills */}
-        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+        <div className="flex gap-1.5 overflow-x-auto pb-3 px-4 scrollbar-hide">
           <button
             onClick={() => setSelectedCategory(null)}
-            className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
               !selectedCategory 
-                ? 'bg-foreground text-background' 
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                ? 'bg-foreground text-background border-foreground' 
+                : 'bg-card text-muted-foreground border-border/50 hover:border-border'
             }`}
           >
             All
@@ -97,10 +92,10 @@ const Forums = () => {
             <button
               key={category.id}
               onClick={() => setSelectedCategory(selectedCategory === category.id ? null : category.id)}
-              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border ${
                 selectedCategory === category.id 
-                  ? category.color 
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-foreground text-background border-foreground' 
+                  : 'bg-card text-muted-foreground border-border/50 hover:border-border'
               }`}
             >
               {category.name}
@@ -109,33 +104,40 @@ const Forums = () => {
         </div>
       </div>
 
-      {/* Sort Options */}
-      <div className="px-4 py-2 flex gap-2 border-b border-border/30">
-        {sortOptions.map((option) => (
+      {/* Sort Row */}
+      <div className="px-4 py-2.5 flex items-center gap-1 border-b border-border/30">
+        <TrendingUp className="w-3.5 h-3.5 text-muted-foreground mr-1" />
+        {sortOptions.map((option, i) => (
           <button
             key={option.id}
             onClick={() => setSortBy(option.id as typeof sortBy)}
-            className={`text-sm font-medium transition-colors ${
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
               sortBy === option.id 
-                ? 'text-foreground' 
+                ? 'bg-muted text-foreground' 
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             {option.label}
           </button>
         ))}
+        <div className="flex-1" />
+        <span className="text-caption">{filteredPosts.length} posts</span>
       </div>
 
       {/* Posts Feed */}
       <div className="flex-1 overflow-y-auto pb-20">
         {filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-            <MessageSquare className="w-12 h-12 text-muted-foreground/50 mb-4" />
-            <p className="text-muted-foreground">No posts found</p>
-            <p className="text-sm text-muted-foreground/70 mt-1">Try adjusting your search or filters</p>
+            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-3">
+              <MessageSquare className="w-7 h-7 text-muted-foreground" />
+            </div>
+            <h3 className="heading-sm text-foreground mb-1">No posts found</h3>
+            <p className="text-sm text-muted-foreground max-w-[240px]">
+              Try adjusting your search or filters
+            </p>
           </div>
         ) : (
-          <div className="divide-y divide-border/50">
+          <div className="divide-y divide-border/30">
             {filteredPosts.map((post) => (
               <ForumPostCard 
                 key={post.id} 
