@@ -120,10 +120,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
       {/* Filter Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`h-12 w-full flex items-center justify-center gap-1.5 px-4 rounded-2xl border transition-all duration-300 ${
+        className={`h-10 w-full flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
           isOpen
             ? 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80 shadow-lg'
-            : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/50 shadow-md hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
+            : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
         }`}
       >
         <SlidersHorizontal className="w-4 h-4" />
