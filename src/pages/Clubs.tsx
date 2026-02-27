@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, Users, ChevronRight, MapPin, Plus } from 'lucide-react';
+import { Search, Users, ChevronRight, MapPin, Plus } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,12 +31,7 @@ const Clubs = () => {
       {/* Header */}
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"
-          >
-            <ArrowLeft className="w-4 h-4 text-foreground" />
-          </button>
+          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
           <h1 className="heading-md text-foreground flex-1">Clubs</h1>
           <Button
             size="sm"

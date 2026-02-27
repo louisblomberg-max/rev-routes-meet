@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Instagram, Facebook, ChevronDown, Lock, Star, Zap, Shield, Copy, AlertCircle } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,9 +217,7 @@ const AddService = () => {
       {/* ── HEADER ── */}
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
           <h1 className="text-lg font-bold text-foreground">Add Service</h1>
         </div>
       </div>

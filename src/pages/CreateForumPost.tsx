@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, HelpCircle, Lightbulb, MessageSquare, Image, X } from 'lucide-react';
+import { HelpCircle, Lightbulb, MessageSquare, Image, X } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -64,12 +65,7 @@ const CreateForumPost = () => {
       <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
+            <BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" />
             <h1 className="text-xl font-bold text-foreground">Create Post</h1>
           </div>
           <Button 

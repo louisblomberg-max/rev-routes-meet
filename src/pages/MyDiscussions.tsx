@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, MessageSquare, Plus, ThumbsUp, MessageCircle, HelpCircle, Lightbulb, Trash2, MoreHorizontal, Clock, Bookmark } from 'lucide-react';
+import { MessageSquare, Plus, ThumbsUp, MessageCircle, HelpCircle, Lightbulb, Trash2, MoreHorizontal, Clock, Bookmark } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,9 +42,7 @@ const MyDiscussions = () => {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-card border border-border/50 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
-              <ArrowLeft className="w-4 h-4 text-foreground" />
-            </button>
+            <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" />
             <div>
               <h1 className="text-lg font-bold text-foreground">My Discussions</h1>
               <p className="text-xs text-muted-foreground">{posts.length} posts, {replies.length} replies</p>

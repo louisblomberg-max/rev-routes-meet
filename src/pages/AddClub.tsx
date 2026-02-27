@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2 } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -196,9 +197,7 @@ const AddClub = () => {
       {/* ── HEADER ── */}
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
           <h1 className="text-lg font-bold text-foreground">Create Club</h1>
         </div>
       </div>
