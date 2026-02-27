@@ -2,7 +2,7 @@ import { ArrowLeft, MessageCircle, Route, Calendar, Users, Share2, MoreHorizonta
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import GarageSection from '@/components/profile/GarageSection';
-import AchievementsSection from '@/components/profile/AchievementsSection';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -266,8 +266,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Achievements */}
-        <AchievementsSection achievements={profile.achievements} />
 
         {/* Garage (Public Vehicles Only) */}
         {publicVehicles.length > 0 && (
