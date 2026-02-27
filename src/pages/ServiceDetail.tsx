@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, MapPin, Star, Phone, Globe, Clock, Share2, Bookmark } from 'lucide-react';
+import { MapPin, Star, Phone, Globe, Clock, Share2, Bookmark } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -42,12 +43,7 @@ const ServiceDetail = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Header */}
       <div className="relative h-48 bg-gradient-to-br from-services to-services/70">
-        <button 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top hover:bg-white transition-colors active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
+        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
         <div className="absolute top-4 right-4 flex gap-2 safe-top">
           <button 
             onClick={handleSave}

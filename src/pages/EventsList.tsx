@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Plus } from 'lucide-react';
+import { Calendar, Plus } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import AccessGuard from '@/components/AccessGuard';
 
@@ -10,9 +11,7 @@ const EventsList = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 safe-top border-b border-border/50">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center">
-          <ArrowLeft className="w-4 h-4 text-foreground" />
-        </button>
+        <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
         <h1 className="heading-md text-foreground flex-1">Events & Drives</h1>
         <AccessGuard featureId="create_events" mode="lock">
           <Button size="sm" className="gap-1.5" onClick={() => navigate('/add/event')}>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, Ruler, Star, Car, Bike, Share2, Bookmark } from 'lucide-react';
+import { Ruler, Star, Car, Bike, Share2, Bookmark } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { toast } from 'sonner';
 import { mockRoutes } from '@/data/mockData';
 import NavigateButton from '@/components/NavigateButton';
@@ -30,12 +31,7 @@ const RouteDetail = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Header Map */}
       <div className="relative h-64 bg-gradient-to-br from-routes to-routes/70">
-        <button 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top hover:bg-white transition-colors active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
+        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
         <div className="absolute top-4 right-4 flex gap-2 safe-top">
           <button 
             onClick={handleSave}

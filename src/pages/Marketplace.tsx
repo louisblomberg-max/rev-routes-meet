@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Search, MapPin, Car, Bike, Package, Wrench } from 'lucide-react';
+import { Search, MapPin, Car, Bike, Package, Wrench } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { mockMarketplaceListings } from '@/data/mockData';
@@ -25,12 +26,7 @@ const Marketplace = () => {
       {/* Header */}
       <div className="px-4 pt-4 pb-4 safe-top sticky top-0 bg-background z-10">
         <div className="flex items-center gap-4 mb-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" />
           <h1 className="text-xl font-bold text-foreground">Marketplace</h1>
         </div>
 

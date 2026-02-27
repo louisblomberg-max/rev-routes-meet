@@ -1,4 +1,5 @@
-import { ArrowLeft, Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Download, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
+import { Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Download, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -132,12 +133,7 @@ const PlanBillingSettings = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <BackButton className="w-9 h-9 rounded-full bg-muted/80 hover:bg-muted" />
           <div>
             <h1 className="text-lg font-bold text-foreground">Plan & Billing</h1>
             <p className="text-xs text-muted-foreground">Manage your plan, payments, and upgrades</p>

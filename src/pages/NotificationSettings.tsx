@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -55,12 +55,7 @@ const NotificationSettings = () => {
       {/* Header */}
       <div className="px-4 pt-4 pb-2 safe-top shrink-0">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30 flex items-center justify-center"
-          >
-            <ArrowLeft className="w-4 h-4 text-foreground" />
-          </button>
+          <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" />
           <h1 className="text-lg font-bold text-foreground">Notifications</h1>
         </div>
       </div>

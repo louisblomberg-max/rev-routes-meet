@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, Users, Share2, Heart, MessageCircle, Pin, Calendar, MapPin, Image, Info, Bell, Globe, Shield, Instagram, ExternalLink, Flag, UserCheck, Clock } from 'lucide-react';
+import { Users, Share2, Heart, MessageCircle, Pin, Calendar, MapPin, Image, Info, Bell, Globe, Shield, Instagram, ExternalLink, Flag, UserCheck, Clock } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -78,12 +79,7 @@ const ClubProfile = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Cover Photo */}
       <div className="relative h-44 bg-gradient-to-br from-clubs to-clubs/60">
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/30 backdrop-blur-sm flex items-center justify-center z-10 hover:bg-black/40 transition-colors active:scale-95 safe-top"
-        >
-          <ArrowLeft className="w-5 h-5 text-white" />
-        </button>
+        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/30 backdrop-blur-sm z-10 hover:bg-black/40 safe-top" iconClassName="text-white" />
         <div className="absolute top-4 right-4 flex gap-2 safe-top">
           <button
             onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }}

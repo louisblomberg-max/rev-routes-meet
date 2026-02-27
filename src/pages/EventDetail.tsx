@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ArrowLeft, Calendar, MapPin, Car, Users, Share2, Bookmark, Check } from 'lucide-react';
+import { Calendar, MapPin, Car, Users, Share2, Bookmark, Check } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { mockEvents } from '@/data/mockData';
@@ -34,12 +35,7 @@ const EventDetail = () => {
     <div className="mobile-container bg-background min-h-screen">
       {/* Header Image */}
       <div className="relative h-48 bg-gradient-to-br from-events to-events/70">
-        <button 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center safe-top hover:bg-white transition-colors active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 text-foreground" />
-        </button>
+        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
         <div className="absolute top-4 right-4 flex gap-2 safe-top">
           <button 
             onClick={handleSave}

@@ -1,5 +1,6 @@
-import { ArrowLeft, MessageCircle, Route, Calendar, Users, Share2, MoreHorizontal, MapPin, Crown, Sparkles, Star, Pencil, Camera } from 'lucide-react';
+import { MessageCircle, Route, Calendar, Users, Share2, MoreHorizontal, MapPin, Crown, Sparkles, Star, Pencil, Camera } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import BackButton from '@/components/BackButton';
 import { useState } from 'react';
 import GarageSection from '@/components/profile/GarageSection';
 
@@ -144,12 +145,7 @@ const Profile = () => {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => navigate(-1)}
-              className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </button>
+            <BackButton className="w-9 h-9 rounded-full bg-muted/80" iconClassName="w-5 h-5" />
             <h1 className="text-lg font-semibold text-foreground">Profile</h1>
           </div>
           <div className="flex items-center gap-2">

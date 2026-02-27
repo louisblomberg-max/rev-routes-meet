@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ArrowLeft, ArrowUp, ArrowDown, MessageCircle, Share2, Flag, HelpCircle, Lightbulb, MessageSquare, Users, Send } from 'lucide-react';
+import { ArrowUp, ArrowDown, MessageCircle, Share2, Flag, HelpCircle, Lightbulb, MessageSquare, Users, Send } from 'lucide-react';
+import BackButton from '@/components/BackButton';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -117,12 +118,7 @@ const ForumThread = () => {
       {/* Header */}
       <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-4">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-10 h-10 rounded-full bg-card shadow-sm flex items-center justify-center border border-border/50"
-          >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+          <BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" />
           <h1 className="text-lg font-semibold text-foreground line-clamp-1">Thread</h1>
         </div>
       </div>
