@@ -88,39 +88,32 @@ const RecordDriveOverlay = ({ onFinish, onCancel, onCoordsUpdate }: Props) => {
   const distance = calculateDistance(coords);
 
   return (
-    <div className="absolute top-20 left-1/2 -translate-x-1/2 z-40 w-[290px]">
-      <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-elevated border border-border/40 p-5">
-        <div className="flex items-center justify-between mb-3">
+    <div className="absolute bottom-28 left-3 right-3 z-40">
+      <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-elevated border border-border/40 p-3">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-amber-500' : 'bg-destructive animate-pulse'}`} />
-            <div className="flex items-center gap-1.5">
-              <Radio className="w-3.5 h-3.5 text-routes" />
-              <span className="text-sm font-bold text-foreground">
-                {isPaused ? 'Paused' : 'Recording'}
-              </span>
+            <div className={`w-2.5 h-2.5 rounded-full ${isPaused ? 'bg-amber-500' : 'bg-destructive animate-pulse'}`} />
+            <span className="text-xs font-bold text-foreground">
+              {isPaused ? 'Paused' : 'Recording'}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 text-xs">
+              <span className="font-semibold text-foreground">{formatRouteDistance(distance)}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="font-semibold text-foreground">{formatRouteDuration(elapsed)}</span>
             </div>
-          </div>
-          <button onClick={handleCancel} className="text-xs text-muted-foreground hover:text-foreground font-medium">Cancel</button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="p-2.5 rounded-xl bg-muted/40">
-            <p className="text-[10px] uppercase text-muted-foreground tracking-wider font-medium">Distance</p>
-            <p className="text-lg font-bold text-foreground">{formatRouteDistance(distance)}</p>
-          </div>
-          <div className="p-2.5 rounded-xl bg-muted/40">
-            <p className="text-[10px] uppercase text-muted-foreground tracking-wider font-medium">Duration</p>
-            <p className="text-lg font-bold text-foreground">{formatRouteDuration(elapsed)}</p>
+            <button onClick={handleCancel} className="text-[11px] text-muted-foreground hover:text-foreground font-medium ml-1">Cancel</button>
           </div>
         </div>
 
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handlePause} className="flex-1 gap-1.5 rounded-xl font-semibold">
-            {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          <Button variant="outline" size="sm" onClick={handlePause} className="flex-1 gap-1.5 rounded-xl font-semibold h-9 text-xs">
+            {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
             {isPaused ? 'Resume' : 'Pause'}
           </Button>
-          <Button size="sm" onClick={handleFinish} className="flex-1 gap-1.5 bg-routes hover:bg-routes/90 text-routes-foreground rounded-xl font-semibold">
-            <Square className="w-4 h-4" />
+          <Button size="sm" onClick={handleFinish} className="flex-1 gap-1.5 bg-routes hover:bg-routes/90 text-routes-foreground rounded-xl font-semibold h-9 text-xs">
+            <Square className="w-3.5 h-3.5" />
             Finish
           </Button>
         </div>
