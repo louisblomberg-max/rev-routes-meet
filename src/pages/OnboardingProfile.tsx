@@ -1,18 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, MapPin, User, AtSign } from 'lucide-react';
+import { Camera, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import BackButton from '@/components/BackButton';
 import LocationPicker from '@/components/LocationPicker';
-
-const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-card rounded-2xl border border-border/50 shadow-sm p-5 ${className}`}>{children}</div>
-);
 
 const OnboardingProfile = () => {
   const navigate = useNavigate();
@@ -31,16 +27,13 @@ const OnboardingProfile = () => {
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const autoHandle = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
-  };
+  const autoHandle = (name: string) => name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.displayName.trim()) errs.displayName = 'Name is required';
     if (!form.username.trim()) errs.username = 'Username is required';
     else if (!/^[a-z0-9_]{3,20}$/.test(form.username)) errs.username = '3-20 chars, lowercase letters, numbers, underscores';
-    if (!form.location.trim()) errs.location = 'Location is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -58,112 +51,111 @@ const OnboardingProfile = () => {
     navigate('/onboarding/vehicle');
   };
 
+  // Step 1 of 6 now (added referral step)
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
-      {/* Progress */}
+      {/* Header */}
       <div className="px-6 pt-8 safe-top">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+        <div className="flex items-center gap-3 mb-2">
+          <BackButton fallbackPath="/auth" />
           <div className="flex-1">
             <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4].map(i => (
-                <div key={i} className={`flex-1 h-1.5 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
+              {[0, 1, 2, 3, 4, 5].map(i => (
+                <div key={i} className={`flex-1 h-1 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
               ))}
             </div>
-            <p className="text-caption mt-1.5">Step 1 of 5 — Profile</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-4 space-y-5 overflow-y-auto pb-28">
-        <div>
-          <h1 className="heading-lg text-foreground mb-1">Set up your profile</h1>
-          <p className="text-sm text-muted-foreground">Let the community know who you are</p>
-        </div>
+      {/* Content */}
+      <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Add a profile picture and bio</h1>
+        <p className="text-sm text-muted-foreground text-center mb-8">to show yourself off!</p>
 
         {/* Avatar */}
-        <SectionCard>
-          <div className="flex justify-center">
+        <div className="flex justify-center mb-8">
+          <div className="relative">
+            <Avatar className="w-28 h-28 ring-4 ring-muted">
+              <AvatarFallback className="bg-muted text-muted-foreground text-3xl">
+                <Camera className="w-8 h-8" />
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              className="absolute bottom-1 right-1 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg"
+              onClick={() => toast.info('Photo upload coming soon')}
+            >
+              <Camera className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Bio */}
+        <Textarea
+          placeholder="Add a bio..."
+          rows={2}
+          className="rounded-2xl bg-muted border-0 text-sm mb-4 resize-none"
+          value={form.bio}
+          onChange={e => update('bio', e.target.value)}
+        />
+
+        {/* Name & Username */}
+        <div className="space-y-3">
+          <div>
+            <Input
+              placeholder="Display Name *"
+              className="rounded-2xl h-12 bg-muted border-0 text-sm"
+              value={form.displayName}
+              onChange={e => {
+                update('displayName', e.target.value);
+                if (!form.username || form.username === autoHandle(form.displayName)) {
+                  update('username', autoHandle(e.target.value));
+                }
+              }}
+            />
+            {errors.displayName && <p className="text-xs text-destructive pl-1 mt-1">{errors.displayName}</p>}
+          </div>
+
+          <div>
             <div className="relative">
-              <Avatar className="w-24 h-24 ring-4 ring-muted">
-                <AvatarFallback className="bg-primary/10 text-primary text-3xl font-bold">
-                  {form.displayName?.charAt(0) || '?'}
-                </AvatarFallback>
-              </Avatar>
-              <button type="button" className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg" onClick={() => toast.info('Photo upload coming soon')}>
-                <Camera className="w-4 h-4" />
-              </button>
+              <Input
+                placeholder="Username *"
+                className="rounded-2xl h-12 bg-muted border-0 text-sm"
+                value={form.username}
+                onChange={e => update('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                maxLength={16}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+                {form.username.length}/16
+              </span>
             </div>
+            {errors.username && <p className="text-xs text-destructive pl-1 mt-1">{errors.username}</p>}
           </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">Add a profile photo (optional)</p>
-        </SectionCard>
 
-        {/* Info */}
-        <SectionCard>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Full Name *</Label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Your name"
-                  className="pl-10 rounded-xl h-11"
-                  value={form.displayName}
-                  onChange={e => {
-                    update('displayName', e.target.value);
-                    if (!form.username || form.username === autoHandle(form.displayName)) {
-                      update('username', autoHandle(e.target.value));
-                    }
-                  }}
-                />
-              </div>
-              {errors.displayName && <p className="text-xs text-destructive">{errors.displayName}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Username / Handle *</Label>
-              <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="yourhandle"
-                  className="pl-10 rounded-xl h-11"
-                  value={form.username}
-                  onChange={e => update('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                />
-              </div>
-              {errors.username && <p className="text-xs text-destructive">{errors.username}</p>}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Bio (optional)</Label>
-              <Textarea placeholder="E46 M3 owner. Weekend warrior..." rows={2} className="rounded-xl" value={form.bio} onChange={e => update('bio', e.target.value)} />
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* Location */}
-        <SectionCard>
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
-              <MapPin className="w-4 h-4 text-primary" />
-            </div>
-            <h2 className="text-base font-bold text-foreground">Location *</h2>
-          </div>
+          {/* Location */}
           <LocationPicker
             value={form.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
             error={errors.location}
           />
-        </SectionCard>
+        </div>
       </div>
 
       {/* Sticky CTA */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-xl border-t border-border/30 px-6 py-4 safe-bottom">
-        <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold">
-          Continue
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
+        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+          Next <ChevronRight className="w-5 h-5" />
         </Button>
+        <button
+          onClick={() => {
+            setOnboardingStep(1);
+            navigate('/onboarding/vehicle');
+          }}
+          className="w-full text-sm text-muted-foreground mt-2 py-1"
+        >
+          Skip for now
+        </button>
       </div>
     </div>
   );

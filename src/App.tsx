@@ -62,6 +62,7 @@ import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingInterests from "./pages/OnboardingInterests";
 import OnboardingPermissions from "./pages/OnboardingPermissions";
 import OnboardingFinish from "./pages/OnboardingFinish";
+import OnboardingReferral from "./pages/OnboardingReferral";
 import ChoosePlan from "./pages/ChoosePlan";
 
 const queryClient = new QueryClient();
@@ -93,6 +94,7 @@ const App = () => (
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
           <Route path="/onboarding/interests" element={<OnboardingInterests />} />
           <Route path="/onboarding/permissions" element={<OnboardingPermissions />} />
+          <Route path="/onboarding/referral" element={<OnboardingReferral />} />
           <Route path="/onboarding/finish" element={<OnboardingFinish />} />
 
           {/* Legacy auth routes (redirect to new) */}
