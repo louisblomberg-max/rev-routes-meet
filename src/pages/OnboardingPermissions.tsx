@@ -1,19 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Bell, Check } from 'lucide-react';
+import { ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-card rounded-2xl border border-border/50 shadow-sm p-5 ${className}`}>{children}</div>
-);
+import BackButton from '@/components/BackButton';
 
 const OnboardingPermissions = () => {
   const navigate = useNavigate();
   const { setOnboardingStep } = useAuth();
+  const [step, setStep] = useState<'intro' | 'permissions' | 'notifications'>('intro');
   const [locationGranted, setLocationGranted] = useState(false);
-  const [notifGranted, setNotifGranted] = useState(false);
 
   const grantLocation = async () => {
     try {
@@ -27,100 +24,141 @@ const OnboardingPermissions = () => {
     }
   };
 
-  const grantNotifications = async () => {
+  const handleNotifications = async () => {
     if ('Notification' in window) {
       const result = await Notification.requestPermission();
       if (result === 'granted') {
-        setNotifGranted(true);
         toast.success('Notifications enabled');
-      } else {
-        toast.info('You can enable notifications later');
       }
-    } else {
-      toast.info('Not supported in this browser');
     }
-  };
-
-  const handleFinish = () => {
     setOnboardingStep(4);
-    navigate('/onboarding/finish');
+    navigate('/onboarding/referral');
   };
 
+  if (step === 'intro') {
+    return (
+      <div className="mobile-container bg-background min-h-screen flex flex-col">
+        <div className="px-6 pt-8 safe-top">
+          <div className="flex items-center gap-3 mb-2">
+            <BackButton fallbackPath="/onboarding/interests" />
+            <div className="flex-1">
+              <div className="flex gap-1.5">
+                {[0, 1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+          <div className="text-7xl mb-6">📍</div>
+          <h1 className="text-2xl font-bold text-foreground leading-tight mb-3">
+            Now let's set up your{'\n'}location & notifications!
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-[280px]">
+            We'll need a few permissions to show you nearby meets, routes and services
+          </p>
+        </div>
+
+        <div className="px-6 pb-10 safe-bottom">
+          <Button onClick={() => setStep('permissions')} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+            Let's do it! <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 'permissions') {
+    return (
+      <div className="mobile-container bg-background min-h-screen flex flex-col">
+        <div className="px-6 pt-8 safe-top">
+          <div className="flex items-center gap-3 mb-2">
+            <BackButton fallbackPath="/onboarding/interests" />
+            <div className="flex-1">
+              <div className="flex gap-1.5">
+                {[0, 1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 px-6 py-8">
+          <h1 className="text-2xl font-bold text-foreground text-center mb-2">Enable Location</h1>
+          <p className="text-sm text-muted-foreground text-center mb-10">
+            We NEED this permission to show you nearby events, routes and services
+          </p>
+
+          <div className="space-y-3">
+            <button
+              onClick={grantLocation}
+              className={`w-full py-4 px-5 rounded-2xl text-sm font-semibold text-center transition-all ${
+                locationGranted
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-foreground'
+              }`}
+            >
+              {locationGranted ? (
+                <span className="flex items-center justify-center gap-2"><Check className="w-4 h-4" /> Location Enabled</span>
+              ) : (
+                "Enable Location - Select 'Allow'"
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="px-6 pb-10 safe-bottom">
+          <Button
+            onClick={() => setStep('notifications')}
+            className="w-full h-14 text-base font-semibold rounded-full gap-2"
+          >
+            Next <ChevronRight className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Notifications step
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="px-6 pt-8 safe-top">
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
+        <div className="flex items-center gap-3 mb-2">
+          <BackButton fallbackPath="/onboarding/interests" />
           <div className="flex-1">
             <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4].map(i => (
-                <div key={i} className={`flex-1 h-1.5 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+              {[0, 1, 2, 3, 4, 5].map(i => (
+                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
               ))}
             </div>
-            <p className="text-caption mt-1.5">Step 4 of 5 — Permissions</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-4 space-y-5 overflow-y-auto pb-28">
-        <div>
-          <h1 className="heading-lg text-foreground mb-1">Almost there</h1>
-          <p className="text-sm text-muted-foreground">A couple of permissions to get you the best experience</p>
-        </div>
-
-        {/* Location */}
-        <SectionCard>
-          <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${locationGranted ? 'bg-services/10' : 'bg-primary/10'}`}>
-              {locationGranted ? <Check className="w-6 h-6 text-services" /> : <MapPin className="w-6 h-6 text-primary" />}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-foreground mb-1">Location</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Needed to show you nearby meets, routes and services on the map.
-              </p>
-              {!locationGranted ? (
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={grantLocation} className="h-9 text-xs font-semibold">Enable</Button>
-                  <Button size="sm" variant="ghost" className="h-9 text-xs text-muted-foreground">Not now</Button>
-                </div>
-              ) : (
-                <span className="text-xs font-semibold text-services">✓ Enabled</span>
-              )}
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* Notifications */}
-        <SectionCard>
-          <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${notifGranted ? 'bg-services/10' : 'bg-primary/10'}`}>
-              {notifGranted ? <Check className="w-6 h-6 text-services" /> : <Bell className="w-6 h-6 text-primary" />}
-            </div>
-            <div className="flex-1">
-              <h3 className="text-sm font-bold text-foreground mb-1">Notifications</h3>
-              <p className="text-xs text-muted-foreground mb-3">
-                Get alerts for events, club posts, and help requests.
-              </p>
-              {!notifGranted ? (
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={grantNotifications} className="h-9 text-xs font-semibold">Enable</Button>
-                  <Button size="sm" variant="ghost" className="h-9 text-xs text-muted-foreground">Not now</Button>
-                </div>
-              ) : (
-                <span className="text-xs font-semibold text-services">✓ Enabled</span>
-              )}
-            </div>
-          </div>
-        </SectionCard>
+      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+        <h1 className="text-2xl font-bold text-foreground mb-2">Stay in the Loop</h1>
+        <p className="text-sm text-muted-foreground mb-8 max-w-[280px]">
+          Get notified about nearby meets, club updates and important alerts
+        </p>
+        <div className="text-7xl mb-4">🔔</div>
       </div>
 
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-xl border-t border-border/30 px-6 py-4 safe-bottom">
-        <Button onClick={handleFinish} className="w-full h-12 text-base font-semibold">
-          Finish Setup
+      <div className="px-6 pb-10 safe-bottom">
+        <Button onClick={handleNotifications} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+          Enable Notifications
         </Button>
+        <button
+          onClick={() => {
+            setOnboardingStep(4);
+            navigate('/onboarding/referral');
+          }}
+          className="w-full text-sm text-muted-foreground mt-3 py-1"
+        >
+          Not now
+        </button>
       </div>
     </div>
   );

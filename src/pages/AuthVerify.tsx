@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import revnetLogo from '@/assets/revnet-logo-new.png';
+import BackButton from '@/components/BackButton';
 
 const CODE_LENGTH = 6;
 
@@ -81,18 +80,13 @@ const AuthVerify = () => {
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="flex-1 flex flex-col px-6 py-8 safe-top">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-xl bg-card border border-border/50 flex items-center justify-center">
-            <ArrowLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <img src={revnetLogo} alt="RevNet" className="h-8 w-auto" />
+        <div className="flex items-center mb-8">
+          <BackButton fallbackPath="/auth/signup" />
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center text-center">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
-            <ShieldCheck className="w-10 h-10 text-primary" />
-          </div>
-          <h1 className="heading-lg text-foreground mb-2">Verify your account</h1>
+          <div className="text-7xl mb-6">🔐</div>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Verify your account</h1>
           <p className="text-sm text-muted-foreground mb-8 max-w-[300px]">
             Enter the 6-digit code sent to{' '}
             <span className="font-semibold text-foreground">{dest || 'your email/phone'}</span>
@@ -110,12 +104,12 @@ const AuthVerify = () => {
                 value={digit}
                 onChange={e => handleChange(i, e.target.value)}
                 onKeyDown={e => handleKeyDown(i, e)}
-                className="w-12 h-14 text-center text-xl font-bold rounded-xl border border-border bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                className="w-12 h-14 text-center text-xl font-bold rounded-2xl bg-muted border-0 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
             ))}
           </div>
 
-          <Button onClick={handleVerify} className="w-full max-w-xs h-12 text-base font-semibold mb-4" disabled={isLoading}>
+          <Button onClick={handleVerify} className="w-full max-w-xs h-14 text-base font-semibold rounded-full mb-4" disabled={isLoading}>
             {isLoading ? 'Verifying...' : 'Verify'}
           </Button>
 
