@@ -134,13 +134,13 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           <span className="text-[10px] font-semibold">Filters</span>
         </button>
 
-        {/* Create Route Button */}
+        {/* Add Route Button */}
         <button
           onClick={() => navigate('/add/route')}
           className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#1E40AF] text-white shadow-sm hover:bg-[#1E40AF]/90 active:scale-[0.97] transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Create</span>
+          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 

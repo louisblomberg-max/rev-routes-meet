@@ -159,13 +159,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           <span className="text-[10px] font-semibold">Filters</span>
         </button>
 
-        {/* Create Event Button */}
+        {/* Add Event Button */}
         <button
           onClick={() => navigate('/add/event')}
           className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
         >
           <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Create</span>
+          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
 
         {/* Quick Date Picker */}
