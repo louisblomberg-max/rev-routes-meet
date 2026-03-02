@@ -3,15 +3,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import {
-  Battery,
-  Car,
-  Fuel,
-  KeyRound,
-  Wrench,
-  AlertTriangle,
-  Phone,
   ArrowRight,
   ShieldAlert,
   Loader2,
@@ -22,28 +14,49 @@ import {
   Users,
   MapPin,
   Heart,
-  Bell,
+  Phone,
+  ChevronDown,
+  LifeBuoy,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface HelpSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const problemTypes = [
+const primaryProblems = [
   { title: 'Dead Battery', emoji: '🔋' },
   { title: 'Flat Tyre', emoji: '🛞' },
   { title: 'Out of Fuel', emoji: '⛽' },
+];
+
+const secondaryProblems = [
   { title: 'Locked Out', emoji: '🔑' },
   { title: 'Mechanical', emoji: '🔧' },
   { title: 'Accident', emoji: '⚠️' },
 ];
 
 const helpSources = [
-  { id: 'members', icon: Users, title: 'Nearby Members', description: 'Community help', colorClass: 'bg-routes' },
-  { id: 'services', icon: MapPin, title: 'Recovery Services', description: 'Professional help', colorClass: 'bg-services' },
+  {
+    id: 'members',
+    icon: Users,
+    title: 'Nearby Members',
+    description: 'Community help – fastest response',
+    colorClass: 'bg-routes',
+    cta: '🚨 Alert Nearby Members',
+  },
+  {
+    id: 'services',
+    icon: MapPin,
+    title: 'Recovery Services',
+    description: 'Professional help – may include fees',
+    colorClass: 'bg-services',
+    cta: '📍 View Recovery Options',
+  },
 ];
 
+/* ── Stolen Vehicle Alert Sub-flow ── */
 const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
   const [step, setStep] = useState(0);
 
@@ -120,19 +133,50 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
+/* ── Problem Card ── */
+const ProblemCard = ({
+  emoji,
+  title,
+  selected,
+  onClick,
+}: {
+  emoji: string;
+  title: string;
+  selected: boolean;
+  onClick: () => void;
+}) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 transition-all text-left ${
+      selected
+        ? 'border-primary bg-primary/5 shadow-sm'
+        : 'border-border bg-card hover:border-primary/30'
+    }`}
+  >
+    <span className="text-xl leading-none">{emoji}</span>
+    <span className="text-sm font-semibold text-foreground">{title}</span>
+    {selected && (
+      <Check className="w-4 h-4 text-primary ml-auto" />
+    )}
+  </button>
+);
+
+/* ── Main Help Sheet ── */
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [details, setDetails] = useState('');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [showStolen, setShowStolen] = useState(false);
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
-  const [helpDistance, setHelpDistance] = useState(10);
+  const [helpDistance] = useState(10);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
       setSelectedProblem(null);
       setSelectedSource(null);
       setDetails('');
+      setDetailsOpen(false);
       setShowStolen(false);
     }
     onOpenChange(isOpen);
@@ -144,6 +188,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   };
 
   const canConfirm = selectedProblem && selectedSource;
+  const activeSource = helpSources.find((s) => s.id === selectedSource);
 
   if (showStolen) {
     return (
@@ -158,42 +203,88 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
-        {/* Header */}
-        <div className="px-5 pt-5 pb-4">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-10 h-1 bg-border rounded-full" />
+        {/* ── 1. Available to Help Row ── */}
+        <div className="px-5 pt-4 pb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <LifeBuoy className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary' : 'text-muted-foreground'}`} />
+              <span className="text-sm font-medium text-foreground">Available to Help</span>
+            </div>
+            <Switch
+              checked={isAvailableToHelp}
+              onCheckedChange={setIsAvailableToHelp}
+              className="data-[state=checked]:bg-primary scale-90"
+            />
           </div>
-          <h2 className="text-xl font-bold text-foreground">What happened?</h2>
-          <p className="text-sm text-muted-foreground mt-1">Select your issue and who should help.</p>
+          {isAvailableToHelp && (
+            <p className="text-[11px] text-muted-foreground mt-0.5 pl-6">
+              Helping within {helpDistance} miles · <button className="text-primary underline-offset-2 underline">Settings</button>
+            </p>
+          )}
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5">
-          {/* Problem Grid */}
-          <div className="grid grid-cols-3 gap-2.5">
-            {problemTypes.map((problem) => {
-              const isSelected = selectedProblem === problem.title;
-              return (
+        <div className="h-px bg-border mx-5" />
+
+        {/* ── 2. Header ── */}
+        <div className="px-5 pt-4 pb-1">
+          <h2 className="text-xl font-bold text-foreground">What's up?</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Tell us what's happened.</p>
+        </div>
+
+        {/* ── Scrollable Content ── */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5 pt-3">
+          {/* ── 3. Problem Selection ── */}
+          <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-2">
+              {primaryProblems.map((p) => (
+                <ProblemCard
+                  key={p.title}
+                  emoji={p.emoji}
+                  title={p.title}
+                  selected={selectedProblem === p.title}
+                  onClick={() => setSelectedProblem(p.title)}
+                />
+              ))}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {secondaryProblems.map((p) => (
                 <button
-                  key={problem.title}
-                  onClick={() => setSelectedProblem(problem.title)}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
-                    isSelected
+                  key={p.title}
+                  onClick={() => setSelectedProblem(p.title)}
+                  className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 transition-all ${
+                    selectedProblem === p.title
                       ? 'border-primary bg-primary/5 shadow-sm'
                       : 'border-border bg-card hover:border-primary/30'
                   }`}
                 >
-                  <span className="text-3xl">{problem.emoji}</span>
-                  <p className="text-xs font-semibold text-foreground leading-tight">{problem.title}</p>
+                  <span className="text-lg leading-none">{p.emoji}</span>
+                  <span className="text-[10px] font-semibold text-foreground leading-tight">{p.title}</span>
                 </button>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          {/* Help Source Selection */}
+          {/* ── 4. Details (Collapsible) ── */}
+          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
+              <ChevronDown className={`w-4 h-4 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
+              <span className="font-medium">Add more details</span>
+              <span className="text-xs">(optional)</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="pt-2">
+              <Textarea
+                placeholder="E.g. Silver BMW on A34, junction 9..."
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                className="min-h-[70px] resize-none rounded-xl border-2 focus:border-primary bg-muted/30"
+              />
+            </CollapsibleContent>
+          </Collapsible>
+
+          {/* ── 5. Who Should Help? ── */}
           <div className={`space-y-2.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
             <p className="text-sm font-semibold text-foreground">Who should help?</p>
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="space-y-2">
               {helpSources.map((source) => {
                 const Icon = source.icon;
                 const isSelected = selectedSource === source.id;
@@ -201,22 +292,22 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                   <button
                     key={source.id}
                     onClick={() => setSelectedSource(source.id)}
-                    className={`relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
+                    className={`relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all w-full text-left ${
                       isSelected
                         ? 'border-primary bg-primary/5 shadow-sm'
                         : 'border-border bg-card hover:border-primary/30'
                     }`}
                   >
-                    <div className={`w-9 h-9 rounded-lg ${source.colorClass} flex items-center justify-center shrink-0`}>
-                      <Icon className="w-4 h-4 text-white" />
+                    <div className={`w-10 h-10 rounded-lg ${source.colorClass} flex items-center justify-center shrink-0`}>
+                      <Icon className="w-5 h-5 text-white" />
                     </div>
-                    <div className="text-left">
-                      <p className="text-xs font-bold text-foreground">{source.title}</p>
-                      <p className="text-[10px] text-muted-foreground">{source.description}</p>
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{source.title}</p>
+                      <p className="text-xs text-muted-foreground">{source.description}</p>
                     </div>
                     {isSelected && (
-                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-3 h-3 text-primary-foreground" />
                       </div>
                     )}
                   </button>
@@ -225,49 +316,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             </div>
           </div>
 
-          {/* Details */}
-          {canConfirm && (
-            <div className="space-y-2 animate-fade-up">
-              <p className="text-sm font-medium text-foreground">Details <span className="text-muted-foreground font-normal">(optional)</span></p>
-              <Textarea
-                placeholder="E.g. Silver BMW on A34, junction 9..."
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                className="min-h-[70px] resize-none rounded-xl border-2 focus:border-primary bg-muted/30"
-              />
-            </div>
-          )}
-
-          {/* Available to Help */}
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${isAvailableToHelp ? 'bg-primary' : 'bg-muted'}`}>
-                  <Heart className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Available to Help</p>
-                  <p className="text-[10px] text-muted-foreground">Get notified when others need help</p>
-                </div>
-              </div>
-              <Switch checked={isAvailableToHelp} onCheckedChange={setIsAvailableToHelp} className="data-[state=checked]:bg-primary" />
-            </div>
-            {isAvailableToHelp && (
-              <div className="mt-3 pt-3 border-t border-primary/10 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-foreground">Distance</span>
-                  <span className="text-xs font-bold text-primary">{helpDistance} miles</span>
-                </div>
-                <Slider value={[helpDistance]} onValueChange={(v) => setHelpDistance(v[0])} min={1} max={50} step={1} />
-                <div className="flex items-center gap-1.5 text-[10px] text-primary bg-primary/10 rounded-lg px-2.5 py-1.5">
-                  <Bell className="w-3 h-3" />
-                  <span>Alerts for requests within {helpDistance} miles</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Stolen vehicle */}
+          {/* ── Stolen Vehicle Link ── */}
           <button
             onClick={() => setShowStolen(true)}
             className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
@@ -278,7 +327,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
           </button>
         </div>
 
-        {/* CTA */}
+        {/* ── 7. Dynamic CTA ── */}
         <div className="p-5 pt-3 border-t border-border">
           <Button
             className="w-full h-12 rounded-xl text-base font-semibold"
@@ -286,8 +335,8 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             disabled={!canConfirm}
             onClick={handleConfirm}
           >
-            {canConfirm ? (
-              <>Find Help Nearby <ArrowRight className="w-4 h-4 ml-2" /></>
+            {canConfirm && activeSource ? (
+              <span>{activeSource.cta}</span>
             ) : (
               'Select an issue & help source'
             )}
