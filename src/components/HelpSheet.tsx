@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import {
   Battery,
   Car,
@@ -17,6 +19,10 @@ import {
   Radio,
   MapPinned,
   X,
+  Users,
+  MapPin,
+  Heart,
+  Bell,
 } from 'lucide-react';
 
 interface HelpSheetProps {
@@ -25,12 +31,17 @@ interface HelpSheetProps {
 }
 
 const problemTypes = [
-  { icon: Battery, title: 'Dead Battery', emoji: '🔋' },
-  { icon: Car, title: 'Flat Tyre', emoji: '🛞' },
-  { icon: Fuel, title: 'Out of Fuel', emoji: '⛽' },
-  { icon: KeyRound, title: 'Locked Out', emoji: '🔑' },
-  { icon: Wrench, title: 'Mechanical', emoji: '🔧' },
-  { icon: AlertTriangle, title: 'Accident', emoji: '⚠️' },
+  { title: 'Dead Battery', emoji: '🔋' },
+  { title: 'Flat Tyre', emoji: '🛞' },
+  { title: 'Out of Fuel', emoji: '⛽' },
+  { title: 'Locked Out', emoji: '🔑' },
+  { title: 'Mechanical', emoji: '🔧' },
+  { title: 'Accident', emoji: '⚠️' },
+];
+
+const helpSources = [
+  { id: 'members', icon: Users, title: 'Nearby Members', description: 'Community help', colorClass: 'bg-routes' },
+  { id: 'services', icon: MapPin, title: 'Recovery Services', description: 'Professional help', colorClass: 'bg-services' },
 ];
 
 const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
@@ -58,7 +69,6 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
       </div>
-
       <div className="flex-1 px-5 py-4 space-y-4">
         {step === 0 ? (
           <>
@@ -97,7 +107,6 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
           </div>
         )}
       </div>
-
       <div className="p-5 pt-3 border-t border-border">
         {step === 0 ? (
           <Button className="w-full h-12 rounded-xl font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={handleSend}>
@@ -113,12 +122,16 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
 
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [details, setDetails] = useState('');
   const [showStolen, setShowStolen] = useState(false);
+  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
+  const [helpDistance, setHelpDistance] = useState(10);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
       setSelectedProblem(null);
+      setSelectedSource(null);
       setDetails('');
       setShowStolen(false);
     }
@@ -126,9 +139,11 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   };
 
   const handleConfirm = () => {
-    console.log('Help request:', { problem: selectedProblem, details });
+    console.log('Help request:', { problem: selectedProblem, source: selectedSource, details });
     handleClose(false);
   };
+
+  const canConfirm = selectedProblem && selectedSource;
 
   if (showStolen) {
     return (
@@ -142,14 +157,14 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
         {/* Header */}
         <div className="px-5 pt-5 pb-4">
           <div className="flex items-center justify-center mb-4">
             <div className="w-10 h-1 bg-border rounded-full" />
           </div>
           <h2 className="text-xl font-bold text-foreground">What happened?</h2>
-          <p className="text-sm text-muted-foreground mt-1">Select your issue and we'll find help nearby.</p>
+          <p className="text-sm text-muted-foreground mt-1">Select your issue and who should help.</p>
         </div>
 
         {/* Content */}
@@ -175,8 +190,43 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             })}
           </div>
 
+          {/* Help Source Selection */}
+          <div className={`space-y-2.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+            <p className="text-sm font-semibold text-foreground">Who should help?</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {helpSources.map((source) => {
+                const Icon = source.icon;
+                const isSelected = selectedSource === source.id;
+                return (
+                  <button
+                    key={source.id}
+                    onClick={() => setSelectedSource(source.id)}
+                    className={`relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all ${
+                      isSelected
+                        ? 'border-primary bg-primary/5 shadow-sm'
+                        : 'border-border bg-card hover:border-primary/30'
+                    }`}
+                  >
+                    <div className={`w-9 h-9 rounded-lg ${source.colorClass} flex items-center justify-center shrink-0`}>
+                      <Icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-bold text-foreground">{source.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{source.description}</p>
+                    </div>
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-primary-foreground" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Details */}
-          {selectedProblem && (
+          {canConfirm && (
             <div className="space-y-2 animate-fade-up">
               <p className="text-sm font-medium text-foreground">Details <span className="text-muted-foreground font-normal">(optional)</span></p>
               <Textarea
@@ -188,23 +238,44 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             </div>
           )}
 
-          {/* Emergency Links */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowStolen(true)}
-              className="flex-1 flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
-            >
-              <ShieldAlert className="w-4 h-4 text-destructive" />
-              <span className="text-xs font-semibold text-destructive">Vehicle Stolen</span>
-            </button>
-            <a
-              href="tel:999"
-              className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted border border-border hover:bg-accent transition-colors"
-            >
-              <Phone className="w-4 h-4 text-foreground" />
-              <span className="text-xs font-semibold text-foreground">Call 999</span>
-            </a>
+          {/* Available to Help */}
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-all ${isAvailableToHelp ? 'bg-primary' : 'bg-muted'}`}>
+                  <Heart className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-foreground">Available to Help</p>
+                  <p className="text-[10px] text-muted-foreground">Get notified when others need help</p>
+                </div>
+              </div>
+              <Switch checked={isAvailableToHelp} onCheckedChange={setIsAvailableToHelp} className="data-[state=checked]:bg-primary" />
+            </div>
+            {isAvailableToHelp && (
+              <div className="mt-3 pt-3 border-t border-primary/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-foreground">Distance</span>
+                  <span className="text-xs font-bold text-primary">{helpDistance} miles</span>
+                </div>
+                <Slider value={[helpDistance]} onValueChange={(v) => setHelpDistance(v[0])} min={1} max={50} step={1} />
+                <div className="flex items-center gap-1.5 text-[10px] text-primary bg-primary/10 rounded-lg px-2.5 py-1.5">
+                  <Bell className="w-3 h-3" />
+                  <span>Alerts for requests within {helpDistance} miles</span>
+                </div>
+              </div>
+            )}
           </div>
+
+          {/* Stolen vehicle */}
+          <button
+            onClick={() => setShowStolen(true)}
+            className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
+          >
+            <ShieldAlert className="w-4 h-4 text-destructive" />
+            <span className="text-xs font-semibold text-destructive">Vehicle Stolen? Tap here</span>
+            <ArrowRight className="w-3.5 h-3.5 text-destructive/60 ml-auto" />
+          </button>
         </div>
 
         {/* CTA */}
@@ -212,13 +283,13 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
           <Button
             className="w-full h-12 rounded-xl text-base font-semibold"
             size="lg"
-            disabled={!selectedProblem}
+            disabled={!canConfirm}
             onClick={handleConfirm}
           >
-            {selectedProblem ? (
+            {canConfirm ? (
               <>Find Help Nearby <ArrowRight className="w-4 h-4 ml-2" /></>
             ) : (
-              'Select an issue above'
+              'Select an issue & help source'
             )}
           </Button>
         </div>
