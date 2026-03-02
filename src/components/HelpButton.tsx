@@ -1,4 +1,4 @@
-import { AlertCircle, Lock } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
@@ -27,10 +27,10 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
   return (
     <button
       onClick={handleClick}
-      className={`relative w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-600 shadow-md shadow-red-500/25 flex items-center justify-center transition-all duration-200 hover:shadow-lg hover:shadow-red-500/35 active:scale-90 ${!allowed ? 'opacity-60' : ''}`}
+      className={`relative flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-destructive shadow-md shadow-destructive/25 transition-all duration-200 hover:shadow-lg hover:shadow-destructive/35 active:scale-90 ${!allowed ? 'opacity-60' : ''}`}
       aria-label="Get help"
     >
-      <AlertCircle className="w-[18px] h-[18px] text-white" />
+      <span className="text-sm font-black tracking-wide text-destructive-foreground">SOS</span>
       {!allowed && (
         <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-muted border-2 border-background flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 text-muted-foreground" />
