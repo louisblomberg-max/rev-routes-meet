@@ -146,6 +146,15 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     <div className="space-y-2 animate-fade-up">
       {/* Filter Bar Row */}
       <div className="flex items-center gap-2">
+        {/* Add Event Button */}
+        <button
+          onClick={() => navigate('/add/event')}
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
+        </button>
+
         {/* Filter Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -157,15 +166,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Filters</span>
-        </button>
-
-        {/* Add Event Button */}
-        <button
-          onClick={() => navigate('/add/event')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
 
         {/* Quick Date Picker */}
