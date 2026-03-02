@@ -1,8 +1,11 @@
-import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare, Lock, MapPin, Share2, Pencil, Sparkles, Star, Building2 } from 'lucide-react';
+import { useState } from 'react';
+import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare, Lock, MapPin, Share2, Pencil, Sparkles, Star, Building2, LifeBuoy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useCurrentUser } from '@/hooks/useProfileData';
 import { usePlan } from '@/contexts/PlanContext';
@@ -12,6 +15,8 @@ const YouTab = () => {
   const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan } = usePlan();
   const { user } = useCurrentUser();
   const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount } = useUserStats();
+  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
+  const [helpDistance, setHelpDistance] = useState(10);
 
   const planBadge = {
     free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
@@ -130,6 +135,45 @@ const YouTab = () => {
               <span className="text-xs text-muted-foreground">Clubs</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* ── Available to Help ── */}
+      <div className="px-4 pt-3">
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
+          <div className="w-full flex items-center gap-3 px-4 py-3">
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isAvailableToHelp ? 'bg-primary/10' : 'bg-muted'}`}>
+              <LifeBuoy className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary' : 'text-muted-foreground'}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="text-sm font-semibold text-foreground">Available to Help</span>
+            </div>
+            <Switch
+              checked={isAvailableToHelp}
+              onCheckedChange={setIsAvailableToHelp}
+              className="data-[state=checked]:bg-primary"
+            />
+          </div>
+          {isAvailableToHelp && (
+            <div className="px-4 pb-3 pt-0">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-xs text-muted-foreground">Helping within</span>
+                <span className="text-xs font-bold text-primary">{helpDistance} miles</span>
+              </div>
+              <Slider
+                value={[helpDistance]}
+                onValueChange={(v) => setHelpDistance(v[0])}
+                min={1}
+                max={50}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between mt-1">
+                <span className="text-[10px] text-muted-foreground">1 mi</span>
+                <span className="text-[10px] text-muted-foreground">50 mi</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
