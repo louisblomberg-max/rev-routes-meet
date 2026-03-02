@@ -22,7 +22,7 @@ interface HelpSheetProps {
 }
 
 const allProblems = [
-  { title: 'Dead Battery', emoji: '🔋' },
+  { title: 'Electrical', emoji: '⚡' },
   { title: 'Flat Tyre', emoji: '🛞' },
   { title: 'Out of Fuel', emoji: '⛽' },
   { title: 'Locked Out', emoji: '🔑' },
