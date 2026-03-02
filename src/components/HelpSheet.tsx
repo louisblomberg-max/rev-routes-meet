@@ -194,7 +194,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
           {/* ── Details (Required) ── */}
           <div className="space-y-1">
-            <p className="text-xs font-semibold text-foreground">Describe what happened <span className="text-destructive">*</span></p>
+            <p className="text-xs font-semibold text-foreground">Add details <span className="text-destructive">*</span></p>
             <Textarea
               placeholder="Vehicle, location, what you see — helps responders find you fast..."
               value={details}
