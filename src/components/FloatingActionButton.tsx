@@ -85,10 +85,13 @@ const FloatingActionButton = ({
       {/* Main FAB */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-10 h-10 rounded-xl bg-white shadow-lg border border-border/60 flex items-center justify-center transition-all duration-300 hover:shadow-xl active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}
+        className="flex flex-col items-center gap-0.5 group"
         aria-label="Create new content"
       >
-        <Plus className="w-6 h-6 text-foreground" />
+        <div className={`relative w-10 h-10 rounded-xl bg-white shadow-lg border border-border/60 flex items-center justify-center transition-all duration-300 group-hover:shadow-xl group-active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}>
+          <Plus className="w-6 h-6 text-foreground" />
+        </div>
+        <span className="text-[9px] font-semibold text-foreground/70 drop-shadow-sm">Add</span>
       </button>
     </>
   );
