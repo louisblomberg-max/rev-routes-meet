@@ -233,6 +233,11 @@ const Home = () => {
             )}
           </div>
         )}
+
+        {/* Map Style Button - below filters */}
+        <div className="px-3 pt-2 flex justify-end">
+          <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
+        </div>
       </div>
 
       {/* Left-side help button */}
@@ -242,7 +247,6 @@ const Home = () => {
 
       {/* Right-side controls stack */}
       <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
-        <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
         <LocationButton onClick={handleLocateUser} />
         <FloatingActionButton
           onAddEvent={() => navigate('/add/event')}
