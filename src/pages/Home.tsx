@@ -13,7 +13,7 @@ import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
-import FloatingActionButton from '@/components/FloatingActionButton';
+
 import HelpSheet from '@/components/HelpSheet';
 import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
@@ -248,12 +248,6 @@ const Home = () => {
       {/* Right-side controls stack */}
       <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
         <LocationButton onClick={handleLocateUser} />
-        <FloatingActionButton
-          onAddEvent={() => navigate('/add/event')}
-          onAddRoute={() => navigate('/add/route')}
-          onAddService={() => navigate('/add/service')}
-          onAddClub={() => navigate('/add/club')}
-        />
       </div>
 
       {/* Help Sheet */}
