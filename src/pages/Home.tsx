@@ -240,8 +240,8 @@ const Home = () => {
         </div>
       </div>
 
-      {/* SOS button - just above Discovery nav button */}
-      <div className="fixed left-3 bottom-[72px] z-30">
+      {/* SOS button - just above bottom nav */}
+      <div className="fixed left-3 bottom-20 z-30">
         <HelpButton onClick={() => setIsHelpOpen(true)} />
       </div>
 
