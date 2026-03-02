@@ -168,8 +168,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [details, setDetails] = useState('');
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [showStolen, setShowStolen] = useState(false);
-  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
-  const [helpDistance] = useState(10);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
@@ -203,27 +201,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
-        {/* ── 1. Available to Help Row ── */}
-        <div className="px-5 pt-4 pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <LifeBuoy className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary' : 'text-muted-foreground'}`} />
-              <span className="text-sm font-medium text-foreground">Available to Help</span>
-            </div>
-            <Switch
-              checked={isAvailableToHelp}
-              onCheckedChange={setIsAvailableToHelp}
-              className="data-[state=checked]:bg-primary scale-90"
-            />
-          </div>
-          {isAvailableToHelp && (
-            <p className="text-[11px] text-muted-foreground mt-0.5 pl-6">
-              Helping within {helpDistance} miles · <button className="text-primary underline-offset-2 underline">Settings</button>
-            </p>
-          )}
-        </div>
-
-        <div className="h-px bg-border mx-5" />
 
         {/* ── 2. Header ── */}
         <div className="px-5 pt-4 pb-1">
