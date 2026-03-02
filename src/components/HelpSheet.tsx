@@ -164,59 +164,51 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <SheetContent side="bottom" className="rounded-t-2xl flex flex-col p-0 gap-0">
 
-        {/* ── 2. Header ── */}
-        <div className="px-5 pt-4 pb-1">
-          <h2 className="text-xl font-bold text-foreground">What's up?</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Tell us what's happened.</p>
+        {/* ── Header ── */}
+        <div className="px-4 pt-3 pb-1">
+          <h2 className="text-lg font-bold text-foreground">What's up?</h2>
+          <p className="text-xs text-muted-foreground">Tell us what's happened.</p>
         </div>
 
-        {/* ── Scrollable Content ── */}
-        <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5 pt-3">
-          {/* ── 3. Problem Selection (3×2 grid) ── */}
-          <div className="grid grid-cols-3 gap-2">
+        {/* ── Content ── */}
+        <div className="px-4 pb-3 space-y-3 pt-2">
+          {/* ── Problem Selection (3×2 grid) ── */}
+          <div className="grid grid-cols-3 gap-1.5">
             {allProblems.map((p) => (
               <button
                 key={p.title}
                 onClick={() => setSelectedProblem(p.title)}
-                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all ${
+                className={`flex flex-col items-center gap-1 py-2 px-1.5 rounded-lg border-2 transition-all ${
                   selectedProblem === p.title
                     ? 'border-primary bg-primary/5 shadow-sm'
                     : 'border-border bg-card hover:border-primary/30'
                 }`}
               >
-                <span className="text-xl leading-none">{p.emoji}</span>
-                <span className="text-xs font-semibold text-foreground leading-tight">{p.title}</span>
+                <span className="text-lg leading-none">{p.emoji}</span>
+                <span className="text-[10px] font-semibold text-foreground leading-tight">{p.title}</span>
               </button>
             ))}
           </div>
 
-          {/* ── 4. Details (Required) ── */}
-          <div className="space-y-2">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Describe what happened <span className="text-destructive">*</span></p>
-              <p className="text-xs text-muted-foreground mt-0.5">The more detail you provide, the faster help can reach you.</p>
-            </div>
+          {/* ── Details (Required) ── */}
+          <div className="space-y-1">
+            <p className="text-xs font-semibold text-foreground">Describe what happened <span className="text-destructive">*</span></p>
             <Textarea
-              placeholder="E.g. Silver BMW 3 Series on the A34 northbound, just past junction 9. Front left tyre is flat, pulled over on the hard shoulder..."
+              placeholder="Vehicle, location, what you see — helps responders find you fast..."
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              className={`min-h-[90px] resize-none rounded-xl border-2 bg-muted/30 ${
+              className={`min-h-[60px] text-xs resize-none rounded-lg border-2 bg-muted/30 ${
                 details.trim().length === 0 ? 'border-border focus:border-primary' : 'border-primary/40 focus:border-primary'
               }`}
             />
-            {details.trim().length === 0 && selectedProblem && (
-              <p className="text-[11px] text-muted-foreground">
-                💡 Include your vehicle, location, and what you see — it helps responders find you quickly.
-              </p>
-            )}
           </div>
 
-          {/* ── 5. Who Should Help? ── */}
-          <div className={`space-y-2.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-            <p className="text-sm font-semibold text-foreground">Who should help?</p>
-            <div className="space-y-2">
+          {/* ── Who Should Help? (side by side) ── */}
+          <div className={`space-y-1.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+            <p className="text-xs font-semibold text-foreground">Who should help?</p>
+            <div className="grid grid-cols-2 gap-1.5">
               {helpSources.map((source) => {
                 const Icon = source.icon;
                 const isSelected = selectedSource === source.id;
@@ -224,22 +216,20 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                   <button
                     key={source.id}
                     onClick={() => setSelectedSource(source.id)}
-                    className={`relative flex items-center gap-3 p-3.5 rounded-xl border-2 transition-all w-full text-left ${
+                    className={`relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 transition-all text-center ${
                       isSelected
                         ? 'border-primary bg-primary/5 shadow-sm'
                         : 'border-border bg-card hover:border-primary/30'
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-lg ${source.colorClass} flex items-center justify-center shrink-0`}>
-                      <Icon className="w-5 h-5 text-white" />
+                    <div className={`w-8 h-8 rounded-md ${source.colorClass} flex items-center justify-center shrink-0`}>
+                      <Icon className="w-4 h-4 text-white" />
                     </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground">{source.title}</p>
-                      <p className="text-xs text-muted-foreground">{source.description}</p>
-                    </div>
+                    <p className="text-[11px] font-bold text-foreground leading-tight">{source.title}</p>
+                    <p className="text-[9px] text-muted-foreground leading-tight">{source.description}</p>
                     {isSelected && (
-                      <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                        <Check className="w-3 h-3 text-primary-foreground" />
+                      <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                        <Check className="w-2.5 h-2.5 text-primary-foreground" />
                       </div>
                     )}
                   </button>
@@ -251,18 +241,18 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
           {/* ── Stolen Vehicle Link ── */}
           <button
             onClick={() => setShowStolen(true)}
-            className="w-full flex items-center gap-3 p-3 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
+            className="w-full flex items-center gap-2 p-2 rounded-lg bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
           >
-            <ShieldAlert className="w-4 h-4 text-destructive" />
-            <span className="text-xs font-semibold text-destructive">Vehicle Stolen? Tap here</span>
-            <ArrowRight className="w-3.5 h-3.5 text-destructive/60 ml-auto" />
+            <ShieldAlert className="w-3.5 h-3.5 text-destructive" />
+            <span className="text-[10px] font-semibold text-destructive">Vehicle Stolen? Tap here</span>
+            <ArrowRight className="w-3 h-3 text-destructive/60 ml-auto" />
           </button>
         </div>
 
-        {/* ── 7. Dynamic CTA ── */}
-        <div className="p-5 pt-3 border-t border-border">
+        {/* ── Dynamic CTA ── */}
+        <div className="px-4 pb-4 pt-2 border-t border-border">
           <Button
-            className="w-full h-12 rounded-xl text-base font-semibold"
+            className="w-full h-11 rounded-xl text-sm font-semibold"
             size="lg"
             disabled={!canConfirm}
             onClick={handleConfirm}
