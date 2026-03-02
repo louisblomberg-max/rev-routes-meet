@@ -3,9 +3,10 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, SlidersHorizontal, X } from 'lucide-react';
+import { CalendarIcon, SlidersHorizontal, X, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export interface EventsFilterState {
   distance: number | 'national' | 'continental' | 'global';
@@ -24,6 +25,7 @@ interface EventsFiltersPanelProps {
 }
 
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
 
@@ -155,6 +157,15 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Filters</span>
+        </button>
+
+        {/* Create Event Button */}
+        <button
+          onClick={() => navigate('/add/event')}
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-[10px] font-semibold whitespace-nowrap">Create</span>
         </button>
 
         {/* Quick Date Picker */}

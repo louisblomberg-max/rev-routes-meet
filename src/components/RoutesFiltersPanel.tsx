@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
-import { SlidersHorizontal, X, Star } from 'lucide-react';
+import { SlidersHorizontal, X, Star, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export interface RoutesFilterState {
   distance: number | 'national' | 'continental' | 'global';
@@ -17,6 +18,7 @@ interface RoutesFiltersPanelProps {
 }
 
 const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const distancePresets = [
@@ -117,18 +119,30 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`h-10 w-full flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
-          isOpen
-            ? 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80 shadow-lg'
-            : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
-        }`}
-      >
-        <SlidersHorizontal className="w-4 h-4" />
-        <span className="text-[10px] font-semibold">Filters</span>
-      </button>
+      {/* Filter Bar Row */}
+      <div className="flex items-center gap-2">
+        {/* Filter Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen
+              ? 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
+          }`}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">Filters</span>
+        </button>
+
+        {/* Create Route Button */}
+        <button
+          onClick={() => navigate('/add/route')}
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#1E40AF] text-white shadow-sm hover:bg-[#1E40AF]/90 active:scale-[0.97] transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-[10px] font-semibold whitespace-nowrap">Create</span>
+        </button>
+      </div>
 
       {/* Filter Panel */}
       {isOpen && (
