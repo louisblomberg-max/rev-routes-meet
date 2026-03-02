@@ -4,7 +4,7 @@ import { SlidersHorizontal, X, Star, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface RoutesFilterState {
-  distance: number | 'national' | 'continental' | 'global';
+  distance: number | 'national' | 'international';
   types: string[];
   difficulty: string[];
   duration: string | null;
@@ -23,8 +23,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
 
   const distancePresets = [
     { id: 'national', label: 'National' },
-    { id: 'continental', label: 'Continental' },
-    { id: 'global', label: 'Global' },
+    { id: 'international', label: 'International' },
   ];
 
   const typeOptions = [
@@ -88,7 +87,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     onFiltersChange({ ...filters, distance: value[0] });
   };
 
-  const handleDistancePreset = (preset: 'national' | 'continental' | 'global') => {
+  const handleDistancePreset = (preset: 'national' | 'international') => {
     onFiltersChange({ 
       ...filters, 
       distance: filters.distance === preset ? 25 : preset 
@@ -177,7 +176,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
               {distancePresets.map((preset) => (
                 <button
                   key={preset.id}
-                  onClick={() => handleDistancePreset(preset.id as 'national' | 'continental' | 'global')}
+                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.distance === preset.id
                       ? 'bg-[#1E40AF]/80 text-white'
