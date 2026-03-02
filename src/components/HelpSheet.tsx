@@ -13,25 +13,18 @@ import {
   X,
   Users,
   MapPin,
-  Heart,
   Phone,
-  ChevronDown,
-  LifeBuoy,
 } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface HelpSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const primaryProblems = [
+const allProblems = [
   { title: 'Dead Battery', emoji: '🔋' },
   { title: 'Flat Tyre', emoji: '🛞' },
   { title: 'Out of Fuel', emoji: '⛽' },
-];
-
-const secondaryProblems = [
   { title: 'Locked Out', emoji: '🔑' },
   { title: 'Mechanical', emoji: '🔧' },
   { title: 'Accident', emoji: '⚠️' },
@@ -133,40 +126,11 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-/* ── Problem Card ── */
-const ProblemCard = ({
-  emoji,
-  title,
-  selected,
-  onClick,
-}: {
-  emoji: string;
-  title: string;
-  selected: boolean;
-  onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border-2 transition-all text-left ${
-      selected
-        ? 'border-primary bg-primary/5 shadow-sm'
-        : 'border-border bg-card hover:border-primary/30'
-    }`}
-  >
-    <span className="text-xl leading-none">{emoji}</span>
-    <span className="text-sm font-semibold text-foreground">{title}</span>
-    {selected && (
-      <Check className="w-4 h-4 text-primary ml-auto" />
-    )}
-  </button>
-);
-
 /* ── Main Help Sheet ── */
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [details, setDetails] = useState('');
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [showStolen, setShowStolen] = useState(false);
 
   const handleClose = (isOpen: boolean) => {
@@ -174,7 +138,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
       setSelectedProblem(null);
       setSelectedSource(null);
       setDetails('');
-      setDetailsOpen(false);
+      
       setShowStolen(false);
     }
     onOpenChange(isOpen);
@@ -185,7 +149,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
     handleClose(false);
   };
 
-  const canConfirm = selectedProblem && selectedSource;
+  const canConfirm = selectedProblem && selectedSource && details.trim().length > 0;
   const activeSource = helpSources.find((s) => s.id === selectedSource);
 
   if (showStolen) {
@@ -210,53 +174,44 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
         {/* ── Scrollable Content ── */}
         <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5 pt-3">
-          {/* ── 3. Problem Selection ── */}
-          <div className="space-y-2">
-            <div className="grid grid-cols-1 gap-2">
-              {primaryProblems.map((p) => (
-                <ProblemCard
-                  key={p.title}
-                  emoji={p.emoji}
-                  title={p.title}
-                  selected={selectedProblem === p.title}
-                  onClick={() => setSelectedProblem(p.title)}
-                />
-              ))}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {secondaryProblems.map((p) => (
-                <button
-                  key={p.title}
-                  onClick={() => setSelectedProblem(p.title)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-2 rounded-xl border-2 transition-all ${
-                    selectedProblem === p.title
-                      ? 'border-primary bg-primary/5 shadow-sm'
-                      : 'border-border bg-card hover:border-primary/30'
-                  }`}
-                >
-                  <span className="text-lg leading-none">{p.emoji}</span>
-                  <span className="text-[10px] font-semibold text-foreground leading-tight">{p.title}</span>
-                </button>
-              ))}
-            </div>
+          {/* ── 3. Problem Selection (3×2 grid) ── */}
+          <div className="grid grid-cols-3 gap-2">
+            {allProblems.map((p) => (
+              <button
+                key={p.title}
+                onClick={() => setSelectedProblem(p.title)}
+                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all ${
+                  selectedProblem === p.title
+                    ? 'border-primary bg-primary/5 shadow-sm'
+                    : 'border-border bg-card hover:border-primary/30'
+                }`}
+              >
+                <span className="text-xl leading-none">{p.emoji}</span>
+                <span className="text-xs font-semibold text-foreground leading-tight">{p.title}</span>
+              </button>
+            ))}
           </div>
 
-          {/* ── 4. Details (Collapsible) ── */}
-          <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-            <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-full">
-              <ChevronDown className={`w-4 h-4 transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
-              <span className="font-medium">Add more details</span>
-              <span className="text-xs">(optional)</span>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="pt-2">
-              <Textarea
-                placeholder="E.g. Silver BMW on A34, junction 9..."
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                className="min-h-[70px] resize-none rounded-xl border-2 focus:border-primary bg-muted/30"
-              />
-            </CollapsibleContent>
-          </Collapsible>
+          {/* ── 4. Details (Required) ── */}
+          <div className="space-y-2">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Describe what happened <span className="text-destructive">*</span></p>
+              <p className="text-xs text-muted-foreground mt-0.5">The more detail you provide, the faster help can reach you.</p>
+            </div>
+            <Textarea
+              placeholder="E.g. Silver BMW 3 Series on the A34 northbound, just past junction 9. Front left tyre is flat, pulled over on the hard shoulder..."
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
+              className={`min-h-[90px] resize-none rounded-xl border-2 bg-muted/30 ${
+                details.trim().length === 0 ? 'border-border focus:border-primary' : 'border-primary/40 focus:border-primary'
+              }`}
+            />
+            {details.trim().length === 0 && selectedProblem && (
+              <p className="text-[11px] text-muted-foreground">
+                💡 Include your vehicle, location, and what you see — it helps responders find you quickly.
+              </p>
+            )}
+          </div>
 
           {/* ── 5. Who Should Help? ── */}
           <div className={`space-y-2.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
