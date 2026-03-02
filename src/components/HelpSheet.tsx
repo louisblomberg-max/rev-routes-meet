@@ -1,51 +1,28 @@
 import { useState } from 'react';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
-import { 
-  Car, 
-  Battery, 
-  Fuel, 
-  KeyRound, 
-  AlertTriangle, 
-  Wrench, 
+import {
+  Battery,
+  Car,
+  Fuel,
+  KeyRound,
+  Wrench,
+  AlertTriangle,
   Phone,
-  MapPin,
-  Users,
-  Check,
-  MessageSquare,
   ArrowRight,
-  Heart,
-  Bell,
   ShieldAlert,
+  Loader2,
+  Check,
   Radio,
   MapPinned,
-  Loader2
+  X,
 } from 'lucide-react';
 
 interface HelpSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
-
-const helpSources = [
-  {
-    id: 'members',
-    icon: Users,
-    title: 'Nearby Members',
-    description: 'Community members near you',
-    colorClass: 'bg-routes',
-  },
-  {
-    id: 'services',
-    icon: MapPin,
-    title: 'Recovery Services',
-    description: 'Professional breakdown help',
-    colorClass: 'bg-services',
-  },
-];
 
 const problemTypes = [
   { icon: Battery, title: 'Dead Battery', emoji: '🔋' },
@@ -56,219 +33,108 @@ const problemTypes = [
   { icon: AlertTriangle, title: 'Accident', emoji: '⚠️' },
 ];
 
+const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
+  const [step, setStep] = useState(0);
+
+  const handleSend = () => {
+    setStep(1);
+    setTimeout(() => setStep(2), 1500);
+    setTimeout(() => setStep(3), 3000);
+  };
+
+  const stages = [
+    { label: 'Alerting nearby members', sub: '12 members notified', icon: Radio, color: 'text-routes' },
+    { label: 'Sharing your location', sub: 'GPS coordinates sent', icon: MapPinned, color: 'text-services' },
+    { label: 'Contacting 999', sub: '999 contacted', icon: Phone, color: 'text-destructive' },
+  ];
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+        <h2 className="text-lg font-bold text-destructive flex items-center gap-2">
+          <ShieldAlert className="w-5 h-5" /> Vehicle Stolen
+        </h2>
+        <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+          <X className="w-4 h-4 text-muted-foreground" />
+        </button>
+      </div>
+
+      <div className="flex-1 px-5 py-4 space-y-4">
+        {step === 0 ? (
+          <>
+            <p className="text-sm text-muted-foreground">
+              This will immediately alert all RevNet members nearby and contact emergency services.
+            </p>
+            <div className="space-y-2">
+              {stages.map((s) => (
+                <div key={s.label} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
+                  <s.icon className={`w-5 h-5 ${s.color}`} />
+                  <span className="text-sm font-medium text-foreground">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="space-y-2">
+            {stages.map((s, i) => {
+              const done = step > i + 1 || (step === 3 && i === 2);
+              const active = step === i + 1;
+              return (
+                <div key={s.label} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${done ? 'bg-primary/5 border-primary/20' : active ? 'bg-muted border-primary/30' : 'bg-muted/50 border-border'}`}>
+                  {active ? <Loader2 className={`w-5 h-5 ${s.color} animate-spin`} /> : done ? <Check className="w-5 h-5 text-primary" /> : <s.icon className={`w-5 h-5 ${s.color}`} />}
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{s.label}</p>
+                    {done && <p className="text-xs text-muted-foreground">{s.sub}</p>}
+                  </div>
+                </div>
+              );
+            })}
+            {step === 3 && (
+              <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
+                <p className="text-sm font-medium text-primary">Help is on the way. Stay safe.</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="p-5 pt-3 border-t border-border">
+        {step === 0 ? (
+          <Button className="w-full h-12 rounded-xl font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={handleSend}>
+            <ShieldAlert className="w-4 h-4 mr-2" /> Send Emergency Alert
+          </Button>
+        ) : step === 3 ? (
+          <Button className="w-full h-12 rounded-xl font-semibold" onClick={onClose}>Done</Button>
+        ) : null}
+      </div>
+    </div>
+  );
+};
+
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
   const [details, setDetails] = useState('');
-  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
-  const [helpDistance, setHelpDistance] = useState(10);
-  const [stolenAlertActive, setStolenAlertActive] = useState(false);
-  const [stolenAlertStep, setStolenAlertStep] = useState(0);
-  const handleConfirm = () => {
-    console.log('Help request:', { source: selectedSource, problem: selectedProblem, details });
-    onOpenChange(false);
-    setSelectedSource(null);
-    setSelectedProblem(null);
-    setDetails('');
-  };
+  const [showStolen, setShowStolen] = useState(false);
 
   const handleClose = (isOpen: boolean) => {
     if (!isOpen) {
-      setSelectedSource(null);
       setSelectedProblem(null);
       setDetails('');
-      setStolenAlertActive(false);
-      setStolenAlertStep(0);
+      setShowStolen(false);
     }
     onOpenChange(isOpen);
   };
 
-  const handleStolenAlert = () => {
-    setStolenAlertStep(1);
-    // Simulate alerting nearby members
-    setTimeout(() => setStolenAlertStep(2), 1500);
-    // Simulate contacting emergency services
-    setTimeout(() => setStolenAlertStep(3), 3000);
+  const handleConfirm = () => {
+    console.log('Help request:', { problem: selectedProblem, details });
+    handleClose(false);
   };
 
-  const canConfirm = selectedSource && selectedProblem;
-
-  // Stolen Vehicle Alert Flow
-  if (stolenAlertActive) {
+  if (showStolen) {
     return (
       <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
-          <div className="bg-destructive px-6 pt-6 pb-5 rounded-t-2xl">
-            <div className="flex items-center justify-center mb-3">
-              <div className="w-10 h-1 bg-destructive-foreground/30 rounded-full" />
-            </div>
-            <SheetHeader className="text-left">
-              <SheetTitle className="flex items-center gap-3 text-xl text-destructive-foreground">
-                <div className="w-10 h-10 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5 text-destructive-foreground" />
-                </div>
-                Vehicle Stolen Alert
-              </SheetTitle>
-            </SheetHeader>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-5 py-6 space-y-6">
-            {stolenAlertStep === 0 ? (
-              <>
-                <div className="text-center space-y-3">
-                  <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto">
-                    <ShieldAlert className="w-8 h-8 text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Report Vehicle Theft</h3>
-                  <p className="text-sm text-muted-foreground">
-                    This will immediately alert all RevNet members within 10 miles and notify emergency services.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                    <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                      <Radio className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Broadcast Alert</p>
-                      <p className="text-xs text-muted-foreground">12 members nearby will be notified</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center">
-                      <MapPinned className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Share Location</p>
-                      <p className="text-xs text-muted-foreground">Your current location will be shared</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                    <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Emergency Services</p>
-                      <p className="text-xs text-muted-foreground">999 will be contacted automatically</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {stolenAlertStep === 3 ? 'Alert Sent!' : 'Sending Alert...'}
-                  </h3>
-                </div>
-
-                <div className="space-y-3">
-                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    stolenAlertStep >= 1 ? 'bg-blue-50 border-blue-200' : 'bg-muted/50 border-border'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      stolenAlertStep >= 2 ? 'bg-blue-600' : 'bg-blue-100'
-                    }`}>
-                      {stolenAlertStep === 1 ? (
-                        <Loader2 className="w-5 h-5 text-blue-600 animate-spin" />
-                      ) : stolenAlertStep >= 2 ? (
-                        <Check className="w-5 h-5 text-white" />
-                      ) : (
-                        <Radio className="w-5 h-5 text-blue-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Alerting Nearby Members</p>
-                      <p className="text-xs text-muted-foreground">
-                        {stolenAlertStep >= 2 ? '12 members notified' : 'Broadcasting to 12 members...'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    stolenAlertStep >= 2 ? 'bg-emerald-50 border-emerald-200' : 'bg-muted/50 border-border'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      stolenAlertStep >= 3 ? 'bg-emerald-600' : 'bg-emerald-100'
-                    }`}>
-                      {stolenAlertStep === 2 ? (
-                        <Loader2 className="w-5 h-5 text-emerald-600 animate-spin" />
-                      ) : stolenAlertStep >= 3 ? (
-                        <Check className="w-5 h-5 text-white" />
-                      ) : (
-                        <MapPinned className="w-5 h-5 text-emerald-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Location Shared</p>
-                      <p className="text-xs text-muted-foreground">
-                        {stolenAlertStep >= 3 ? 'GPS coordinates sent' : 'Sharing your location...'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${
-                    stolenAlertStep >= 3 ? 'bg-red-50 border-red-200' : 'bg-muted/50 border-border'
-                  }`}>
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      stolenAlertStep >= 3 ? 'bg-red-600' : 'bg-red-100'
-                    }`}>
-                      {stolenAlertStep >= 3 ? (
-                        <Check className="w-5 h-5 text-white" />
-                      ) : (
-                        <Phone className="w-5 h-5 text-red-600" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm text-foreground">Emergency Services</p>
-                      <p className="text-xs text-muted-foreground">
-                        {stolenAlertStep >= 3 ? '999 contacted' : 'Waiting...'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {stolenAlertStep === 3 && (
-                  <div className="mt-6 p-4 rounded-xl bg-green-50 border border-green-200 text-center">
-                    <p className="text-sm font-medium text-green-800">
-                      Help is on the way. Stay safe and wait for authorities.
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="p-5 pt-3 border-t bg-background/80 backdrop-blur-sm">
-            {stolenAlertStep === 0 ? (
-              <div className="space-y-2">
-                <Button 
-                  className="w-full h-12 rounded-xl text-base font-semibold bg-red-600 hover:bg-red-700"
-                  size="lg"
-                  onClick={handleStolenAlert}
-                >
-                  <ShieldAlert className="w-4 h-4 mr-2" />
-                  Send Emergency Alert
-                </Button>
-                <Button 
-                  variant="ghost"
-                  className="w-full"
-                  onClick={() => setStolenAlertActive(false)}
-                >
-                  Cancel
-                </Button>
-              </div>
-            ) : stolenAlertStep === 3 ? (
-              <Button 
-                className="w-full h-12 rounded-xl text-base font-semibold"
-                size="lg"
-                onClick={() => handleClose(false)}
-              >
-                Done
-              </Button>
-            ) : null}
-          </div>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+          <StolenAlertFlow onClose={() => handleClose(false)} />
         </SheetContent>
       </Sheet>
     );
@@ -276,200 +142,83 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] flex flex-col p-0 gap-0">
         {/* Header */}
-        <div className="bg-destructive px-6 pt-6 pb-5 rounded-t-2xl">
-          <div className="flex items-center justify-center mb-3">
-            <div className="w-10 h-1 bg-destructive-foreground/30 rounded-full" />
+        <div className="px-5 pt-5 pb-4">
+          <div className="flex items-center justify-center mb-4">
+            <div className="w-10 h-1 bg-border rounded-full" />
           </div>
-          <SheetHeader className="text-left">
-            <SheetTitle className="flex items-center gap-3 text-xl text-destructive-foreground">
-              <div className="w-10 h-10 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-destructive-foreground" />
-              </div>
-              Need Help?
-            </SheetTitle>
-          </SheetHeader>
-          
-          {/* Emergency Notice */}
-          <div className="mt-4 flex items-center gap-2 bg-destructive-foreground/10 rounded-lg px-3 py-2.5">
-            <Phone className="w-4 h-4 text-destructive-foreground" />
-            <span className="text-sm text-destructive-foreground/90">In an emergency, call <span className="font-bold">999</span> first</span>
-          </div>
-
-          {/* Stolen Vehicle Button - Critical Action */}
-          <button 
-            onClick={() => setStolenAlertActive(true)}
-            className="mt-3 w-full flex items-center justify-between gap-3 bg-destructive-foreground/10 hover:bg-destructive-foreground/20 rounded-lg px-4 py-3 transition-all group border border-destructive-foreground/20"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-destructive-foreground/20 flex items-center justify-center">
-                <ShieldAlert className="w-5 h-5 text-destructive-foreground" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-destructive-foreground">Vehicle Stolen?</p>
-                <p className="text-caption text-destructive-foreground/70">Alert nearby members & emergency services</p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-destructive-foreground/70 group-hover:text-destructive-foreground transition-colors" />
-          </button>
+          <h2 className="text-xl font-bold text-foreground">What happened?</h2>
+          <p className="text-sm text-muted-foreground mt-1">Select your issue and we'll find help nearby.</p>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
-          {/* Available to Help Toggle */}
-          <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5">
-            <div className="p-4">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
-                    isAvailableToHelp 
-                      ? 'bg-primary' 
-                      : 'bg-muted'
-                  }`}>
-                    <Heart className={`w-5 h-5 transition-colors ${isAvailableToHelp ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-foreground">Available to Help</p>
-                    <p className="text-xs text-muted-foreground">Get notified when others need help nearby</p>
-                  </div>
-                </div>
-                <Switch 
-                  checked={isAvailableToHelp} 
-                  onCheckedChange={setIsAvailableToHelp}
-                  className="data-[state=checked]:bg-primary"
-                />
-              </div>
-              {isAvailableToHelp && (
-                <div className="mt-4 space-y-3 pt-3 border-t border-primary/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground">Distance willing to travel</span>
-                    <span className="text-sm font-semibold text-primary">{helpDistance} miles</span>
-                  </div>
-                  <Slider
-                    value={[helpDistance]}
-                    onValueChange={(value) => setHelpDistance(value[0])}
-                    min={1}
-                    max={50}
-                    step={1}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-[10px] text-muted-foreground">
-                    <span>1 mile</span>
-                    <span>50 miles</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg px-3 py-2">
-                    <Bell className="w-3.5 h-3.5" />
-                    <span>You'll receive alerts for help requests within {helpDistance} miles</span>
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 pb-5 space-y-5">
+          {/* Problem Grid */}
+          <div className="grid grid-cols-3 gap-2.5">
+            {problemTypes.map((problem) => {
+              const isSelected = selectedProblem === problem.title;
+              return (
+                <button
+                  key={problem.title}
+                  onClick={() => setSelectedProblem(problem.title)}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all ${
+                    isSelected
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border bg-card hover:border-primary/30'
+                  }`}
+                >
+                  <span className="text-3xl">{problem.emoji}</span>
+                  <p className="text-xs font-semibold text-foreground leading-tight">{problem.title}</p>
+                </button>
+              );
+            })}
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Need help yourself?</span>
-            <div className="flex-1 h-px bg-border" />
-          </div>
+          {/* Details */}
+          {selectedProblem && (
+            <div className="space-y-2 animate-fade-up">
+              <p className="text-sm font-medium text-foreground">Details <span className="text-muted-foreground font-normal">(optional)</span></p>
+              <Textarea
+                placeholder="E.g. Silver BMW on A34, junction 9..."
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                className="min-h-[70px] resize-none rounded-xl border-2 focus:border-primary bg-muted/30"
+              />
+            </div>
+          )}
 
-          {/* Step 1: Help Source */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center shadow-sm">1</span>
-              <p className="text-sm font-semibold text-foreground">Who should help you?</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              {helpSources.map((source) => {
-                const Icon = source.icon;
-                const isSelected = selectedSource === source.id;
-                return (
-                  <button
-                    key={source.id}
-                    onClick={() => setSelectedSource(source.id)}
-                    className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border transition-all text-center ${
-                      isSelected
-                        ? 'border-primary bg-primary/5 shadow-sm'
-                        : 'border-border/50 bg-card hover:border-border hover:shadow-card'
-                    }`}
-                  >
-                    <div className={`w-11 h-11 rounded-lg ${source.colorClass} flex items-center justify-center`}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-foreground text-sm">{source.title}</p>
-                      <p className="text-caption mt-0.5">{source.description}</p>
-                    </div>
-                    {isSelected && (
-                      <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-primary flex items-center justify-center">
-                        <Check className="w-3 h-3 text-primary-foreground" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 2: Problem Type */}
-          <div className={`space-y-3 transition-all duration-300 ${selectedSource ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-2 pointer-events-none'}`}>
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center shadow-sm">2</span>
-              <p className="text-sm font-semibold text-foreground">What's the issue?</p>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {problemTypes.map((problem) => {
-                const isSelected = selectedProblem === problem.title;
-                return (
-                  <button
-                    key={problem.title}
-                    onClick={() => setSelectedProblem(problem.title)}
-                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all ${
-                      isSelected
-                        ? 'border-primary bg-primary/5 shadow-md'
-                        : 'border-border bg-card hover:border-primary/30'
-                    }`}
-                  >
-                    <span className="text-2xl">{problem.emoji}</span>
-                    <p className="text-[11px] font-medium text-foreground leading-tight">{problem.title}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Step 3: Additional Details (Optional) */}
-          <div className={`space-y-3 transition-all duration-300 ${selectedProblem ? 'opacity-100 translate-y-0' : 'opacity-30 translate-y-2 pointer-events-none'}`}>
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-6 rounded-full bg-muted text-muted-foreground text-xs font-semibold flex items-center justify-center">
-                <MessageSquare className="w-3 h-3" />
-              </span>
-              <p className="text-sm font-semibold text-foreground">Add details <span className="font-normal text-muted-foreground">(optional)</span></p>
-            </div>
-            <Textarea
-              placeholder="E.g. I'm on the A34 near junction 9, silver BMW 3 series..."
-              value={details}
-              onChange={(e) => setDetails(e.target.value)}
-              className="min-h-[80px] resize-none rounded-xl border-2 focus:border-primary bg-muted/30"
-            />
+          {/* Emergency Links */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowStolen(true)}
+              className="flex-1 flex items-center gap-2 p-3 rounded-xl bg-destructive/10 border border-destructive/20 hover:bg-destructive/15 transition-colors"
+            >
+              <ShieldAlert className="w-4 h-4 text-destructive" />
+              <span className="text-xs font-semibold text-destructive">Vehicle Stolen</span>
+            </button>
+            <a
+              href="tel:999"
+              className="flex-1 flex items-center justify-center gap-2 p-3 rounded-xl bg-muted border border-border hover:bg-accent transition-colors"
+            >
+              <Phone className="w-4 h-4 text-foreground" />
+              <span className="text-xs font-semibold text-foreground">Call 999</span>
+            </a>
           </div>
         </div>
 
-        {/* Confirm Button */}
-        <div className="p-5 pt-3 border-t bg-background/80 backdrop-blur-sm">
-          <Button 
-            className="w-full h-12 rounded-xl text-base font-semibold shadow-lg"
+        {/* CTA */}
+        <div className="p-5 pt-3 border-t border-border">
+          <Button
+            className="w-full h-12 rounded-xl text-base font-semibold"
             size="lg"
-            disabled={!canConfirm}
+            disabled={!selectedProblem}
             onClick={handleConfirm}
           >
-            {canConfirm ? (
-              <>
-                Request Help
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </>
+            {selectedProblem ? (
+              <>Find Help Nearby <ArrowRight className="w-4 h-4 ml-2" /></>
             ) : (
-              'Complete the steps above'
+              'Select an issue above'
             )}
           </Button>
         </div>
