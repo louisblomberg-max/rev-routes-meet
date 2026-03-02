@@ -146,28 +146,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     <div className="space-y-2 animate-fade-up">
       {/* Filter Bar Row */}
       <div className="flex items-center gap-2">
-        {/* Add Event Button */}
-        <button
-          onClick={() => navigate('/add/event')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
-        </button>
-
-        {/* Filter Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
-            isOpen
-              ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
-          }`}
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">Filters</span>
-        </button>
-
         {/* Quick Date Picker */}
         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
           <PopoverTrigger asChild>
@@ -187,7 +165,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               </span>
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="end">
+          <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={filters.specificDate}
@@ -197,6 +175,28 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             />
           </PopoverContent>
         </Popover>
+
+        {/* Filter Button */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen
+              ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+          }`}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">Filters</span>
+        </button>
+
+        {/* Add Event Button */}
+        <button
+          onClick={() => navigate('/add/event')}
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
+        >
+          <Plus className="w-4 h-4" />
+          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
+        </button>
       </div>
 
       {/* Filter Panel */}
