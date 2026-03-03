@@ -179,6 +179,7 @@ const AddService = () => {
         lat: formData.locationCoords?.lat,
         lng: formData.locationCoords?.lng,
         createdBy: currentUser.id,
+        visibility: (formData as any).visibility || 'public',
       });
 
       toast.success('Service added successfully!', { description: `${formData.name} is now listed.` });

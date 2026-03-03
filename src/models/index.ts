@@ -16,6 +16,9 @@ export interface User {
   createdAt: string;
   preferences: UserPreferences;
   liveFeatures: LiveFeatures;
+  // Revenue / credits
+  eventCredits: number;
+  routeCredits: number;
 }
 
 export type PlanId = 'free' | 'pro' | 'club';
@@ -23,6 +26,7 @@ export type PlanId = 'free' | 'pro' | 'club';
 export interface UserPreferences {
   mapStyle: 'standard' | 'night' | 'satellite';
   availableToHelp: boolean;
+  helpDistanceMiles: number; // 5 | 10 | 25
   locationSharingEnabled: boolean;
   notifications: {
     messages: boolean;
@@ -37,6 +41,16 @@ export interface LiveFeatures {
   locationSharingEnabled: boolean;
   groupDrivesCount: number;
   breakdownHelpCount: number;
+}
+
+// ---- Subscription Plans ----
+export interface SubscriptionPlan {
+  id: PlanId;
+  name: string;
+  price: number; // monthly in GBP, 0 for free
+  features: string[];
+  eventCreditsPerMonth: number; // -1 = unlimited
+  routeCreditsPerMonth: number;
 }
 
 // ---- Vehicles / Garage ----
@@ -99,9 +113,11 @@ export interface MapItem {
   createdAt: string;
   visibility: 'public' | 'friends' | 'club';
   expiresAt?: string;
-  // Type-specific fields via discriminated extras
   [key: string]: unknown;
 }
+
+// ---- Visibility (shared enum) ----
+export type ContentVisibility = 'public' | 'club' | 'friends' | 'private';
 
 // ---- Events ----
 export interface RevEvent {
@@ -109,10 +125,13 @@ export interface RevEvent {
   title: string;
   description?: string;
   date: string;
+  endDate?: string;
   location: string;
   lat?: number;
   lng?: number;
-  vehicleType: string;
+  vehicleTypes: string[];
+  /** @deprecated Use vehicleTypes instead. Kept for backward compat. */
+  vehicleType?: string;
   eventType: string;
   attendees: number;
   createdBy: string;
@@ -120,6 +139,15 @@ export interface RevEvent {
   photos?: string[];
   entryFee?: string;
   clubId?: string;
+  visibility: ContentVisibility;
+  // New fields
+  isMultiDay: boolean;
+  isRecurring: boolean;
+  recurrenceType?: 'weekly' | 'monthly';
+  earlyBirdPrice?: string;
+  earlyBirdDeadline?: string;
+  ticketLimit?: number;
+  ticketsSold?: number;
 }
 
 // ---- Routes ----
@@ -135,15 +163,51 @@ export interface RevRoute {
   createdAt: string;
   lat?: number;
   lng?: number;
-  polyline?: string; // geojson string for route line
+  polyline?: string;
   saves?: number;
   drives?: number;
+  visibility: ContentVisibility;
+  // New fields
+  elevationGain?: number; // meters
+  scenicRating?: number; // 1-5
+  trafficLevel?: 'low' | 'moderate' | 'heavy';
+  surfaceType?: 'tarmac' | 'gravel' | 'mixed' | 'dirt';
+  difficulty?: 'easy' | 'moderate' | 'challenging' | 'expert';
+  safetyTags?: string[];
+  durationMinutes?: number;
 }
+
+// ---- Safety Tags (canonical list) ----
+export const SAFETY_TAGS = [
+  'Narrow roads',
+  'Low car warning',
+  'Avoid at night',
+  'High traffic',
+  'Seasonal closure risk',
+  'Speed cameras',
+  'Livestock crossing',
+  'Flood risk',
+] as const;
+
+export type SafetyTag = typeof SAFETY_TAGS[number];
+
+// ---- Event Types (canonical list) ----
+export const EVENT_TYPES = [
+  'Meets',
+  'Cars & Coffee',
+  'Track Day',
+  'Group Drive',
+  'Show / Exhibition',
+  'Drive-Out',
+] as const;
+
+export type EventType = typeof EVENT_TYPES[number];
 
 // ---- Services ----
 export interface RevService {
   id: string;
   name: string;
+  tagline?: string;
   category: string;
   serviceTypes: string[];
   rating: number;
@@ -158,6 +222,30 @@ export interface RevService {
   lng?: number;
   createdBy: string;
   createdAt: string;
+  visibility: ContentVisibility;
+  // New fields
+  yearsInBusiness?: number;
+  certifications?: string[];
+  emergencyCalloutFee?: string;
+  acceptedPaymentMethods?: string[];
+  servicesOffered?: string[];
+  website?: string;
+  socialLinks?: { instagram?: string; tiktok?: string; youtube?: string; x?: string };
+  // Business verification
+  vatRegistered?: boolean;
+  companyNumber?: string;
+  insuranceVerified?: boolean;
+  insuranceDocumentUrl?: string;
+  // Pro features
+  isFeatured?: boolean;
+  isVerified?: boolean;
+  isBoosted?: boolean;
+  // Service type
+  serviceMode?: 'fixed' | 'mobile';
+  mobileRadiusMiles?: number;
+  logo?: string | null;
+  coverImage?: string | null;
+  galleryImages?: string[];
 }
 
 // ---- Clubs ----
@@ -189,7 +277,7 @@ export interface Club {
   locationCoords?: { lat: number; lng: number };
   coverPhoto?: string | null;
   logo?: string | null;
-  image: string | null; // legacy compat
+  image: string | null;
   members: number;
   categories?: string[];
   clubType?: string;
@@ -309,12 +397,44 @@ export interface Message {
   read: boolean;
 }
 
-// ---- Help / Breakdown ----
+// ---- Help / SOS ----
+export const SOS_ISSUE_TYPES = [
+  'Electrical',
+  'Flat Tyre',
+  'Out of Fuel',
+  'Locked Out',
+  'Mechanical',
+  'Accident',
+  'Overheating',
+  'Clutch / Transmission',
+  'Brakes Issue',
+  'Steering Issue',
+] as const;
+
+export type SOSIssueType = typeof SOS_ISSUE_TYPES[number];
+
+export type HelpSource = 'nearby_members' | 'recovery_services';
+
 export interface HelpRequest {
   id: string;
   userId: string;
-  type: 'breakdown' | 'stolen' | 'general';
+  issueType: SOSIssueType;
   description: string;
+  helpSource: HelpSource;
+  lat: number;
+  lng: number;
+  status: 'active' | 'resolved';
+  createdAt: string;
+  // Legacy compat
+  type?: 'breakdown' | 'stolen' | 'general';
+}
+
+// ---- Stolen Vehicle Alert ----
+export interface StolenVehicleAlert {
+  id: string;
+  userId: string;
+  vehicleId?: string;
+  vehicleDescription: string;
   lat: number;
   lng: number;
   status: 'active' | 'resolved';
@@ -329,6 +449,13 @@ export interface UserStats {
   eventsCount: number;
   routesCount: number;
   discussionsCount: number;
+}
+
+// ---- Discovery Stats ----
+export interface DiscoveryStats {
+  eventsNearby: number;
+  routesTrending: number;
+  servicesOpenNow: number;
 }
 
 // ---- Route Models (detailed) ----

@@ -1,7 +1,7 @@
 // ============================
 // Mock Repository Implementations
 // ============================
-// In-memory + localStorage. Replace with Supabase later.
+// In-memory + React state. Replace with Supabase later.
 
 import type {
   User, Vehicle, Friend, Achievement, UserActivity, UserStats,
@@ -10,7 +10,7 @@ import type {
   ForumPost, ForumComment,
   MarketplaceListing,
   Conversation, Message,
-  HelpRequest, MapItem,
+  HelpRequest, StolenVehicleAlert, MapItem, DiscoveryStats,
 } from '@/models';
 
 import type {
@@ -21,30 +21,11 @@ import type {
   ViewportBounds,
 } from '@/repositories/interfaces';
 
-import {
-  seedEvents, seedRoutes, seedServices, seedClubs,
-  seedClubPosts, seedClubEvents,
-  seedForumPosts, seedForumComments,
-  seedMarketplaceListings,
-} from './seedData';
-
 // ---- Helpers ----
 const uid = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
 
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const stored = localStorage.getItem(`revnet_${key}`);
-    return stored ? JSON.parse(stored) : fallback;
-  } catch { return fallback; }
-}
-
-function saveToStorage<T>(key: string, data: T) {
-  localStorage.setItem(`revnet_${key}`, JSON.stringify(data));
-}
-
 // ---- State holders (will be set from DataProvider) ----
-// These are closures that return the latest state + setter from React
 type StateGetter<T> = () => T;
 type StateSetter<T> = (val: T | ((prev: T) => T)) => void;
 
@@ -68,6 +49,7 @@ export interface MockStoreConfig {
   userAttendingEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   userHostedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   helpRequests: { get: StateGetter<HelpRequest[]>; set: StateSetter<HelpRequest[]> };
+  stolenAlerts: { get: StateGetter<StolenVehicleAlert[]>; set: StateSetter<StolenVehicleAlert[]> };
   currentUser: { get: StateGetter<User | null>; set: StateSetter<User | null> };
 }
 
@@ -99,7 +81,6 @@ export class MockUserRepository implements IUserRepository {
   }
 
   getAchievements(_userId: string): Achievement[] {
-    // Fresh user: no achievements earned
     return [
       { id: '1', name: 'Helper', icon: 'heart-handshake', earned: false, description: 'Responded to 5+ breakdown requests' },
       { id: '2', name: 'Road Master', icon: 'map', earned: false, description: 'Created 10+ routes' },
@@ -110,6 +91,24 @@ export class MockUserRepository implements IUserRepository {
 
   getActivities(userId: string): UserActivity[] {
     return this.store.activities.get().filter(a => a.userId === userId);
+  }
+
+  useEventCredit(userId: string): boolean {
+    const user = this.store.currentUser.get();
+    if (!user || user.id !== userId) return false;
+    if (user.plan === 'pro' || user.plan === 'club') return true; // unlimited
+    if (user.eventCredits <= 0) return false;
+    this.store.currentUser.set({ ...user, eventCredits: user.eventCredits - 1 });
+    return true;
+  }
+
+  useRouteCredit(userId: string): boolean {
+    const user = this.store.currentUser.get();
+    if (!user || user.id !== userId) return false;
+    if (user.plan === 'pro' || user.plan === 'club') return true;
+    if (user.routeCredits <= 0) return false;
+    this.store.currentUser.set({ ...user, routeCredits: user.routeCredits - 1 });
+    return true;
   }
 }
 
@@ -206,6 +205,10 @@ export class MockEventsRepository implements IEventsRepository {
     const userEvents = this.store.events.get().filter(e => allIds.has(e.id) || e.createdBy === userId);
     return { upcoming: userEvents, past: [] };
   }
+
+  getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'> {
+    return { eventsNearby: this.store.events.get().length };
+  }
 }
 
 // ---- Routes Repository ----
@@ -250,6 +253,12 @@ export class MockRoutesRepository implements IRoutesRepository {
   unsaveRoute(_userId: string, routeId: string): void {
     this.store.savedRoutes.set(prev => prev.filter(id => id !== routeId));
   }
+
+  getDiscoveryStats(): Pick<DiscoveryStats, 'routesTrending'> {
+    // Mock: routes with rating >= 4.8 are "trending"
+    const trending = this.store.routes.get().filter(r => r.rating >= 4.8).length;
+    return { routesTrending: trending };
+  }
 }
 
 // ---- Services Repository ----
@@ -263,6 +272,24 @@ export class MockServicesRepository implements IServicesRepository {
     const newService = { ...service, id: uid(), createdAt: now() } as RevService;
     this.store.services.set(prev => [...prev, newService]);
     return newService;
+  }
+
+  update(id: string, updates: Partial<RevService>): RevService {
+    let updated: RevService | undefined;
+    this.store.services.set(prev => prev.map(s => {
+      if (s.id === id) { updated = { ...s, ...updates }; return updated; }
+      return s;
+    }));
+    return updated!;
+  }
+
+  delete(id: string): void {
+    this.store.services.set(prev => prev.filter(s => s.id !== id));
+  }
+
+  getDiscoveryStats(): Pick<DiscoveryStats, 'servicesOpenNow'> {
+    const openNow = this.store.services.get().filter(s => s.isOpen).length;
+    return { servicesOpenNow: openNow };
   }
 }
 
@@ -412,10 +439,43 @@ export class MockMessagesRepository implements IMessagesRepository {
 
 // ---- Map Repository ----
 export class MockMapRepository implements IMapRepository {
-  constructor(private _store: MockStoreConfig) {}
+  constructor(private store: MockStoreConfig) {}
 
-  getMapItems(_bounds: ViewportBounds, _categories: string[]): MapItem[] {
-    return []; // Map items come from pins in MapContext
+  getMapItems(_bounds: ViewportBounds, categories: string[]): MapItem[] {
+    const items: MapItem[] = [];
+
+    // Convert events to map items
+    if (categories.includes('event') || categories.length === 0) {
+      this.store.events.get().forEach(e => {
+        if (e.lat && e.lng) {
+          items.push({ id: e.id, type: 'event', title: e.title, lat: e.lat, lng: e.lng, createdBy: e.createdBy, createdAt: e.createdAt, visibility: e.visibility === 'private' ? 'public' : e.visibility as 'public' | 'friends' | 'club' });
+        }
+      });
+    }
+
+    if (categories.includes('route') || categories.length === 0) {
+      this.store.routes.get().forEach(r => {
+        if (r.lat && r.lng) {
+          items.push({ id: r.id, type: 'route', title: r.name, lat: r.lat, lng: r.lng, createdBy: r.createdBy, createdAt: r.createdAt, visibility: r.visibility === 'private' ? 'public' : r.visibility as 'public' | 'friends' | 'club' });
+        }
+      });
+    }
+
+    if (categories.includes('service') || categories.length === 0) {
+      this.store.services.get().forEach(s => {
+        if (s.lat && s.lng) {
+          items.push({ id: s.id, type: 'service', title: s.name, lat: s.lat, lng: s.lng, createdBy: s.createdBy, createdAt: s.createdAt, visibility: s.visibility === 'private' ? 'public' : s.visibility as 'public' | 'friends' | 'club' });
+        }
+      });
+    }
+
+    if (categories.includes('help_request') || categories.length === 0) {
+      this.store.helpRequests.get().filter(h => h.status === 'active').forEach(h => {
+        items.push({ id: h.id, type: 'help_request', title: h.issueType, lat: h.lat, lng: h.lng, createdBy: h.userId, createdAt: h.createdAt, visibility: 'public' });
+      });
+    }
+
+    return items;
   }
 
   createMapItem(item: Omit<MapItem, 'id' | 'createdAt'>): MapItem {
@@ -423,7 +483,7 @@ export class MockMapRepository implements IMapRepository {
   }
 }
 
-// ---- Help Repository ----
+// ---- Help / SOS Repository ----
 export class MockHelpRepository implements IHelpRepository {
   constructor(private store: MockStoreConfig) {}
 
@@ -439,5 +499,15 @@ export class MockHelpRepository implements IHelpRepository {
 
   resolveRequest(id: string): void {
     this.store.helpRequests.set(prev => prev.map(r => r.id === id ? { ...r, status: 'resolved' as const } : r));
+  }
+
+  createStolenAlert(alert: Omit<StolenVehicleAlert, 'id' | 'createdAt'>): StolenVehicleAlert {
+    const newAlert = { ...alert, id: uid(), createdAt: now() } as StolenVehicleAlert;
+    this.store.stolenAlerts.set(prev => [...prev, newAlert]);
+    return newAlert;
+  }
+
+  getActiveStolenAlerts(): StolenVehicleAlert[] {
+    return this.store.stolenAlerts.get().filter(a => a.status === 'active');
   }
 }

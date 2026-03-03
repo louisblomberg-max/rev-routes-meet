@@ -10,8 +10,8 @@ import type {
   ForumPost, ForumComment,
   MarketplaceListing,
   Conversation, Message,
-  HelpRequest,
-  MapItem,
+  HelpRequest, StolenVehicleAlert,
+  MapItem, DiscoveryStats,
 } from '@/models';
 
 export interface ViewportBounds {
@@ -28,6 +28,8 @@ export interface IUserRepository {
   getUserStats(userId: string): UserStats;
   getAchievements(userId: string): Achievement[];
   getActivities(userId: string): UserActivity[];
+  useEventCredit(userId: string): boolean; // returns false if no credits
+  useRouteCredit(userId: string): boolean;
 }
 
 // ---- Garage Repository ----
@@ -55,6 +57,7 @@ export interface IEventsRepository {
   update(id: string, updates: Partial<RevEvent>): RevEvent;
   delete(id: string): void;
   getUserEvents(userId: string): { upcoming: RevEvent[]; past: RevEvent[] };
+  getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'>;
 }
 
 // ---- Routes Repository ----
@@ -67,6 +70,7 @@ export interface IRoutesRepository {
   getUserRoutes(userId: string): { saved: RevRoute[]; created: RevRoute[] };
   saveRoute(userId: string, routeId: string): void;
   unsaveRoute(userId: string, routeId: string): void;
+  getDiscoveryStats(): Pick<DiscoveryStats, 'routesTrending'>;
 }
 
 // ---- Services Repository ----
@@ -74,6 +78,9 @@ export interface IServicesRepository {
   getAll(): RevService[];
   getById(id: string): RevService | undefined;
   create(service: Omit<RevService, 'id' | 'createdAt'>): RevService;
+  update(id: string, updates: Partial<RevService>): RevService;
+  delete(id: string): void;
+  getDiscoveryStats(): Pick<DiscoveryStats, 'servicesOpenNow'>;
 }
 
 // ---- Clubs Repository ----
@@ -127,9 +134,12 @@ export interface IMapRepository {
   createMapItem(item: Omit<MapItem, 'id' | 'createdAt'>): MapItem;
 }
 
-// ---- Help Repository ----
+// ---- Help / SOS Repository ----
 export interface IHelpRepository {
   createHelpRequest(request: Omit<HelpRequest, 'id' | 'createdAt'>): HelpRequest;
   getActiveRequests(): HelpRequest[];
   resolveRequest(id: string): void;
+  // Stolen vehicle
+  createStolenAlert(alert: Omit<StolenVehicleAlert, 'id' | 'createdAt'>): StolenVehicleAlert;
+  getActiveStolenAlerts(): StolenVehicleAlert[];
 }
