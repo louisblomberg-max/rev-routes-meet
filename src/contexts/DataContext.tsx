@@ -9,7 +9,7 @@ import type {
   RevEvent, RevRoute, RevService,
   Club, ClubMembership, ClubPost, ClubEvent,
   ForumPost, ForumComment,
-  MarketplaceListing, Conversation, HelpRequest,
+  MarketplaceListing, Conversation, HelpRequest, StolenVehicleAlert,
 } from '@/models';
 
 import {
@@ -73,6 +73,7 @@ interface DataContextType {
     userAttendingEvents: string[];
     userHostedEvents: string[];
     helpRequests: HelpRequest[];
+    stolenAlerts: StolenVehicleAlert[];
   };
 }
 
@@ -97,10 +98,13 @@ function createDefaultUser(): User | null {
     preferences: {
       mapStyle: 'standard',
       availableToHelp: false,
+      helpDistanceMiles: 10,
       locationSharingEnabled: false,
       notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
     },
     liveFeatures: { locationSharingEnabled: false, groupDrivesCount: 0, breakdownHelpCount: 0 },
+    eventCredits: 0,
+    routeCredits: 0,
   };
 }
 
@@ -126,6 +130,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>(seedUserAttendingEvents);
   const [userHostedEvents, setUserHostedEvents] = useState<string[]>([]);
   const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
+  const [stolenAlerts, setStolenAlerts] = useState<StolenVehicleAlert[]>([]);
 
   // ---- Store config (bridges React state to repository classes) ----
   const storeConfig: MockStoreConfig = useMemo(() => ({
@@ -148,8 +153,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     userAttendingEvents: { get: () => userAttendingEvents, set: setUserAttendingEvents },
     userHostedEvents: { get: () => userHostedEvents, set: setUserHostedEvents },
     helpRequests: { get: () => helpRequests, set: setHelpRequests },
+    stolenAlerts: { get: () => stolenAlerts, set: setStolenAlerts },
     currentUser: { get: () => currentUser, set: setCurrentUser },
-  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedListings, userAttendingEvents, userHostedEvents, helpRequests, currentUser]);
+  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts, currentUser]);
 
   // ---- Repository instances ----
   const repos = useMemo(() => ({
@@ -177,6 +183,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       marketplace, vehicles, friends, activities,
       conversations, savedRoutes, savedListings,
       userAttendingEvents, userHostedEvents, helpRequests,
+      stolenAlerts,
     },
   };
 

@@ -213,6 +213,7 @@ const AddRoute = () => {
       polyline: JSON.stringify(draft.geometry),
       saves: 0,
       drives: 0,
+      visibility: data.visibility?.level || 'public',
     });
 
     toast.success('Route published!', { description: data.name });
