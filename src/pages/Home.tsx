@@ -240,13 +240,9 @@ const Home = () => {
         </div>
       </div>
 
-      {/* SOS button - mirrored spacing from bottom nav as map style has from top header */}
-      <div className="fixed left-3 bottom-[72px] z-30">
-        <HelpButton onClick={() => setIsHelpOpen(true)} />
-      </div>
-
       {/* Right-side controls stack */}
       <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
+        <HelpButton onClick={() => setIsHelpOpen(true)} />
         <LocationButton onClick={handleLocateUser} />
       </div>
 
