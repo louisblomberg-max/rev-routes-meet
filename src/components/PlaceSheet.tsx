@@ -113,7 +113,7 @@ const PlaceSheet = ({ item, onClose, onViewFull }: PlaceSheetProps) => {
             {item.date && (
               <span className="flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
-                {item.date}
+                {item.date === 'TBD' ? <span className="italic">Date TBD</span> : item.date}
               </span>
             )}
             {item.rating !== undefined && (
