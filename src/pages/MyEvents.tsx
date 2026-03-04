@@ -19,6 +19,7 @@ const MyEvents = () => {
   const navigate = useNavigate();
   const { upcoming, past, isLoading } = useUserEvents();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'hosting' | 'saved'>('upcoming');
+  const { saved } = useUserEvents();
 
   const hosted = upcoming.filter(e => e.isHost);
   const tabs = [
