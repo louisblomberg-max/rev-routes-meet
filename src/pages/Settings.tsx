@@ -50,6 +50,7 @@ const Settings = () => {
                   if (section.id === 'support') navigate('/settings/support');
                   if (section.id === 'faq') navigate('/settings/faq');
                   if (section.id === 'howto') navigate('/settings/howto');
+                  if (section.id === 'devtools') navigate('/settings/devtools');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
