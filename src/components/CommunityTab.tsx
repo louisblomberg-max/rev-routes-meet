@@ -1,5 +1,6 @@
 import { Users, MessageSquare, Mail, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useUserStats } from '@/hooks/useUserStats';
 
 const CommunityTab = () => {
   const navigate = useNavigate();
