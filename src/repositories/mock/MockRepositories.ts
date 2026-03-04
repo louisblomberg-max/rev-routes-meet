@@ -211,6 +211,18 @@ export class MockEventsRepository implements IEventsRepository {
   getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'> {
     return { eventsNearby: this.store.events.get().length };
   }
+
+  saveEvent(_userId: string, eventId: string): void {
+    this.store.savedEvents.set(prev => prev.includes(eventId) ? prev : [...prev, eventId]);
+  }
+
+  unsaveEvent(_userId: string, eventId: string): void {
+    this.store.savedEvents.set(prev => prev.filter(id => id !== eventId));
+  }
+
+  getSavedEvents(_userId: string): string[] {
+    return this.store.savedEvents.get();
+  }
 }
 
 // ---- Routes Repository ----
