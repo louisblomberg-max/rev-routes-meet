@@ -98,13 +98,29 @@ export function useUserEvents() {
       }));
   }, [state.events, state.userAttendingEvents, state.userHostedEvents, state.currentUser]);
 
+  const saved = useMemo(() => {
+    return state.events.filter(e => state.savedEvents.includes(e.id));
+  }, [state.events, state.savedEvents]);
+
   // Mock past events (in real app, filtered by date)
   const past = useMemo(() => [
     { id: 'past1', title: 'BMW Sunday Cruise', date: 'Sun, Jan 28 • 10:00 AM', location: 'Ace Cafe, London', vehicleType: 'BMW Only', eventType: 'Group Drive', attendees: 34, isHost: true, status: 'attended' as const, createdBy: 'user-1', createdAt: '2024-01-20' },
     { id: 'past2', title: 'New Year Meet 2024', date: 'Mon, Jan 1 • 12:00 PM', location: 'Caffeine & Machine', vehicleType: 'All Welcome', eventType: 'Meets', attendees: 156, isHost: false, status: 'attended' as const, createdBy: 'user-seed', createdAt: '2023-12-20' },
   ], []);
 
-  return { upcoming, past, isLoading, error: null };
+  return { upcoming, past, saved, isLoading, error: null };
+}
+
+// ---- Saved Services ----
+export function useUserSavedServices() {
+  const { state } = useData();
+  const isLoading = useSimulatedLoading();
+
+  const saved = useMemo(() => {
+    return state.services.filter(s => state.savedServices.includes(s.id));
+  }, [state.services, state.savedServices]);
+
+  return { saved, isLoading };
 }
 
 // ---- Routes ----

@@ -26,9 +26,10 @@ const MyEvents = () => {
     { id: 'upcoming' as const, label: 'Upcoming', count: upcoming.length, icon: CalendarCheck },
     { id: 'past' as const, label: 'Past', count: past.length, icon: Clock },
     { id: 'hosting' as const, label: 'Hosting', count: hosted.length, icon: Calendar },
+    { id: 'saved' as const, label: 'Saved', count: saved.length, icon: Bookmark },
   ];
 
-  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : activeTab === 'hosting' ? hosted : upcoming;
+  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : activeTab === 'hosting' ? hosted : activeTab === 'saved' ? saved : upcoming;
 
   return (
     <div className="mobile-container bg-background min-h-screen">
