@@ -8,15 +8,22 @@ interface ServiceDetailContentProps {
   service: RevService;
   onNavigate: () => void;
   onViewFull: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
 }
 
-const ServiceDetailContent = ({ service, onNavigate, onViewFull }: ServiceDetailContentProps) => {
+const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onToggleSave }: ServiceDetailContentProps) => {
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({ title: service.name, text: `Check out ${service.name} on RevNet` }).catch(() => {});
     } else {
       toast.success('Link copied');
     }
+  };
+
+  const handleSave = () => {
+    onToggleSave();
+    toast.success(isSaved ? 'Removed from saved' : 'Saved to your collection');
   };
 
   return (
@@ -118,8 +125,13 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull }: ServiceDetail
 
       {/* Actions row */}
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1 gap-2" onClick={() => toast.success('Saved')}>
-          <Bookmark className="w-4 h-4" /> Save
+        <Button
+          variant="outline"
+          className={`flex-1 gap-2 ${isSaved ? 'bg-services/10 border-services/30 text-services' : ''}`}
+          onClick={handleSave}
+        >
+          <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-services' : ''}`} />
+          {isSaved ? 'Saved' : 'Save'}
         </Button>
         <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
           <Share2 className="w-4 h-4" /> Share

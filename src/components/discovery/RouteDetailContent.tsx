@@ -10,9 +10,11 @@ interface RouteDetailContentProps {
   route: RevRoute;
   onNavigate: () => void;
   onViewFull: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
 }
 
-const RouteDetailContent = ({ route, onNavigate, onViewFull }: RouteDetailContentProps) => {
+const RouteDetailContent = ({ route, onNavigate, onViewFull, isSaved, onToggleSave }: RouteDetailContentProps) => {
   const [photoIndex, setPhotoIndex] = useState(0);
   const photos = (route as any).photos as string[] | undefined;
   const hasPhotos = photos && photos.length > 0;
@@ -23,6 +25,11 @@ const RouteDetailContent = ({ route, onNavigate, onViewFull }: RouteDetailConten
     } else {
       toast.success('Link copied');
     }
+  };
+
+  const handleSave = () => {
+    onToggleSave();
+    toast.success(isSaved ? 'Removed from saved' : 'Saved to My Routes');
   };
 
   return (
@@ -155,8 +162,13 @@ const RouteDetailContent = ({ route, onNavigate, onViewFull }: RouteDetailConten
 
       {/* Actions row */}
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1 gap-2" onClick={() => toast.success('Route saved')}>
-          <Bookmark className="w-4 h-4" /> Save route
+        <Button
+          variant="outline"
+          className={`flex-1 gap-2 ${isSaved ? 'bg-routes/10 border-routes/30 text-routes' : ''}`}
+          onClick={handleSave}
+        >
+          <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-routes' : ''}`} />
+          {isSaved ? 'Saved' : 'Save route'}
         </Button>
         <Button variant="outline" className="flex-1 gap-2" onClick={handleShare}>
           <Share2 className="w-4 h-4" /> Share route
