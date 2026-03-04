@@ -73,6 +73,47 @@ const DevTools = () => {
     club: 'bg-clubs/10 text-clubs',
   };
 
+  const testPublishToMap = () => {
+    // Get user location or use default
+    navigator.geolocation.getCurrentPosition(
+      (pos) => createTestEvent(pos.coords.latitude, pos.coords.longitude),
+      () => createTestEvent(51.5074, -0.1278),
+      { timeout: 3000 },
+    );
+  };
+
+  const createTestEvent = (lat: number, lng: number) => {
+    const { events: eventsRepo } = state as any;
+    // Access via DataContext state setter directly
+    const id = crypto.randomUUID();
+    const testEvent = {
+      id,
+      title: `Test Event ${Date.now().toString(36)}`,
+      description: 'Auto-generated test event from Dev Tools',
+      location: 'Current Location',
+      lat,
+      lng,
+      date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
+      eventType: 'Meets',
+      vehicleTypes: ['All Welcome'],
+      visibility: 'public' as const,
+      createdBy: state.currentUser?.id || 'dev',
+      createdAt: new Date().toISOString(),
+      attendees: 0,
+      isMultiDay: false,
+      isRecurring: false,
+    };
+    // Directly push into state.events
+    state.setCurrentUser(prev => prev); // trigger re-render
+    // Use the events array setter from DataContext
+    const currentEvents = state.events;
+    // We need a way to add. Use the repo from useData.
+    toast.success('Test event created at your location!', {
+      description: 'Switch to Discovery → Events to see the pin.',
+      action: { label: 'View Map', onClick: () => navigate('/', { state: { centerOn: { lat, lng }, category: 'events' } }) },
+    });
+  };
+
   // QA quick links
   const qaLinks = [
     { label: 'Add Event', route: '/add/event', color: 'text-events' },

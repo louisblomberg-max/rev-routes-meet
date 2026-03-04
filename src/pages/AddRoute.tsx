@@ -230,8 +230,8 @@ const AddRoute = () => {
       deductRouteCredit();
     }
 
-    toast.success('Route published!', { description: data.name });
-    navigate('/');
+    toast.success('Route published — shown on map', { description: data.name });
+    navigate('/', { state: { centerOn: { lat: draft.startLat, lng: draft.startLng }, category: 'routes' } });
   };
 
   const handlePublish = (data: PublishRouteFormData) => {
