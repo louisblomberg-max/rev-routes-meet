@@ -64,6 +64,7 @@ import OnboardingPermissions from "./pages/OnboardingPermissions";
 import OnboardingFinish from "./pages/OnboardingFinish";
 import OnboardingReferral from "./pages/OnboardingReferral";
 import ChoosePlan from "./pages/ChoosePlan";
+import DevTools from "./pages/DevTools";
 
 const queryClient = new QueryClient();
 
