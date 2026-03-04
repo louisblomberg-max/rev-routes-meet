@@ -15,6 +15,9 @@ import EditPublishRoute from '@/components/route-creation/EditPublishRoute';
 import { buildRouteDraft } from '@/services/routeService';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
+import { usePaywall } from '@/hooks/usePaywall';
+import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
+import { usePlan } from '@/contexts/PlanContext';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
