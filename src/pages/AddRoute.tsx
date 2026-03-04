@@ -201,7 +201,7 @@ const AddRoute = () => {
     }
   }, []);
 
-  const handlePublish = (data: PublishRouteFormData) => {
+  const doPublishRoute = (data: PublishRouteFormData) => {
     const draft = data.draft;
     if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
@@ -224,8 +224,37 @@ const AddRoute = () => {
       visibility: data.visibility?.level || 'public',
     });
 
+    // Deduct credit if free user with credits
+    const check = canCreateRoute();
+    if (check.creditsRemaining > 0) {
+      deductRouteCredit();
+    }
+
     toast.success('Route published!', { description: data.name });
     navigate('/');
+  };
+
+  const handlePublish = (data: PublishRouteFormData) => {
+    const check = canCreateRoute();
+    if (!check.allowed) {
+      setPendingPublishData(data);
+      setPaywallReason(check.reason!);
+      setShowPaywall(true);
+      return;
+    }
+    doPublishRoute(data);
+  };
+
+  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
+    setShowPaywall(false);
+    if (!success || !pendingPublishData) return;
+    if (method === 'subscribe') {
+      setPlan('pro');
+      setSubscriptionStatus('active');
+      upgradeToPlan('pro');
+    }
+    doPublishRoute(pendingPublishData);
+    setPendingPublishData(null);
   };
 
   const handleSaveDraft = (data: PublishRouteFormData) => {
