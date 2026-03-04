@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Instagram, Facebook, ChevronDown, Lock, Star, Zap, Shield, Copy, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Instagram, Facebook, ChevronDown, Lock, Star, Zap, Shield, Copy, AlertCircle, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Slider } from '@/components/ui/slider';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 
 const SERVICE_CATEGORIES = ['Mechanic', 'Detailing', 'Parts', 'Tyres', 'MOT', 'Tuning', 'Bodywork', 'Car Wash', 'Fuel', 'EV Charging'];
