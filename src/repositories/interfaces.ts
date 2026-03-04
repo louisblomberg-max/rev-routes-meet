@@ -57,6 +57,9 @@ export interface IEventsRepository {
   update(id: string, updates: Partial<RevEvent>): RevEvent;
   delete(id: string): void;
   getUserEvents(userId: string): { upcoming: RevEvent[]; past: RevEvent[] };
+  saveEvent(userId: string, eventId: string): void;
+  unsaveEvent(userId: string, eventId: string): void;
+  getSavedEvents(userId: string): string[];
   getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'>;
 }
 
