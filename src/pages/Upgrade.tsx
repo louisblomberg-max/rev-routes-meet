@@ -85,6 +85,15 @@ const Upgrade = () => {
     if (planId === currentPlan) return;
     
     setPlan(planId);
+    setSubscriptionStatus('active');
+    
+    // Sync DataContext user with new plan + credits
+    state.setCurrentUser(prev => prev ? {
+      ...prev,
+      plan: planId,
+      eventCredits: planId === 'free' ? (prev.eventCredits ?? 0) : -1,
+      routeCredits: planId === 'free' ? (prev.routeCredits ?? 0) : -1,
+    } : prev);
     
     const planName = plans.find(p => p.id === planId)?.name || planId;
     const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
