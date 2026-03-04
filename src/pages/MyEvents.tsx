@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, CalendarX } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, CalendarX, Bookmark } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
