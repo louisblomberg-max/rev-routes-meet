@@ -114,14 +114,67 @@ const AddEvent = () => {
     setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
   };
 
+  const doPublish = () => {
+    setIsSubmitting(true);
+    // Create event in DataContext
+    const newEvent = eventsRepo.create({
+      title: formData.name,
+      description: formData.description,
+      location: formData.location,
+      locationCoords: formData.locationCoords || { lat: 51.5074, lng: -0.1278 },
+      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      startDate: startDate?.toISOString() || new Date().toISOString(),
+      endDate: endDate?.toISOString(),
+      startTime,
+      endTime,
+      eventTypes: eventTypeMode === 'all' ? EVENT_TYPES : eventTypes,
+      vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
+      visibility,
+      clubId: visibility === 'club' ? clubId : undefined,
+      entryFee: formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0,
+      maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      hostId: state.currentUser?.id || 'unknown',
+      hostName: state.currentUser?.displayName || 'Unknown',
+      attendees: 0,
+      isMultiDay: false,
+      isRecurring: false,
+    });
+
+    // Deduct credit if free user
+    const check = canCreateEvent();
+    if (check.creditsRemaining > 0) {
+      deductEventCredit();
+    }
+
+    toast.success('Event published!', { description: formData.name });
+    setIsSubmitting(false);
+    navigate(-1);
+  };
+
   const handleSubmit = () => {
     if (!validate()) return;
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success('Event created successfully!', { description: formData.name });
-      setIsSubmitting(false);
-      navigate(-1);
-    }, 500);
+
+    // Check paywall
+    const check = canCreateEvent();
+    if (!check.allowed) {
+      setPaywallReason(check.reason!);
+      setShowPaywall(true);
+      return;
+    }
+    doPublish();
+  };
+
+  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
+    setShowPaywall(false);
+    if (!success) return;
+
+    if (method === 'subscribe') {
+      setPlan('pro');
+      setSubscriptionStatus('active');
+      upgradeToPlan('pro');
+    }
+    // Proceed to publish
+    doPublish();
   };
 
   const update = (field: string, value: string | boolean | { lat: number; lng: number } | undefined) => {
