@@ -12,7 +12,8 @@ import { useData } from '@/contexts/DataContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
-  const { currentPlan, setPlan, effectivePlan } = usePlan();
+  const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
+  const { state } = useData();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
