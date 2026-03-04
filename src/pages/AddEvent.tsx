@@ -116,25 +116,22 @@ const AddEvent = () => {
 
   const doPublish = () => {
     setIsSubmitting(true);
-    // Create event in DataContext
+    const selectedTypes = eventTypeMode === 'all' ? EVENT_TYPES : eventTypes;
     const newEvent = eventsRepo.create({
       title: formData.name,
       description: formData.description,
       location: formData.location,
-      locationCoords: formData.locationCoords || { lat: 51.5074, lng: -0.1278 },
+      lat: formData.locationCoords?.lat ?? 51.5074,
+      lng: formData.locationCoords?.lng ?? -0.1278,
       date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
-      startDate: startDate?.toISOString() || new Date().toISOString(),
       endDate: endDate?.toISOString(),
-      startTime,
-      endTime,
-      eventTypes: eventTypeMode === 'all' ? EVENT_TYPES : eventTypes,
+      eventType: selectedTypes[0] || 'Meets',
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
-      entryFee: formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0,
-      maxAttendees: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
-      hostId: state.currentUser?.id || 'unknown',
-      hostName: state.currentUser?.displayName || 'Unknown',
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : undefined,
+      ticketLimit: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       isMultiDay: false,
       isRecurring: false,
