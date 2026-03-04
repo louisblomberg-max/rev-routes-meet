@@ -305,6 +305,18 @@ export class MockServicesRepository implements IServicesRepository {
     const openNow = this.store.services.get().filter(s => s.isOpen).length;
     return { servicesOpenNow: openNow };
   }
+
+  saveService(_userId: string, serviceId: string): void {
+    this.store.savedServices.set(prev => prev.includes(serviceId) ? prev : [...prev, serviceId]);
+  }
+
+  unsaveService(_userId: string, serviceId: string): void {
+    this.store.savedServices.set(prev => prev.filter(id => id !== serviceId));
+  }
+
+  getSavedServices(_userId: string): string[] {
+    return this.store.savedServices.get();
+  }
 }
 
 // ---- Clubs Repository ----

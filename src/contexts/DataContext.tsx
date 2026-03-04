@@ -187,7 +187,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       clubMemberships, clubPosts, clubEvents,
       forumPosts, forumComments,
       marketplace, vehicles, friends, activities,
-      conversations, savedRoutes, savedListings,
+      conversations, savedRoutes, savedEvents, savedServices, savedListings,
       userAttendingEvents, userHostedEvents, helpRequests,
       stolenAlerts,
     },
