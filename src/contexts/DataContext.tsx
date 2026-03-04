@@ -128,6 +128,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [activities, setActivities] = useState<UserActivity[]>(seedUserActivities);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [savedRoutes, setSavedRoutes] = useState<string[]>(seedUserSavedRoutes);
+  const [savedEvents, setSavedEvents] = useState<string[]>([]);
+  const [savedServices, setSavedServices] = useState<string[]>([]);
   const [savedListings, setSavedListings] = useState<string[]>([]);
   const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>(seedUserAttendingEvents);
   const [userHostedEvents, setUserHostedEvents] = useState<string[]>([]);
