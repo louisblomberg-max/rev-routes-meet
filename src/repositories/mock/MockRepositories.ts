@@ -45,6 +45,8 @@ export interface MockStoreConfig {
   activities: { get: StateGetter<UserActivity[]>; set: StateSetter<UserActivity[]> };
   conversations: { get: StateGetter<Conversation[]>; set: StateSetter<Conversation[]> };
   savedRoutes: { get: StateGetter<string[]>; set: StateSetter<string[]> };
+  savedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
+  savedServices: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   savedListings: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   userAttendingEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   userHostedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
