@@ -69,6 +69,8 @@ interface DataContextType {
     activities: UserActivity[];
     conversations: Conversation[];
     savedRoutes: string[];
+    savedEvents: string[];
+    savedServices: string[];
     savedListings: string[];
     userAttendingEvents: string[];
     userHostedEvents: string[];
