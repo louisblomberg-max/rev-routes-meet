@@ -72,18 +72,18 @@ const CommunityTab = () => {
         <div className="bg-card rounded-xl p-3 border border-border/50 shadow-card">
           <p className="text-label mb-2">Your Activity</p>
           <div className="grid grid-cols-3 gap-2">
-            <div className="text-center">
-              <p className="text-xl font-black text-foreground">3</p>
+            <button onClick={() => navigate('/my-clubs')} className="text-center hover:bg-muted/50 rounded-lg py-1 transition-colors">
+              <p className="text-xl font-black text-foreground">{stats.clubsCount}</p>
               <p className="text-caption">Clubs</p>
-            </div>
-            <div className="text-center border-x border-border/50">
-              <p className="text-xl font-black text-foreground">12</p>
+            </button>
+            <button onClick={() => navigate('/my-discussions')} className="text-center border-x border-border/50 hover:bg-muted/50 rounded-lg py-1 transition-colors">
+              <p className="text-xl font-black text-foreground">{stats.discussionsCount}</p>
               <p className="text-caption">Posts</p>
-            </div>
-            <div className="text-center">
-              <p className="text-xl font-black text-foreground">47</p>
+            </button>
+            <button onClick={() => navigate('/my-friends')} className="text-center hover:bg-muted/50 rounded-lg py-1 transition-colors">
+              <p className="text-xl font-black text-foreground">{stats.friendsCount}</p>
               <p className="text-caption">Friends</p>
-            </div>
+            </button>
           </div>
         </div>
       </div>
