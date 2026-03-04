@@ -1,3 +1,8 @@
+/**
+ * NavigationContext — full turn-by-turn navigation state management.
+ * Supabase-ready: swap NavigationRepo mock for real implementation later.
+ */
+
 import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from 'react';
 import {
   NavigationRoute,
@@ -11,50 +16,86 @@ import {
 } from '@/services/navigationService';
 import { toast } from 'sonner';
 
-type NavigationStatus = 'idle' | 'loading' | 'previewing' | 'navigating';
+export type NavigationStatus = 'idle' | 'loading' | 'previewing' | 'navigating';
+export type CameraFollowMode = 'follow' | 'free';
 
-interface NavigationContextType {
+export interface NavigationState {
   status: NavigationStatus;
   route: NavigationRoute | null;
   destination: NavigationDestination | null;
   userPosition: { lat: number; lng: number } | null;
+  userHeading: number | null;
   currentStepIndex: number;
   steps: NavigationStep[];
   error: string | null;
+  muted: boolean;
+  cameraFollowMode: CameraFollowMode;
+  distanceRemainingMeters: number;
+  etaSeconds: number;
+}
 
+interface NavigationContextType extends NavigationState {
   startNavigation: (dest: NavigationDestination) => Promise<void>;
   beginLiveNavigation: () => void;
   stopNavigation: () => void;
   recenter: () => void;
-  // Expose for map recenter callback
+  toggleMute: () => void;
+  setActiveStep: (index: number) => void;
+  setCameraFollowMode: (mode: CameraFollowMode) => void;
   onRecenterRef: React.MutableRefObject<(() => void) | null>;
+  onCameraFollowRef: React.MutableRefObject<((pos: { lat: number; lng: number }, heading: number | null) => void) | null>;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
 
 const REROUTE_DEBOUNCE_MS = 5000;
+const STEP_ADVANCE_THRESHOLD_M = 30;
 
 export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<NavigationStatus>('idle');
   const [route, setRoute] = useState<NavigationRoute | null>(null);
   const [destination, setDestination] = useState<NavigationDestination | null>(null);
   const [userPosition, setUserPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [userHeading, setUserHeading] = useState<number | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [muted, setMuted] = useState(false);
+  const [cameraFollowMode, setCameraFollowMode] = useState<CameraFollowMode>('follow');
+  const [distanceRemainingMeters, setDistanceRemainingMeters] = useState(0);
+  const [etaSeconds, setEtaSeconds] = useState(0);
 
   const watchCleanupRef = useRef<(() => void) | null>(null);
   const lastRerouteRef = useRef(0);
   const onRecenterRef = useRef<(() => void) | null>(null);
+  const onCameraFollowRef = useRef<((pos: { lat: number; lng: number }, heading: number | null) => void) | null>(null);
 
-  // Cleanup watcher on unmount
   useEffect(() => {
     return () => { watchCleanupRef.current?.(); };
   }, []);
+
+  // Compute remaining distance/ETA when step or route changes
+  useEffect(() => {
+    if (!route) {
+      setDistanceRemainingMeters(0);
+      setEtaSeconds(0);
+      return;
+    }
+    const steps = route.steps;
+    let dist = 0;
+    let dur = 0;
+    for (let i = currentStepIndex; i < steps.length; i++) {
+      dist += steps[i].distance;
+      dur += steps[i].duration;
+    }
+    setDistanceRemainingMeters(dist);
+    setEtaSeconds(dur);
+  }, [route, currentStepIndex]);
 
   const startNavigation = useCallback(async (dest: NavigationDestination) => {
     setError(null);
     setStatus('loading');
     setDestination(dest);
+    setCameraFollowMode('follow');
 
     try {
       const origin = await getUserPosition();
@@ -62,6 +103,8 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       const r = await fetchRoute(origin, { lat: dest.lat, lng: dest.lng });
       setRoute(r);
       setCurrentStepIndex(0);
+      setDistanceRemainingMeters(r.distance);
+      setEtaSeconds(r.duration);
       setStatus('previewing');
     } catch (e: any) {
       const msg = e?.message || 'Failed to get route';
@@ -74,29 +117,33 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   const beginLiveNavigation = useCallback(() => {
     if (!route) return;
     setStatus('navigating');
+    setCameraFollowMode('follow');
 
     watchCleanupRef.current?.();
     watchCleanupRef.current = watchUserPosition(
       (pos) => {
         setUserPosition(pos);
 
-        // Update current step
         if (route) {
           const idx = getCurrentStepIndex(pos, route.steps);
           setCurrentStepIndex(idx);
 
-          // Off-route detection with debounce
+          // Camera follow
+          if (cameraFollowMode === 'follow') {
+            onCameraFollowRef.current?.(pos, null);
+          }
+
+          // Off-route detection
           if (isOffRoute(pos, route) && Date.now() - lastRerouteRef.current > REROUTE_DEBOUNCE_MS) {
             lastRerouteRef.current = Date.now();
-            toast.info('Rerouting...');
-            // Re-fetch route from current position
+            if (!muted) toast.info('Rerouting…');
             if (destination) {
               fetchRoute(pos, { lat: destination.lat, lng: destination.lng })
                 .then((newRoute) => {
                   setRoute(newRoute);
                   setCurrentStepIndex(0);
                 })
-                .catch(() => {}); // silent fail on reroute
+                .catch(() => {});
             }
           }
         }
@@ -105,7 +152,7 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
         toast.error('GPS signal lost');
       },
     );
-  }, [route, destination]);
+  }, [route, destination, cameraFollowMode, muted]);
 
   const stopNavigation = useCallback(() => {
     watchCleanupRef.current?.();
@@ -115,10 +162,21 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     setDestination(null);
     setCurrentStepIndex(0);
     setError(null);
+    setMuted(false);
+    setCameraFollowMode('follow');
   }, []);
 
   const recenter = useCallback(() => {
+    setCameraFollowMode('follow');
     onRecenterRef.current?.();
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMuted(prev => !prev);
+  }, []);
+
+  const setActiveStep = useCallback((index: number) => {
+    setCurrentStepIndex(index);
   }, []);
 
   return (
@@ -127,14 +185,23 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       route,
       destination,
       userPosition,
+      userHeading,
       currentStepIndex,
       steps: route?.steps || [],
       error,
+      muted,
+      cameraFollowMode,
+      distanceRemainingMeters,
+      etaSeconds,
       startNavigation,
       beginLiveNavigation,
       stopNavigation,
       recenter,
+      toggleMute,
+      setActiveStep,
+      setCameraFollowMode,
       onRecenterRef,
+      onCameraFollowRef,
     }}>
       {children}
     </NavigationContext.Provider>
