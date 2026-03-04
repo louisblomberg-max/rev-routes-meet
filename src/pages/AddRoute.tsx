@@ -332,6 +332,13 @@ const AddRoute = () => {
         onOpenChange={(open) => { if (!open) setPhase('pick'); }}
         onImport={handleGPXImport}
       />
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        reason={paywallReason}
+        creditsRemaining={state.currentUser?.routeCredits ?? 0}
+        onPaymentResult={handlePaywallResult}
+      />
     </>
   );
 };
