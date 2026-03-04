@@ -26,10 +26,15 @@ type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'edit';
 const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
+  const { canCreateRoute, deductRouteCredit, upgradeToPlan } = usePaywall();
+  const { setPlan, setSubscriptionStatus } = usePlan();
 
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<PaywallReason>('route_credits');
+  const [pendingPublishData, setPendingPublishData] = useState<PublishRouteFormData | null>(null);
   const isTransitioningRef = useRef(false);
 
   // Map refs
