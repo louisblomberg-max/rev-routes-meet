@@ -130,6 +130,7 @@ const AddEvent = () => {
       ticketLimit: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
+      photos: bannerImage ? [bannerImage.preview] : undefined,
       isMultiDay: false,
       isRecurring: false,
     });
