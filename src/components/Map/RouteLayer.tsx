@@ -146,10 +146,12 @@ const RouteLayer = ({ map }: RouteLayerProps) => {
         box-shadow: 0 0 0 6px rgba(59,130,246,0.25), 0 2px 8px rgba(0,0,0,0.3);
         transition: transform 0.3s ease;
       `;
-      userMarkerRef.current = new mapboxgl.Marker({ element: el }).addTo(map);
+      userMarkerRef.current = new mapboxgl.Marker({ element: el })
+        .setLngLat([userPosition.lng, userPosition.lat])
+        .addTo(map);
+    } else {
+      userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat]);
     }
-
-    userMarkerRef.current.setLngLat([userPosition.lng, userPosition.lat]);
   }, [map, userPosition, status]);
 
   return null;
