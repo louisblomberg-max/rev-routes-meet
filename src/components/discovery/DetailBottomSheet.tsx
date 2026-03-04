@@ -38,6 +38,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
         lat,
         lng,
         title: 'title' in d ? (d as any).title : (d as any).name,
+        itemType: item.type === 'event' ? 'events' : item.type === 'route' ? 'routes' : 'services',
       });
     }
   };

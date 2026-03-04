@@ -29,6 +29,7 @@ export interface NavigationDestination {
   lat: number;
   lng: number;
   title: string;
+  itemType?: 'events' | 'routes' | 'services' | 'clubs';
 }
 
 const MAPBOX_TOKEN = mapboxgl.accessToken as string;

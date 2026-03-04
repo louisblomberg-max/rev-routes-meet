@@ -109,19 +109,25 @@ const RouteLayer = ({ map }: RouteLayerProps) => {
     return () => { cleanup(map); };
   }, [map, route]);
 
-  // Destination marker
+  // Destination marker — matches category pin style
   useEffect(() => {
     destMarkerRef.current?.remove();
     if (!map || !destination || destination.lat == null || destination.lng == null) return;
 
+    const PIN_COLORS: Record<string, string> = {
+      events: '#ef4444',
+      routes: '#3b82f6',
+      services: '#059669',
+      clubs: '#7c3aed',
+    };
+    const color = PIN_COLORS[destination.itemType || 'routes'] || '#3b82f6';
+
     const el = document.createElement('div');
     el.style.cssText = `
-      width: 40px; height: 40px; border-radius: 50%;
-      background: hsl(220, 90%, 50%); border: 3px solid white;
-      box-shadow: 0 2px 12px rgba(59,130,246,0.5);
-      display: flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: ${color}; border: 3px solid white;
+      box-shadow: 0 0 0 3px ${color}40, 0 2px 6px rgba(0,0,0,0.3);
     `;
-    el.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
 
     destMarkerRef.current = new mapboxgl.Marker({ element: el })
       .setLngLat([destination.lng, destination.lat])
