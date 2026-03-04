@@ -81,7 +81,6 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
-    if (!startDate) errs.date = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
     if (eventTypeMode === 'selected' && eventTypes.length === 0) errs.eventType = 'Select at least one event type';
     if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
