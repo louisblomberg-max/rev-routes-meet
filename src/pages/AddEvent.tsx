@@ -48,7 +48,12 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 
 const AddEvent = () => {
   const navigate = useNavigate();
+  const { events: eventsRepo, state } = useData();
+  const { canCreateEvent, deductEventCredit, upgradeToPlan } = usePaywall();
+  const { setPlan, setSubscriptionStatus } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<PaywallReason>('event_credits');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
