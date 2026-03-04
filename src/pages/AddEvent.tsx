@@ -69,6 +69,7 @@ const AddEvent = () => {
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends' | 'private'>('public');
   const [clubId, setClubId] = useState('');
+  const [setDateLater, setSetDateLater] = useState(true);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -80,7 +81,6 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
-    if (!startDate) errs.date = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
     if (eventTypeMode === 'selected' && eventTypes.length === 0) errs.eventType = 'Select at least one event type';
     if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
@@ -123,7 +123,7 @@ const AddEvent = () => {
       location: formData.location,
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
-      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      date: (!setDateLater && startDate) ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
       eventType: selectedTypes[0] || 'Meets',
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
@@ -276,39 +276,49 @@ const AddEvent = () => {
         {/* ── DATE & TIME ── */}
         <SectionCard>
           <SectionTitle icon={Clock}>Date & Time</SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">Start *</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !startDate && "text-muted-foreground")}>
-                    <Calendar className="mr-2 h-3.5 w-3.5" />
-                    {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setErrors(prev => ({ ...prev, date: '' })); }} disabled={(date) => date < new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-9 text-xs rounded-xl" />
+
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Set date later</p>
+              <p className="text-xs text-muted-foreground">You can add a date after publishing</p>
             </div>
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">End</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !endDate && "text-muted-foreground")}>
-                    <Clock className="mr-2 h-3.5 w-3.5" />
-                    {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => date < (startDate || new Date())} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-9 text-xs rounded-xl" />
-            </div>
+            <Switch checked={setDateLater} onCheckedChange={(v) => { setSetDateLater(v); if (v) { setStartDate(undefined); setEndDate(undefined); } }} />
           </div>
-          {errors.date && <p className="text-xs text-destructive mt-2">{errors.date}</p>}
+
+          {!setDateLater && (
+            <div className="grid grid-cols-2 gap-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+              <div className="space-y-1.5">
+                <span className="text-xs text-muted-foreground font-medium">Start</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !startDate && "text-muted-foreground")}>
+                      <Calendar className="mr-2 h-3.5 w-3.5" />
+                      {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarUI mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); }} disabled={(date) => date < new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-9 text-xs rounded-xl" />
+              </div>
+              <div className="space-y-1.5">
+                <span className="text-xs text-muted-foreground font-medium">End</span>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !endDate && "text-muted-foreground")}>
+                      <Clock className="mr-2 h-3.5 w-3.5" />
+                      {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarUI mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => date < (startDate || new Date())} initialFocus className={cn("p-3 pointer-events-auto")} />
+                  </PopoverContent>
+                </Popover>
+                <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-9 text-xs rounded-xl" />
+              </div>
+            </div>
+          )}
         </SectionCard>
 
         {/* ── LOCATION ── */}
