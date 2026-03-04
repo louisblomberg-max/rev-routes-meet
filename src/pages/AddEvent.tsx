@@ -444,6 +444,15 @@ const AddEvent = () => {
           </Button>
         </div>
       </div>
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        reason={paywallReason}
+        creditsRemaining={state.currentUser?.eventCredits ?? 0}
+        onPaymentResult={handlePaywallResult}
+      />
     </div>
   );
 };
