@@ -161,7 +161,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     helpRequests: { get: () => helpRequests, set: setHelpRequests },
     stolenAlerts: { get: () => stolenAlerts, set: setStolenAlerts },
     currentUser: { get: () => currentUser, set: setCurrentUser },
-  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts, currentUser]);
+  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedEvents, savedServices, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts, currentUser]);
 
   // ---- Repository instances ----
   const repos = useMemo(() => ({
