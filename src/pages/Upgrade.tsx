@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
+import { useData } from '@/contexts/DataContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
