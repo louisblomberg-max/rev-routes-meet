@@ -7,6 +7,7 @@ import { Drawer, DrawerContent, DrawerOverlay } from '@/components/ui/drawer';
 import { X } from 'lucide-react';
 import { RevEvent, RevRoute, RevService } from '@/models';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useData } from '@/contexts/DataContext';
 import EventDetailContent from './EventDetailContent';
 import RouteDetailContent from './RouteDetailContent';
 import ServiceDetailContent from './ServiceDetailContent';
@@ -24,6 +25,7 @@ interface DetailBottomSheetProps {
 
 const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps) => {
   const { startNavigation } = useNavigation();
+  const { events: eventsRepo, routes: routesRepo, services: servicesRepo, state } = useData();
 
   if (!item) return null;
 
@@ -43,6 +45,30 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
   const handleViewFull = () => {
     const d = item.data;
     onViewFull(item.type, d.id);
+  };
+
+  const handleSaveEvent = (eventId: string) => {
+    if (state.savedEvents.includes(eventId)) {
+      eventsRepo.unsaveEvent('user-1', eventId);
+    } else {
+      eventsRepo.saveEvent('user-1', eventId);
+    }
+  };
+
+  const handleSaveRoute = (routeId: string) => {
+    if (state.savedRoutes.includes(routeId)) {
+      routesRepo.unsaveRoute('user-1', routeId);
+    } else {
+      routesRepo.saveRoute('user-1', routeId);
+    }
+  };
+
+  const handleSaveService = (serviceId: string) => {
+    if (state.savedServices.includes(serviceId)) {
+      servicesRepo.unsaveService('user-1', serviceId);
+    } else {
+      servicesRepo.saveService('user-1', serviceId);
+    }
   };
 
   return (
@@ -69,6 +95,8 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               event={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
+              isSaved={state.savedEvents.includes(item.data.id)}
+              onToggleSave={() => handleSaveEvent(item.data.id)}
             />
           )}
           {item.type === 'route' && (
@@ -76,6 +104,8 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               route={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
+              isSaved={state.savedRoutes.includes(item.data.id)}
+              onToggleSave={() => handleSaveRoute(item.data.id)}
             />
           )}
           {item.type === 'service' && (
@@ -83,6 +113,8 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               service={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
+              isSaved={state.savedServices.includes(item.data.id)}
+              onToggleSave={() => handleSaveService(item.data.id)}
             />
           )}
         </div>

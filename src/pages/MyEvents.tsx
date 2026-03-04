@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, CalendarX } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, CalendarX, Bookmark } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,15 +19,17 @@ const MyEvents = () => {
   const navigate = useNavigate();
   const { upcoming, past, isLoading } = useUserEvents();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'hosting' | 'saved'>('upcoming');
+  const { saved } = useUserEvents();
 
   const hosted = upcoming.filter(e => e.isHost);
   const tabs = [
     { id: 'upcoming' as const, label: 'Upcoming', count: upcoming.length, icon: CalendarCheck },
     { id: 'past' as const, label: 'Past', count: past.length, icon: Clock },
     { id: 'hosting' as const, label: 'Hosting', count: hosted.length, icon: Calendar },
+    { id: 'saved' as const, label: 'Saved', count: saved.length, icon: Bookmark },
   ];
 
-  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : activeTab === 'hosting' ? hosted : upcoming;
+  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : activeTab === 'hosting' ? hosted : activeTab === 'saved' ? saved : upcoming;
 
   return (
     <div className="mobile-container bg-background min-h-screen">

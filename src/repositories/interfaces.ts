@@ -57,6 +57,9 @@ export interface IEventsRepository {
   update(id: string, updates: Partial<RevEvent>): RevEvent;
   delete(id: string): void;
   getUserEvents(userId: string): { upcoming: RevEvent[]; past: RevEvent[] };
+  saveEvent(userId: string, eventId: string): void;
+  unsaveEvent(userId: string, eventId: string): void;
+  getSavedEvents(userId: string): string[];
   getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'>;
 }
 
@@ -80,6 +83,9 @@ export interface IServicesRepository {
   create(service: Omit<RevService, 'id' | 'createdAt'>): RevService;
   update(id: string, updates: Partial<RevService>): RevService;
   delete(id: string): void;
+  saveService(userId: string, serviceId: string): void;
+  unsaveService(userId: string, serviceId: string): void;
+  getSavedServices(userId: string): string[];
   getDiscoveryStats(): Pick<DiscoveryStats, 'servicesOpenNow'>;
 }
 

@@ -12,9 +12,11 @@ interface EventDetailContentProps {
   event: RevEvent;
   onNavigate: () => void;
   onViewFull: () => void;
+  isSaved: boolean;
+  onToggleSave: () => void;
 }
 
-const EventDetailContent = ({ event, onNavigate, onViewFull }: EventDetailContentProps) => {
+const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSave }: EventDetailContentProps) => {
   const [rsvpStatus, setRsvpStatus] = useState<'none' | 'going' | 'interested'>('none');
 
   const pricePence = event.entryFee ? parseFloat(event.entryFee) * 100 : 0;
@@ -42,6 +44,11 @@ const EventDetailContent = ({ event, onNavigate, onViewFull }: EventDetailConten
     } else {
       toast.success('Link copied');
     }
+  };
+
+  const handleSave = () => {
+    onToggleSave();
+    toast.success(isSaved ? 'Removed from saved' : 'Saved to My Events');
   };
 
   return (
@@ -194,8 +201,13 @@ const EventDetailContent = ({ event, onNavigate, onViewFull }: EventDetailConten
         <Button variant="outline" size="icon" className="shrink-0 h-10 w-10" onClick={handleShare}>
           <Share2 className="w-4 h-4" />
         </Button>
-        <Button variant="outline" size="icon" className="shrink-0 h-10 w-10" onClick={() => toast.success('Saved')}>
-          <Bookmark className="w-4 h-4" />
+        <Button
+          variant="outline"
+          size="icon"
+          className={`shrink-0 h-10 w-10 ${isSaved ? 'bg-events/10 border-events/30' : ''}`}
+          onClick={handleSave}
+        >
+          <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-events text-events' : ''}`} />
         </Button>
       </div>
 

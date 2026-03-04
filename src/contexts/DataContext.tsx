@@ -69,6 +69,8 @@ interface DataContextType {
     activities: UserActivity[];
     conversations: Conversation[];
     savedRoutes: string[];
+    savedEvents: string[];
+    savedServices: string[];
     savedListings: string[];
     userAttendingEvents: string[];
     userHostedEvents: string[];
@@ -126,6 +128,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   const [activities, setActivities] = useState<UserActivity[]>(seedUserActivities);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [savedRoutes, setSavedRoutes] = useState<string[]>(seedUserSavedRoutes);
+  const [savedEvents, setSavedEvents] = useState<string[]>([]);
+  const [savedServices, setSavedServices] = useState<string[]>([]);
   const [savedListings, setSavedListings] = useState<string[]>([]);
   const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>(seedUserAttendingEvents);
   const [userHostedEvents, setUserHostedEvents] = useState<string[]>([]);
@@ -149,13 +153,15 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     activities: { get: () => activities, set: setActivities },
     conversations: { get: () => conversations, set: setConversations },
     savedRoutes: { get: () => savedRoutes, set: setSavedRoutes },
+    savedEvents: { get: () => savedEvents, set: setSavedEvents },
+    savedServices: { get: () => savedServices, set: setSavedServices },
     savedListings: { get: () => savedListings, set: setSavedListings },
     userAttendingEvents: { get: () => userAttendingEvents, set: setUserAttendingEvents },
     userHostedEvents: { get: () => userHostedEvents, set: setUserHostedEvents },
     helpRequests: { get: () => helpRequests, set: setHelpRequests },
     stolenAlerts: { get: () => stolenAlerts, set: setStolenAlerts },
     currentUser: { get: () => currentUser, set: setCurrentUser },
-  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts, currentUser]);
+  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, vehicles, friends, activities, conversations, savedRoutes, savedEvents, savedServices, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts, currentUser]);
 
   // ---- Repository instances ----
   const repos = useMemo(() => ({
@@ -181,7 +187,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       clubMemberships, clubPosts, clubEvents,
       forumPosts, forumComments,
       marketplace, vehicles, friends, activities,
-      conversations, savedRoutes, savedListings,
+      conversations, savedRoutes, savedEvents, savedServices, savedListings,
       userAttendingEvents, userHostedEvents, helpRequests,
       stolenAlerts,
     },

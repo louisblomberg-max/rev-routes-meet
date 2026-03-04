@@ -45,6 +45,8 @@ export interface MockStoreConfig {
   activities: { get: StateGetter<UserActivity[]>; set: StateSetter<UserActivity[]> };
   conversations: { get: StateGetter<Conversation[]>; set: StateSetter<Conversation[]> };
   savedRoutes: { get: StateGetter<string[]>; set: StateSetter<string[]> };
+  savedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
+  savedServices: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   savedListings: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   userAttendingEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   userHostedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
@@ -209,6 +211,18 @@ export class MockEventsRepository implements IEventsRepository {
   getDiscoveryStats(): Pick<DiscoveryStats, 'eventsNearby'> {
     return { eventsNearby: this.store.events.get().length };
   }
+
+  saveEvent(_userId: string, eventId: string): void {
+    this.store.savedEvents.set(prev => prev.includes(eventId) ? prev : [...prev, eventId]);
+  }
+
+  unsaveEvent(_userId: string, eventId: string): void {
+    this.store.savedEvents.set(prev => prev.filter(id => id !== eventId));
+  }
+
+  getSavedEvents(_userId: string): string[] {
+    return this.store.savedEvents.get();
+  }
 }
 
 // ---- Routes Repository ----
@@ -290,6 +304,18 @@ export class MockServicesRepository implements IServicesRepository {
   getDiscoveryStats(): Pick<DiscoveryStats, 'servicesOpenNow'> {
     const openNow = this.store.services.get().filter(s => s.isOpen).length;
     return { servicesOpenNow: openNow };
+  }
+
+  saveService(_userId: string, serviceId: string): void {
+    this.store.savedServices.set(prev => prev.includes(serviceId) ? prev : [...prev, serviceId]);
+  }
+
+  unsaveService(_userId: string, serviceId: string): void {
+    this.store.savedServices.set(prev => prev.filter(id => id !== serviceId));
+  }
+
+  getSavedServices(_userId: string): string[] {
+    return this.store.savedServices.get();
   }
 }
 
