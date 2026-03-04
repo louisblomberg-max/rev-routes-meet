@@ -112,7 +112,7 @@ const RouteLayer = ({ map }: RouteLayerProps) => {
   // Destination marker
   useEffect(() => {
     destMarkerRef.current?.remove();
-    if (!map || !destination) return;
+    if (!map || !destination || destination.lat == null || destination.lng == null) return;
 
     const el = document.createElement('div');
     el.style.cssText = `

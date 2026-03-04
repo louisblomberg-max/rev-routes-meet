@@ -6,7 +6,7 @@ import revnetLogoNew from '@/assets/revnet-logo-new.png';
 import MapView from '@/components/MapView';
 
 import CategoryChips from '@/components/CategoryChips';
-import PlaceSheet, { PlaceItem } from '@/components/PlaceSheet';
+import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
 import BottomNavigation from '@/components/BottomNavigation';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
@@ -35,7 +35,7 @@ const Home = () => {
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceItem | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], eventSize: null, entryFee: null, clubHosted: false,
@@ -62,7 +62,6 @@ const Home = () => {
       if (navState.category) {
         setActiveCategory(navState.category);
       }
-      // Clear state so it doesn't re-center on re-render
       window.history.replaceState({}, '');
     }
   }, [location.state]);
@@ -85,46 +84,24 @@ const Home = () => {
 
     if (pin.type === 'events') {
       const event = state.events.find(e => e.id === pin.id);
-      if (event) {
-        setSelectedPlace({
-          type: 'event', id: event.id, title: event.title,
-          lat: pin.lat, lng: pin.lng,
-          date: event.date, subtitle: event.location,
-          distance: '—',
-        });
-      }
+      if (event) setSelectedDetail({ type: 'event', data: event });
     } else if (pin.type === 'routes') {
       const route = state.routes.find(r => r.id === pin.id);
-      if (route) {
-        setSelectedPlace({
-          type: 'route', id: route.id, title: route.name,
-          lat: pin.lat, lng: pin.lng,
-          rating: route.rating,
-          subtitle: `${route.distance} · ${route.type}`,
-          distance: route.distance,
-        });
-      }
+      if (route) setSelectedDetail({ type: 'route', data: route });
     } else if (pin.type === 'services') {
       const service = state.services.find(s => s.id === pin.id);
-      if (service) {
-        setSelectedPlace({
-          type: 'service', id: service.id, title: service.name,
-          lat: pin.lat, lng: pin.lng,
-          rating: service.rating, subtitle: service.address,
-          distance: service.distance, isOpen: service.isOpen,
-        });
-      }
+      if (service) setSelectedDetail({ type: 'service', data: service });
     }
   };
 
-  const handleClosePlace = () => setSelectedPlace(null);
+  const handleCloseDetail = () => setSelectedDetail(null);
 
   const handleViewFull = (type: string, id: string) => {
-    setSelectedPlace(null);
+    setSelectedDetail(null);
     navigate(`/${type}/${id}`);
   };
 
-  const selectedRouteId = selectedPlace?.type === 'route' ? selectedPlace.id : null;
+  const selectedRouteId = selectedDetail?.type === 'route' ? selectedDetail.data.id : null;
   const activeCategories = activeCategory ? [activeCategory] : [];
 
   if (activeTab !== 'discovery') {
@@ -201,7 +178,7 @@ const Home = () => {
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
       {!isNavigating && (
-        <PlaceSheet item={selectedPlace} onClose={handleClosePlace} onViewFull={handleViewFull} />
+        <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
       )}
 
       <NavigationHUD />
