@@ -2,7 +2,7 @@
 // Dev Tools — Switch Users, Reset Data, QA Checklist
 // ============================
 import { useState } from 'react';
-import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle } from 'lucide-react';
+import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
