@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 
 const CLUB_TYPES = ['Car Club', 'Motorcycle Club', 'Mixed', 'Brand-specific', 'Track / Performance', 'Off-road', 'Classic'];
