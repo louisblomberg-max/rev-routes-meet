@@ -214,6 +214,13 @@ const DevTools = () => {
               </button>
             ))}
           </div>
+          <Button
+            onClick={testPublishToMap}
+            className="w-full h-11 rounded-xl mt-3 gap-2 bg-events hover:bg-events/90 text-white"
+          >
+            <MapPin className="w-4 h-4" />
+            Test Publish → Map Pin
+          </Button>
         </SectionCard>
 
         {/* Reset */}
