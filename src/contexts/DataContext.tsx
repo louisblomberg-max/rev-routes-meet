@@ -153,6 +153,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     activities: { get: () => activities, set: setActivities },
     conversations: { get: () => conversations, set: setConversations },
     savedRoutes: { get: () => savedRoutes, set: setSavedRoutes },
+    savedEvents: { get: () => savedEvents, set: setSavedEvents },
+    savedServices: { get: () => savedServices, set: setSavedServices },
     savedListings: { get: () => savedListings, set: setSavedListings },
     userAttendingEvents: { get: () => userAttendingEvents, set: setUserAttendingEvents },
     userHostedEvents: { get: () => userHostedEvents, set: setUserHostedEvents },
