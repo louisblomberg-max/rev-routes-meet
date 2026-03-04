@@ -50,6 +50,7 @@ const PlaceSheet = ({ item, onClose, onViewFull }: PlaceSheetProps) => {
       lat: item.lat,
       lng: item.lng,
       title: item.title,
+      itemType: item.type === 'club' ? 'clubs' : `${item.type}s` as any,
     });
   };
 
