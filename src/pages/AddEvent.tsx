@@ -187,30 +187,31 @@ const AddEvent = () => {
         </div>
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFilesSelected} />
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFilesSelected} />
 
       <div className="px-4 py-6 space-y-6 pb-28">
 
-        {/* ── PHOTOS ── */}
+        {/* ── BANNER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Photos</SectionTitle>
-          <Label className="text-xs text-muted-foreground mb-2 block">Up to 5 photos</Label>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {images.map((img, i) => (
-              <div key={i} className="relative w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-border/50">
-                <img src={img.preview} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                <button onClick={() => removeImage(i)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
-            {images.length < 5 && (
-              <button onClick={handleImageUpload} className="w-20 h-20 rounded-2xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-1.5 hover:border-events/50 transition-colors bg-muted/30">
-                <ImagePlus className="w-5 h-5 text-muted-foreground" />
-                <span className="text-[10px] font-medium text-muted-foreground">Add</span>
+          <SectionTitle icon={Camera}>Event Banner</SectionTitle>
+          <Label className="text-xs text-muted-foreground mb-2 block">This image appears at the top of your event detail</Label>
+          {bannerImage ? (
+            <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-border/50">
+              <img src={bannerImage.preview} alt="Event banner" className="w-full h-full object-cover" />
+              <button onClick={removeBanner} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md">
+                <X className="w-4 h-4" />
               </button>
-            )}
-          </div>
+              <button onClick={handleImageUpload} className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur text-xs font-medium text-foreground border border-border/50 shadow-sm">
+                Change
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleImageUpload} className="w-full h-40 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-events/50 transition-colors bg-muted/30">
+              <ImagePlus className="w-8 h-8 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">Upload banner image</span>
+              <span className="text-[10px] text-muted-foreground/60">Recommended: 16:9 ratio</span>
+            </button>
+          )}
         </SectionCard>
 
         {/* ── EVENT INFO ── */}
