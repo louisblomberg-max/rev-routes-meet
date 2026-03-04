@@ -15,6 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
 import { mockClubs } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
+import { usePaywall } from '@/hooks/usePaywall';
+import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
+import { usePlan } from '@/contexts/PlanContext';
 
 const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Drive / Drive-Out', 'Group Drive', 'Track Day', 'Show / Exhibition'];
 const VEHICLE_TYPES = ['Cars', 'Motorcycles', 'Classic', 'Supercars', 'JDM', 'Euro', 'American', 'Off-road'];
