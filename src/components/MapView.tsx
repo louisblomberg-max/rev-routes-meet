@@ -17,6 +17,13 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 };
 
+const PIN_COLORS: Record<string, string> = {
+  events: '#ef4444',
+  routes: '#3b82f6',
+  services: '#059669',
+  clubs: '#7c3aed',
+};
+
 interface MapViewProps {
   activeCategories?: string[];
   activeCategory?: string | null;
@@ -32,12 +39,98 @@ interface MapViewProps {
   onMapReady?: (map: mapboxgl.Map) => void;
 }
 
-const PIN_COLORS: Record<string, string> = {
-  events: '#ef4444',
-  routes: '#3b82f6',
-  services: '#059669',
-  clubs: '#7c3aed',
-};
+// ── Helpers ──
+
+function buildGeoJSON(pins: MapPin[]): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: pins.map(pin => ({
+      type: 'Feature' as const,
+      geometry: { type: 'Point' as const, coordinates: [pin.lng, pin.lat] },
+      properties: {
+        id: pin.id,
+        type: pin.type,
+        title: pin.title,
+        // pass through extra props for click handler lookup
+        ...Object.fromEntries(
+          Object.entries(pin).filter(([k]) => !['lat', 'lng'].includes(k))
+        ),
+      },
+    })),
+  };
+}
+
+const SOURCE_ID = 'map-items';
+const LAYER_IDS = ['events-layer', 'routes-layer', 'services-layer', 'clubs-layer'] as const;
+
+function addSourceAndLayers(map: mapboxgl.Map) {
+  if (map.getSource(SOURCE_ID)) return; // already added
+
+  map.addSource(SOURCE_ID, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  });
+
+  // Events — red circles
+  map.addLayer({
+    id: 'events-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'events'],
+    paint: {
+      'circle-radius': 10,
+      'circle-color': PIN_COLORS.events,
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 1,
+    },
+  });
+
+  // Routes — blue circles
+  map.addLayer({
+    id: 'routes-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'routes'],
+    paint: {
+      'circle-radius': 10,
+      'circle-color': PIN_COLORS.routes,
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 1,
+    },
+  });
+
+  // Services — green circles
+  map.addLayer({
+    id: 'services-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'services'],
+    paint: {
+      'circle-radius': 10,
+      'circle-color': PIN_COLORS.services,
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 1,
+    },
+  });
+
+  // Clubs — purple circles
+  map.addLayer({
+    id: 'clubs-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'clubs'],
+    paint: {
+      'circle-radius': 10,
+      'circle-color': PIN_COLORS.clubs,
+      'circle-stroke-width': 3,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 1,
+    },
+  });
+}
 
 const MapView = ({
   activeCategories,
@@ -54,13 +147,13 @@ const MapView = ({
 }: MapViewProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const layersAdded = useRef(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
-  const { pins, setPins, setViewport, setZoom: setMapZoom, fetchPinsForViewport } = useMap();
+  const { pins, setPins, setViewport, setZoom: setMapZoom } = useMap();
 
-  // Subscribe to realtime pin changes
+  // Subscribe to realtime pin changes (Supabase-ready)
   useRealtimeSubscription({
     channel: 'pins',
     enabled: true,
@@ -91,14 +184,14 @@ const MapView = ({
     setMapZoom(map.current.getZoom());
   }, [setViewport, setMapZoom]);
 
-  // Initialize map
+  // ── Initialize map ──
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: MAP_STYLE_URLS[mapStyle],
-      center: [-1.8, 51.5], // Default UK center
+      center: [-1.8, 51.5],
       zoom: 10,
       attributionControl: false,
     });
@@ -107,11 +200,45 @@ const MapView = ({
 
     map.current.on('load', () => {
       setMapLoaded(true);
+      layersAdded.current = false; // will be added on next render cycle
       onMapReady?.(map.current!);
       handleViewportChange();
     });
 
     map.current.on('moveend', handleViewportChange);
+
+    // Click handler for GeoJSON layers
+    for (const layerId of LAYER_IDS) {
+      map.current.on('click', layerId, (e) => {
+        if (!e.features?.length) return;
+        const props = e.features[0].properties;
+        if (!props) return;
+        // Reconstruct the pin from properties
+        const geom = e.features[0].geometry as GeoJSON.Point;
+        const pin: MapPin = {
+          id: props.id,
+          type: props.type,
+          lat: geom.coordinates[1],
+          lng: geom.coordinates[0],
+          title: props.title,
+        };
+        // Copy extra properties
+        for (const [k, v] of Object.entries(props)) {
+          if (!['id', 'type', 'lat', 'lng', 'title'].includes(k)) {
+            try { pin[k] = JSON.parse(v as string); } catch { pin[k] = v; }
+          }
+        }
+        onPinClick?.(pin);
+      });
+
+      // Pointer cursor on hover
+      map.current.on('mouseenter', layerId, () => {
+        if (map.current) map.current.getCanvas().style.cursor = 'pointer';
+      });
+      map.current.on('mouseleave', layerId, () => {
+        if (map.current) map.current.getCanvas().style.cursor = '';
+      });
+    }
 
     // Center on user location on first load
     navigator.geolocation.getCurrentPosition(
@@ -134,13 +261,22 @@ const MapView = ({
     };
   }, []);
 
-  // Update map style
+  // ── Update map style ──
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !mapLoaded) return;
+    const currentStyle = map.current.getStyle()?.name;
+    // Only set if actually changed
     map.current.setStyle(MAP_STYLE_URLS[mapStyle]);
+    // After style change, re-add layers
+    map.current.once('style.load', () => {
+      layersAdded.current = false;
+      // Trigger a re-render to re-add source+layers
+      setMapLoaded(prev => !prev);
+      setTimeout(() => setMapLoaded(true), 50);
+    });
   }, [mapStyle]);
 
-  // Filter pins from context
+  // ── Filter pins ──
   const getFilteredPins = useCallback((): MapPin[] => {
     if (isDimmed) return [];
 
@@ -155,7 +291,6 @@ const MapView = ({
     return pins.filter(pin => {
       if (!categoryToFilter.includes(pin.type)) return false;
 
-      // Category-specific filtering using pin metadata
       if (pin.type === 'events' && eventsFilters) {
         if (eventsFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
@@ -211,79 +346,71 @@ const MapView = ({
     });
   }, [pins, activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters]);
 
-  // Update markers when filters/pins change
+  // ── Update GeoJSON source when pins/filters change ──
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !mapLoaded) return;
 
-    // Remove old markers
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    // Ensure source + layers exist
+    if (!layersAdded.current) {
+      addSourceAndLayers(map.current);
+      layersAdded.current = true;
+    }
 
-    const filteredPins = getFilteredPins();
+    const source = map.current.getSource(SOURCE_ID) as mapboxgl.GeoJSONSource | undefined;
+    if (!source) return;
 
-    filteredPins.forEach(pin => {
-      const lng = pin.lng;
-      const lat = pin.lat;
+    const filtered = getFilteredPins();
+    const geojson = buildGeoJSON(filtered);
+    source.setData(geojson);
 
-      const el = document.createElement('div');
-      el.className = 'mapbox-pin';
-      el.style.cssText = `
-        width: 32px; height: 32px; border-radius: 50%;
-        background: ${PIN_COLORS[pin.type] || '#666'};
-        border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer; transition: transform 0.2s, opacity 0.3s;
-        display: flex; align-items: center; justify-content: center;
-        opacity: ${markerOpacity};
-      `;
-      el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`;
+    // Update opacity
+    for (const layerId of LAYER_IDS) {
+      if (map.current.getLayer(layerId)) {
+        map.current.setPaintProperty(layerId, 'circle-opacity', markerOpacity);
+        map.current.setPaintProperty(layerId, 'circle-stroke-opacity', markerOpacity);
+      }
+    }
+  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity, getFilteredPins]);
 
-      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.2)'; });
-      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
-      el.addEventListener('click', () => onPinClick?.(pin));
+  // ── Layer visibility based on category selection ──
+  useEffect(() => {
+    if (!map.current || !mapLoaded || !layersAdded.current) return;
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([lng, lat])
-        .addTo(map.current!);
+    const categoryToFilter = activeCategories && activeCategories.length > 0
+      ? activeCategories
+      : activeCategory
+        ? [activeCategory]
+        : [];
 
-      markersRef.current.push(marker);
-    });
-  }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity]);
+    const typeToLayer: Record<string, string> = {
+      events: 'events-layer',
+      routes: 'routes-layer',
+      services: 'services-layer',
+      clubs: 'clubs-layer',
+    };
 
-  // User location blue dot marker
+    for (const [type, layerId] of Object.entries(typeToLayer)) {
+      if (map.current.getLayer(layerId)) {
+        const visible = categoryToFilter.length === 0 || categoryToFilter.includes(type);
+        map.current.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+      }
+    }
+  }, [activeCategories, activeCategory, mapLoaded]);
+
+  // ── User location blue dot ──
   useEffect(() => {
     if (!map.current || !userLocation) return;
-
-    // Remove old marker
     userMarkerRef.current?.remove();
-
     const el = document.createElement('div');
     el.style.cssText = `
       width: 18px; height: 18px; border-radius: 50%;
       background: #4285F4; border: 3px solid white;
       box-shadow: 0 0 0 2px rgba(66,133,244,0.3), 0 2px 6px rgba(0,0,0,0.3);
     `;
-    userMarkerRef.current = new mapboxgl.Marker({ element: el })
+    userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
       .setLngLat(userLocation)
       .addTo(map.current);
   }, [userLocation, mapLoaded]);
-
-  // Expose recenter helper
-  const recenterToUser = useCallback(() => {
-    if (!userLocation) {
-      // Re-request
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const loc: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-          setUserLocation(loc);
-          map.current?.flyTo({ center: loc, zoom: 14, duration: 1500 });
-        },
-        () => toast('Location unavailable'),
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-      return;
-    }
-    map.current?.flyTo({ center: userLocation, zoom: 14, duration: 1500 });
-  }, [userLocation]);
 
   return (
     <div className={`absolute inset-0 transition-opacity duration-300 ${isDimmed ? 'opacity-40' : ''}`}>
