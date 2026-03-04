@@ -4,6 +4,7 @@ import { useUserStats } from '@/hooks/useUserStats';
 
 const CommunityTab = () => {
   const navigate = useNavigate();
+  const stats = useUserStats();
 
   const sections = [
     {
