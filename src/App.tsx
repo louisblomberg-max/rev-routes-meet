@@ -144,6 +144,7 @@ const App = () => (
           <Route path="/events" element={<EventsList />} />
           <Route path="/routes" element={<RoutesList />} />
           <Route path="/services" element={<ServicesList />} />
+          <Route path="/settings/devtools" element={<DevTools />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
