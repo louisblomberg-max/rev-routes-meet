@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 
 const CLUB_TYPES = ['Car Club', 'Motorcycle Club', 'Mixed', 'Brand-specific', 'Track / Performance', 'Off-road', 'Classic'];
@@ -58,8 +59,10 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 const AddClub = () => {
   const navigate = useNavigate();
   const { clubs: clubsRepo, state } = useData();
+  const { hasAccess, getPlanLabel } = usePlan();
   const currentUser = state.currentUser;
 
+  // All hooks must be declared before early return
   const [formData, setFormData] = useState({
     name: '',
     handle: '',
@@ -72,7 +75,6 @@ const AddClub = () => {
     youtube: '',
     x: '',
   });
-
   const [clubType, setClubType] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [vehicleFocus, setVehicleFocus] = useState<string[]>([]);
@@ -87,6 +89,33 @@ const AddClub = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Plan gate: require Club / Business plan
+  if (!hasAccess('create_clubs')) {
+    return (
+      <div className="mobile-container bg-background min-h-screen flex flex-col">
+        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
+          <div className="px-4 py-3 flex items-center gap-3">
+            <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
+            <h1 className="text-lg font-bold text-foreground">Create Club</h1>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-clubs/10 flex items-center justify-center">
+            <Lock className="w-8 h-8 text-clubs" />
+          </div>
+          <h2 className="text-xl font-bold text-foreground">Club / Business Plan Required</h2>
+          <p className="text-sm text-muted-foreground">
+            Creating and managing clubs requires the {getPlanLabel('club')} plan (£19.99/mo).
+          </p>
+          <Button onClick={() => navigate('/upgrade')} className="mt-2 gap-2">
+            <Crown className="w-4 h-4" />
+            Upgrade Now
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const autoHandle = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);

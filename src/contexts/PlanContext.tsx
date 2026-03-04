@@ -23,14 +23,15 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'my_discussions': 'free',
   'post_questions': 'free',
   'post_replies': 'free',
+  // Events & Routes: free users can open the form (paywall at publish if no credits)
+  'create_events': 'free',
+  'create_routes': 'free',
+  'garage_showcase': 'free',
   
-  // Pro features
-  'create_routes': 'pro',
-  'create_events': 'pro',
+  // Pro features (require active Pro subscription)
   'live_location': 'pro',
   'breakdown_help': 'pro',
   'advanced_filters': 'pro',
-  'garage_showcase': 'pro',
   'priority_visibility': 'pro',
   'create_marketplace_listing': 'pro',
   
@@ -39,6 +40,7 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'club_announcements': 'club',
   'event_ticketing': 'club',
   'business_listings': 'club',
+  'create_services': 'club',
   'analytics': 'club',
   'featured_placement': 'club',
   'verified_badge': 'club',

@@ -15,6 +15,9 @@ import EditPublishRoute from '@/components/route-creation/EditPublishRoute';
 import { buildRouteDraft } from '@/services/routeService';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
+import { usePaywall } from '@/hooks/usePaywall';
+import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
+import { usePlan } from '@/contexts/PlanContext';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
@@ -23,10 +26,15 @@ type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'edit';
 const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
+  const { canCreateRoute, deductRouteCredit, upgradeToPlan } = usePaywall();
+  const { setPlan, setSubscriptionStatus } = usePlan();
 
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<PaywallReason>('route_credits');
+  const [pendingPublishData, setPendingPublishData] = useState<PublishRouteFormData | null>(null);
   const isTransitioningRef = useRef(false);
 
   // Map refs
@@ -193,7 +201,7 @@ const AddRoute = () => {
     }
   }, []);
 
-  const handlePublish = (data: PublishRouteFormData) => {
+  const doPublishRoute = (data: PublishRouteFormData) => {
     const draft = data.draft;
     if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
@@ -216,8 +224,37 @@ const AddRoute = () => {
       visibility: data.visibility?.level || 'public',
     });
 
+    // Deduct credit if free user with credits
+    const check = canCreateRoute();
+    if (check.creditsRemaining > 0) {
+      deductRouteCredit();
+    }
+
     toast.success('Route published!', { description: data.name });
     navigate('/');
+  };
+
+  const handlePublish = (data: PublishRouteFormData) => {
+    const check = canCreateRoute();
+    if (!check.allowed) {
+      setPendingPublishData(data);
+      setPaywallReason(check.reason!);
+      setShowPaywall(true);
+      return;
+    }
+    doPublishRoute(data);
+  };
+
+  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
+    setShowPaywall(false);
+    if (!success || !pendingPublishData) return;
+    if (method === 'subscribe') {
+      setPlan('pro');
+      setSubscriptionStatus('active');
+      upgradeToPlan('pro');
+    }
+    doPublishRoute(pendingPublishData);
+    setPendingPublishData(null);
   };
 
   const handleSaveDraft = (data: PublishRouteFormData) => {
@@ -294,6 +331,13 @@ const AddRoute = () => {
         open={phase === 'gpx'}
         onOpenChange={(open) => { if (!open) setPhase('pick'); }}
         onImport={handleGPXImport}
+      />
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        reason={paywallReason}
+        creditsRemaining={state.currentUser?.routeCredits ?? 0}
+        onPaymentResult={handlePaywallResult}
       />
     </>
   );

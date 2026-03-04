@@ -8,10 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
+import { useData } from '@/contexts/DataContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
-  const { currentPlan, setPlan, effectivePlan } = usePlan();
+  const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
+  const { state } = useData();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
@@ -83,6 +85,15 @@ const Upgrade = () => {
     if (planId === currentPlan) return;
     
     setPlan(planId);
+    setSubscriptionStatus('active');
+    
+    // Sync DataContext user with new plan + credits
+    state.setCurrentUser(prev => prev ? {
+      ...prev,
+      plan: planId,
+      eventCredits: planId === 'free' ? (prev.eventCredits ?? 0) : -1,
+      routeCredits: planId === 'free' ? (prev.routeCredits ?? 0) : -1,
+    } : prev);
     
     const planName = plans.find(p => p.id === planId)?.name || planId;
     const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
