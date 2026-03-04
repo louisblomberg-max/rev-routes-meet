@@ -211,8 +211,8 @@ const AddService = () => {
         visibility: (formData as any).visibility || 'public',
       });
 
-      toast.success('Service added successfully!', { description: `${formData.name} is now listed.` });
-      navigate('/services');
+      toast.success('Service published — shown on map', { description: `${formData.name} is now listed.` });
+      navigate('/', { state: { centerOn: { lat: formData.locationCoords?.lat, lng: formData.locationCoords?.lng }, category: 'services' } });
     } catch {
       toast.error('Failed to add service. Please try again.');
     } finally {

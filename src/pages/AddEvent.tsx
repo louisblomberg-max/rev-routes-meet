@@ -143,9 +143,9 @@ const AddEvent = () => {
       deductEventCredit();
     }
 
-    toast.success('Event published!', { description: formData.name });
+    toast.success('Event published — shown on map', { description: formData.name });
     setIsSubmitting(false);
-    navigate(-1);
+    navigate('/', { state: { centerOn: { lat: newEvent.lat, lng: newEvent.lng }, category: 'events' } });
   };
 
   const handleSubmit = () => {

@@ -2,7 +2,7 @@
 // Dev Tools — Switch Users, Reset Data, QA Checklist
 // ============================
 import { useState } from 'react';
-import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle } from 'lucide-react';
+import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const DevTools = () => {
   const navigate = useNavigate();
   const { user: authUser, updateProfile, logout } = useAuth();
   const { setPlan, setSubscriptionStatus, currentPlan, effectivePlan, getPlanLabel } = usePlan();
-  const { state } = useData();
+  const { state, events: eventsRepo } = useData();
 
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     return localStorage.getItem('revnet_dev_preset') || null;
@@ -71,6 +71,37 @@ const DevTools = () => {
     free: 'bg-muted text-muted-foreground',
     pro: 'bg-routes/10 text-routes',
     club: 'bg-clubs/10 text-clubs',
+  };
+
+  const testPublishToMap = () => {
+    // Get user location or use default
+    navigator.geolocation.getCurrentPosition(
+      (pos) => createTestEvent(pos.coords.latitude, pos.coords.longitude),
+      () => createTestEvent(51.5074, -0.1278),
+      { timeout: 3000 },
+    );
+  };
+
+  const createTestEvent = (lat: number, lng: number) => {
+    eventsRepo.create({
+      title: `Test Event ${Date.now().toString(36)}`,
+      description: 'Auto-generated test event from Dev Tools',
+      location: 'Current Location',
+      lat,
+      lng,
+      date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
+      eventType: 'Meets',
+      vehicleTypes: ['All Welcome'],
+      visibility: 'public' as const,
+      createdBy: state.currentUser?.id || 'dev',
+      attendees: 0,
+      isMultiDay: false,
+      isRecurring: false,
+    });
+    toast.success('Test event created at your location!', {
+      description: 'Switch to Discovery → Events to see the pin.',
+      action: { label: 'View Map', onClick: () => navigate('/', { state: { centerOn: { lat, lng }, category: 'events' } }) },
+    });
   };
 
   // QA quick links
@@ -183,6 +214,13 @@ const DevTools = () => {
               </button>
             ))}
           </div>
+          <Button
+            onClick={testPublishToMap}
+            className="w-full h-11 rounded-xl mt-3 gap-2 bg-events hover:bg-events/90 text-white"
+          >
+            <MapPin className="w-4 h-4" />
+            Test Publish → Map Pin
+          </Button>
         </SectionCard>
 
         {/* Reset */}

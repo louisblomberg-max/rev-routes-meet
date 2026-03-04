@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-new.png';
 import MapView from '@/components/MapView';
 
@@ -20,54 +20,59 @@ import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFilter
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import RouteLayer from '@/components/Map/RouteLayer';
 import NavigationHUD from '@/components/NavigationHUD';
-import { mockEvents, mockRoutes, mockServices, mockClubs } from '@/data/mockData';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
+import { useData } from '@/contexts/DataContext';
+import { useMapItems } from '@/hooks/useMapItems';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
 const Home = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { status: navStatus } = useNavigation();
+  const { state } = useData();
   const [activeTab, setActiveTab] = useState<Tab>('discovery');
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceItem | null>(null);
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
-    distance: 25,
-    types: [],
-    dateFilter: null,
-    specificDate: undefined,
-    vehicleTypes: [],
-    eventSize: null,
-    entryFee: null,
-    clubHosted: false,
+    distance: 25, types: [], dateFilter: null, specificDate: undefined,
+    vehicleTypes: [], eventSize: null, entryFee: null, clubHosted: false,
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
-    distance: 25,
-    types: [],
-    difficulty: [],
-    duration: null,
-    surface: [],
-    minRating: null,
+    distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
   });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
-    distance: 25,
-    types: [],
-    minRating: null,
-    openNow: false,
+    distance: 25, types: [], minRating: null, openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
+
+  // Bridge DataContext → MapContext pins
+  useMapItems();
+
+  // Center map on newly published item (via navigation state)
+  useEffect(() => {
+    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string } | null;
+    if (navState?.centerOn && mapRef.current) {
+      const { lat, lng } = navState.centerOn;
+      mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
+      if (navState.category) {
+        setActiveCategory(navState.category);
+      }
+      // Clear state so it doesn't re-center on re-render
+      window.history.replaceState({}, '');
+    }
+  }, [location.state]);
 
   const handleLocateUser = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         mapRef.current?.flyTo({
           center: [pos.coords.longitude, pos.coords.latitude],
-          zoom: 14,
-          duration: 1500,
+          zoom: 14, duration: 1500,
         });
       },
       () => {},
@@ -76,70 +81,43 @@ const Home = () => {
   };
 
   const handlePinClick = (pin: MapPin) => {
-    // Close any existing place sheet when navigating
     if (isNavigating) return;
 
     if (pin.type === 'events') {
-      const event = mockEvents.find(e => e.id === pin.id);
+      const event = state.events.find(e => e.id === pin.id);
       if (event) {
         setSelectedPlace({
-          type: 'event',
-          id: event.id,
-          title: event.title,
-          lat: pin.lat,
-          lng: pin.lng,
-          date: event.date,
-          subtitle: event.location,
-          distance: '2.5 mi',
+          type: 'event', id: event.id, title: event.title,
+          lat: pin.lat, lng: pin.lng,
+          date: event.date, subtitle: event.location,
+          distance: '—',
         });
       }
     } else if (pin.type === 'routes') {
-      const route = mockRoutes.find(r => r.id === pin.id);
+      const route = state.routes.find(r => r.id === pin.id);
       if (route) {
         setSelectedPlace({
-          type: 'route',
-          id: route.id,
-          title: route.name,
-          lat: pin.lat,
-          lng: pin.lng,
+          type: 'route', id: route.id, title: route.name,
+          lat: pin.lat, lng: pin.lng,
           rating: route.rating,
           subtitle: `${route.distance} · ${route.type}`,
           distance: route.distance,
         });
       }
     } else if (pin.type === 'services') {
-      const service = mockServices.find(s => s.id === pin.id);
+      const service = state.services.find(s => s.id === pin.id);
       if (service) {
         setSelectedPlace({
-          type: 'service',
-          id: service.id,
-          title: service.name,
-          lat: pin.lat,
-          lng: pin.lng,
-          rating: service.rating,
-          subtitle: service.address,
-          distance: service.distance,
-          isOpen: service.isOpen,
-        });
-      }
-    } else if (pin.type === 'clubs') {
-      const club = mockClubs.find(c => c.id === pin.id);
-      if (club) {
-        setSelectedPlace({
-          type: 'club',
-          id: club.id,
-          title: club.name,
-          lat: pin.lat,
-          lng: pin.lng,
-          subtitle: club.location,
+          type: 'service', id: service.id, title: service.name,
+          lat: pin.lat, lng: pin.lng,
+          rating: service.rating, subtitle: service.address,
+          distance: service.distance, isOpen: service.isOpen,
         });
       }
     }
   };
 
-  const handleClosePlace = () => {
-    setSelectedPlace(null);
-  };
+  const handleClosePlace = () => setSelectedPlace(null);
 
   const handleViewFull = (type: string, id: string) => {
     setSelectedPlace(null);
@@ -149,7 +127,6 @@ const Home = () => {
   const selectedRouteId = selectedPlace?.type === 'route' ? selectedPlace.id : null;
   const activeCategories = activeCategory ? [activeCategory] : [];
 
-  // Non-discovery tabs
   if (activeTab !== 'discovery') {
     return (
       <div className="mobile-container">
@@ -163,7 +140,6 @@ const Home = () => {
 
   return (
     <div className="mobile-container">
-      {/* Map Background */}
       <MapView
         activeCategories={activeCategories}
         onPinClick={handlePinClick}
@@ -178,10 +154,8 @@ const Home = () => {
         onMapReady={(m) => { mapRef.current = m; }}
       />
 
-      {/* Navigation Route Layer */}
       <RouteLayer map={mapRef.current} />
 
-      {/* Top Bar — hidden during navigation */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30">
           <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
@@ -199,24 +173,15 @@ const Home = () => {
               </div>
             </div>
             <div className="max-w-md mx-auto flex items-center justify-around py-2 px-3">
-              <CategoryChips
-                activeCategory={activeCategory}
-                onCategoryChange={setActiveCategory}
-              />
+              <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
             </div>
           </div>
 
           {activeCategory && (
             <div className="px-3 pt-2">
-              {activeCategory === 'events' && (
-                <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />
-              )}
-              {activeCategory === 'routes' && (
-                <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />
-              )}
-              {activeCategory === 'services' && (
-                <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />
-              )}
+              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+              {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+              {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
             </div>
           )}
 
@@ -226,7 +191,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Right-side controls stack — hidden during navigation */}
       {!isNavigating && (
         <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
@@ -234,22 +198,14 @@ const Home = () => {
         </div>
       )}
 
-      {/* Help Sheet */}
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
-      {/* Place Sheet (marker tap) — hidden during navigation */}
       {!isNavigating && (
-        <PlaceSheet
-          item={selectedPlace}
-          onClose={handleClosePlace}
-          onViewFull={handleViewFull}
-        />
+        <PlaceSheet item={selectedPlace} onClose={handleClosePlace} onViewFull={handleViewFull} />
       )}
 
-      {/* Navigation HUD (previewing + navigating) */}
       <NavigationHUD />
 
-      {/* Bottom Navigation — hidden during navigation */}
       {!isNavigating && (
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       )}
