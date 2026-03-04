@@ -123,7 +123,7 @@ const AddEvent = () => {
       location: formData.location,
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
-      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      date: (!setDateLater && startDate) ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
       eventType: selectedTypes[0] || 'Meets',
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
