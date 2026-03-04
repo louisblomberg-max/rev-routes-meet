@@ -15,6 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
 import { mockClubs } from '@/data/mockData';
+import { useData } from '@/contexts/DataContext';
+import { usePaywall } from '@/hooks/usePaywall';
+import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
+import { usePlan } from '@/contexts/PlanContext';
 
 const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Drive / Drive-Out', 'Group Drive', 'Track Day', 'Show / Exhibition'];
 const VEHICLE_TYPES = ['Cars', 'Motorcycles', 'Classic', 'Supercars', 'JDM', 'Euro', 'American', 'Off-road'];
@@ -44,7 +48,12 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 
 const AddEvent = () => {
   const navigate = useNavigate();
+  const { events: eventsRepo, state } = useData();
+  const { canCreateEvent, deductEventCredit, upgradeToPlan } = usePaywall();
+  const { setPlan, setSubscriptionStatus } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallReason, setPaywallReason] = useState<PaywallReason>('event_credits');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -105,14 +114,64 @@ const AddEvent = () => {
     setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
   };
 
+  const doPublish = () => {
+    setIsSubmitting(true);
+    const selectedTypes = eventTypeMode === 'all' ? EVENT_TYPES : eventTypes;
+    const newEvent = eventsRepo.create({
+      title: formData.name,
+      description: formData.description,
+      location: formData.location,
+      lat: formData.locationCoords?.lat ?? 51.5074,
+      lng: formData.locationCoords?.lng ?? -0.1278,
+      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      endDate: endDate?.toISOString(),
+      eventType: selectedTypes[0] || 'Meets',
+      vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
+      visibility,
+      clubId: visibility === 'club' ? clubId : undefined,
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : undefined,
+      ticketLimit: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      createdBy: state.currentUser?.id || 'unknown',
+      attendees: 0,
+      isMultiDay: false,
+      isRecurring: false,
+    });
+
+    // Deduct credit if free user
+    const check = canCreateEvent();
+    if (check.creditsRemaining > 0) {
+      deductEventCredit();
+    }
+
+    toast.success('Event published!', { description: formData.name });
+    setIsSubmitting(false);
+    navigate(-1);
+  };
+
   const handleSubmit = () => {
     if (!validate()) return;
-    setIsSubmitting(true);
-    setTimeout(() => {
-      toast.success('Event created successfully!', { description: formData.name });
-      setIsSubmitting(false);
-      navigate(-1);
-    }, 500);
+
+    // Check paywall
+    const check = canCreateEvent();
+    if (!check.allowed) {
+      setPaywallReason(check.reason!);
+      setShowPaywall(true);
+      return;
+    }
+    doPublish();
+  };
+
+  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
+    setShowPaywall(false);
+    if (!success) return;
+
+    if (method === 'subscribe') {
+      setPlan('pro');
+      setSubscriptionStatus('active');
+      upgradeToPlan('pro');
+    }
+    // Proceed to publish
+    doPublish();
   };
 
   const update = (field: string, value: string | boolean | { lat: number; lng: number } | undefined) => {
@@ -385,6 +444,15 @@ const AddEvent = () => {
           </Button>
         </div>
       </div>
+
+      {/* Paywall Modal */}
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        reason={paywallReason}
+        creditsRemaining={state.currentUser?.eventCredits ?? 0}
+        onPaymentResult={handlePaywallResult}
+      />
     </div>
   );
 };

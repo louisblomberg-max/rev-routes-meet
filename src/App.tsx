@@ -64,6 +64,7 @@ import OnboardingPermissions from "./pages/OnboardingPermissions";
 import OnboardingFinish from "./pages/OnboardingFinish";
 import OnboardingReferral from "./pages/OnboardingReferral";
 import ChoosePlan from "./pages/ChoosePlan";
+import DevTools from "./pages/DevTools";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,7 @@ const App = () => (
           <Route path="/events" element={<EventsList />} />
           <Route path="/routes" element={<RoutesList />} />
           <Route path="/services" element={<ServicesList />} />
+          <Route path="/settings/devtools" element={<DevTools />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -19,6 +19,7 @@ const Settings = () => {
     { id: 'support', icon: LifeBuoy, label: 'Support & Legal', description: 'Help, feedback, terms', color: 'bg-muted', iconColor: 'text-muted-foreground' },
     { id: 'faq', icon: HelpCircle, label: 'FAQ', description: 'Common questions answered', color: 'bg-primary/10', iconColor: 'text-primary' },
     { id: 'howto', icon: BookOpen, label: 'How to Use', description: 'Get started with RevNet', color: 'bg-routes/10', iconColor: 'text-routes' },
+    { id: 'devtools', icon: FlaskConical, label: 'Dev Tools', description: 'Switch users, reset data, QA', color: 'bg-amber-100 dark:bg-amber-900/20', iconColor: 'text-amber-600' },
   ];
 
   return (
@@ -49,6 +50,7 @@ const Settings = () => {
                   if (section.id === 'support') navigate('/settings/support');
                   if (section.id === 'faq') navigate('/settings/faq');
                   if (section.id === 'howto') navigate('/settings/howto');
+                  if (section.id === 'devtools') navigate('/settings/devtools');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
