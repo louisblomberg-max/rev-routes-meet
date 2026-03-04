@@ -74,7 +74,7 @@ const AddEvent = () => {
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [endTime, setEndTime] = useState('14:00');
-  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
+  const [bannerImage, setBannerImage] = useState<{ file: File; preview: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
