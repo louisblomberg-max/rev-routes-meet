@@ -83,11 +83,7 @@ const DevTools = () => {
   };
 
   const createTestEvent = (lat: number, lng: number) => {
-    const { events: eventsRepo } = state as any;
-    // Access via DataContext state setter directly
-    const id = crypto.randomUUID();
-    const testEvent = {
-      id,
+    eventsRepo.create({
       title: `Test Event ${Date.now().toString(36)}`,
       description: 'Auto-generated test event from Dev Tools',
       location: 'Current Location',
@@ -98,16 +94,10 @@ const DevTools = () => {
       vehicleTypes: ['All Welcome'],
       visibility: 'public' as const,
       createdBy: state.currentUser?.id || 'dev',
-      createdAt: new Date().toISOString(),
       attendees: 0,
       isMultiDay: false,
       isRecurring: false,
-    };
-    // Directly push into state.events
-    state.setCurrentUser(prev => prev); // trigger re-render
-    // Use the events array setter from DataContext
-    const currentEvents = state.events;
-    // We need a way to add. Use the repo from useData.
+    });
     toast.success('Test event created at your location!', {
       description: 'Switch to Discovery → Events to see the pin.',
       action: { label: 'View Map', onClick: () => navigate('/', { state: { centerOn: { lat, lng }, category: 'events' } }) },
