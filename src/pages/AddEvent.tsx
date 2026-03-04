@@ -93,21 +93,18 @@ const AddEvent = () => {
   const handleImageUpload = () => fileInputRef.current?.click();
 
   const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (images.length + files.length > 5) {
-      toast.error('Maximum 5 photos allowed');
-      return;
-    }
-    const newImages = files.map(file => ({ file, preview: URL.createObjectURL(file) }));
-    setImages(prev => [...prev, ...newImages]);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (bannerImage) URL.revokeObjectURL(bannerImage.preview);
+    setBannerImage({ file, preview: URL.createObjectURL(file) });
     e.target.value = '';
   };
 
-  const removeImage = (index: number) => {
-    setImages(prev => {
-      URL.revokeObjectURL(prev[index].preview);
-      return prev.filter((_, i) => i !== index);
-    });
+  const removeBanner = () => {
+    if (bannerImage) {
+      URL.revokeObjectURL(bannerImage.preview);
+      setBannerImage(null);
+    }
   };
 
   const toggleChip = (list: string[], setList: (v: string[]) => void, value: string) => {
