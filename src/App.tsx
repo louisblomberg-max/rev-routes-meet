@@ -50,6 +50,7 @@ import Notifications from "./pages/Notifications";
 import EventsList from "./pages/EventsList";
 import RoutesList from "./pages/RoutesList";
 import ServicesList from "./pages/ServicesList";
+import MySavedServices from "./pages/MySavedServices";
 
 // Auth + Onboarding screens
 import AuthEntry from "./pages/AuthEntry";
