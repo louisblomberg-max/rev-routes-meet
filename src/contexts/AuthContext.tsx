@@ -1,5 +1,24 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
+export interface AuthVehicle {
+  id: string;
+  type: 'car' | 'motorcycle';
+  make: string;
+  model: string;
+  year?: string;
+  trim?: string;
+  color?: string;
+  isPrimary: boolean;
+}
+
+export interface NotificationPrefs {
+  newEventsNearby: boolean;
+  friendsNearby: boolean;
+  clubAnnouncements: boolean;
+  marketplaceMessages: boolean;
+  sosAlerts: boolean;
+}
+
 export interface AuthUser {
   id: string;
   email?: string;
@@ -10,29 +29,26 @@ export interface AuthUser {
   location?: string;
   locationCoords?: { lat: number; lng: number };
   bio?: string;
+  country?: string;
   membershipPlan: 'free' | 'pro' | 'club';
   isProfileComplete: boolean;
   isVerified: boolean;
   onboardingComplete: boolean;
-  onboardingStep: number; // 0-4
+  onboardingStep: number; // 0-5 (basics, interests, vehicle, location, notifications, plan)
   interests: {
     events: string[];
     routes: string[];
     services: string[];
+    clubs: boolean;
+    marketplace: boolean;
   };
+  vehicleTypes: string[]; // 'cars' | 'motorcycles' | 'both'
+  vehicleTags: string[]; // 'classic', 'supercars', 'jdm', etc.
   vehicles: AuthVehicle[];
+  discoveryRadiusMiles: number;
+  discoveryScope: 'local' | 'national' | 'continental' | 'global';
+  notificationPrefs: NotificationPrefs;
   createdAt: string;
-}
-
-export interface AuthVehicle {
-  id: string;
-  type: 'car' | 'motorcycle';
-  make: string;
-  model: string;
-  year?: string;
-  trim?: string;
-  color?: string;
-  isPrimary: boolean;
 }
 
 interface AuthContextType {
@@ -51,6 +67,14 @@ interface AuthContextType {
   completeOnboarding: () => void;
   setOnboardingStep: (step: number) => void;
 }
+
+const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  newEventsNearby: false,
+  friendsNearby: false,
+  clubAnnouncements: false,
+  marketplaceMessages: false,
+  sosAlerts: true,
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -77,18 +101,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     username: undefined,
     avatar: null,
     bio: '',
+    country: 'GB',
     membershipPlan: 'free',
     isProfileComplete: false,
     isVerified: false,
     onboardingComplete: false,
     onboardingStep: 0,
-    interests: { events: [], routes: [], services: [] },
+    interests: { events: [], routes: [], services: [], clubs: false, marketplace: false },
+    vehicleTypes: [],
+    vehicleTags: [],
     vehicles: [],
+    discoveryRadiusMiles: 25,
+    discoveryScope: 'local',
+    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
     createdAt: new Date().toISOString(),
     ...partial,
   });
-
-  // -- Auth methods (mock — swap for Supabase later) --
 
   const login = useCallback(async (email: string, _password: string) => {
     setIsLoading(true);
@@ -106,7 +134,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const loginPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    // Phone login goes through verify step
     setUser(createUser({ phone, isVerified: false }));
     setIsLoading(false);
   }, []);
@@ -117,8 +144,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(createUser({
       email,
       displayName,
-      isVerified: false,
+      isVerified: true, // Skip verify for now to go straight to onboarding
       onboardingComplete: false,
+      onboardingStep: 0,
     }));
     setIsLoading(false);
   }, []);
@@ -150,7 +178,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const verifyCode = useCallback(async (code: string) => {
     setIsLoading(true);
     await new Promise(r => setTimeout(r, 800));
-    // Mock: any 6 digit code works
     const valid = code.length === 6;
     if (valid) {
       setUser(prev => prev ? { ...prev, isVerified: true } : null);
