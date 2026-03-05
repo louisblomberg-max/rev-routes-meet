@@ -14,7 +14,7 @@ const YouTab = () => {
   const navigate = useNavigate();
   const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan } = usePlan();
   const { user } = useCurrentUser();
-  const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount } = useUserStats();
+  const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
 
