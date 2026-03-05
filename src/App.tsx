@@ -59,11 +59,8 @@ import AuthLogin from "./pages/AuthLogin";
 import AuthForgot from "./pages/AuthForgot";
 import AuthVerify from "./pages/AuthVerify";
 import OnboardingFeatures from "./pages/OnboardingFeatures";
-import OnboardingInterests from "./pages/OnboardingInterests";
 import OnboardingVehicle from "./pages/OnboardingVehicle";
-import OnboardingLocation from "./pages/OnboardingLocation";
 import OnboardingNotifications from "./pages/OnboardingNotifications";
-import OnboardingPlan from "./pages/OnboardingPlan";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 
@@ -91,13 +88,10 @@ const App = () => (
           <Route path="/auth/verify" element={<AuthVerify />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
-          {/* Onboarding (6-step flow) */}
+          {/* Onboarding (4-step flow) */}
           <Route path="/onboarding/features" element={<OnboardingFeatures />} />
-          <Route path="/onboarding/interests" element={<OnboardingInterests />} />
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
-          <Route path="/onboarding/location" element={<OnboardingLocation />} />
           <Route path="/onboarding/notifications" element={<OnboardingNotifications />} />
-          <Route path="/onboarding/plan" element={<OnboardingPlan />} />
 
           {/* Legacy auth routes */}
           <Route path="/login" element={<AuthLogin />} />
