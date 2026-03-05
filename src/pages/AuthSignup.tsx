@@ -76,7 +76,7 @@ const AuthSignup = () => {
     try {
       await register(form.email, form.password, form.displayName);
       toast.success('Account created!');
-      navigate('/onboarding/interests');
+      navigate('/onboarding/features');
     } catch {
       toast.error('Registration failed');
     }
