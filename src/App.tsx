@@ -58,6 +58,7 @@ import AuthSignup from "./pages/AuthSignup";
 import AuthLogin from "./pages/AuthLogin";
 import AuthForgot from "./pages/AuthForgot";
 import AuthVerify from "./pages/AuthVerify";
+import OnboardingFeatures from "./pages/OnboardingFeatures";
 import OnboardingInterests from "./pages/OnboardingInterests";
 import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingLocation from "./pages/OnboardingLocation";
