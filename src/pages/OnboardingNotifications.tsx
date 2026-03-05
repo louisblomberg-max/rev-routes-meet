@@ -4,6 +4,7 @@ import { ChevronRight, Calendar, Users, Megaphone, ShoppingBag, AlertTriangle } 
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAuth, type NotificationPrefs } from '@/contexts/AuthContext';
+import { useUserPreferences } from '@/contexts/GarageContext';
 import BackButton from '@/components/BackButton';
 
 const NOTIFICATION_OPTIONS = [
@@ -17,6 +18,7 @@ const NOTIFICATION_OPTIONS = [
 const OnboardingNotifications = () => {
   const navigate = useNavigate();
   const { updateProfile, completeOnboarding } = useAuth();
+  const { updatePreferences } = useUserPreferences();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
     newEventsNearby: true,
     friendsNearby: false,
@@ -31,6 +33,7 @@ const OnboardingNotifications = () => {
 
   const handleContinue = () => {
     updateProfile({ notificationPrefs: prefs } as any);
+    updatePreferences({ notifications: prefs });
     completeOnboarding();
     navigate('/');
   };
