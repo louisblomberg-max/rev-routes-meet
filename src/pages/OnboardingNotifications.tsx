@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Bell, MapPin, Users, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { ChevronRight, Calendar, Users, Megaphone, ShoppingBag, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useAuth, type NotificationPrefs } from '@/contexts/AuthContext';
 import BackButton from '@/components/BackButton';
 
 const NOTIFICATION_OPTIONS = [
-  { key: 'newEventsNearby' as keyof NotificationPrefs, label: 'New events near you', desc: 'Meets, shows, track days nearby', icon: MapPin, defaultOn: true },
-  { key: 'friendsNearby' as keyof NotificationPrefs, label: 'Friends & group drives', desc: 'Nearby invites and group drives', icon: Users, defaultOn: false },
-  { key: 'clubAnnouncements' as keyof NotificationPrefs, label: 'Club announcements', desc: 'Posts, events, member activity', icon: Users, defaultOn: false },
-  { key: 'marketplaceMessages' as keyof NotificationPrefs, label: 'Marketplace messages', desc: 'Buy, sell & trade notifications', icon: ShoppingBag, defaultOn: false },
-  { key: 'sosAlerts' as keyof NotificationPrefs, label: 'SOS / Help alerts', desc: 'Breakdown help & emergency alerts', icon: AlertTriangle, defaultOn: true },
+  { key: 'newEventsNearby' as keyof NotificationPrefs, label: 'New events near you', desc: 'Meets, shows and track days', icon: Calendar, defaultOn: true },
+  { key: 'friendsNearby' as keyof NotificationPrefs, label: 'Friends & group drives', desc: 'Live location and drive invites', icon: Users, defaultOn: false },
+  { key: 'clubAnnouncements' as keyof NotificationPrefs, label: 'Club announcements', desc: 'Posts, events and member updates', icon: Megaphone, defaultOn: false },
+  { key: 'marketplaceMessages' as keyof NotificationPrefs, label: 'Marketplace messages', desc: 'Buy, sell and trade alerts', icon: ShoppingBag, defaultOn: false },
+  { key: 'sosAlerts' as keyof NotificationPrefs, label: 'SOS / Help alerts', desc: 'Breakdown and emergency alerts', icon: AlertTriangle, defaultOn: true },
 ];
 
 const OnboardingNotifications = () => {
@@ -37,12 +37,13 @@ const OnboardingNotifications = () => {
 
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
+      {/* Progress */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
-          <BackButton fallbackPath="/onboarding/location" />
+          <BackButton fallbackPath="/onboarding/vehicle" />
           <div className="flex-1">
             <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4, 5].map(i => (
+              {[0, 1, 2, 3].map(i => (
                 <div key={i} className="flex-1 h-1 rounded-full bg-primary" />
               ))}
             </div>
@@ -51,31 +52,21 @@ const OnboardingNotifications = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <div className="flex flex-col items-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-            <Bell className="w-8 h-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground text-center mb-1">Choose your notifications</h1>
-          <p className="text-sm text-muted-foreground text-center max-w-[280px]">
-            Step 6 of 6 — Choose what you want to hear about
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Notifications</h1>
+        <p className="text-sm text-muted-foreground text-center mb-6">
+          Choose what you want to hear about.
+        </p>
 
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {NOTIFICATION_OPTIONS.map(opt => {
             const Icon = opt.icon;
             return (
               <div key={opt.key} className="flex items-center gap-3 bg-card rounded-2xl border border-border/50 p-4">
                 <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-muted-foreground" />
+                  <Icon className="w-5 h-5 text-foreground" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-foreground">{opt.label}</span>
-                    {opt.defaultOn && (
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">ON</span>
-                    )}
-                  </div>
+                  <span className="text-sm font-semibold text-foreground block">{opt.label}</span>
                   <span className="text-xs text-muted-foreground">{opt.desc}</span>
                 </div>
                 <Switch

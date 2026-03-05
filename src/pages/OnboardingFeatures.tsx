@@ -1,45 +1,74 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight, ChevronDown, Calendar, MapPin, Wrench, Users, ShoppingBag, AlertTriangle } from 'lucide-react';
+import { ChevronRight, ChevronDown, Calendar, MapPin, Wrench, Users, ShoppingBag, Radio, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BackButton from '@/components/BackButton';
 
 const FEATURES = [
   {
     icon: Calendar,
-    title: 'Discover Events',
-    desc: 'Find car meets, shows and drive-outs happening near you.',
-    details: ['See events on the map', 'Join upcoming meets', 'Create your own events', 'Track attendees'],
+    title: 'Discover Events & Meets',
+    desc: 'Find car meets, drive-outs, shows and track days happening around the world.',
+    details: [
+      'See upcoming events on the map',
+      'View event details and attendees',
+      'Join events hosted by clubs and communities',
+      'Create and manage your own events',
+    ],
   },
   {
     icon: MapPin,
-    title: 'Driving Routes',
-    desc: 'Discover scenic roads and routes shared by the community.',
-    details: ['Scenic and twisty routes', 'Import GPX files', 'Upload your own routes', 'Turn-by-turn navigation'],
+    title: 'Explore Driving Routes',
+    desc: 'Discover the best driving roads shared by the community.',
+    details: [
+      'Scenic and twisty routes',
+      'Upload or import GPX routes',
+      'Save routes for later',
+      'Follow routes directly on the map',
+    ],
   },
   {
     icon: Wrench,
     title: 'Automotive Services',
-    desc: 'Find trusted garages, mechanics and specialists.',
-    details: ['Mechanics', 'Detailing', 'Tuning specialists', 'Tyres and parts suppliers'],
+    desc: 'Locate trusted garages and specialists near you.',
+    details: [
+      'Mechanics',
+      'Detailing services',
+      'Performance tuning',
+      'Tyres and parts suppliers',
+    ],
   },
   {
     icon: Users,
-    title: 'Clubs & Community',
-    desc: 'Connect with other enthusiasts.',
-    details: ['Join car clubs', 'Create communities', 'Share updates and events', 'Organise group drives'],
+    title: 'Clubs & Communities',
+    desc: 'Connect with enthusiasts who share your interests.',
+    details: [
+      'Join car clubs',
+      'Organise group drives',
+      'Share posts and updates',
+      'Discover communities worldwide',
+    ],
   },
   {
-    icon: ShoppingBag,
-    title: 'Marketplace',
-    desc: 'Buy and sell vehicles, parts and accessories.',
-    details: ['Vehicle listings', 'Parts marketplace', 'Direct messaging between buyers and sellers'],
+    icon: Radio,
+    title: 'Location Sharing',
+    desc: 'Share your location with friends during drives.',
+    details: [
+      'Live location for group drives',
+      'Find friends nearby',
+      'Meet up easily during events',
+    ],
   },
   {
     icon: AlertTriangle,
-    title: 'SOS & Breakdown Help',
-    desc: 'Get help from nearby RevNet members.',
-    details: ['Flat tyre assistance', 'Out of fuel', 'Mechanical breakdown', 'Accident alerts'],
+    title: 'SOS Breakdown Help',
+    desc: 'Get help when you need it most.',
+    details: [
+      'Flat tyre assistance',
+      'Out of fuel',
+      'Mechanical breakdowns',
+      'Accident alerts',
+    ],
   },
 ];
 
@@ -51,13 +80,14 @@ const OnboardingFeatures = () => {
 
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
+      {/* Progress */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
-          <BackButton fallbackPath="/auth/signup" />
+          <BackButton fallbackPath="/auth" />
           <div className="flex-1">
             <div className="flex gap-1.5">
-              {[0, 1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 0 ? 'bg-primary' : 'bg-muted'}`} />
+              {[0, 1, 2, 3].map(i => (
+                <div key={i} className={`flex-1 h-1 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
               ))}
             </div>
           </div>
@@ -65,9 +95,11 @@ const OnboardingFeatures = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">What can you do on RevNet?</h1>
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">
+          What you can do on RevNet
+        </h1>
         <p className="text-sm text-muted-foreground text-center mb-6">
-          Everything you need for car and motorcycle culture.
+          Everything you need for automotive culture in one place.
         </p>
 
         <div className="space-y-2.5">
@@ -81,12 +113,12 @@ const OnboardingFeatures = () => {
                 className="w-full text-left bg-card rounded-2xl border border-border/50 p-4 transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
+                    <Icon className="w-5 h-5 text-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold text-foreground">{feat.title}</h3>
-                    <p className="text-xs text-muted-foreground">{feat.desc}</p>
+                    <p className="text-xs text-muted-foreground leading-relaxed">{feat.desc}</p>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
@@ -109,7 +141,7 @@ const OnboardingFeatures = () => {
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
-        <Button onClick={() => navigate('/onboarding/interests')} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+        <Button onClick={() => navigate('/onboarding/vehicle')} className="w-full h-14 text-base font-semibold rounded-full gap-2">
           Continue <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
