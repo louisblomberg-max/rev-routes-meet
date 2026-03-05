@@ -121,6 +121,7 @@ const App = () => (
           <Route path="/my-friends" element={<MyFriends />} />
           <Route path="/my-events" element={<MyEvents />} />
           <Route path="/my-routes" element={<MyRoutes />} />
+          <Route path="/my-services" element={<MySavedServices />} />
           <Route path="/my-discussions" element={<MyDiscussions />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />
