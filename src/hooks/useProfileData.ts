@@ -28,16 +28,21 @@ export function useCurrentUser() {
 // ---- User Stats (aggregate counts) ----
 export function useUserStatsData() {
   const { state } = useData();
-  const { vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, activities } = state;
+  const { vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities } = state;
 
-  return useMemo(() => ({
-    garageCount: vehicles.length,
-    friendsCount: friends.filter(f => f.status === 'accepted').length,
-    clubsCount: clubMemberships.length,
-    eventsCount: userAttendingEvents.length + userHostedEvents.length,
-    routesCount: savedRoutes.length,
-    discussionsCount: activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
-  }), [vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, activities]);
+  return useMemo(() => {
+    // Deduplicate events: attending + hosted + saved
+    const allEventIds = new Set([...userAttendingEvents, ...userHostedEvents, ...savedEvents]);
+    return {
+      garageCount: vehicles.length,
+      friendsCount: friends.filter(f => f.status === 'accepted').length,
+      clubsCount: clubMemberships.length,
+      eventsCount: allEventIds.size,
+      routesCount: savedRoutes.length,
+      discussionsCount: activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
+      savedServicesCount: savedServices.length,
+    };
+  }, [vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities]);
 }
 
 // ---- Garage (Vehicles) ----

@@ -50,6 +50,7 @@ import Notifications from "./pages/Notifications";
 import EventsList from "./pages/EventsList";
 import RoutesList from "./pages/RoutesList";
 import ServicesList from "./pages/ServicesList";
+import MySavedServices from "./pages/MySavedServices";
 
 // Auth + Onboarding screens
 import AuthEntry from "./pages/AuthEntry";
@@ -120,6 +121,7 @@ const App = () => (
           <Route path="/my-friends" element={<MyFriends />} />
           <Route path="/my-events" element={<MyEvents />} />
           <Route path="/my-routes" element={<MyRoutes />} />
+          <Route path="/my-services" element={<MySavedServices />} />
           <Route path="/my-discussions" element={<MyDiscussions />} />
           <Route path="/community" element={<Community />} />
           <Route path="/forums" element={<Forums />} />

@@ -31,6 +31,8 @@ export function useMapItems() {
           attendees: ev.attendees,
           createdBy: ev.createdBy,
           visibility: ev.visibility,
+          entryFee: ev.entryFee,
+          clubId: ev.clubId,
         });
       }
     }

@@ -13,6 +13,7 @@ export interface UserStats {
   eventsCount: number;
   routesCount: number;
   discussionsCount: number;
+  savedServicesCount: number;
 }
 
 export const useUserStats = (_userId?: string): UserStats => {

@@ -300,7 +300,7 @@ const MapView = ({
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.eventType && !allowedTypes.includes(pin.eventType as string)) return false;
         }
-        if (eventsFilters.vehicleTypes.length > 0) {
+        if (eventsFilters.vehicleTypes.length > 0 && !eventsFilters.vehicleTypes.includes('all-vehicles')) {
           const vehicleTypeMapping: Record<string, string[]> = {
             'cars': ['All Welcome', 'Cars Only', 'European Cars', 'Classic Cars'],
             'motorcycles': ['All Welcome', 'Motorcycles Only'],
@@ -313,6 +313,43 @@ const MapView = ({
           };
           const allowedVehicles = eventsFilters.vehicleTypes.flatMap(v => vehicleTypeMapping[v] || []);
           if (allowedVehicles.length > 0 && pin.vehicleType && !allowedVehicles.includes(pin.vehicleType as string)) return false;
+        }
+        // Event size filter
+        if (eventsFilters.eventSize) {
+          const attendees = typeof pin.attendees === 'number' ? pin.attendees : 0;
+          if (eventsFilters.eventSize === 'small' && attendees >= 20) return false;
+          if (eventsFilters.eventSize === 'medium' && (attendees < 20 || attendees > 50)) return false;
+          if (eventsFilters.eventSize === 'large' && (attendees < 50 || attendees > 100)) return false;
+          if (eventsFilters.eventSize === 'massive' && attendees < 100) return false;
+        }
+        // Entry fee filter
+        if (eventsFilters.entryFee) {
+          const fee = (pin as any).entryFee;
+          if (eventsFilters.entryFee === 'free' && fee && fee !== 'Free' && fee !== '£0') return false;
+          if (eventsFilters.entryFee === 'paid' && (!fee || fee === 'Free' || fee === '£0')) return false;
+        }
+        // Club hosted filter
+        if (eventsFilters.clubHosted) {
+          if (!(pin as any).clubId) return false;
+        }
+        // Date filter
+        if (eventsFilters.dateFilter && eventsFilters.dateFilter !== 'specific') {
+          const pinDate = pin.date ? new Date(pin.date as string) : null;
+          if (pinDate) {
+            const now = new Date();
+            if (eventsFilters.dateFilter === 'today' && pinDate.toDateString() !== now.toDateString()) return false;
+            if (eventsFilters.dateFilter === 'this-week') {
+              const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
+              if (pinDate < now || pinDate > weekEnd) return false;
+            }
+            if (eventsFilters.dateFilter === 'this-month') {
+              if (pinDate.getMonth() !== now.getMonth() || pinDate.getFullYear() !== now.getFullYear()) return false;
+            }
+          }
+        }
+        if (eventsFilters.dateFilter === 'specific' && eventsFilters.specificDate) {
+          const pinDate = pin.date ? new Date(pin.date as string) : null;
+          if (pinDate && pinDate.toDateString() !== eventsFilters.specificDate.toDateString()) return false;
         }
       }
 
