@@ -91,7 +91,8 @@ const App = () => (
           <Route path="/auth/verify" element={<AuthVerify />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
-          {/* Onboarding (new 6-step flow) */}
+          {/* Onboarding (6-step flow) */}
+          <Route path="/onboarding/features" element={<OnboardingFeatures />} />
           <Route path="/onboarding/interests" element={<OnboardingInterests />} />
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
           <Route path="/onboarding/location" element={<OnboardingLocation />} />

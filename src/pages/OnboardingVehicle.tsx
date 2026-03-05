@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Car, Bike, Plus, Trash2, ChevronRight } from 'lucide-react';
+import { Car, Bike, Plus, Trash2, ChevronRight, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth, type AuthVehicle } from '@/contexts/AuthContext';
@@ -78,11 +78,10 @@ const OnboardingVehicle = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Vehicle preferences</h1>
-        <p className="text-sm text-muted-foreground text-center mb-6">Step 3 of 6 — Tell us what you drive</p>
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">What do you drive?</h1>
+        <p className="text-sm text-muted-foreground text-center mb-6">Step 4 of 6 — Tell us about your vehicles</p>
 
-        {/* Vehicle type selection */}
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">What do you ride?</h3>
+        {/* Vehicle type cards */}
         <div className="flex gap-3 mb-6">
           {VEHICLE_TYPES.map(vt => {
             const Icon = vt.icon;
@@ -91,12 +90,15 @@ const OnboardingVehicle = () => {
               <button
                 key={vt.id}
                 onClick={() => toggleType(vt.id)}
-                className={`flex-1 py-4 rounded-2xl flex flex-col items-center gap-2 transition-all ${
-                  active ? 'bg-primary text-primary-foreground shadow-lg' : 'bg-muted text-foreground'
+                className={`flex-1 py-5 rounded-2xl flex flex-col items-center gap-2.5 border-2 transition-all ${
+                  active
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border/50 bg-card hover:border-border'
                 }`}
               >
-                <Icon className="w-6 h-6" />
-                <span className="text-sm font-semibold">{vt.label}</span>
+                <Icon className={`w-7 h-7 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`text-sm font-semibold ${active ? 'text-foreground' : 'text-muted-foreground'}`}>{vt.label}</span>
+                {active && <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center"><Check className="w-3 h-3 text-primary-foreground" /></div>}
               </button>
             );
           })}
@@ -109,8 +111,10 @@ const OnboardingVehicle = () => {
             <button
               key={tag}
               onClick={() => toggleTag(tag)}
-              className={`py-2 px-4 rounded-full text-sm font-semibold transition-all ${
-                styleTags.includes(tag) ? 'bg-primary text-primary-foreground shadow-md' : 'bg-muted text-foreground'
+              className={`py-2.5 px-4 rounded-full text-sm font-medium border-2 transition-all ${
+                styleTags.includes(tag)
+                  ? 'border-primary bg-primary/5 text-foreground'
+                  : 'border-border/50 bg-card text-muted-foreground hover:border-border'
               }`}
             >
               {tag}
@@ -129,7 +133,7 @@ const OnboardingVehicle = () => {
         ) : (
           <>
             {vehicles.map((vehicle, idx) => (
-              <div key={vehicle.id} className="bg-muted rounded-2xl p-4 mb-3">
+              <div key={vehicle.id} className="bg-card rounded-2xl border border-border/50 p-4 mb-3">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-semibold text-muted-foreground">Vehicle {idx + 1}</span>
                   {vehicles.length > 1 && (
@@ -138,29 +142,11 @@ const OnboardingVehicle = () => {
                     </button>
                   )}
                 </div>
-                <div className="flex bg-background rounded-xl p-1 mb-3">
-                  <button
-                    onClick={() => updateVehicle(vehicle.id, 'type', 'car')}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${vehicle.type === 'car' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
-                  >
-                    <Car className="w-4 h-4" /> Car
-                  </button>
-                  <button
-                    onClick={() => updateVehicle(vehicle.id, 'type', 'motorcycle')}
-                    className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${vehicle.type === 'motorcycle' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
-                  >
-                    <Bike className="w-4 h-4" /> Motorcycle
-                  </button>
-                </div>
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                  <Input placeholder="Make *" className="rounded-xl h-11 bg-background border-0 text-sm" value={vehicle.make} onChange={e => updateVehicle(vehicle.id, 'make', e.target.value)} />
-                  <Input placeholder="Model *" className="rounded-xl h-11 bg-background border-0 text-sm" value={vehicle.model} onChange={e => updateVehicle(vehicle.id, 'model', e.target.value)} />
+                  <Input placeholder="Make *" className="rounded-xl h-11 text-sm" value={vehicle.make} onChange={e => updateVehicle(vehicle.id, 'make', e.target.value)} />
+                  <Input placeholder="Model *" className="rounded-xl h-11 text-sm" value={vehicle.model} onChange={e => updateVehicle(vehicle.id, 'model', e.target.value)} />
                 </div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Input placeholder="Year" className="rounded-xl h-11 bg-background border-0 text-sm" value={vehicle.year} onChange={e => updateVehicle(vehicle.id, 'year', e.target.value)} />
-                  <Input placeholder="Trim" className="rounded-xl h-11 bg-background border-0 text-sm" value={vehicle.trim} onChange={e => updateVehicle(vehicle.id, 'trim', e.target.value)} />
-                  <Input placeholder="Color" className="rounded-xl h-11 bg-background border-0 text-sm" value={vehicle.color} onChange={e => updateVehicle(vehicle.id, 'color', e.target.value)} />
-                </div>
+                <Input placeholder="Year" className="rounded-xl h-11 text-sm" value={vehicle.year} onChange={e => updateVehicle(vehicle.id, 'year', e.target.value)} />
               </div>
             ))}
             {vehicles.length < 5 && (

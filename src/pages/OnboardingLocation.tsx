@@ -9,7 +9,7 @@ import BackButton from '@/components/BackButton';
 
 const SCOPE_OPTIONS = [
   { id: 'local', label: 'Local', desc: 'Nearby only' },
-  { id: 'national', label: 'National', desc: 'Whole country' },
+  { id: 'national', label: 'National', desc: 'Across the country' },
   { id: 'continental', label: 'Continental', desc: 'Across borders' },
   { id: 'global', label: 'Global', desc: 'Worldwide' },
 ] as const;
@@ -65,7 +65,7 @@ const OnboardingLocation = () => {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 animate-scale-up">
+          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
             <MapPin className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-foreground leading-tight mb-3">
@@ -111,9 +111,9 @@ const OnboardingLocation = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Discovery distance</h1>
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">How far do you want to explore?</h1>
         <p className="text-sm text-muted-foreground text-center mb-8">
-          Step 4 of 6 — How far do you want to explore?
+          Step 5 of 6 — Set your discovery distance
         </p>
 
         {/* Radius slider */}
@@ -136,21 +136,21 @@ const OnboardingLocation = () => {
           </div>
         </div>
 
-        {/* Scope quick options */}
+        {/* Scope cards */}
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Or choose a scope</h3>
         <div className="grid grid-cols-2 gap-2.5">
           {SCOPE_OPTIONS.map(opt => (
             <button
               key={opt.id}
               onClick={() => setScope(opt.id)}
-              className={`py-3.5 px-4 rounded-2xl text-left transition-all ${
+              className={`py-4 px-4 rounded-2xl text-left border-2 transition-all ${
                 scope === opt.id
-                  ? 'bg-primary text-primary-foreground shadow-lg'
-                  : 'bg-muted text-foreground'
+                  ? 'border-primary bg-primary/5'
+                  : 'border-border/50 bg-card hover:border-border'
               }`}
             >
-              <span className="text-sm font-bold block">{opt.label}</span>
-              <span className={`text-[11px] ${scope === opt.id ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{opt.desc}</span>
+              <span className="text-sm font-bold text-foreground block">{opt.label}</span>
+              <span className="text-[11px] text-muted-foreground">{opt.desc}</span>
             </button>
           ))}
         </div>

@@ -1,46 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Calendar, MapPin, Wrench, Users, ShoppingBag, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import BackButton from '@/components/BackButton';
 
-const CATEGORIES = [
-  {
-    id: 'events',
-    label: 'Events & Drives',
-    items: ['Meets', 'Cars & Coffee', 'Track Days', 'Drive-outs', 'Shows'],
-    color: 'bg-events/15 text-events',
-    activeColor: 'bg-events text-events-foreground',
-  },
-  {
-    id: 'routes',
-    label: 'Routes',
-    items: ['Scenic', 'Twisties', 'Coastal', 'Off-road', 'Track'],
-    color: 'bg-routes/15 text-routes',
-    activeColor: 'bg-routes text-routes-foreground',
-  },
-  {
-    id: 'services',
-    label: 'Services',
-    items: ['Mechanics', 'Detailing', 'Tuning', 'Tyres', 'MOT', 'Parts'],
-    color: 'bg-services/15 text-services',
-    activeColor: 'bg-services text-services-foreground',
-  },
-  {
-    id: 'clubs',
-    label: 'Clubs & Community',
-    items: ['Clubs & Community'],
-    color: 'bg-clubs/15 text-clubs',
-    activeColor: 'bg-clubs text-clubs-foreground',
-  },
-  {
-    id: 'marketplace',
-    label: 'Marketplace',
-    items: ['Marketplace'],
-    color: 'bg-amber-500/15 text-amber-600',
-    activeColor: 'bg-amber-500 text-white',
-  },
+const INTERESTS = [
+  { id: 'events', label: 'Events & Meets', desc: 'Car meets, shows and drive-outs', icon: Calendar },
+  { id: 'routes', label: 'Driving Routes', desc: 'Scenic roads and touring routes', icon: MapPin },
+  { id: 'services', label: 'Services', desc: 'Garages, mechanics and specialists', icon: Wrench },
+  { id: 'clubs', label: 'Clubs', desc: 'Communities and groups', icon: Users },
+  { id: 'marketplace', label: 'Marketplace', desc: 'Buy and sell vehicles or parts', icon: ShoppingBag },
 ];
 
 const OnboardingInterests = () => {
@@ -48,17 +18,20 @@ const OnboardingInterests = () => {
   const { updateProfile, setOnboardingStep } = useAuth();
   const [selected, setSelected] = useState<string[]>([]);
 
-  const toggle = (val: string) => {
-    setSelected(prev => prev.includes(val) ? prev.filter(v => v !== val) : [...prev, val]);
+  const toggle = (id: string) => {
+    setSelected(prev => prev.includes(id) ? prev.filter(v => v !== id) : [...prev, id]);
   };
 
   const handleContinue = () => {
-    const events = CATEGORIES[0].items.filter(i => selected.includes(i));
-    const routes = CATEGORIES[1].items.filter(i => selected.includes(i));
-    const services = CATEGORIES[2].items.filter(i => selected.includes(i));
-    const clubs = selected.includes('Clubs & Community');
-    const marketplace = selected.includes('Marketplace');
-    updateProfile({ interests: { events, routes, services, clubs, marketplace } } as any);
+    updateProfile({
+      interests: {
+        events: selected.includes('events') ? ['Meets', 'Cars & Coffee', 'Track Days', 'Drive-outs', 'Shows'] : [],
+        routes: selected.includes('routes') ? ['Scenic', 'Twisties', 'Coastal', 'Off-road', 'Track'] : [],
+        services: selected.includes('services') ? ['Mechanics', 'Detailing', 'Tuning', 'Tyres', 'MOT', 'Parts'] : [],
+        clubs: selected.includes('clubs'),
+        marketplace: selected.includes('marketplace'),
+      },
+    } as any);
     setOnboardingStep(2);
     navigate('/onboarding/vehicle');
   };
@@ -67,7 +40,7 @@ const OnboardingInterests = () => {
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
-          <BackButton fallbackPath="/auth/signup" />
+          <BackButton fallbackPath="/onboarding/features" />
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3, 4, 5].map(i => (
@@ -79,29 +52,43 @@ const OnboardingInterests = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">What are you into?</h1>
+        <h1 className="text-2xl font-bold text-foreground text-center mb-1">What would you like to discover?</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">
-          Select all that interest you — we'll personalise your feed
+          Choose what you want to see in your feed.
         </p>
 
-        {CATEGORIES.map(cat => (
-          <div key={cat.id} className="mb-5">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">{cat.label}</h3>
-            <div className="flex flex-wrap gap-2">
-              {cat.items.map(item => (
-                <button
-                  key={item}
-                  onClick={() => toggle(item)}
-                  className={`py-2.5 px-4 rounded-full text-sm font-semibold transition-all ${
-                    selected.includes(item) ? cat.activeColor + ' shadow-md' : cat.color
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+        <div className="space-y-2.5">
+          {INTERESTS.map(item => {
+            const Icon = item.icon;
+            const active = selected.includes(item.id);
+            return (
+              <button
+                key={item.id}
+                onClick={() => toggle(item.id)}
+                className={`w-full text-left rounded-2xl border-2 p-4 transition-all flex items-center gap-3 ${
+                  active
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border/50 bg-card hover:border-border'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                  active ? 'bg-primary/10' : 'bg-muted'
+                }`}>
+                  <Icon className={`w-5 h-5 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-semibold text-foreground">{item.label}</h3>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                  active ? 'border-primary bg-primary' : 'border-border'
+                }`}>
+                  {active && <Check className="w-3.5 h-3.5 text-primary-foreground" />}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
