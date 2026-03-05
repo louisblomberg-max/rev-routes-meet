@@ -7,18 +7,18 @@ import { useAuth, type NotificationPrefs } from '@/contexts/AuthContext';
 import BackButton from '@/components/BackButton';
 
 const NOTIFICATION_OPTIONS = [
-  { key: 'newEventsNearby' as keyof NotificationPrefs, label: 'New events near you', desc: 'Meets, shows, track days nearby', icon: MapPin, recommended: false },
-  { key: 'friendsNearby' as keyof NotificationPrefs, label: 'Friends & live location', desc: 'Nearby invites and group drives', icon: Users, recommended: false },
-  { key: 'clubAnnouncements' as keyof NotificationPrefs, label: 'Club announcements', desc: 'Posts, events, member activity', icon: Users, recommended: false },
-  { key: 'marketplaceMessages' as keyof NotificationPrefs, label: 'Marketplace messages', desc: 'Buy, sell & trade notifications', icon: ShoppingBag, recommended: false },
-  { key: 'sosAlerts' as keyof NotificationPrefs, label: 'SOS / Help alerts', desc: 'Breakdown help & emergency alerts', icon: AlertTriangle, recommended: true },
+  { key: 'newEventsNearby' as keyof NotificationPrefs, label: 'New events near you', desc: 'Meets, shows, track days nearby', icon: MapPin, defaultOn: true },
+  { key: 'friendsNearby' as keyof NotificationPrefs, label: 'Friends & group drives', desc: 'Nearby invites and group drives', icon: Users, defaultOn: false },
+  { key: 'clubAnnouncements' as keyof NotificationPrefs, label: 'Club announcements', desc: 'Posts, events, member activity', icon: Users, defaultOn: false },
+  { key: 'marketplaceMessages' as keyof NotificationPrefs, label: 'Marketplace messages', desc: 'Buy, sell & trade notifications', icon: ShoppingBag, defaultOn: false },
+  { key: 'sosAlerts' as keyof NotificationPrefs, label: 'SOS / Help alerts', desc: 'Breakdown help & emergency alerts', icon: AlertTriangle, defaultOn: true },
 ];
 
 const OnboardingNotifications = () => {
   const navigate = useNavigate();
-  const { updateProfile, setOnboardingStep } = useAuth();
+  const { updateProfile, completeOnboarding } = useAuth();
   const [prefs, setPrefs] = useState<NotificationPrefs>({
-    newEventsNearby: false,
+    newEventsNearby: true,
     friendsNearby: false,
     clubAnnouncements: false,
     marketplaceMessages: false,
@@ -31,8 +31,8 @@ const OnboardingNotifications = () => {
 
   const handleContinue = () => {
     updateProfile({ notificationPrefs: prefs } as any);
-    setOnboardingStep(5);
-    navigate('/onboarding/plan');
+    completeOnboarding();
+    navigate('/');
   };
 
   return (
@@ -43,7 +43,7 @@ const OnboardingNotifications = () => {
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 4 ? 'bg-primary' : 'bg-muted'}`} />
+                <div key={i} className="flex-1 h-1 rounded-full bg-primary" />
               ))}
             </div>
           </div>
@@ -55,9 +55,9 @@ const OnboardingNotifications = () => {
           <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Bell className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground text-center mb-1">Notifications</h1>
+          <h1 className="text-2xl font-bold text-foreground text-center mb-1">Choose your notifications</h1>
           <p className="text-sm text-muted-foreground text-center max-w-[280px]">
-            Step 5 of 6 — Choose what you want to hear about
+            Step 6 of 6 — Choose what you want to hear about
           </p>
         </div>
 
@@ -72,8 +72,8 @@ const OnboardingNotifications = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold text-foreground">{opt.label}</span>
-                    {opt.recommended && (
-                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">REC</span>
+                    {opt.defaultOn && (
+                      <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">ON</span>
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground">{opt.desc}</span>
@@ -94,7 +94,7 @@ const OnboardingNotifications = () => {
 
       <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
         <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
-          Next <ChevronRight className="w-5 h-5" />
+          Get Started <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
     </div>

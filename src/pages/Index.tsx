@@ -35,12 +35,11 @@ const Index = () => {
     }
     // Otherwise resume onboarding at the right step
     const stepRoutes = [
-      '/onboarding/interests',  // step 0 (basics done at signup)
-      '/onboarding/interests',
-      '/onboarding/vehicle',
-      '/onboarding/location',
-      '/onboarding/notifications',
-      '/onboarding/plan',
+      '/onboarding/features',   // step 0 — features overview
+      '/onboarding/interests',  // step 1
+      '/onboarding/vehicle',    // step 2
+      '/onboarding/location',   // step 3
+      '/onboarding/notifications', // step 4
     ];
     const step = Math.min(user.onboardingStep || 0, stepRoutes.length - 1);
     return <Navigate to={stepRoutes[step]} replace />;

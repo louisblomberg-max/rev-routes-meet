@@ -58,6 +58,7 @@ import AuthSignup from "./pages/AuthSignup";
 import AuthLogin from "./pages/AuthLogin";
 import AuthForgot from "./pages/AuthForgot";
 import AuthVerify from "./pages/AuthVerify";
+import OnboardingFeatures from "./pages/OnboardingFeatures";
 import OnboardingInterests from "./pages/OnboardingInterests";
 import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingLocation from "./pages/OnboardingLocation";
@@ -90,7 +91,8 @@ const App = () => (
           <Route path="/auth/verify" element={<AuthVerify />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
-          {/* Onboarding (new 6-step flow) */}
+          {/* Onboarding (6-step flow) */}
+          <Route path="/onboarding/features" element={<OnboardingFeatures />} />
           <Route path="/onboarding/interests" element={<OnboardingInterests />} />
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
           <Route path="/onboarding/location" element={<OnboardingLocation />} />
