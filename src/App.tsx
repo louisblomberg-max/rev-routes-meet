@@ -7,6 +7,7 @@ import { PlanProvider } from "@/contexts/PlanContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { MapProvider } from "@/contexts/MapContext";
 import { DataProvider } from "@/contexts/DataContext";
+import { GarageProvider } from "@/contexts/GarageContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
@@ -69,6 +70,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
+    <GarageProvider>
     <PlanProvider>
     <DataProvider>
     <MapProvider>
@@ -148,6 +150,7 @@ const App = () => (
     </MapProvider>
     </DataProvider>
     </PlanProvider>
+    </GarageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );
