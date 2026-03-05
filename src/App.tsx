@@ -58,12 +58,11 @@ import AuthSignup from "./pages/AuthSignup";
 import AuthLogin from "./pages/AuthLogin";
 import AuthForgot from "./pages/AuthForgot";
 import AuthVerify from "./pages/AuthVerify";
-import OnboardingProfile from "./pages/OnboardingProfile";
-import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingInterests from "./pages/OnboardingInterests";
-import OnboardingPermissions from "./pages/OnboardingPermissions";
-import OnboardingFinish from "./pages/OnboardingFinish";
-import OnboardingReferral from "./pages/OnboardingReferral";
+import OnboardingVehicle from "./pages/OnboardingVehicle";
+import OnboardingLocation from "./pages/OnboardingLocation";
+import OnboardingNotifications from "./pages/OnboardingNotifications";
+import OnboardingPlan from "./pages/OnboardingPlan";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 
@@ -91,19 +90,17 @@ const App = () => (
           <Route path="/auth/verify" element={<AuthVerify />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
-          {/* Onboarding */}
-          <Route path="/onboarding/profile" element={<OnboardingProfile />} />
-          <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
+          {/* Onboarding (new 6-step flow) */}
           <Route path="/onboarding/interests" element={<OnboardingInterests />} />
-          <Route path="/onboarding/permissions" element={<OnboardingPermissions />} />
-          <Route path="/onboarding/referral" element={<OnboardingReferral />} />
-          <Route path="/onboarding/finish" element={<OnboardingFinish />} />
+          <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
+          <Route path="/onboarding/location" element={<OnboardingLocation />} />
+          <Route path="/onboarding/notifications" element={<OnboardingNotifications />} />
+          <Route path="/onboarding/plan" element={<OnboardingPlan />} />
 
-          {/* Legacy auth routes (redirect to new) */}
+          {/* Legacy auth routes */}
           <Route path="/login" element={<AuthLogin />} />
           <Route path="/register" element={<AuthSignup />} />
           <Route path="/forgot-password" element={<AuthForgot />} />
-          <Route path="/complete-profile" element={<OnboardingProfile />} />
 
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
@@ -147,7 +144,6 @@ const App = () => (
           <Route path="/routes" element={<RoutesList />} />
           <Route path="/services" element={<ServicesList />} />
           <Route path="/settings/devtools" element={<DevTools />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

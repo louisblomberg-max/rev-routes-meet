@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
@@ -9,25 +9,24 @@ import BackButton from '@/components/BackButton';
 
 const AuthLogin = () => {
   const navigate = useNavigate();
-  const { login, loginPhone, isLoading } = useAuth();
+  const { login, isLoading } = useAuth();
 
-  const [method, setMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [shakeField, setShakeField] = useState<string | null>(null);
 
   const validate = () => {
     const errs: Record<string, string> = {};
-    if (method === 'email') {
-      if (!email.trim()) errs.email = 'Email is required';
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Invalid email';
-      if (!password) errs.password = 'Password is required';
-    } else {
-      if (!phone.trim()) errs.phone = 'Phone number is required';
-    }
+    if (!email.trim()) errs.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Enter a valid email';
+    if (!password) errs.password = 'Password is required';
     setErrors(errs);
+    if (Object.keys(errs).length > 0) {
+      setShakeField(Object.keys(errs)[0]);
+      setTimeout(() => setShakeField(null), 500);
+    }
     return Object.keys(errs).length === 0;
   };
 
@@ -35,24 +34,17 @@ const AuthLogin = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
-      if (method === 'email') {
-        await login(email, password);
-        toast.success('Welcome back!');
-        navigate('/');
-      } else {
-        await loginPhone(phone);
-        toast.success('Code sent');
-        navigate('/auth/verify?dest=' + encodeURIComponent(phone));
-      }
+      await login(email, password);
+      toast.success('Welcome back!');
+      navigate('/');
     } catch {
-      toast.error('Login failed');
+      toast.error('Invalid email or password');
     }
   };
 
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="flex-1 flex flex-col px-6 py-8 safe-top">
-        {/* Header */}
         <div className="flex items-center mb-8">
           <BackButton fallbackPath="/auth" />
         </div>
@@ -60,66 +52,46 @@ const AuthLogin = () => {
         <h1 className="text-2xl font-bold text-foreground text-center mb-1">Welcome back</h1>
         <p className="text-sm text-muted-foreground text-center mb-8">Sign in to your account</p>
 
-        {/* Toggle */}
-        <div className="flex bg-muted rounded-2xl p-1 mb-6">
-          <button
-            onClick={() => setMethod('email')}
-            className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${method === 'email' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
-          >
-            <Mail className="w-4 h-4 inline mr-1.5" />Email
-          </button>
-          <button
-            onClick={() => setMethod('phone')}
-            className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all ${method === 'phone' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground'}`}
-          >
-            <Phone className="w-4 h-4 inline mr-1.5" />Phone
-          </button>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4 flex-1">
-          {method === 'email' ? (
-            <>
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="email" placeholder="Email address" className="pl-11 rounded-2xl h-12 bg-muted border-0 text-sm" value={email} onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: '' })); }} />
-                </div>
-                {errors.email && <p className="text-xs text-destructive pl-1">{errors.email}</p>}
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    className="pl-11 pr-11 rounded-2xl h-12 bg-muted border-0 text-sm"
-                    value={password}
-                    onChange={e => { setPassword(e.target.value); setErrors(p => ({ ...p, password: '' })); }}
-                  />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                <div className="text-right">
-                  <Link to="/auth/forgot" className="text-xs text-primary">Forgot password?</Link>
-                </div>
-                {errors.password && <p className="text-xs text-destructive pl-1">{errors.password}</p>}
-              </div>
-            </>
-          ) : (
-            <div className="space-y-1.5">
-              <div className="relative">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="tel" placeholder="+44 7700 000000" className="pl-11 rounded-2xl h-12 bg-muted border-0 text-sm" value={phone} onChange={e => { setPhone(e.target.value); setErrors(p => ({ ...p, phone: '' })); }} />
-              </div>
-              {errors.phone && <p className="text-xs text-destructive pl-1">{errors.phone}</p>}
+          <div className="space-y-1.5">
+            <div className={`relative transition-transform ${shakeField === 'email' ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}>
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder="Email address"
+                className={`pl-11 rounded-2xl h-12 bg-muted border-0 text-sm ${errors.email ? 'ring-2 ring-destructive/50' : ''}`}
+                value={email}
+                onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: '' })); }}
+              />
             </div>
-          )}
+            {errors.email && <p className="text-xs text-destructive pl-1 animate-fade-up">{errors.email}</p>}
+          </div>
+
+          <div className="space-y-1.5">
+            <div className={`relative transition-transform ${shakeField === 'password' ? 'animate-[shake_0.4s_ease-in-out]' : ''}`}>
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Password"
+                className={`pl-11 pr-11 rounded-2xl h-12 bg-muted border-0 text-sm ${errors.password ? 'ring-2 ring-destructive/50' : ''}`}
+                value={password}
+                onChange={e => { setPassword(e.target.value); setErrors(p => ({ ...p, password: '' })); }}
+              />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <div className="text-right">
+              <Link to="/auth/forgot" className="text-xs text-primary font-medium">Forgot password?</Link>
+            </div>
+            {errors.password && <p className="text-xs text-destructive pl-1 animate-fade-up">{errors.password}</p>}
+          </div>
 
           <div className="pt-2">
             <Button type="submit" className="w-full h-14 text-base font-semibold rounded-full" disabled={isLoading}>
-              {isLoading ? 'Signing in...' : method === 'email' ? 'Sign In' : 'Send Code'}
+              {isLoading ? (
+                <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</span>
+              ) : 'Sign In'}
             </Button>
           </div>
         </form>
@@ -144,7 +116,7 @@ const AuthLogin = () => {
 
         <p className="text-sm text-muted-foreground text-center pt-6 pb-4">
           Don't have an account?{' '}
-          <Link to="/auth/signup" className="text-primary font-semibold">Sign up</Link>
+          <Link to="/auth/signup" className="text-primary font-semibold">Create one</Link>
         </p>
       </div>
     </div>
