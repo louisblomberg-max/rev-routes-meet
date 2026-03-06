@@ -142,16 +142,29 @@ const RouteDetailContent = ({ route, onNavigate, onViewFull, isSaved, onToggleSa
         </div>
       )}
 
-      {/* Route preview placeholder */}
-      <div className="bg-muted/30 rounded-xl p-4 text-center border border-dashed border-border">
-        <Route className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
-        <p className="text-xs text-muted-foreground">
-          {route.polyline ? 'Route polyline available' : 'Route preview will show here'}
-        </p>
-        <Button variant="link" size="sm" className="text-routes mt-1" onClick={onViewFull}>
-          View full route →
-        </Button>
-      </div>
+      {/* Route preview */}
+      {route.polyline ? (
+        <div className="bg-muted/30 rounded-xl p-3 border border-border/50">
+          <div className="flex items-center gap-2 mb-2">
+            <Route className="w-4 h-4 text-routes" />
+            <span className="text-xs font-medium text-foreground">Route visible on map</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            The route path is displayed on the map behind this sheet. Drag down to see it.
+          </p>
+          <Button variant="link" size="sm" className="text-routes mt-1 px-0" onClick={onViewFull}>
+            View full route details →
+          </Button>
+        </div>
+      ) : (
+        <div className="bg-muted/30 rounded-xl p-4 text-center border border-dashed border-border">
+          <Route className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
+          <p className="text-xs text-muted-foreground">Route preview not available</p>
+          <Button variant="link" size="sm" className="text-routes mt-1" onClick={onViewFull}>
+            View full route →
+          </Button>
+        </div>
+      )}
 
       {/* CTA buttons */}
       <div className="flex gap-2">
