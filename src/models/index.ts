@@ -168,9 +168,10 @@ export interface RevRoute {
   saves?: number;
   drives?: number;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
-  elevationGain?: number; // meters
-  scenicRating?: number; // 1-5
+  elevationGain?: number;
+  scenicRating?: number;
   trafficLevel?: 'low' | 'moderate' | 'heavy';
   surfaceType?: 'tarmac' | 'gravel' | 'mixed' | 'dirt';
   difficulty?: 'easy' | 'moderate' | 'challenging' | 'expert';
