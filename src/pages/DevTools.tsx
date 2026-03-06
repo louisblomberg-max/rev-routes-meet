@@ -20,10 +20,48 @@ const pickN = <T,>(arr: T[], n: number): T[] => {
   return shuffled.slice(0, n);
 };
 const randBetween = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-const randCoordUK = (): { lat: number; lng: number } => ({
-  lat: 50.5 + Math.random() * 5.5, // ~50.5 to 56.0
-  lng: -4.5 + Math.random() * 5.5, // ~-4.5 to 1.0
-});
+// Pre-defined UK land coordinates (cities/towns) to guarantee on-land placement
+const UK_LAND_POINTS: { lat: number; lng: number; city: string }[] = [
+  { lat: 51.5074, lng: -0.1278, city: 'London' },
+  { lat: 52.4862, lng: -1.8904, city: 'Birmingham' },
+  { lat: 53.4808, lng: -2.2426, city: 'Manchester' },
+  { lat: 53.8008, lng: -1.5491, city: 'Leeds' },
+  { lat: 51.4545, lng: -2.5879, city: 'Bristol' },
+  { lat: 53.4084, lng: -2.9916, city: 'Liverpool' },
+  { lat: 54.9783, lng: -1.6178, city: 'Newcastle' },
+  { lat: 52.9548, lng: -1.1581, city: 'Nottingham' },
+  { lat: 53.3811, lng: -1.4701, city: 'Sheffield' },
+  { lat: 50.9097, lng: -1.4044, city: 'Southampton' },
+  { lat: 50.8225, lng: -0.1372, city: 'Brighton' },
+  { lat: 51.7520, lng: -1.2577, city: 'Oxford' },
+  { lat: 52.2053, lng: 0.1218, city: 'Cambridge' },
+  { lat: 51.3811, lng: -2.3590, city: 'Bath' },
+  { lat: 50.7184, lng: -1.8795, city: 'Bournemouth' },
+  { lat: 52.6309, lng: -1.1398, city: 'Leicester' },
+  { lat: 51.2802, lng: -0.7500, city: 'Guildford' },
+  { lat: 52.1936, lng: -2.2216, city: 'Worcester' },
+  { lat: 51.0543, lng: -1.3100, city: 'Winchester' },
+  { lat: 53.2307, lng: -0.5406, city: 'Lincoln' },
+  { lat: 52.0406, lng: -0.7594, city: 'Milton Keynes' },
+  { lat: 51.8860, lng: -2.0880, city: 'Cheltenham' },
+  { lat: 54.5260, lng: -1.5526, city: 'Darlington' },
+  { lat: 53.7632, lng: -2.7044, city: 'Preston' },
+  { lat: 52.5162, lng: -2.0816, city: 'Wolverhampton' },
+  { lat: 51.5820, lng: -0.3360, city: 'Watford' },
+  { lat: 51.2684, lng: 1.0780, city: 'Canterbury' },
+  { lat: 50.3755, lng: -4.1427, city: 'Plymouth' },
+  { lat: 50.2660, lng: -5.0527, city: 'Truro' },
+  { lat: 54.7753, lng: -1.5849, city: 'Durham' },
+];
+// Jitter around a known land point (±0.05° ≈ 3 mi)
+const randCoordUK = (): { lat: number; lng: number; city: string } => {
+  const base = pick(UK_LAND_POINTS);
+  return {
+    lat: base.lat + (Math.random() - 0.5) * 0.1,
+    lng: base.lng + (Math.random() - 0.5) * 0.1,
+    city: base.city,
+  };
+};
 
 const EVENT_NAMES = [
   'Sunset Car Meet', 'Dawn Patrol Cars & Coffee', 'Nürburgring Night', 'JDM All Stars', 'Euro Stance Show',
