@@ -102,7 +102,7 @@ const SearchBar = ({
           {searchValue && (
             <div className="px-4 pb-4 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                 <p className="text-sm text-foreground font-semibold">
                   AI searching "{searchValue}"
                 </p>
