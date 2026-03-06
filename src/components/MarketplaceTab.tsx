@@ -386,7 +386,7 @@ const MarketplaceTab = () => {
                           setActiveCategory(cat.id);
                           setIsSearchFocused(false);
                         }}
-                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/80 hover:bg-white hover:shadow-md transition-all"
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-accent hover:bg-accent/80 hover:shadow-md transition-all"
                       >
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cat.gradient} flex items-center justify-center`}>
                           <Icon className="w-4 h-4 text-white" />
