@@ -63,7 +63,7 @@ const AccountStep = ({ onComplete }: Props) => {
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
-          {Array.from({ length: 7 }).map((_, i) => (
+          {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className={`flex-1 h-1 rounded-full bg-primary`} />
           ))}
         </div>

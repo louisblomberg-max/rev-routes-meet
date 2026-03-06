@@ -66,7 +66,7 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const TOTAL_ONBOARDING_STEPS = 12;
+export const TOTAL_ONBOARDING_STEPS = 13;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const [step, setStep] = useState(0);
