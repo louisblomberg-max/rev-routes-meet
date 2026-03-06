@@ -728,7 +728,7 @@ const MarketplaceTab = () => {
               return (
                 <button
                   key={listing.id}
-                  className="group bg-card rounded-xl overflow-hidden border border-border/50 shadow-card text-left hover:shadow-elevated hover:border-border active:scale-[0.99] transition-all duration-200"
+                  className="group bg-card rounded-2xl overflow-hidden border border-border/30 shadow-premium text-left hover:shadow-elevated hover:border-border/50 active:scale-[0.99] transition-all duration-300"
                 >
                   {/* Image Placeholder */}
                   <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
