@@ -96,7 +96,7 @@ export const MOCK_USER_PRESETS: MockUserPreset[] = [
   {
     id: 'club-business',
     label: 'Club / Business',
-    description: 'Club subscription (£7.99/mo) — clubs + services unlocked',
+    description: 'Club subscription (£6.99/mo) — clubs + services unlocked',
     planId: 'club',
     eventCredits: -1,
     routeCredits: -1,

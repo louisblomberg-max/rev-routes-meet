@@ -85,7 +85,7 @@ const PlanBillingSettings = () => {
       color: 'text-clubs',
       bgColor: 'bg-clubs/10',
       borderColor: 'border-clubs/30',
-      price: { monthly: 19.99, yearly: 189.99 },
+      price: { monthly: 6.99, yearly: 75.49 },
     },
   ];
 

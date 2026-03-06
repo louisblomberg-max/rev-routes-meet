@@ -106,7 +106,7 @@ const AddClub = () => {
           </div>
           <h2 className="text-xl font-bold text-foreground">Club / Business Plan Required</h2>
           <p className="text-sm text-muted-foreground">
-            Creating and managing clubs requires the {getPlanLabel('club')} plan (£19.99/mo).
+            Creating and managing clubs requires the {getPlanLabel('club')} plan (£6.99/mo).
           </p>
           <Button onClick={() => navigate('/upgrade')} className="mt-2 gap-2">
             <Crown className="w-4 h-4" />
