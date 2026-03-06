@@ -222,6 +222,7 @@ const AddRoute = () => {
       saves: 0,
       drives: 0,
       visibility: data.visibility?.level || 'public',
+      tags: [data.routeType?.toLowerCase() || 'mixed', ...data.vehicleTypes.map((v: string) => v.toLowerCase())],
     });
 
     // Deduct credit if free user with credits

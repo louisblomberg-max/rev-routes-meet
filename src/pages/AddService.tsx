@@ -209,6 +209,7 @@ const AddService = () => {
         lng: formData.locationCoords?.lng,
         createdBy: currentUser.id,
         visibility: (formData as any).visibility || 'public',
+        tags: formData.categories.map((c: string) => c.toLowerCase()),
       });
 
       toast.success('Service published — shown on map', { description: `${formData.name} is now listed.` });

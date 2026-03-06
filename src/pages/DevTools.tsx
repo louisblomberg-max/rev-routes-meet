@@ -97,6 +97,7 @@ const DevTools = () => {
       attendees: 0,
       isMultiDay: false,
       isRecurring: false,
+      tags: ['meets'],
     });
     toast.success('Test event created at your location!', {
       description: 'Switch to Discovery → Events to see the pin.',
