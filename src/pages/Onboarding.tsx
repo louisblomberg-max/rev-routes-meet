@@ -10,6 +10,7 @@ import GarageStep from '@/components/onboarding/GarageStep';
 import NotificationsStep from '@/components/onboarding/NotificationsStep';
 import InterestsStep from '@/components/onboarding/InterestsStep';
 import AccountStep from '@/components/onboarding/AccountStep';
+import PlanStep from '@/components/onboarding/PlanStep';
 
 const FEATURE_SLIDES = [
   {
