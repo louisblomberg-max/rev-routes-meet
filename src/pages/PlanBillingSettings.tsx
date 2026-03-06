@@ -75,7 +75,7 @@ const PlanBillingSettings = () => {
       color: 'text-primary',
       bgColor: 'bg-primary/10',
       borderColor: 'border-primary',
-      price: { monthly: 4.99, yearly: 47.99 },
+      price: { monthly: 3.99, yearly: 43.07 },
       recommended: true,
     },
     {
