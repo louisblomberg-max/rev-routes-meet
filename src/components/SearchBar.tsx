@@ -43,7 +43,7 @@ const SearchBar = ({
           onClick={onFocus}
           className="group cursor-pointer h-10 bg-card/80 backdrop-blur-md border border-border/30 rounded-xl shadow-card px-3.5 flex items-center gap-2.5 transition-all duration-200 hover:shadow-elevated hover:border-border/50 active:scale-[0.99]"
         >
-          <Sparkles className="w-4 h-4 text-amber-500" />
+          <Sparkles className="w-4 h-4 text-primary" />
           <span className="flex-1 text-sm text-muted-foreground truncate">AI Search: events, routes, services...</span>
         </div>
       )}
