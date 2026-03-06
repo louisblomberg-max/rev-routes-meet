@@ -225,6 +225,7 @@ export interface RevService {
   createdBy: string;
   createdAt: string;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
   yearsInBusiness?: number;
   certifications?: string[];
@@ -233,16 +234,13 @@ export interface RevService {
   servicesOffered?: string[];
   website?: string;
   socialLinks?: { instagram?: string; tiktok?: string; youtube?: string; x?: string };
-  // Business verification
   vatRegistered?: boolean;
   companyNumber?: string;
   insuranceVerified?: boolean;
   insuranceDocumentUrl?: string;
-  // Pro features
   isFeatured?: boolean;
   isVerified?: boolean;
   isBoosted?: boolean;
-  // Service type
   serviceMode?: 'fixed' | 'mobile';
   mobileRadiusMiles?: number;
   logo?: string | null;
