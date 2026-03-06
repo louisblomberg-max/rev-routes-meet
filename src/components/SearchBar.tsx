@@ -59,8 +59,8 @@ const SearchBar = ({
           
           {/* Search Input */}
           <div className="p-3">
-            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-amber-500/30 bg-background' : ''}`}>
-              <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-primary/30 bg-background' : ''}`}>
+              <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Ask anything about events, routes, services..."
