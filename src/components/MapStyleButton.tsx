@@ -34,13 +34,13 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
           className="group"
           aria-label="Change map style"
         >
-          <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md shadow-md border border-white/60 flex items-center justify-center group-hover:bg-white group-hover:shadow-lg group-active:scale-90 transition-all duration-200">
+          <div className="w-10 h-10 rounded-xl bg-card/90 backdrop-blur-md shadow-card border border-border/30 flex items-center justify-center group-hover:bg-card group-hover:shadow-elevated group-active:scale-90 transition-all duration-200">
             <Map className="w-[18px] h-[18px] text-muted-foreground" />
           </div>
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-44 p-1.5 bg-white/95 backdrop-blur-lg border-white/60 shadow-xl rounded-2xl"
+        className="w-44 p-1.5 bg-card/95 backdrop-blur-lg border-border/30 shadow-elevated rounded-2xl"
         align="end"
         sideOffset={8}
       >
@@ -54,8 +54,8 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
               onClick={() => handleStyleSelect(style.id)}
               className={`w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-xl text-left transition-all ${
                 currentStyle === style.id
-                  ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-muted/80 text-foreground'
+                  ? 'bg-primary/15 text-primary'
+                  : 'hover:bg-accent text-foreground'
               }`}
             >
               <div>
