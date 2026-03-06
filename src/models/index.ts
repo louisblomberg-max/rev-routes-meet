@@ -289,6 +289,7 @@ export interface Club {
   roles?: ClubRoles;
   socialLinks?: ClubSocialLinks;
   rules?: string[];
+  tags: string[];
   createdBy: string;
   createdAt: string;
   updatedAt?: string;
