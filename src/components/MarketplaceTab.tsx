@@ -738,7 +738,7 @@ const MarketplaceTab = () => {
                         e.stopPropagation();
                         toggleSaved(listing.id);
                       }}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                     </button>
