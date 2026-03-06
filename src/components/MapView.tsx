@@ -347,6 +347,34 @@ const MapView = ({
           const allowedTypes = routesFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.routeType && !allowedTypes.includes(pin.routeType as string)) return false;
         }
+        // Difficulty filter
+        if (routesFilters.difficulty.length > 0) {
+          const pinDifficulty = pin.difficulty as string | undefined;
+          if (pinDifficulty && !routesFilters.difficulty.includes(pinDifficulty)) return false;
+          if (!pinDifficulty) return false;
+        }
+        // Surface filter
+        if (routesFilters.surface.length > 0) {
+          const surfaceMapping: Record<string, string> = {
+            'paved': 'tarmac', 'gravel': 'gravel', 'dirt': 'dirt', 'mixed': 'mixed',
+          };
+          const allowedSurfaces = routesFilters.surface.map(s => surfaceMapping[s]).filter(Boolean);
+          const pinSurface = pin.surfaceType as string | undefined;
+          if (pinSurface && !allowedSurfaces.includes(pinSurface)) return false;
+          if (!pinSurface) return false;
+        }
+        // Duration filter
+        if (routesFilters.duration) {
+          const mins = typeof pin.durationMinutes === 'number' ? pin.durationMinutes : null;
+          if (mins != null) {
+            if (routesFilters.duration === 'under-1h' && mins >= 60) return false;
+            if (routesFilters.duration === '1-2h' && (mins < 60 || mins > 120)) return false;
+            if (routesFilters.duration === '2-4h' && (mins < 120 || mins > 240)) return false;
+            if (routesFilters.duration === 'over-4h' && mins < 240) return false;
+          } else {
+            return false; // no duration data, exclude
+          }
+        }
         if (routesFilters.minRating && typeof pin.rating === 'number' && pin.rating < routesFilters.minRating) return false;
       }
 

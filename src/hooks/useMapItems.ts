@@ -54,6 +54,9 @@ export function useMapItems() {
           createdBy: rt.createdBy,
           visibility: rt.visibility,
           tags: rt.tags || [],
+          difficulty: rt.difficulty,
+          surfaceType: rt.surfaceType,
+          durationMinutes: rt.durationMinutes,
         });
       }
     }
