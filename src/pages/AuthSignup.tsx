@@ -91,15 +91,15 @@ const AuthSignup = () => {
           <BackButton fallbackPath="/auth" />
         </div>
 
-        {/* Progress: step 1 of 6 */}
+        {/* Progress: step 1 of 4 */}
         <div className="flex gap-1.5 mb-6">
-          {[0, 1, 2, 3, 4, 5].map(i => (
+          {[0, 1, 2, 3].map(i => (
             <div key={i} className={`flex-1 h-1 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
           ))}
         </div>
 
         <h1 className="text-2xl font-bold text-foreground mb-1">Create your account</h1>
-        <p className="text-sm text-muted-foreground mb-6">Step 1 of 6 — The basics</p>
+        <p className="text-sm text-muted-foreground mb-6">Step 1 of 4 — The basics</p>
 
         <form onSubmit={handleSubmit} className="space-y-4 flex-1">
           {/* First name */}

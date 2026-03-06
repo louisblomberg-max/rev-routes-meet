@@ -117,7 +117,14 @@ const Settings = () => {
 
       {/* Bottom Section */}
       <div className="px-4 pb-4 space-y-3">
-        <button className="w-full bg-card rounded-xl border border-border/30 shadow-sm flex items-center gap-3 px-3 py-3 hover:bg-destructive/5 transition-colors">
+        <button 
+          onClick={() => { 
+            localStorage.removeItem('revnet_user');
+            sessionStorage.removeItem('revnet-loaded');
+            window.location.href = '/auth';
+          }}
+          className="w-full bg-card rounded-xl border border-border/30 shadow-sm flex items-center gap-3 px-3 py-3 hover:bg-destructive/5 transition-colors"
+        >
           <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
             <LogOut className="w-[18px] h-[18px] text-destructive" />
           </div>
