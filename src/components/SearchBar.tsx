@@ -50,7 +50,7 @@ const SearchBar = ({
 
       {/* Expanded State */}
       {isSearchActive && (
-        <div className="bg-card border border-amber-500/30 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
+        <div className="bg-card border border-border/30 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
           {/* AI Header */}
           <div className="px-4 pt-3 pb-2 border-b border-border/50 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-500" />
