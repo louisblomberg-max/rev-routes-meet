@@ -138,6 +138,50 @@ const USERNAMES = [
   'GarageQueen', 'BoostJunkie', 'ApexHunter',
 ];
 
+const EVENT_DESCRIPTIONS = [
+  'Join fellow enthusiasts for an incredible day of automotive passion. Food trucks, live DJ, and prizes for best in show.',
+  'A relaxed morning meet with specialty coffee, pastries, and some of the finest machines in the region. All marques welcome.',
+  'High-octane track action with professional marshalling, timed sessions, and on-board photography available.',
+  'Cruise through stunning scenery with a group of like-minded petrolheads. Route cards and walkie-talkies provided.',
+  'Annual charity car show raising money for local causes. Trophy categories include Best Paint, Best Engine Bay, and People\'s Choice.',
+  'Late-night meet under the lights. Bring your best spec and cleanest build. Sound-off competition at 10pm.',
+  'Family-friendly automotive festival with go-karts for kids, a detailing masterclass, and vendor village.',
+  'Exclusive invite-only gathering for supercars and hypercars. Champagne reception and professional photography included.',
+  'Monthly recurring meet at a legendary venue. Rain or shine, the community always turns out strong.',
+  'A spirited drive through the countryside finishing at a pub lunch. Approximately 60 miles of B-roads.',
+];
+
+const ROUTE_DESCRIPTIONS = [
+  'An exhilarating ribbon of tarmac carving through dramatic valleys with sweeping bends and stunning summit views. Best enjoyed early morning before traffic builds.',
+  'A coastal masterpiece hugging clifftops with panoramic ocean views. Several lay-bys for photos. Watch for crosswinds on exposed sections.',
+  'Technical mountain pass with tight hairpins and steep gradients. Not for the faint-hearted but incredibly rewarding. Gravel patches possible after rain.',
+  'A gentle touring route through quintessential English countryside. Thatched cottages, rolling hills, and a perfect pub stop halfway.',
+  'Fast-flowing A-road with long straights and flowing curves. Popular with bikers at weekends. Speed cameras at both ends.',
+  'Hidden gem through ancient woodland with dappled light and smooth tarmac. Very narrow in places — use passing places.',
+  'Epic moor-crossing route with 360° views and virtually no traffic. Sheep on road likely. Fuel up beforehand — no stations for 40 miles.',
+  'Heritage route passing multiple historic sites. Combines B-roads with brief dual carriageway sections. Great autumn colours.',
+];
+
+const SERVICE_DESCRIPTIONS = [
+  'Family-run independent specialist with over 20 years of experience. Known for honest pricing and exceptional attention to detail.',
+  'State-of-the-art facility with the latest diagnostic equipment. Factory-trained technicians for all major European brands.',
+  'Award-winning detailing studio offering everything from maintenance washes to full paint correction and ceramic coating.',
+  'Performance tuning experts with in-house dyno. Custom mapping for all popular ECU platforms. Results guaranteed.',
+  'Friendly local garage trusted by the community. MOT station, servicing, and all general repairs at competitive prices.',
+  'Premium tyre fitting centre with a huge stock of performance and track-day rubber. Free alignment check with every set of four.',
+  'Specialist restoration workshop bringing classics back to concours condition. Panel fabrication, paint, and mechanical rebuild.',
+  'Mobile detailing service covering a 25-mile radius. We come to you — home, office, or event. Fully insured and self-sufficient.',
+];
+
+const SERVICE_WEBSITES = [
+  'www.example-garage.co.uk', 'www.protuneperformance.co.uk', 'www.shinestudio.co.uk',
+  'www.apexmotorsport.co.uk', 'www.heritagegarage.co.uk', 'www.tyrekingdom.co.uk',
+];
+const SERVICE_EMAILS = [
+  'info@example-garage.co.uk', 'bookings@detailstudio.co.uk', 'hello@tuningpro.co.uk',
+  'service@localgarage.co.uk', 'enquiries@tyreshop.co.uk', 'contact@bodyworks.co.uk',
+];
+
 function generateRandomEvents(count: number) {
   const events = [];
   for (let i = 0; i < count; i++) {
@@ -146,26 +190,32 @@ function generateRandomEvents(count: number) {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + randBetween(1, 90));
     const hours = randBetween(7, 20);
-    const dateStr = futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }) + ` • ${hours}:00 ${hours < 12 ? 'AM' : 'PM'}`;
-    const hasFee = Math.random() > 0.6;
+    const mins = pick(['00', '30']);
+    const dateStr = futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ` • ${hours}:${mins} ${hours < 12 ? 'AM' : 'PM'}`;
+    const hasFee = Math.random() > 0.5;
+    const isMultiDay = Math.random() > 0.85;
+    const isRecurring = Math.random() > 0.75;
+    const vehicleTypes = pickN(EVENT_VEHICLE_TYPES, randBetween(1, 3));
 
     events.push({
       title: pick(EVENT_NAMES),
-      description: `A fantastic ${eventType.toLowerCase()} event for automotive enthusiasts. Join us for an amazing day out!`,
-      location: pick(EVENT_LOCATIONS),
+      description: pick(EVENT_DESCRIPTIONS),
+      location: `${pick(['The Paddock', 'Unit 4 Industrial Estate', 'Main Car Park', 'South Field', 'Exhibition Hall', 'Circuit Entrance'])}${', ' + coords.city}`,
       lat: coords.lat,
       lng: coords.lng,
       date: dateStr,
       eventType,
-      vehicleTypes: [pick(EVENT_VEHICLE_TYPES)],
-      visibility: 'public' as const,
+      vehicleTypes,
+      visibility: pick(['public', 'public', 'public', 'club', 'friends'] as const),
       createdBy: pick(USERNAMES),
-      attendees: randBetween(5, 300),
-      isMultiDay: Math.random() > 0.85,
-      isRecurring: Math.random() > 0.8,
-      recurrenceType: Math.random() > 0.5 ? 'weekly' as const : 'monthly' as const,
-      entryFee: hasFee ? `£${randBetween(5, 85)}` : undefined,
-      tags: pickN(EVENT_TAGS_POOL, randBetween(2, 5)),
+      attendees: randBetween(8, 500),
+      isMultiDay,
+      isRecurring,
+      recurrenceType: isRecurring ? pick(['weekly', 'monthly'] as const) : undefined,
+      entryFee: hasFee ? `£${randBetween(3, 45)}` : 'Free',
+      ticketLimit: hasFee ? randBetween(50, 500) : undefined,
+      earlyBirdPrice: hasFee && Math.random() > 0.5 ? `£${randBetween(2, 30)}` : undefined,
+      tags: pickN(EVENT_TAGS_POOL, randBetween(3, 6)),
     });
   }
   return events;
@@ -178,10 +228,11 @@ function generateRandomRoutes(count: number) {
     const type = pick(ROUTE_TYPES);
     const distanceMi = randBetween(8, 150);
     const vehicleType = pick(['car', 'bike', 'both'] as const);
+    const durationMins = Math.round(distanceMi * (type === 'Off-road' ? 2.5 : 1.5) + randBetween(10, 40));
 
     routes.push({
       name: pick(ROUTE_NAMES),
-      description: `A stunning ${type.toLowerCase()} drive through beautiful British countryside. ${distanceMi} miles of pure driving pleasure.`,
+      description: pick(ROUTE_DESCRIPTIONS),
       distance: `${distanceMi} mi`,
       type,
       vehicleType,
@@ -189,17 +240,26 @@ function generateRandomRoutes(count: number) {
       createdBy: pick(USERNAMES),
       lat: coords.lat,
       lng: coords.lng,
-      saves: randBetween(0, 200),
-      drives: randBetween(0, 500),
+      saves: randBetween(2, 350),
+      drives: randBetween(5, 800),
       visibility: 'public' as const,
-      tags: pickN(ROUTE_TAGS_POOL, randBetween(2, 4)),
-      elevationGain: type === 'Twisty' || type === 'Scenic' ? randBetween(100, 900) : undefined,
-      scenicRating: randBetween(3, 5),
+      tags: pickN(ROUTE_TAGS_POOL, randBetween(2, 5)),
+      elevationGain: randBetween(50, 1200),
+      scenicRating: randBetween(2, 5),
       trafficLevel: pick(['low', 'moderate', 'heavy'] as const),
       surfaceType: type === 'Off-road' ? pick(['gravel', 'dirt', 'mixed'] as const) : 'tarmac' as const,
       difficulty: pick(['easy', 'moderate', 'challenging', 'expert'] as const),
-      durationMinutes: Math.round(distanceMi * 1.5 + randBetween(10, 40)),
-      safetyTags: Math.random() > 0.5 ? pickN(['Narrow roads', 'Low car warning', 'Avoid at night', 'Speed cameras', 'Livestock crossing'], randBetween(1, 2)) : undefined,
+      durationMinutes: durationMins,
+      bestTime: pick(['Early morning', 'Late evening', 'Weekday afternoons', 'Spring/Summer', 'Dry days only', 'Year-round']),
+      tips: pick([
+        'Fill up before you start — no fuel stops on route.',
+        'Watch for speed cameras near the village.',
+        'Take the B-road fork for the best section.',
+        'Park at the viewpoint halfway for stunning photos.',
+        'Avoid weekends — very popular with cyclists.',
+        'Best with windows down and music off.',
+      ]),
+      safetyTags: pickN(['Narrow roads', 'Low car warning', 'Avoid at night', 'Speed cameras', 'Livestock crossing', 'Flood risk', 'Seasonal closure', 'High traffic'], randBetween(1, 3)),
     });
   }
   return routes;
@@ -211,24 +271,31 @@ function generateRandomServices(count: number) {
     const coords = randCoordUK();
     const category = pick(SERVICE_CATEGORIES);
     const serviceTypes = pickN(SERVICE_TYPES_POOL[category] || ['General'], randBetween(2, 4));
+    const streetNum = randBetween(1, 200);
+    const streetNames = ['High Street', 'Station Road', 'Mill Lane', 'Church Street', 'Park Road', 'Victoria Road', 'Manor Way', 'Kings Road', 'Bridge Street', 'Market Street', 'Industrial Estate', 'Trading Estate', 'Business Park'];
 
     services.push({
       name: pick(SERVICE_NAMES),
       category,
       serviceTypes,
+      description: pick(SERVICE_DESCRIPTIONS),
       rating: parseFloat((3.8 + Math.random() * 1.2).toFixed(1)),
-      distance: `${(Math.random() * 15).toFixed(1)} mi`,
-      reviewCount: randBetween(5, 400),
+      distance: `${(Math.random() * 20).toFixed(1)} mi`,
+      reviewCount: randBetween(8, 600),
       openingHours: pick(OPENING_HOURS),
-      phone: `0${randBetween(1, 9)}${randBetween(100, 999)} ${randBetween(100, 999)} ${randBetween(1000, 9999)}`,
-      address: pick(SERVICE_ADDRESSES),
-      isOpen: Math.random() > 0.3,
+      phone: `0${pick(['1234', '1onal', '7700', '7911', '1onal', '1onal'].map(() => randBetween(1000, 9999))} ${randBetween(100000, 999999)}`,
+      address: `${streetNum} ${pick(streetNames)}, ${coords.city}`,
+      website: Math.random() > 0.3 ? pick(SERVICE_WEBSITES) : undefined,
+      email: Math.random() > 0.4 ? pick(SERVICE_EMAILS) : undefined,
+      isOpen: Math.random() > 0.25,
       priceRange: pick(PRICE_RANGES),
       lat: coords.lat,
       lng: coords.lng,
       createdBy: pick(USERNAMES),
       visibility: 'public' as const,
-      tags: pickN(SERVICE_TAGS_POOL, randBetween(2, 4)),
+      tags: pickN(SERVICE_TAGS_POOL, randBetween(2, 5)),
+      isMobile: Math.random() > 0.8,
+      serviceRadius: Math.random() > 0.8 ? randBetween(5, 30) : undefined,
     });
   }
   return services;
