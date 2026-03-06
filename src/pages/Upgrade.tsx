@@ -46,7 +46,7 @@ const Upgrade = () => {
       color: 'text-primary',
       bgColor: 'bg-primary/10',
       borderColor: 'border-primary',
-      price: { monthly: 4.99, yearly: 47.99 },
+      price: { monthly: 3.99, yearly: 43.07 },
       features: [
         'Everything in Free, plus:',
         'Create & publish routes',
@@ -66,7 +66,7 @@ const Upgrade = () => {
       color: 'text-clubs',
       bgColor: 'bg-clubs/10',
       borderColor: 'border-clubs/30',
-      price: { monthly: 19.99, yearly: 189.99 },
+      price: { monthly: 6.99, yearly: 75.49 },
       features: [
         'Everything in Pro, plus:',
         'Create & manage clubs',

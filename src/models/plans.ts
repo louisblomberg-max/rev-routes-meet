@@ -38,7 +38,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'club',
     name: 'Club / Business',
-    price: 19.99,
+    price: 6.99,
     eventCreditsPerMonth: -1,
     routeCreditsPerMonth: -1,
     features: [

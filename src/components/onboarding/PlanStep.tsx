@@ -29,7 +29,7 @@ const PLANS = [
     tagline: 'Create, share & connect',
     icon: Star,
     popular: true,
-    price: { monthly: 4.99, yearly: 47.99 },
+    price: { monthly: 3.99, yearly: 43.07 },
     features: [
       { label: 'Everything in Explorer', included: true },
       { label: 'Create & publish routes', included: true },
@@ -45,7 +45,7 @@ const PLANS = [
     name: 'Club / Business',
     tagline: 'Organise & grow',
     icon: Building2,
-    price: { monthly: 19.99, yearly: 189.99 },
+    price: { monthly: 6.99, yearly: 75.49 },
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },

@@ -32,7 +32,7 @@ const PLANS = [
     tagline: 'For active drivers',
     icon: Star,
     popular: true,
-    price: { monthly: 3.99, yearly: 38.99 },
+    price: { monthly: 3.99, yearly: 43.07 },
     features: [
       { label: 'Everything in Explorer', included: true },
       { label: 'Create & publish routes', included: true },
@@ -47,7 +47,7 @@ const PLANS = [
     name: 'Clubs & Services',
     tagline: 'Organise & grow',
     icon: Building2,
-    price: { monthly: 7.99, yearly: 76.99 },
+    price: { monthly: 6.99, yearly: 75.49 },
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },
