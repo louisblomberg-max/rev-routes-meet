@@ -19,6 +19,7 @@ import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFilter
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import RouteLayer from '@/components/Map/RouteLayer';
+import RoutePreviewLayer from '@/components/Map/RoutePreviewLayer';
 import NavigationHUD from '@/components/NavigationHUD';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
