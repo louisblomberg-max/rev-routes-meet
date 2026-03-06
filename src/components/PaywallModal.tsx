@@ -59,7 +59,7 @@ const CONFIG: Record<PaywallReason, {
     title: 'Publish a Service',
     perItemPrice: '',
     perItemLabel: '',
-    subscribePrice: '£7.99/mo',
+    subscribePrice: '£6.99/mo',
     subscribePlan: 'Club / Business',
     benefits: [
       'Create & manage service listings',
