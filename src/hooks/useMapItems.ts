@@ -1,6 +1,6 @@
 /**
- * useMapItems — Bridges DataContext (events/routes/services) → MapContext pins.
- * Runs whenever repo data changes and syncs pins into MapContext.
+ * useMapItems — Bridges DataContext (events/routes/services/clubs) → MapContext pins.
+ * Now includes tags for filtering and preference-based scoring.
  * Supabase-ready: replace this hook's data source with RPC calls later.
  */
 
@@ -33,6 +33,7 @@ export function useMapItems() {
           visibility: ev.visibility,
           entryFee: ev.entryFee,
           clubId: ev.clubId,
+          tags: ev.tags || [],
         });
       }
     }
@@ -52,6 +53,7 @@ export function useMapItems() {
           vehicleType: rt.vehicleType,
           createdBy: rt.createdBy,
           visibility: rt.visibility,
+          tags: rt.tags || [],
         });
       }
     }
@@ -72,12 +74,29 @@ export function useMapItems() {
           distance: svc.distance,
           createdBy: svc.createdBy,
           visibility: svc.visibility,
+          tags: svc.tags || [],
+        });
+      }
+    }
+
+    // Clubs with valid lat/lng
+    for (const club of state.clubs) {
+      if (club.locationCoords?.lat != null && club.locationCoords?.lng != null) {
+        result.push({
+          id: club.id,
+          type: 'clubs',
+          lat: club.locationCoords.lat,
+          lng: club.locationCoords.lng,
+          title: club.name,
+          members: club.members,
+          createdBy: club.createdBy,
+          tags: club.tags || [],
         });
       }
     }
 
     return result;
-  }, [state.events, state.routes, state.services]);
+  }, [state.events, state.routes, state.services, state.clubs]);
 
   // Sync to MapContext
   useEffect(() => {
