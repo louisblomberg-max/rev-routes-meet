@@ -433,7 +433,7 @@ const MarketplaceTab = () => {
       {/* Filters Panel */}
       {isFiltersOpen && (
         <div className="px-4 pt-3 animate-fade-up">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-4 space-y-4">
+          <div className="bg-card backdrop-blur-sm rounded-2xl border border-border/30 shadow-premium p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">Refine Search</h3>
