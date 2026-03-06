@@ -103,6 +103,7 @@ const Home = () => {
   };
 
   const selectedRouteId = selectedDetail?.type === 'route' ? selectedDetail.data.id : null;
+  const selectedRoutePolyline = selectedDetail?.type === 'route' ? (selectedDetail.data.polyline || null) : null;
   const activeCategories = activeCategory ? [activeCategory] : [];
 
   if (activeTab !== 'discovery') {
