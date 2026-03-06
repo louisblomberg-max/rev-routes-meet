@@ -221,6 +221,33 @@ function generateRandomEvents(count: number) {
   return events;
 }
 
+// Generate a realistic-looking route polyline around a start point
+function generateRoutePolyline(startLat: number, startLng: number, distanceMi: number): string {
+  const numPoints = randBetween(12, 30);
+  const spread = Math.min(distanceMi * 0.005, 0.3); // Scale spread with distance
+  const coords: [number, number][] = [[startLng, startLat]];
+  
+  let currentLng = startLng;
+  let currentLat = startLat;
+  let heading = Math.random() * Math.PI * 2; // random initial direction
+  
+  for (let i = 1; i < numPoints; i++) {
+    // Gradually curve the heading
+    heading += (Math.random() - 0.5) * 1.2;
+    const stepSize = spread / numPoints * (1 + Math.random() * 0.5);
+    currentLng += Math.cos(heading) * stepSize;
+    currentLat += Math.sin(heading) * stepSize * 0.7; // lat degrees are larger
+    coords.push([currentLng, currentLat]);
+  }
+  
+  return JSON.stringify({
+    type: 'LineString',
+    coordinates: coords,
+    snapped: false,
+    waypoints: [coords[0], coords[coords.length - 1]],
+  });
+}
+
 function generateRandomRoutes(count: number) {
   const routes = [];
   for (let i = 0; i < count; i++) {
@@ -229,6 +256,7 @@ function generateRandomRoutes(count: number) {
     const distanceMi = randBetween(8, 150);
     const vehicleType = pick(['car', 'bike', 'both'] as const);
     const durationMins = Math.round(distanceMi * (type === 'Off-road' ? 2.5 : 1.5) + randBetween(10, 40));
+    const polyline = generateRoutePolyline(coords.lat, coords.lng, distanceMi);
 
     routes.push({
       name: pick(ROUTE_NAMES),
@@ -240,6 +268,7 @@ function generateRandomRoutes(count: number) {
       createdBy: pick(USERNAMES),
       lat: coords.lat,
       lng: coords.lng,
+      polyline,
       saves: randBetween(2, 350),
       drives: randBetween(5, 800),
       visibility: 'public' as const,

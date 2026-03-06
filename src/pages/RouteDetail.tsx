@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,6 +19,81 @@ const RouteDetail = () => {
   const isSavedInitial = state.savedRoutes.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
   const isCreator = route?.createdBy === state.currentUser?.id;
+  const miniMapContainer = useRef<HTMLDivElement>(null);
+  const miniMapRef = useRef<mapboxgl.Map | null>(null);
+
+  // Render route polyline on mini map
+  useEffect(() => {
+    if (!route?.polyline || !miniMapContainer.current || miniMapRef.current) return;
+
+    let geometry: GeoJSON.LineString | null = null;
+    try {
+      const parsed = JSON.parse(route.polyline);
+      if (parsed.type === 'LineString' && Array.isArray(parsed.coordinates)) {
+        geometry = parsed as GeoJSON.LineString;
+      }
+    } catch { return; }
+
+    if (!geometry || geometry.coordinates.length < 2) return;
+
+    const map = new mapboxgl.Map({
+      container: miniMapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: geometry.coordinates[0] as [number, number],
+      zoom: 10,
+      interactive: true,
+      attributionControl: false,
+    });
+
+    miniMapRef.current = map;
+
+    map.on('load', () => {
+      map.addSource('route-preview', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry },
+      });
+
+      map.addLayer({
+        id: 'route-glow', type: 'line', source: 'route-preview',
+        paint: { 'line-color': '#3b82f6', 'line-width': 14, 'line-opacity': 0.12, 'line-blur': 6 },
+      });
+      map.addLayer({
+        id: 'route-casing', type: 'line', source: 'route-preview',
+        paint: { 'line-color': '#1d4ed8', 'line-width': 6, 'line-opacity': 0.35 },
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+      });
+      map.addLayer({
+        id: 'route-line', type: 'line', source: 'route-preview',
+        paint: { 'line-color': '#3b82f6', 'line-width': 3.5, 'line-opacity': 0.9 },
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+      });
+
+      // Start marker
+      const startCoord = geometry!.coordinates[0] as [number, number];
+      const startEl = document.createElement('div');
+      startEl.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#22c55e;border:3px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);';
+      new mapboxgl.Marker({ element: startEl }).setLngLat(startCoord).addTo(map);
+
+      // End marker
+      const endCoord = geometry!.coordinates[geometry!.coordinates.length - 1] as [number, number];
+      const endEl = document.createElement('div');
+      endEl.style.cssText = 'width:14px;height:14px;border-radius:50%;background:#ef4444;border:3px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);';
+      new mapboxgl.Marker({ element: endEl }).setLngLat(endCoord).addTo(map);
+
+      // Fit bounds
+      const coords = geometry!.coordinates as [number, number][];
+      const bounds = coords.reduce(
+        (b, c) => b.extend(c),
+        new mapboxgl.LngLatBounds(coords[0], coords[0]),
+      );
+      map.fitBounds(bounds, { padding: 40, duration: 800 });
+    });
+
+    return () => {
+      miniMapRef.current?.remove();
+      miniMapRef.current = null;
+    };
+  }, [route?.polyline]);
 
   if (!route) {
     return (
@@ -48,23 +125,40 @@ const RouteDetail = () => {
 
   return (
     <div className="mobile-container bg-background min-h-screen">
-      {/* Header */}
-      <div className="relative h-56 bg-gradient-to-br from-routes to-routes/60">
-        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
-        <div className="absolute top-4 right-4 flex gap-2 safe-top">
-          <button onClick={handleSave}
-            className={`w-10 h-10 rounded-full backdrop-blur flex items-center justify-center transition-colors active:scale-95 ${isSaved ? 'bg-primary text-white' : 'bg-white/90 hover:bg-white'}`}>
-            <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : 'text-foreground'}`} />
-          </button>
-          <button onClick={handleShare}
-            className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors active:scale-95">
-            <Share2 className="w-5 h-5 text-foreground" />
-          </button>
+      {/* Header / Map Preview */}
+      {route.polyline ? (
+        <div className="relative h-56">
+          <div ref={miniMapContainer} className="w-full h-full" />
+          <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white z-10" />
+          <div className="absolute top-4 right-4 flex gap-2 safe-top z-10">
+            <button onClick={handleSave}
+              className={`w-10 h-10 rounded-full backdrop-blur flex items-center justify-center transition-colors active:scale-95 ${isSaved ? 'bg-primary text-primary-foreground' : 'bg-white/90 hover:bg-white'}`}>
+              <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : 'text-foreground'}`} />
+            </button>
+            <button onClick={handleShare}
+              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors active:scale-95">
+              <Share2 className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
         </div>
-        <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.3 }}>
-          <path d="M 50 200 Q 150 100 250 150 T 350 120" stroke="white" strokeWidth="4" strokeDasharray="8,8" fill="none" />
-        </svg>
-      </div>
+      ) : (
+        <div className="relative h-56 bg-gradient-to-br from-routes to-routes/60">
+          <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
+          <div className="absolute top-4 right-4 flex gap-2 safe-top">
+            <button onClick={handleSave}
+              className={`w-10 h-10 rounded-full backdrop-blur flex items-center justify-center transition-colors active:scale-95 ${isSaved ? 'bg-primary text-primary-foreground' : 'bg-white/90 hover:bg-white'}`}>
+              <Bookmark className={`w-5 h-5 ${isSaved ? 'fill-current' : 'text-foreground'}`} />
+            </button>
+            <button onClick={handleShare}
+              className="w-10 h-10 rounded-full bg-white/90 backdrop-blur flex items-center justify-center hover:bg-white transition-colors active:scale-95">
+              <Share2 className="w-5 h-5 text-foreground" />
+            </button>
+          </div>
+          <svg className="absolute inset-0 w-full h-full" style={{ opacity: 0.3 }}>
+            <path d="M 50 200 Q 150 100 250 150 T 350 120" stroke="white" strokeWidth="4" strokeDasharray="8,8" fill="none" />
+          </svg>
+        </div>
+      )}
 
       <div className="px-4 -mt-6 relative pb-8 space-y-4">
         <div className="bg-card rounded-2xl shadow-lg p-5 border border-border/30">

@@ -19,6 +19,7 @@ import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFilter
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import RouteLayer from '@/components/Map/RouteLayer';
+import RoutePreviewLayer from '@/components/Map/RoutePreviewLayer';
 import NavigationHUD from '@/components/NavigationHUD';
 import { MapPin } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -102,6 +103,7 @@ const Home = () => {
   };
 
   const selectedRouteId = selectedDetail?.type === 'route' ? selectedDetail.data.id : null;
+  const selectedRoutePolyline = selectedDetail?.type === 'route' ? (selectedDetail.data.polyline || null) : null;
   const activeCategories = activeCategory ? [activeCategory] : [];
 
   if (activeTab !== 'discovery') {
@@ -132,6 +134,7 @@ const Home = () => {
       />
 
       <RouteLayer map={mapRef.current} />
+      <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30">
