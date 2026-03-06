@@ -24,6 +24,10 @@ interface EventsFiltersPanelProps {
   onFiltersChange: (filters: EventsFilterState) => void;
 }
 
+const chipBase = 'px-3.5 py-2 rounded-full text-[11px] font-medium border transition-all duration-200';
+const chipActive = 'bg-primary text-primary-foreground border-primary';
+const chipInactive = 'bg-secondary text-muted-foreground border-border/50 hover:border-border hover:text-foreground';
+
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -143,20 +147,20 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Bar Row */}
-      <div className="flex items-center gap-2">
+      {/* Filter Bar Row - Glass Container */}
+      <div className="flex items-center gap-2 bg-secondary/85 backdrop-blur-xl border border-border/30 rounded-[18px] p-1.5">
         {/* Quick Date Picker */}
         <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
           <PopoverTrigger asChild>
             <button
-              className={`h-10 flex items-center gap-1.5 px-3 rounded-xl border transition-all duration-300 ${
+              className={`h-9 flex items-center gap-1.5 px-3.5 rounded-full border transition-all duration-300 ${
                 filters.dateFilter === 'specific'
-                  ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
-                  : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+                  ? chipActive
+                  : chipInactive
               }`}
             >
-              <CalendarIcon className="w-4 h-4" />
-              <span className="text-[10px] font-semibold whitespace-nowrap">
+              <CalendarIcon className="w-3.5 h-3.5" />
+              <span className="text-[11px] font-medium whitespace-nowrap">
                 {filters.specificDate 
                   ? format(filters.specificDate, 'MMM d')
                   : 'Date'
@@ -178,217 +182,134 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         {/* Filter Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
-            isOpen
-              ? 'bg-[#7B1E22]/80 text-white border-[#7B1E22]/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#7B1E22]/50 hover:bg-[#7B1E22]/10'
+          className={`h-9 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-full border transition-all duration-300 ${
+            isOpen ? chipActive : chipInactive
           }`}
         >
-          <SlidersHorizontal className="w-4 h-4" />
-          <span className="text-[10px] font-semibold">Filters</span>
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span className="text-[11px] font-medium">Filters</span>
         </button>
 
         {/* Add Event Button */}
         <button
           onClick={() => navigate('/add/event')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#7B1E22] text-white shadow-sm hover:bg-[#7B1E22]/90 active:scale-[0.97] transition-all"
+          className="h-9 flex items-center gap-1.5 px-3.5 rounded-full bg-primary text-primary-foreground shadow-glow-red hover:bg-primary/90 active:scale-[0.97] transition-all"
         >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
+          <Plus className="w-3.5 h-3.5" />
+          <span className="text-[11px] font-medium whitespace-nowrap">Add</span>
         </button>
       </div>
 
       {/* Filter Panel */}
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[60vh] overflow-y-auto">
-          {/* Header with close */}
+        <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/30 shadow-premium p-5 space-y-5 animate-fade-up max-h-[60vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
             <button 
               onClick={() => setIsOpen(false)}
-              className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+              className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-accent transition-colors"
             >
-              <X className="w-3 h-3 text-muted-foreground" />
+              <X className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
           </div>
 
-          {/* Distance Filter */}
-          <div className="space-y-2">
+          {/* Distance */}
+          <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Distance</p>
               <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
             </div>
-            <Slider
-              value={[isDistanceNumeric ? distanceValue : 25]}
-              onValueChange={handleDistanceChange}
-              min={1}
-              max={50}
-              step={1}
-              className="w-full"
-              disabled={!isDistanceNumeric}
-            />
-            <div className="flex gap-1.5 mt-2">
+            <Slider value={[isDistanceNumeric ? distanceValue : 25]} onValueChange={handleDistanceChange} min={1} max={50} step={1} className="w-full" disabled={!isDistanceNumeric} />
+            <div className="flex gap-2 mt-2">
               {distancePresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.distance === preset.id
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {preset.label}
-                </button>
+                <button key={preset.id} onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
+                  className={`flex-1 ${chipBase} ${filters.distance === preset.id ? chipActive : chipInactive}`}
+                >{preset.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Type Filter */}
-          <div className="space-y-2">
+          {/* Type */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Type</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {typeOptions.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => toggleType(type.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.types.includes(type.id)
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {type.label}
-                </button>
+                <button key={type.id} onClick={() => toggleType(type.id)}
+                  className={`${chipBase} ${filters.types.includes(type.id) ? chipActive : chipInactive}`}
+                >{type.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Vehicle Type Filter */}
-          <div className="space-y-2">
+          {/* Vehicle Type */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Vehicle Type</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {vehicleTypeOptions.map((vehicle) => (
-                <button
-                  key={vehicle.id}
-                  onClick={() => toggleVehicleType(vehicle.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleTypes.includes(vehicle.id)
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {vehicle.label}
-                </button>
+                <button key={vehicle.id} onClick={() => toggleVehicleType(vehicle.id)}
+                  className={`${chipBase} ${filters.vehicleTypes.includes(vehicle.id) ? chipActive : chipInactive}`}
+                >{vehicle.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Date Filter */}
-          <div className="space-y-2">
+          {/* Date */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Date</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {dateOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => handleDateFilter(option.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.dateFilter === option.id
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {option.label}
-                </button>
+                <button key={option.id} onClick={() => handleDateFilter(option.id)}
+                  className={`${chipBase} ${filters.dateFilter === option.id ? chipActive : chipInactive}`}
+                >{option.label}</button>
               ))}
-              
-              {/* Specific Date Picker */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
-                  <button
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
-                      filters.dateFilter === 'specific'
-                        ? 'bg-[#7B1E22]/80 text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                    }`}
-                  >
+                  <button className={`${chipBase} flex items-center gap-1 ${filters.dateFilter === 'specific' ? chipActive : chipInactive}`}>
                     <CalendarIcon className="w-3 h-3" />
-                    {filters.specificDate 
-                      ? format(filters.specificDate, 'MMM d, yyyy')
-                      : 'Pick Date'
-                    }
+                    {filters.specificDate ? format(filters.specificDate, 'MMM d, yyyy') : 'Pick Date'}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filters.specificDate}
-                    onSelect={handleSpecificDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
+                  <Calendar mode="single" selected={filters.specificDate} onSelect={handleSpecificDate} initialFocus className={cn("p-3 pointer-events-auto")} />
                 </PopoverContent>
               </Popover>
             </div>
           </div>
 
-          {/* Event Size Filter */}
-          <div className="space-y-2">
+          {/* Event Size */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Event Size</p>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               {eventSizeOptions.map((size) => (
-                <button
-                  key={size.id}
-                  onClick={() => handleEventSizeChange(size.id)}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.eventSize === size.id
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {size.label}
-                </button>
+                <button key={size.id} onClick={() => handleEventSizeChange(size.id)}
+                  className={`flex-1 ${chipBase} ${filters.eventSize === size.id ? chipActive : chipInactive}`}
+                >{size.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Entry Fee Filter */}
-          <div className="space-y-2">
+          {/* Entry Fee */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Entry Fee</p>
-            <div className="flex gap-1.5">
+            <div className="flex gap-2">
               {entryFeeOptions.map((fee) => (
-                <button
-                  key={fee.id}
-                  onClick={() => handleEntryFeeChange(fee.id)}
-                  className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.entryFee === fee.id
-                      ? 'bg-[#7B1E22]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#7B1E22]/10'
-                  }`}
-                >
-                  {fee.label}
-                </button>
+                <button key={fee.id} onClick={() => handleEntryFeeChange(fee.id)}
+                  className={`flex-1 ${chipBase} ${filters.entryFee === fee.id ? chipActive : chipInactive}`}
+                >{fee.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Club Hosted Toggle */}
+          {/* Club Hosted */}
           <div className="flex items-center justify-between py-1">
             <p className="text-xs font-medium text-foreground">Club Hosted Only</p>
-            <Switch
-              checked={filters.clubHosted}
-              onCheckedChange={handleClubHostedChange}
-              className="data-[state=checked]:bg-[#7B1E22]"
-            />
+            <Switch checked={filters.clubHosted} onCheckedChange={handleClubHostedChange} className="data-[state=checked]:bg-primary" />
           </div>
 
-          {/* Apply Button */}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#7B1E22]/80 text-white hover:bg-[#7B1E22] transition-colors"
-          >
-            Apply Filters
-          </button>
+          {/* Apply */}
+          <button onClick={() => setIsOpen(false)}
+            className="w-full py-3 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-glow-red"
+          >Apply Filters</button>
         </div>
       )}
     </div>
