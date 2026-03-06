@@ -6,128 +6,111 @@
 
 @layer base {
   :root {
-    /* Light Mode - Clean & Minimal with Dark Accents */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
+    /* Premium Dark Automotive Theme */
+    --background: 240 6% 6%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card: 240 4% 13%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover: 240 4% 13%;
+    --popover-foreground: 0 0% 100%;
 
-    /* Motorsport Red - Bold Primary */
-    --primary: 0 72% 51%;
+    /* RevNet Red Accent */
+    --primary: 1 76% 55%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
+    --secondary: 240 4% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 240 4% 10%;
+    --muted-foreground: 240 5% 65%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 240 4% 10%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 1 76% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 72% 51%;
+    --border: 240 4% 18%;
+    --input: 240 4% 18%;
+    --ring: 1 76% 55%;
 
     --radius: 0.5rem;
 
-    /* RevNet Feature Colors - Bold & Saturated */
-    --events: 0 72% 50%;
+    /* Feature Colors - Muted for premium feel */
+    --events: 1 76% 55%;
     --events-foreground: 0 0% 100%;
-    --events-muted: 0 60% 95%;
+    --events-muted: 1 40% 15%;
     
-    --routes: 220 90% 50%;
+    --routes: 220 60% 55%;
     --routes-foreground: 0 0% 100%;
-    --routes-muted: 220 70% 95%;
+    --routes-muted: 220 40% 15%;
     
-    --services: 160 60% 35%;
+    --services: 38 70% 50%;
     --services-foreground: 0 0% 100%;
-    --services-muted: 160 40% 95%;
+    --services-muted: 38 40% 15%;
     
-    --clubs: 260 60% 55%;
+    --clubs: 270 50% 55%;
     --clubs-foreground: 0 0% 100%;
-    --clubs-muted: 260 50% 95%;
+    --clubs-muted: 270 30% 15%;
 
     /* Surface Layers */
-    --surface: 0 0% 100%;
-    --surface-elevated: 0 0% 100%;
+    --surface: 240 4% 7%;
+    --surface-elevated: 240 4% 10%;
 
     /* Premium Shadows */
     --shadow-color: 0 0% 0%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 0 0% 9%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 96%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 0 72% 51%;
+    --sidebar-background: 240 6% 6%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 240 6% 6%;
+    --sidebar-accent: 240 4% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 4% 18%;
+    --sidebar-ring: 1 76% 55%;
   }
 
+  /* Keep dark class for compatibility but same values */
   .dark {
-    /* Dark Mode - Racing Night */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Bright Red for Dark Mode */
-    --primary: 0 72% 55%;
+    --background: 240 6% 6%;
+    --foreground: 0 0% 100%;
+    --card: 240 4% 13%;
+    --card-foreground: 0 0% 100%;
+    --popover: 240 4% 13%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 1 76% 55%;
     --primary-foreground: 0 0% 100%;
-
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 12%;
-    --muted-foreground: 0 0% 55%;
-
-    --accent: 0 0% 12%;
-    --accent-foreground: 0 0% 98%;
-
-    --destructive: 0 62% 45%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 72% 55%;
-
-    /* Dark Mode Feature Colors */
-    --events: 0 72% 55%;
-    --events-muted: 0 50% 15%;
-    
-    --routes: 220 90% 60%;
-    --routes-muted: 220 60% 15%;
-    
-    --services: 160 60% 45%;
-    --services-muted: 160 40% 15%;
-    
-    --clubs: 260 60% 60%;
-    --clubs-muted: 260 50% 15%;
-
-    /* Surface Layers */
-    --surface: 0 0% 7%;
-    --surface-elevated: 0 0% 10%;
-
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 0 0% 9%;
-    --sidebar-accent: 0 0% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 0 72% 55%;
+    --secondary: 240 4% 10%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 4% 10%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 10%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 1 76% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 240 4% 18%;
+    --input: 240 4% 18%;
+    --ring: 1 76% 55%;
+    --events: 1 76% 55%;
+    --events-muted: 1 40% 15%;
+    --routes: 220 60% 55%;
+    --routes-muted: 220 40% 15%;
+    --services: 38 70% 50%;
+    --services-muted: 38 40% 15%;
+    --clubs: 270 50% 55%;
+    --clubs-muted: 270 30% 15%;
+    --surface: 240 4% 7%;
+    --surface-elevated: 240 4% 10%;
+    --sidebar-background: 240 4% 7%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 240 6% 6%;
+    --sidebar-accent: 240 4% 10%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 240 4% 18%;
+    --sidebar-ring: 1 76% 55%;
   }
 }
 
@@ -150,16 +133,16 @@
 @layer components {
   /* Premium Search Bar */
   .search-bar {
-    @apply bg-card rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 border border-border/50;
+    @apply bg-card rounded-2xl shadow-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 border border-border/50;
   }
 
   .search-bar:focus-within {
     @apply ring-2 ring-primary/30 border-primary/50;
   }
 
-  /* Category Chips - Sharp & Bold */
+  /* Category Chips - Pill Style */
   .category-chip {
-    @apply px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer border;
+    @apply px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer border;
   }
 
   .category-chip-events {
@@ -199,18 +182,18 @@
     @apply bg-card rounded-t-2xl shadow-2xl border-t border-border/50;
   }
 
-  /* Content Card - Premium */
+  /* Content Card - Premium Dark */
   .content-card {
-    @apply bg-card rounded-xl p-4 shadow-sm border border-border/50 transition-all duration-200 hover:shadow-md hover:border-border;
+    @apply bg-card rounded-2xl p-5 shadow-premium border border-border/30 transition-all duration-300 hover:shadow-elevated hover:border-border/60;
   }
 
   /* FAB - Bold & Consistent */
   .fab-button {
-    @apply w-14 h-14 rounded-xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
+    @apply w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
   }
 
   .fab-option {
-    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-xl shadow-md border border-border/50 transition-all duration-200 hover:bg-muted cursor-pointer;
+    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-2xl shadow-md border border-border/50 transition-all duration-200 hover:bg-accent cursor-pointer;
   }
 
   /* Map Pins */
@@ -239,13 +222,13 @@
     @apply max-w-md mx-auto min-h-screen relative overflow-hidden bg-background;
   }
 
-  /* Premium Glass Effect */
+  /* Premium Glass Effect - Dark */
   .glass {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card/80 backdrop-blur-xl border border-border/30;
   }
 
   .glass-dark {
-    @apply bg-background/90 backdrop-blur-xl border border-border/50;
+    @apply bg-background/90 backdrop-blur-xl border border-border/30;
   }
 }
 
@@ -259,23 +242,31 @@
   }
 
   .animate-fade-up {
-    animation: fadeUp 0.3s ease-out forwards;
+    animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-fade-down {
-    animation: fadeDown 0.3s ease-out forwards;
+    animation: fadeDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-scale-up {
-    animation: scaleUp 0.2s ease-out forwards;
+    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out forwards;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .animate-slide-down {
     animation: slideDown 0.3s ease-out forwards;
+  }
+
+  .animate-card-enter {
+    animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-pulse-glow {
+    animation: pulseGlow 3s ease-in-out infinite;
   }
 
   .safe-top {
@@ -288,7 +279,7 @@
 
   /* Typography Utilities */
   .heading-display {
-    @apply text-3xl font-black tracking-tight;
+    @apply text-[28px] font-black tracking-tight leading-tight;
   }
 
   .heading-lg {
@@ -308,14 +299,14 @@
   }
 
   .text-label {
-    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
   }
 }
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -326,7 +317,7 @@
 @keyframes fadeDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
@@ -337,7 +328,7 @@
 @keyframes scaleUp {
   from {
     opacity: 0;
-    transform: scale(0.9);
+    transform: scale(0.92);
   }
   to {
     opacity: 1;
@@ -360,5 +351,25 @@
   }
   to {
     transform: translateY(100%);
+  }
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 8px 2px hsl(1 76% 55% / 0.3);
+  }
+  50% {
+    box-shadow: 0 0 16px 6px hsl(1 76% 55% / 0.5);
   }
 }

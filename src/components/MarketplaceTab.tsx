@@ -386,7 +386,7 @@ const MarketplaceTab = () => {
                           setActiveCategory(cat.id);
                           setIsSearchFocused(false);
                         }}
-                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/80 hover:bg-white hover:shadow-md transition-all"
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-accent hover:bg-accent/80 hover:shadow-md transition-all"
                       >
                         <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cat.gradient} flex items-center justify-center`}>
                           <Icon className="w-4 h-4 text-white" />
@@ -433,7 +433,7 @@ const MarketplaceTab = () => {
       {/* Filters Panel */}
       {isFiltersOpen && (
         <div className="px-4 pt-3 animate-fade-up">
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-4 space-y-4">
+          <div className="bg-card backdrop-blur-sm rounded-2xl border border-border/30 shadow-premium p-4 space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">Refine Search</h3>
@@ -728,7 +728,7 @@ const MarketplaceTab = () => {
               return (
                 <button
                   key={listing.id}
-                  className="group bg-card rounded-xl overflow-hidden border border-border/50 shadow-card text-left hover:shadow-elevated hover:border-border active:scale-[0.99] transition-all duration-200"
+                  className="group bg-card rounded-2xl overflow-hidden border border-border/30 shadow-premium text-left hover:shadow-elevated hover:border-border/50 active:scale-[0.99] transition-all duration-300"
                 >
                   {/* Image Placeholder */}
                   <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
@@ -738,7 +738,7 @@ const MarketplaceTab = () => {
                         e.stopPropagation();
                         toggleSaved(listing.id);
                       }}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                     </button>
