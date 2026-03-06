@@ -82,21 +82,8 @@ export function useMapItems() {
       }
     }
 
-    // Clubs with valid lat/lng
-    for (const club of state.clubs) {
-      if (club.locationCoords?.lat != null && club.locationCoords?.lng != null) {
-        result.push({
-          id: club.id,
-          type: 'clubs',
-          lat: club.locationCoords.lat,
-          lng: club.locationCoords.lng,
-          title: club.name,
-          members: club.members,
-          createdBy: club.createdBy,
-          tags: club.tags || [],
-        });
-      }
-    }
+    // Clubs — excluded from map pins (no category chip on discovery)
+    // Club locations are accessible via the Clubs tab instead.
 
     return result;
   }, [state.events, state.routes, state.services, state.clubs]);
