@@ -28,13 +28,13 @@ const YouTab = () => {
   const BadgeIcon = badge.icon;
 
   const tiles = [
-    { id: 'garage', label: 'My Garage', icon: Car, count: garageCount, desc: 'vehicles', colorClass: 'bg-muted text-foreground', route: '/my-garage', featureId: 'garage_showcase' },
-    { id: 'friends', label: 'My Friends', icon: UsersRound, count: friendsCount, desc: 'friends', colorClass: 'bg-muted text-foreground', route: '/my-friends', featureId: 'my_friends' },
-    { id: 'clubs', label: 'My Clubs', icon: Users, count: clubsCount, desc: 'joined', colorClass: 'bg-clubs/10 text-clubs', route: '/my-clubs', featureId: 'join_clubs' },
-    { id: 'events', label: 'My Events', icon: Calendar, count: eventsCount, desc: 'events', colorClass: 'bg-events/10 text-events', route: '/my-events', featureId: 'save_events' },
-    { id: 'routes', label: 'My Routes', icon: Route, count: routesCount, desc: 'saved', colorClass: 'bg-routes/10 text-routes', route: '/my-routes', featureId: 'save_routes' },
-    { id: 'services', label: 'Saved Services', icon: Wrench, count: savedServicesCount, desc: 'saved', colorClass: 'bg-services/10 text-services', route: '/my-services', featureId: 'save_events' },
-    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, count: discussionsCount, desc: 'posts', colorClass: 'bg-services/10 text-services', route: '/my-discussions', featureId: 'my_discussions' },
+    { id: 'garage', label: 'My Garage', icon: Car, count: garageCount, desc: 'vehicles', colorClass: 'bg-secondary text-muted-foreground', route: '/my-garage', featureId: 'garage_showcase' },
+    { id: 'friends', label: 'My Friends', icon: UsersRound, count: friendsCount, desc: 'friends', colorClass: 'bg-secondary text-muted-foreground', route: '/my-friends', featureId: 'my_friends' },
+    { id: 'clubs', label: 'My Clubs', icon: Users, count: clubsCount, desc: 'joined', colorClass: 'bg-secondary text-muted-foreground', route: '/my-clubs', featureId: 'join_clubs' },
+    { id: 'events', label: 'My Events', icon: Calendar, count: eventsCount, desc: 'events', colorClass: 'bg-secondary text-muted-foreground', route: '/my-events', featureId: 'save_events' },
+    { id: 'routes', label: 'My Routes', icon: Route, count: routesCount, desc: 'saved', colorClass: 'bg-secondary text-muted-foreground', route: '/my-routes', featureId: 'save_routes' },
+    { id: 'services', label: 'Saved Services', icon: Wrench, count: savedServicesCount, desc: 'saved', colorClass: 'bg-secondary text-muted-foreground', route: '/my-services', featureId: 'save_events' },
+    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, count: discussionsCount, desc: 'posts', colorClass: 'bg-secondary text-muted-foreground', route: '/my-discussions', featureId: 'my_discussions' },
   ];
 
   const handleTileClick = (tile: typeof tiles[0]) => {
