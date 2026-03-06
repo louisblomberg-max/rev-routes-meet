@@ -140,6 +140,7 @@ export interface RevEvent {
   entryFee?: string;
   clubId?: string;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
   isMultiDay: boolean;
   isRecurring: boolean;
