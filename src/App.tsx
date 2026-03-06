@@ -62,6 +62,7 @@ import AuthVerify from "./pages/AuthVerify";
 import OnboardingFeatures from "./pages/OnboardingFeatures";
 import OnboardingVehicle from "./pages/OnboardingVehicle";
 import OnboardingNotifications from "./pages/OnboardingNotifications";
+import Onboarding from "./pages/Onboarding";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 
@@ -83,7 +84,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
 
           {/* Auth */}
-          <Route path="/auth" element={<AuthEntry />} />
+          <Route path="/auth" element={<Onboarding />} />
           <Route path="/auth/signup" element={<AuthSignup />} />
           <Route path="/auth/login" element={<AuthLogin />} />
           <Route path="/auth/forgot" element={<AuthForgot />} />
