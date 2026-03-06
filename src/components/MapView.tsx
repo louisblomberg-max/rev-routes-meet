@@ -41,6 +41,26 @@ interface MapViewProps {
 
 // ── Helpers ──
 
+/** Parse display dates like 'Sat, Mar 15 • 10:00 AM' into a Date object */
+function parseDisplayDate(dateStr: string): Date | null {
+  if (!dateStr) return null;
+  // Remove day name prefix and bullet separator: "Sat, Mar 15 • 10:00 AM" → "Mar 15 10:00 AM"
+  const cleaned = dateStr.replace(/^[A-Za-z]+,\s*/, '').replace(/\s*•\s*/, ' ');
+  // Try parsing with current year
+  const withYear = `${cleaned} ${new Date().getFullYear()}`;
+  const parsed = new Date(withYear);
+  if (!isNaN(parsed.getTime())) return parsed;
+  // Fallback: try raw
+  const raw = new Date(dateStr);
+  return isNaN(raw.getTime()) ? null : raw;
+}
+
+function isSameDay(d1: Date, d2: Date): boolean {
+  return d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate();
+}
+
 function buildGeoJSON(pins: MapPin[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
