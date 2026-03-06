@@ -459,8 +459,7 @@ const MapView = ({
     // Update opacity
     for (const layerId of LAYER_IDS) {
       if (map.current.getLayer(layerId)) {
-        map.current.setPaintProperty(layerId, 'circle-opacity', markerOpacity);
-        map.current.setPaintProperty(layerId, 'circle-stroke-opacity', markerOpacity);
+        map.current.setPaintProperty(layerId, 'icon-opacity', markerOpacity);
       }
     }
   }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity, getFilteredPins]);
