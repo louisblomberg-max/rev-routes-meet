@@ -47,7 +47,7 @@ const PLANS = [
     name: 'Clubs & Services',
     tagline: 'Organise & grow',
     icon: Building2,
-    price: { monthly: 7.99, yearly: 76.99 },
+    price: { monthly: 6.99, yearly: 75.49 },
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },
