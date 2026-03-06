@@ -134,6 +134,7 @@ const Home = () => {
       />
 
       <RouteLayer map={mapRef.current} />
+      <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30">
