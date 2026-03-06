@@ -91,13 +91,13 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: [] },
   });
 
-  // Shared pin style — smaller, refined dots with subtle shadow ring
+  // Modern dark pin style — smaller, refined with dark background
   const pinStyle = (color: string) => ({
-    'circle-radius': 7,
-    'circle-color': color,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#ffffff',
-    'circle-opacity': 0.9,
+    'circle-radius': 6,
+    'circle-color': '#1C1C1E',
+    'circle-stroke-width': 1.5,
+    'circle-stroke-color': color,
+    'circle-opacity': 0.95,
   });
 
   // Events — red
