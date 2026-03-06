@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OnboardingProvider, useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGarage } from '@/contexts/GarageContext';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import FeatureSlide from '@/components/onboarding/FeatureSlide';
 import ProfileStep from '@/components/onboarding/ProfileStep';
@@ -50,6 +51,7 @@ const OnboardingContent = () => {
   const navigate = useNavigate();
   const { step, next, back, data, updateData } = useOnboarding();
   const { register, updateProfile, completeOnboarding } = useAuth();
+  const { addVehicle, updatePreferences } = useGarage();
 
   const handleComplete = async () => {
     try {
@@ -73,10 +75,39 @@ const OnboardingContent = () => {
           sosAlerts: data.notifications.sosAlerts,
         },
       });
-      // Save vehicles
-      data.vehicles.filter(v => v.make.trim()).forEach(() => {
-        // Vehicle saving handled by GarageContext after auth
+
+      // ── Sync interests into GarageContext preferences ──
+      updatePreferences({
+        interests: data.interests, // raw onboarding tags like ['Events', 'Track days', 'Scenic routes']
+        vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle') ? ['car', 'motorcycle'] : ['car'],
+        notifications: {
+          newEventsNearby: data.notifications.newEventsNearby,
+          friendsNearby: data.notifications.nearbyDrivers,
+          clubAnnouncements: data.notifications.clubActivity,
+          marketplaceMessages: data.notifications.marketplaceMessages,
+          sosAlerts: data.notifications.sosAlerts,
+        },
       });
+
+      // ── Save onboarding vehicles into GarageContext ──
+      for (const v of data.vehicles.filter(v => v.make.trim())) {
+        addVehicle({
+          userId: '',
+          vehicleType: v.vehicleType,
+          make: v.make,
+          model: v.model,
+          year: v.year ? parseInt(v.year) : undefined,
+          engine: v.engine || undefined,
+          drivetrain: (v.drivetrain as any) || undefined,
+          colour: v.colour || undefined,
+          tags: [], // user can add later
+          modsText: v.modifications || undefined,
+          photos: v.imageUrl ? [v.imageUrl] : [],
+          visibility: 'public',
+          isPrimary: data.vehicles.indexOf(v) === 0,
+        });
+      }
+
       completeOnboarding();
       navigate('/');
     } catch {

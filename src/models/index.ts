@@ -140,6 +140,7 @@ export interface RevEvent {
   entryFee?: string;
   clubId?: string;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
   isMultiDay: boolean;
   isRecurring: boolean;
@@ -167,9 +168,10 @@ export interface RevRoute {
   saves?: number;
   drives?: number;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
-  elevationGain?: number; // meters
-  scenicRating?: number; // 1-5
+  elevationGain?: number;
+  scenicRating?: number;
   trafficLevel?: 'low' | 'moderate' | 'heavy';
   surfaceType?: 'tarmac' | 'gravel' | 'mixed' | 'dirt';
   difficulty?: 'easy' | 'moderate' | 'challenging' | 'expert';
@@ -223,6 +225,7 @@ export interface RevService {
   createdBy: string;
   createdAt: string;
   visibility: ContentVisibility;
+  tags: string[];
   // New fields
   yearsInBusiness?: number;
   certifications?: string[];
@@ -231,16 +234,13 @@ export interface RevService {
   servicesOffered?: string[];
   website?: string;
   socialLinks?: { instagram?: string; tiktok?: string; youtube?: string; x?: string };
-  // Business verification
   vatRegistered?: boolean;
   companyNumber?: string;
   insuranceVerified?: boolean;
   insuranceDocumentUrl?: string;
-  // Pro features
   isFeatured?: boolean;
   isVerified?: boolean;
   isBoosted?: boolean;
-  // Service type
   serviceMode?: 'fixed' | 'mobile';
   mobileRadiusMiles?: number;
   logo?: string | null;
@@ -289,6 +289,7 @@ export interface Club {
   roles?: ClubRoles;
   socialLinks?: ClubSocialLinks;
   rules?: string[];
+  tags: string[];
   createdBy: string;
   createdAt: string;
   updatedAt?: string;

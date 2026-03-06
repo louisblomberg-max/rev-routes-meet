@@ -271,7 +271,7 @@ const MapView = ({
         ? [activeCategory]
         : [];
 
-    if (categoryToFilter.length === 0) return [];
+    if (categoryToFilter.length === 0) return pins; // show all when no category selected
 
     return pins.filter(pin => {
       if (!categoryToFilter.includes(pin.type)) return false;

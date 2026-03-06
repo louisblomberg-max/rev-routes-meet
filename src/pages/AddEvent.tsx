@@ -131,6 +131,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
+      tags: [...selectedTypes.map(t => t.toLowerCase()), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
       isMultiDay: false,
       isRecurring: false,
     });

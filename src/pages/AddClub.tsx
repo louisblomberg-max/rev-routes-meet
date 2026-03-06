@@ -204,6 +204,7 @@ const AddClub = () => {
           x: formData.x || undefined,
         },
         rules: allRules,
+        tags: [...tags.map(t => t.toLowerCase()), ...(vehicleFocus || []).map(v => v.toLowerCase()), clubType?.toLowerCase() || ''].filter(Boolean),
         createdBy: currentUser.id,
       });
 
