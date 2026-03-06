@@ -32,7 +32,7 @@ const PLANS = [
     tagline: 'For active drivers',
     icon: Star,
     popular: true,
-    price: { monthly: 4.99, yearly: 47.99 },
+    price: { monthly: 3.99, yearly: 43.07 },
     features: [
       { label: 'Everything in Explorer', included: true },
       { label: 'Create & publish routes', included: true },
