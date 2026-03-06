@@ -339,10 +339,10 @@ const MapView = ({
         }
         // Date filter
         if (eventsFilters.dateFilter && eventsFilters.dateFilter !== 'specific') {
-          const pinDate = pin.date ? new Date(pin.date as string) : null;
+          const pinDate = pin.date ? parseDisplayDate(pin.date as string) : null;
           if (pinDate) {
             const now = new Date();
-            if (eventsFilters.dateFilter === 'today' && pinDate.toDateString() !== now.toDateString()) return false;
+            if (eventsFilters.dateFilter === 'today' && !isSameDay(pinDate, now)) return false;
             if (eventsFilters.dateFilter === 'this-week') {
               const weekEnd = new Date(now); weekEnd.setDate(now.getDate() + 7);
               if (pinDate < now || pinDate > weekEnd) return false;
@@ -353,8 +353,8 @@ const MapView = ({
           }
         }
         if (eventsFilters.dateFilter === 'specific' && eventsFilters.specificDate) {
-          const pinDate = pin.date ? new Date(pin.date as string) : null;
-          if (pinDate && pinDate.toDateString() !== eventsFilters.specificDate.toDateString()) return false;
+          const pinDate = pin.date ? parseDisplayDate(pin.date as string) : null;
+          if (!pinDate || !isSameDay(pinDate, eventsFilters.specificDate)) return false;
         }
       }
 
