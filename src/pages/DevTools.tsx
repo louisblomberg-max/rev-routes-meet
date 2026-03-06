@@ -283,7 +283,7 @@ function generateRandomServices(count: number) {
       distance: `${(Math.random() * 20).toFixed(1)} mi`,
       reviewCount: randBetween(8, 600),
       openingHours: pick(OPENING_HOURS),
-      phone: `0${pick(['1234', '1onal', '7700', '7911', '1onal', '1onal'].map(() => randBetween(1000, 9999))} ${randBetween(100000, 999999)}`,
+      phone: `0${randBetween(1000, 9999)} ${randBetween(100000, 999999)}`,
       address: `${streetNum} ${pick(streetNames)}, ${coords.city}`,
       website: Math.random() > 0.3 ? pick(SERVICE_WEBSITES) : undefined,
       email: Math.random() > 0.4 ? pick(SERVICE_EMAILS) : undefined,
