@@ -71,64 +71,49 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: [] },
   });
 
-  // Events — red circles
+  // Shared pin style — smaller, refined dots with subtle shadow ring
+  const pinStyle = (color: string) => ({
+    'circle-radius': 7,
+    'circle-color': color,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#ffffff',
+    'circle-opacity': 0.9,
+  });
+
+  // Events — red
   map.addLayer({
     id: 'events-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'events'],
-    paint: {
-      'circle-radius': 10,
-      'circle-color': PIN_COLORS.events,
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 1,
-    },
+    paint: pinStyle(PIN_COLORS.events),
   });
 
-  // Routes — blue circles
+  // Routes — blue
   map.addLayer({
     id: 'routes-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'routes'],
-    paint: {
-      'circle-radius': 10,
-      'circle-color': PIN_COLORS.routes,
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 1,
-    },
+    paint: pinStyle(PIN_COLORS.routes),
   });
 
-  // Services — green circles
+  // Services — green
   map.addLayer({
     id: 'services-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'services'],
-    paint: {
-      'circle-radius': 10,
-      'circle-color': PIN_COLORS.services,
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 1,
-    },
+    paint: pinStyle(PIN_COLORS.services),
   });
 
-  // Clubs — purple circles
+  // Clubs — purple
   map.addLayer({
     id: 'clubs-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'clubs'],
-    paint: {
-      'circle-radius': 10,
-      'circle-color': PIN_COLORS.clubs,
-      'circle-stroke-width': 3,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 1,
-    },
+    paint: pinStyle(PIN_COLORS.clubs),
   });
 }
 
