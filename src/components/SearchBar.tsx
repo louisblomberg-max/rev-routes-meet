@@ -41,7 +41,7 @@ const SearchBar = ({
       {!isSearchActive && (
         <div 
           onClick={onFocus}
-          className="group cursor-pointer h-10 bg-card/80 backdrop-blur-md border border-border/30 rounded-xl shadow-card px-3.5 flex items-center gap-2.5 transition-all duration-200 hover:shadow-elevated hover:border-border/50 active:scale-[0.99]"
+          className="group cursor-pointer h-10 bg-muted rounded-full shadow-soft px-3.5 flex items-center gap-2.5 transition-all duration-200 hover:shadow-card active:scale-[0.99]"
         >
           <Sparkles className="w-4 h-4 text-primary" />
           <span className="flex-1 text-sm text-muted-foreground truncate">AI Search: events, routes, services...</span>
@@ -50,16 +50,16 @@ const SearchBar = ({
 
       {/* Expanded State */}
       {isSearchActive && (
-        <div className="bg-card border border-border/30 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
+        <div className="bg-card rounded-2xl shadow-elevated overflow-hidden animate-fade-up">
           {/* AI Header */}
-          <div className="px-4 pt-3 pb-2 border-b border-border/50 flex items-center gap-2">
+          <div className="px-4 pt-3 pb-2 flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-xs font-semibold text-primary uppercase tracking-wide">AI Discovery</span>
           </div>
           
           {/* Search Input */}
           <div className="p-3">
-            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-primary/30 bg-background' : ''}`}>
+            <div className={`flex items-center gap-3 bg-muted rounded-[14px] px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-primary/30' : ''}`}>
               <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
               <input
                 type="text"
@@ -73,7 +73,7 @@ const SearchBar = ({
               />
               <button 
                 onClick={handleClose}
-                className="w-7 h-7 rounded-md bg-muted flex items-center justify-center hover:bg-border transition-colors"
+                className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
               >
                 <X className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
@@ -89,7 +89,7 @@ const SearchBar = ({
                   <button
                     key={index}
                     onClick={() => handleExampleClick(prompt)}
-                    className="px-3 py-1.5 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                   >
                     {prompt}
                   </button>
