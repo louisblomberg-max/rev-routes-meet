@@ -18,10 +18,10 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
 };
 
 const PIN_COLORS: Record<string, string> = {
-  events: '#E53935',
-  routes: '#5B8DEF',
-  services: '#D4A24C',
-  clubs: '#9B72CF',
+  events: '#B3806E',
+  routes: '#6E90B0',
+  services: '#B39858',
+  clubs: '#8068A0',
 };
 
 interface MapViewProps {
