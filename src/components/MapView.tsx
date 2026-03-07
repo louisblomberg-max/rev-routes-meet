@@ -18,10 +18,10 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
 };
 
 const PIN_COLORS: Record<string, string> = {
-  events: '#E53935',
-  routes: '#5B8DEF',
-  services: '#D4A24C',
-  clubs: '#9B72CF',
+  events: '#B3806E',
+  routes: '#6E90B0',
+  services: '#B39858',
+  clubs: '#8068A0',
 };
 
 interface MapViewProps {
@@ -112,7 +112,7 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     ctx.bezierCurveTo(size - 4, size / 2 + 4, size / 2 + 2, size - 6, size / 2, size + 4);
     ctx.closePath();
 
-    ctx.fillStyle = '#1C1C1E';
+    ctx.fillStyle = '#36322E';
     ctx.fill();
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;

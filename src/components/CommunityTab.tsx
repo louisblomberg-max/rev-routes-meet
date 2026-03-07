@@ -13,7 +13,6 @@ const CommunityTab = () => {
       title: 'Your Clubs',
       description: 'Join car & bike clubs and meet like-minded enthusiasts',
       iconColor: 'text-clubs',
-      glowStyle: '0 0 20px 4px hsl(256 100% 68% / 0.15)',
       route: '/clubs',
     },
     {
@@ -22,7 +21,6 @@ const CommunityTab = () => {
       title: 'Advice & Forums',
       description: 'Ask questions, share knowledge, and discuss all things automotive',
       iconColor: 'text-primary',
-      glowStyle: '0 0 20px 4px hsl(228 82% 62% / 0.15)',
       route: '/forums',
     },
     {
@@ -31,7 +29,6 @@ const CommunityTab = () => {
       title: 'Messages',
       description: 'Private conversations with your friends and connections',
       iconColor: 'text-routes',
-      glowStyle: '0 0 20px 4px hsl(214 100% 61% / 0.15)',
       route: '/messages',
     },
   ];
@@ -47,7 +44,7 @@ const CommunityTab = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-4 space-y-4">
+      <div className="px-4 space-y-3">
         {sections.map((section, index) => {
           const Icon = section.icon;
           return (
@@ -57,10 +54,7 @@ const CommunityTab = () => {
               className="w-full bg-card rounded-2xl p-5 flex items-center gap-4 text-left shadow-premium hover:shadow-elevated active:scale-[0.99] transition-all duration-300 animate-card-enter"
               style={{ animationDelay: `${index * 80}ms` }}
             >
-              <div
-                className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center flex-shrink-0"
-                style={{ boxShadow: section.glowStyle }}
-              >
+              <div className="w-12 h-12 rounded-2xl bg-muted flex items-center justify-center flex-shrink-0">
                 <Icon className={`w-5 h-5 ${section.iconColor}`} />
               </div>
               <div className="flex-1 min-w-0">
@@ -96,16 +90,16 @@ const CommunityTab = () => {
 
       {/* Activity Hint */}
       <div className="px-4 mt-4">
-        <div className="bg-primary/8 rounded-2xl p-4">
+        <div className="bg-muted/60 rounded-2xl p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center">
+              <MessageSquare className="w-5 h-5 text-muted-foreground" />
             </div>
             <div className="flex-1">
               <p className="text-sm font-semibold text-foreground">5 new posts in your clubs</p>
               <p className="text-caption mt-0.5">Check out what's happening</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-primary" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground" />
           </div>
         </div>
       </div>

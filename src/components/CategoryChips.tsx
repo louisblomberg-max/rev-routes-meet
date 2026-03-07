@@ -8,9 +8,9 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events & Drives', icon: Calendar },
-    { id: 'routes', label: 'Routes', icon: Route },
-    { id: 'services', label: 'Services', icon: Wrench },
+    { id: 'events', label: 'Events & Drives', icon: Calendar, activeClass: 'bg-events text-events-foreground' },
+    { id: 'routes', label: 'Routes', icon: Route, activeClass: 'bg-routes text-routes-foreground' },
+    { id: 'services', label: 'Services', icon: Wrench, activeClass: 'bg-services text-services-foreground' },
   ];
 
   const handleClick = (categoryId: string) => {
@@ -28,8 +28,8 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
             key={category.id}
             onClick={() => handleClick(category.id)}
             className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-full transition-all duration-300 active:scale-95 ${
-              isActive 
-                ? 'bg-primary text-primary-foreground shadow-glow-blue' 
+              isActive
+                ? `${category.activeClass} shadow-soft`
                 : 'bg-muted text-muted-foreground hover:text-foreground'
             }`}
           >

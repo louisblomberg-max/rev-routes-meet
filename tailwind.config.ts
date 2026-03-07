@@ -98,12 +98,12 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.15)',
-        'card': '0 4px 16px -4px hsl(var(--shadow-color) / 0.25)',
-        'elevated': '0 8px 30px -8px hsl(var(--shadow-color) / 0.35)',
-        'premium': '0 4px 16px rgba(0,0,0,0.25)',
+        'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.2)',
+        'card': '0 4px 16px -4px hsl(var(--shadow-color) / 0.3)',
+        'elevated': '0 8px 30px -8px hsl(var(--shadow-color) / 0.4)',
+        'premium': '0 4px 16px rgba(0,0,0,0.2)',
         'glow-red': '0 0 12px 2px hsl(1 76% 55% / 0.3)',
-        'glow-blue': '0 0 12px 2px hsl(228 82% 62% / 0.3)',
+        'glow-blue': '0 4px 14px -2px hsl(25 10% 8% / 0.35)',
       },
       keyframes: {
         "accordion-down": {
