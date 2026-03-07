@@ -18,10 +18,10 @@ export default {
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
-        'display': ['28px', { lineHeight: '1.15', fontWeight: '900', letterSpacing: '-0.02em' }],
-        'section': ['20px', { lineHeight: '1.3', fontWeight: '700' }],
-        'card-title': ['16px', { lineHeight: '1.4', fontWeight: '600' }],
-        'body-sm': ['13px', { lineHeight: '1.5', fontWeight: '400' }],
+        'display': ['28px', { lineHeight: '1.15', fontWeight: '700', letterSpacing: '-0.02em' }],
+        'section': ['18px', { lineHeight: '1.3', fontWeight: '600' }],
+        'card-title': ['16px', { lineHeight: '1.4', fontWeight: '500' }],
+        'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -99,10 +99,11 @@ export default {
       },
       boxShadow: {
         'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.15)',
-        'card': '0 4px 16px -4px hsl(var(--shadow-color) / 0.2), 0 1px 4px hsl(var(--shadow-color) / 0.15)',
+        'card': '0 4px 16px -4px hsl(var(--shadow-color) / 0.25)',
         'elevated': '0 8px 30px -8px hsl(var(--shadow-color) / 0.35)',
-        'premium': '0 6px 20px -4px hsl(var(--shadow-color) / 0.25)',
+        'premium': '0 4px 16px rgba(0,0,0,0.25)',
         'glow-red': '0 0 12px 2px hsl(1 76% 55% / 0.3)',
+        'glow-blue': '0 0 12px 2px hsl(228 82% 62% / 0.3)',
       },
       keyframes: {
         "accordion-down": {

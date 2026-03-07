@@ -27,10 +27,10 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-full border transition-all duration-300 active:scale-95 ${
+            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-full transition-all duration-300 active:scale-95 ${
               isActive 
-                ? 'bg-primary text-primary-foreground border-primary shadow-glow-red' 
-                : 'bg-card/80 backdrop-blur-md text-muted-foreground border-border/30 hover:text-foreground hover:border-border/60'
+                ? 'bg-primary text-primary-foreground shadow-glow-blue' 
+                : 'bg-muted text-muted-foreground hover:text-foreground'
             }`}
           >
             <Icon className="w-3.5 h-3.5 flex-shrink-0" />

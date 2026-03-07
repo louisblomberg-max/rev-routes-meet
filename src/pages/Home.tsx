@@ -138,12 +138,12 @@ const Home = () => {
 
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30">
-          <div className="bg-background/80 backdrop-blur-xl border-b border-border/20 safe-top">
+          <div className="bg-card/85 backdrop-blur-xl safe-top">
             <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
-              <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-card/90 backdrop-blur-md rounded-xl border border-border/30 shadow-card overflow-hidden">
+              <div className="h-10 w-10 flex-shrink-0 flex items-center justify-center bg-card rounded-full shadow-premium overflow-hidden">
                 <img src={revnetLogoNew} alt="RevNet" className="h-9 w-9 object-contain" />
               </div>
-              <div className="h-10 flex-1 flex items-center gap-2 bg-card/80 backdrop-blur-md rounded-xl px-3 border border-border/30 shadow-card">
+              <div className="h-10 flex-1 flex items-center gap-2 bg-muted rounded-full px-3.5 shadow-soft">
                 <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 <input
                   type="text"
