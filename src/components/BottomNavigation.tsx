@@ -21,19 +21,19 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
+
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`flex flex-col items-center gap-1.5 px-5 py-1.5 rounded-xl transition-all duration-300 ${
-                isActive 
-                  ? 'text-primary' 
+                isActive
+                  ? 'text-foreground'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Icon className={`w-[26px] h-[26px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-              <span className={`text-2xs tracking-wide transition-all duration-300 ${isActive ? 'font-bold text-primary' : 'font-medium'}`}>
+              <span className={`text-2xs tracking-wide transition-all duration-300 ${isActive ? 'font-bold' : 'font-medium'}`}>
                 {tab.label}
               </span>
             </button>

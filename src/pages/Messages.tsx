@@ -84,12 +84,12 @@ const Messages = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-xl">
-        <div className="flex items-center gap-3 px-5 pt-12 pb-4 safe-top">
+        <div className="flex items-center gap-3 px-5 pt-14 pb-3 safe-top">
           <BackButton className="w-10 h-10 rounded-full bg-card shadow-soft" iconClassName="w-4 h-4" />
           <h1 className="text-xl font-bold text-foreground flex-1">Messages</h1>
           <button
             onClick={() => setIsNewConversationOpen(true)}
-            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-glow-blue hover:bg-primary/90 transition-all active:scale-95"
+            className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-soft hover:bg-primary/90 transition-all active:scale-95"
           >
             <Plus className="w-5 h-5 text-primary-foreground" />
           </button>
@@ -102,7 +102,7 @@ const Messages = () => {
               placeholder="Search conversations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-11 pl-10 pr-4 bg-muted rounded-[14px] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              className="w-full h-12 pl-10 pr-4 bg-card rounded-2xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all shadow-soft"
             />
           </div>
         </div>
@@ -110,29 +110,26 @@ const Messages = () => {
 
       {/* Conversations List */}
       <div className="px-5 space-y-2 pb-20">
-        {filteredConversations.map((conversation, index) => (
+        {filteredConversations.map((conversation) => (
           <div
             key={conversation.id}
-            className={`flex items-center gap-3.5 p-3.5 rounded-2xl transition-all duration-200 animate-card-enter ${
-              conversation.isPinned ? 'bg-card shadow-soft' : 'bg-card/50 hover:bg-card'
-            }`}
-            style={{ animationDelay: `${index * 40}ms` }}
+            className="flex items-center gap-3.5 p-4 rounded-2xl bg-card shadow-premium transition-all duration-200 hover:shadow-elevated"
           >
             <button onClick={() => navigate(`/messages/${conversation.id}`)} className="flex items-center gap-3.5 flex-1 min-w-0 text-left">
               <div className="relative">
                 <Avatar className="w-12 h-12">
-                  <AvatarFallback className={`font-semibold text-sm ${conversation.isGroup ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'}`}>
+                  <AvatarFallback className={`font-semibold text-sm ${conversation.isGroup ? 'bg-primary/15 text-primary' : 'bg-muted text-foreground'}`}>
                     {conversation.isGroup ? <Users className="w-5 h-5" /> : conversation.name.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                {conversation.unread && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background" />}
+                {conversation.unread && <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-events rounded-full border-2 border-card" />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    {conversation.isPinned && <Pin className="w-3 h-3 text-primary flex-shrink-0" />}
+                    {conversation.isPinned && <Pin className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
                     <span className={`text-sm truncate ${conversation.unread ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>{conversation.name}</span>
-                    {conversation.isGroup && <span className="text-xs text-muted-foreground flex-shrink-0">· {conversation.participants?.length}</span>}
+                    {conversation.isGroup && <span className="text-xs text-muted-foreground flex-shrink-0">{conversation.participants?.length}</span>}
                     {conversation.isMuted && <BellOff className="w-3 h-3 text-muted-foreground flex-shrink-0" />}
                   </div>
                   <span className="text-[11px] text-muted-foreground flex-shrink-0">{conversation.time}</span>
@@ -156,8 +153,8 @@ const Messages = () => {
       </div>
 
       {filteredConversations.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4"><Search className="w-8 h-8 text-muted-foreground" /></div>
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-card flex items-center justify-center mb-4 shadow-soft"><Search className="w-8 h-8 text-muted-foreground" /></div>
           <h3 className="font-semibold text-foreground mb-1">No conversations found</h3>
           <p className="text-sm text-muted-foreground">Try a different search term</p>
         </div>
