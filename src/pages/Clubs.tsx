@@ -3,7 +3,6 @@ import { Search, Users, ChevronRight, MapPin, Plus } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useData } from '@/contexts/DataContext';
 
 const Clubs = () => {
@@ -29,14 +28,14 @@ const Clubs = () => {
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 bg-background z-10 border-b border-border/50">
-        <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
-          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
-          <h1 className="heading-md text-foreground flex-1">Clubs</h1>
+      <div className="sticky top-0 bg-background/95 backdrop-blur-xl z-10">
+        <div className="flex items-center gap-3 px-5 pt-12 pb-4 safe-top">
+          <BackButton className="w-10 h-10 rounded-full bg-card shadow-soft" iconClassName="w-4 h-4" />
+          <h1 className="text-xl font-bold text-foreground flex-1">Clubs</h1>
           <Button
             size="sm"
             onClick={() => navigate('/add/club')}
-            className="bg-clubs hover:bg-clubs/90 text-clubs-foreground h-8 text-xs gap-1 rounded-lg"
+            className="bg-clubs hover:bg-clubs/90 text-clubs-foreground h-9 text-xs gap-1.5 rounded-[14px] px-4"
           >
             <Plus className="w-3.5 h-3.5" />
             Create
@@ -44,26 +43,26 @@ const Clubs = () => {
         </div>
 
         {/* Search */}
-        <div className="px-4 pb-3">
+        <div className="px-5 pb-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
               placeholder="Search clubs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card border-border/50 h-9 text-sm"
+              className="w-full h-11 pl-10 pr-4 bg-muted rounded-[14px] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
             />
           </div>
         </div>
 
         {/* Segmented Toggle */}
-        <div className="px-4 pb-3">
-          <div className="flex bg-muted rounded-lg p-1">
+        <div className="px-5 pb-4">
+          <div className="flex bg-muted rounded-[14px] p-1">
             <button
               onClick={() => setActiveTab('my')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-2.5 px-4 rounded-[10px] text-sm font-medium transition-all duration-200 ${
                 activeTab === 'my'
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-card text-foreground shadow-soft'
                   : 'text-muted-foreground'
               }`}
             >
@@ -71,9 +70,9 @@ const Clubs = () => {
             </button>
             <button
               onClick={() => setActiveTab('discover')}
-              className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              className={`flex-1 py-2.5 px-4 rounded-[10px] text-sm font-medium transition-all duration-200 ${
                 activeTab === 'discover'
-                  ? 'bg-background text-foreground shadow-sm'
+                  ? 'bg-card text-foreground shadow-soft'
                   : 'text-muted-foreground'
               }`}
             >
@@ -86,39 +85,40 @@ const Clubs = () => {
       {/* Club List */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === 'discover' && (
-          <div className="px-4 pt-3">
+          <div className="px-5 pt-2 pb-1">
             <p className="text-label">Popular near you</p>
           </div>
         )}
 
-        <div className="px-4 py-3 space-y-2.5">
-          {filteredClubs.map((club) => (
+        <div className="px-5 py-3 space-y-3">
+          {filteredClubs.map((club, index) => (
             <button
               key={club.id}
               onClick={() => navigate(`/club/${club.id}`)}
-              className="w-full bg-card rounded-xl p-3.5 flex items-center gap-3.5 text-left border border-border/50 hover:border-border active:scale-[0.99] transition-all duration-200"
+              className="w-full bg-card rounded-2xl p-4 flex items-center gap-4 text-left shadow-premium hover:shadow-elevated active:scale-[0.99] transition-all duration-300 animate-card-enter"
+              style={{ animationDelay: `${index * 60}ms` }}
             >
               {/* Club Avatar */}
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-clubs to-clubs/60 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-white">
+              <div className="w-12 h-12 rounded-2xl bg-clubs/15 flex items-center justify-center flex-shrink-0"
+                style={{ boxShadow: '0 0 16px 3px hsl(256 100% 68% / 0.12)' }}
+              >
+                <span className="text-sm font-bold text-clubs">
                   {club.name.split(' ').map(w => w[0]).join('').slice(0, 2)}
                 </span>
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <h3 className="heading-sm text-foreground truncate">{club.name}</h3>
-                <div className="flex items-center gap-3 mt-0.5">
-                  {club.tagline && (
-                    <p className="text-caption truncate">{club.tagline}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-caption flex items-center gap-1">
+                <h3 className="text-[15px] font-semibold text-foreground truncate">{club.name}</h3>
+                {club.tagline && (
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">{club.tagline}</p>
+                )}
+                <div className="flex items-center gap-3 mt-1.5">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Users className="w-3 h-3" />
                     {club.members.toLocaleString()}
                   </span>
-                  <span className="text-caption flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
                     {club.location}
                   </span>
@@ -127,12 +127,12 @@ const Clubs = () => {
 
               {/* Action */}
               {activeTab === 'my' ? (
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               ) : (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-clubs text-clubs hover:bg-clubs hover:text-white flex-shrink-0 h-8 text-xs"
+                  className="border-clubs text-clubs hover:bg-clubs hover:text-clubs-foreground flex-shrink-0 h-9 text-xs rounded-[14px] px-4"
                   onClick={(e) => {
                     e.stopPropagation();
                   }}
@@ -145,10 +145,10 @@ const Clubs = () => {
 
           {filteredClubs.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-14 h-14 rounded-2xl bg-clubs-muted flex items-center justify-center mb-3">
-                <Users className="w-7 h-7 text-clubs" />
+              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <Users className="w-7 h-7 text-muted-foreground" />
               </div>
-              <h3 className="heading-sm text-foreground mb-1">
+              <h3 className="text-base font-semibold text-foreground mb-1">
                 {activeTab === 'my' ? "No clubs yet" : "No clubs found"}
               </h3>
               <p className="text-sm text-muted-foreground max-w-[240px]">
@@ -161,14 +161,14 @@ const Clubs = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-clubs text-clubs hover:bg-clubs hover:text-white"
+                    className="border-clubs text-clubs hover:bg-clubs hover:text-clubs-foreground rounded-[14px]"
                     onClick={() => setActiveTab('discover')}
                   >
                     Discover clubs
                   </Button>
                   <Button
                     size="sm"
-                    className="bg-clubs hover:bg-clubs/90 text-clubs-foreground"
+                    className="bg-clubs hover:bg-clubs/90 text-clubs-foreground rounded-[14px]"
                     onClick={() => navigate('/add/club')}
                   >
                     Create Club
