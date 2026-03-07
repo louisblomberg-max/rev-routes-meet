@@ -16,8 +16,8 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-background/95 backdrop-blur-xl border-t border-border/30 safe-bottom">
-      <div className="max-w-md mx-auto flex items-center justify-around py-2.5">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-xl safe-bottom">
+      <div className="max-w-md mx-auto flex items-center justify-around py-2.5 px-2">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -26,13 +26,13 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center gap-1.5 px-6 py-1.5 rounded-xl transition-all duration-300 ${
+              className={`flex flex-col items-center gap-1.5 px-5 py-1.5 rounded-xl transition-all duration-300 ${
                 isActive 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Icon className={`w-5 h-5 transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+              <Icon className={`w-[26px] h-[26px] transition-all duration-300 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
               <span className={`text-2xs tracking-wide transition-all duration-300 ${isActive ? 'font-bold text-primary' : 'font-medium'}`}>
                 {tab.label}
               </span>

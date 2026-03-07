@@ -27,12 +27,12 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
   return (
     <button
       onClick={handleClick}
-      className={`relative flex items-center gap-1.5 h-9 px-3 rounded-xl bg-primary shadow-glow-red animate-pulse-glow transition-all duration-200 hover:shadow-elevated active:scale-90 ${!allowed ? 'opacity-60' : ''}`}
+      className={`relative flex items-center gap-1.5 h-9 px-3.5 rounded-[14px] bg-destructive shadow-glow-red animate-pulse-glow transition-all duration-200 hover:shadow-elevated active:scale-90 ${!allowed ? 'opacity-60' : ''}`}
       aria-label="Get help"
     >
-      <span className="text-xs font-black tracking-wider text-primary-foreground">SOS</span>
+      <span className="text-xs font-bold tracking-wider text-destructive-foreground">SOS</span>
       {!allowed && (
-        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-muted border-2 border-background flex items-center justify-center">
+        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-muted flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 text-muted-foreground" />
         </div>
       )}

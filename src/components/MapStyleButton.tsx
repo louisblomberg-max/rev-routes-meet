@@ -34,13 +34,13 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
           className="group"
           aria-label="Change map style"
         >
-          <div className="w-10 h-10 rounded-xl bg-card/90 backdrop-blur-md shadow-card border border-border/30 flex items-center justify-center group-hover:bg-card group-hover:shadow-elevated group-active:scale-90 transition-all duration-200">
+          <div className="w-11 h-11 rounded-full bg-card/90 backdrop-blur-md shadow-premium flex items-center justify-center group-hover:bg-card group-hover:shadow-elevated group-active:scale-90 transition-all duration-200">
             <Map className="w-[18px] h-[18px] text-muted-foreground" />
           </div>
         </button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-44 p-1.5 bg-card/95 backdrop-blur-lg border-border/30 shadow-elevated rounded-2xl"
+        className="w-44 p-1.5 bg-card/95 backdrop-blur-lg shadow-elevated rounded-2xl"
         align="end"
         sideOffset={8}
       >

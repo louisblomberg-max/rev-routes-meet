@@ -63,7 +63,7 @@ const FloatingActionButton = ({
             <button
               key={option.label}
               onClick={() => handleOptionClick(option)}
-              className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl bg-card backdrop-blur-md shadow-premium border border-border/30 transition-all duration-200 hover:bg-accent hover:border-border/60 active:scale-95 ${locked ? 'opacity-50' : ''}`}
+              className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl bg-card backdrop-blur-md shadow-premium transition-all duration-200 hover:bg-accent active:scale-95 ${locked ? 'opacity-50' : ''}`}
               style={{ 
                 animationDelay: `${index * 40}ms`,
                 transform: isOpen ? 'translateX(0)' : 'translateX(20px)',
@@ -88,10 +88,10 @@ const FloatingActionButton = ({
         className="flex flex-col items-center gap-0.5 group"
         aria-label="Create new content"
       >
-        <div className={`relative w-10 h-10 rounded-xl bg-card shadow-premium border border-border/30 flex items-center justify-center transition-all duration-300 group-hover:shadow-elevated group-active:scale-90 ${isOpen ? 'rotate-45 scale-95 bg-primary border-primary' : 'rotate-0'}`}>
-          <Plus className={`w-6 h-6 transition-colors duration-300 ${isOpen ? 'text-primary-foreground' : 'text-foreground'}`} />
+        <div className={`relative w-11 h-11 rounded-full bg-primary shadow-glow-blue flex items-center justify-center transition-all duration-300 group-hover:shadow-elevated group-active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}>
+          <Plus className="w-6 h-6 text-primary-foreground transition-colors duration-300" />
         </div>
-        <span className="text-[9px] font-semibold text-muted-foreground drop-shadow-sm">Add</span>
+        <span className="text-[9px] font-semibold text-muted-foreground">Add</span>
       </button>
     </>
   );
