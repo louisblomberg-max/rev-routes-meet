@@ -211,9 +211,9 @@ export const getCategoryInfo = (categoryId: string) => {
 
 export const getPostTypeInfo = (type: PostType) => {
   const types: Record<PostType, { label: string; icon: string; color: string }> = {
-    question: { label: 'Question', icon: 'HelpCircle', color: 'bg-blue-100 text-blue-700' },
-    advice: { label: 'Advice', icon: 'Lightbulb', color: 'bg-amber-100 text-amber-700' },
-    discussion: { label: 'Discussion', icon: 'MessageSquare', color: 'bg-purple-100 text-purple-700' },
+    question: { label: 'Question', icon: 'HelpCircle', color: 'bg-routes/15 text-routes' },
+    advice: { label: 'Advice', icon: 'Lightbulb', color: 'bg-services/15 text-services' },
+    discussion: { label: 'Discussion', icon: 'MessageSquare', color: 'bg-clubs/15 text-clubs' },
   };
   return types[type];
 };
