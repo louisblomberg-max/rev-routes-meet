@@ -6,111 +6,128 @@
 
 @layer base {
   :root {
-    /* Warm Beige + Nardo Grey — Premium Automotive */
-    --background: 38 25% 72%;
-    --foreground: 0 0% 100%;
+    /* Light Mode - Clean & Minimal with Dark Accents */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
 
-    --card: 200 2% 47%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
 
-    --popover: 200 2% 44%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Primary — Darker Nardo Grey */
-    --primary: 200 3% 36%;
+    /* Motorsport Red - Bold Primary */
+    --primary: 0 72% 51%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 38 15% 62%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
 
-    --muted: 200 2% 42%;
-    --muted-foreground: 38 12% 82%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 38 18% 66%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
 
-    /* Emergency only */
-    --destructive: 1 76% 55%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 38 10% 60%;
-    --input: 200 2% 42%;
-    --ring: 200 3% 36%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 72% 51%;
 
-    --radius: 0.875rem;
+    --radius: 0.5rem;
 
-    /* Feature Colors — Earthy & Neutral */
-    --events: 12 35% 50%;
+    /* RevNet Feature Colors - Bold & Saturated */
+    --events: 0 72% 50%;
     --events-foreground: 0 0% 100%;
-    --events-muted: 12 20% 38%;
-
-    --routes: 210 28% 50%;
+    --events-muted: 0 60% 95%;
+    
+    --routes: 220 90% 50%;
     --routes-foreground: 0 0% 100%;
-    --routes-muted: 210 18% 38%;
-
-    --services: 40 40% 48%;
+    --routes-muted: 220 70% 95%;
+    
+    --services: 160 60% 35%;
     --services-foreground: 0 0% 100%;
-    --services-muted: 40 22% 38%;
-
-    --clubs: 270 25% 48%;
+    --services-muted: 160 40% 95%;
+    
+    --clubs: 260 60% 55%;
     --clubs-foreground: 0 0% 100%;
-    --clubs-muted: 270 15% 38%;
+    --clubs-muted: 260 50% 95%;
 
     /* Surface Layers */
-    --surface: 38 25% 68%;
-    --surface-elevated: 200 2% 44%;
+    --surface: 0 0% 100%;
+    --surface-elevated: 0 0% 100%;
 
-    /* Shadows */
-    --shadow-color: 30 25% 18%;
+    /* Premium Shadows */
+    --shadow-color: 0 0% 0%;
 
-    --sidebar-background: 38 25% 72%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 200 3% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 2% 42%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 38 10% 60%;
-    --sidebar-ring: 200 3% 36%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 0 0% 9%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 0 72% 51%;
   }
 
   .dark {
-    --background: 38 25% 72%;
-    --foreground: 0 0% 100%;
-    --card: 200 2% 47%;
-    --card-foreground: 0 0% 100%;
-    --popover: 200 2% 44%;
-    --popover-foreground: 0 0% 100%;
-    --primary: 200 3% 36%;
+    /* Dark Mode - Racing Night */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Bright Red for Dark Mode */
+    --primary: 0 72% 55%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 38 15% 62%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 200 2% 42%;
-    --muted-foreground: 38 12% 82%;
-    --accent: 38 18% 66%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 1 76% 55%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 38 10% 60%;
-    --input: 200 2% 42%;
-    --ring: 200 3% 36%;
-    --events: 12 35% 50%;
-    --events-muted: 12 20% 38%;
-    --routes: 210 28% 50%;
-    --routes-muted: 210 18% 38%;
-    --services: 40 40% 48%;
-    --services-muted: 40 22% 38%;
-    --clubs: 270 25% 48%;
-    --clubs-muted: 270 15% 38%;
-    --surface: 38 25% 68%;
-    --surface-elevated: 200 2% 44%;
-    --sidebar-background: 38 25% 68%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-primary: 200 3% 36%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 2% 42%;
-    --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 38 10% 60%;
-    --sidebar-ring: 200 3% 36%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 55%;
+
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 72% 55%;
+
+    /* Dark Mode Feature Colors */
+    --events: 0 72% 55%;
+    --events-muted: 0 50% 15%;
+    
+    --routes: 220 90% 60%;
+    --routes-muted: 220 60% 15%;
+    
+    --services: 160 60% 45%;
+    --services-muted: 160 40% 15%;
+    
+    --clubs: 260 60% 60%;
+    --clubs-muted: 260 50% 15%;
+
+    /* Surface Layers */
+    --surface: 0 0% 7%;
+    --surface-elevated: 0 0% 10%;
+
+    --sidebar-background: 0 0% 7%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 0 0% 9%;
+    --sidebar-accent: 0 0% 12%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 15%;
+    --sidebar-ring: 0 72% 55%;
   }
 }
 
@@ -133,43 +150,84 @@
 @layer components {
   /* Premium Search Bar */
   .search-bar {
-    @apply bg-muted rounded-2xl px-4 py-3 flex items-center gap-3 transition-all duration-200;
+    @apply bg-card rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 border border-border/50;
   }
 
   .search-bar:focus-within {
-    @apply ring-2 ring-primary/30;
+    @apply ring-2 ring-primary/30 border-primary/50;
   }
 
-  /* Category Chips - Pill Style */
+  /* Category Chips - Sharp & Bold */
   .category-chip {
-    @apply px-4 py-2.5 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer;
+    @apply px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer border;
   }
 
-  .category-chip-active {
-    @apply bg-primary text-primary-foreground;
+  .category-chip-events {
+    @apply bg-events-muted text-events border-events/20 hover:bg-events hover:text-events-foreground hover:border-events;
   }
 
-  .category-chip-inactive {
-    @apply bg-muted text-muted-foreground hover:text-foreground;
+  .category-chip-events.active {
+    @apply bg-events text-events-foreground border-events;
   }
 
-  /* Bottom Sheet */
+  .category-chip-routes {
+    @apply bg-routes-muted text-routes border-routes/20 hover:bg-routes hover:text-routes-foreground hover:border-routes;
+  }
+
+  .category-chip-routes.active {
+    @apply bg-routes text-routes-foreground border-routes;
+  }
+
+  .category-chip-services {
+    @apply bg-services-muted text-services border-services/20 hover:bg-services hover:text-services-foreground hover:border-services;
+  }
+
+  .category-chip-services.active {
+    @apply bg-services text-services-foreground border-services;
+  }
+
+  .category-chip-clubs {
+    @apply bg-clubs-muted text-clubs border-clubs/20 hover:bg-clubs hover:text-clubs-foreground hover:border-clubs;
+  }
+
+  .category-chip-clubs.active {
+    @apply bg-clubs text-clubs-foreground border-clubs;
+  }
+
+  /* Bottom Sheet - Refined */
   .bottom-sheet {
-    @apply bg-card rounded-t-2xl shadow-2xl;
+    @apply bg-card rounded-t-2xl shadow-2xl border-t border-border/50;
   }
 
   /* Content Card - Premium */
   .content-card {
-    @apply bg-card rounded-2xl p-5 shadow-card transition-all duration-300 hover:shadow-elevated;
+    @apply bg-card rounded-xl p-4 shadow-sm border border-border/50 transition-all duration-200 hover:shadow-md hover:border-border;
   }
 
-  /* FAB */
+  /* FAB - Bold & Consistent */
   .fab-button {
-    @apply w-14 h-14 rounded-2xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
+    @apply w-14 h-14 rounded-xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
   }
 
   .fab-option {
-    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-2xl shadow-md transition-all duration-200 hover:bg-accent cursor-pointer;
+    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-xl shadow-md border border-border/50 transition-all duration-200 hover:bg-muted cursor-pointer;
+  }
+
+  /* Map Pins */
+  .pin-events {
+    @apply bg-events text-events-foreground;
+  }
+
+  .pin-routes {
+    @apply bg-routes text-routes-foreground;
+  }
+
+  .pin-services {
+    @apply bg-services text-services-foreground;
+  }
+
+  .pin-clubs {
+    @apply bg-clubs text-clubs-foreground;
   }
 
   /* Page Containers */
@@ -181,13 +239,13 @@
     @apply max-w-md mx-auto min-h-screen relative overflow-hidden bg-background;
   }
 
-  /* Glass Effect */
+  /* Premium Glass Effect */
   .glass {
-    @apply bg-card/85 backdrop-blur-xl;
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
   }
 
   .glass-dark {
-    @apply bg-background/90 backdrop-blur-xl;
+    @apply bg-background/90 backdrop-blur-xl border border-border/50;
   }
 }
 
@@ -201,31 +259,23 @@
   }
 
   .animate-fade-up {
-    animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeUp 0.3s ease-out forwards;
   }
 
   .animate-fade-down {
-    animation: fadeDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: fadeDown 0.3s ease-out forwards;
   }
 
   .animate-scale-up {
-    animation: scaleUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: scaleUp 0.2s ease-out forwards;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: slideUp 0.3s ease-out forwards;
   }
 
   .animate-slide-down {
     animation: slideDown 0.3s ease-out forwards;
-  }
-
-  .animate-card-enter {
-    animation: cardEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .animate-pulse-glow {
-    animation: pulseGlow 3s ease-in-out infinite;
   }
 
   .safe-top {
@@ -238,7 +288,7 @@
 
   /* Typography Utilities */
   .heading-display {
-    @apply text-[28px] font-bold tracking-tight leading-tight;
+    @apply text-3xl font-black tracking-tight;
   }
 
   .heading-lg {
@@ -246,11 +296,11 @@
   }
 
   .heading-md {
-    @apply text-lg font-semibold;
+    @apply text-lg font-bold;
   }
 
   .heading-sm {
-    @apply text-base font-medium;
+    @apply text-base font-semibold;
   }
 
   .text-caption {
@@ -258,14 +308,14 @@
   }
 
   .text-label {
-    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
   }
 }
 
 @keyframes fadeUp {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -276,7 +326,7 @@
 @keyframes fadeDown {
   from {
     opacity: 0;
-    transform: translateY(-12px);
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;
@@ -287,7 +337,7 @@
 @keyframes scaleUp {
   from {
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.9);
   }
   to {
     opacity: 1;
@@ -310,25 +360,5 @@
   }
   to {
     transform: translateY(100%);
-  }
-}
-
-@keyframes cardEnter {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.97);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 8px 2px hsl(1 76% 55% / 0.25);
-  }
-  50% {
-    box-shadow: 0 0 16px 6px hsl(1 76% 55% / 0.4);
   }
 }

@@ -18,10 +18,6 @@ export default {
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
-        'display': ['28px', { lineHeight: '1.15', fontWeight: '700', letterSpacing: '-0.02em' }],
-        'section': ['18px', { lineHeight: '1.3', fontWeight: '600' }],
-        'card-title': ['16px', { lineHeight: '1.4', fontWeight: '500' }],
-        'body-sm': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -98,12 +94,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.2)',
-        'card': '0 4px 16px -4px hsl(var(--shadow-color) / 0.3)',
-        'elevated': '0 8px 30px -8px hsl(var(--shadow-color) / 0.4)',
-        'premium': '0 4px 16px rgba(0,0,0,0.2)',
-        'glow-red': '0 0 12px 2px hsl(1 76% 55% / 0.3)',
-        'glow-blue': '0 4px 14px -2px hsl(25 10% 8% / 0.35)',
+        'soft': '0 2px 8px -2px hsl(var(--shadow-color) / 0.08)',
+        'card': '0 1px 3px hsl(var(--shadow-color) / 0.05), 0 1px 2px hsl(var(--shadow-color) / 0.1)',
+        'elevated': '0 4px 20px -4px hsl(var(--shadow-color) / 0.15)',
+        'premium': '0 8px 30px -8px hsl(var(--shadow-color) / 0.2)',
       },
       keyframes: {
         "accordion-down": {

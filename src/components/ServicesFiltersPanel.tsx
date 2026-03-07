@@ -16,10 +16,6 @@ interface ServicesFiltersPanelProps {
   onFiltersChange: (filters: ServicesFilterState) => void;
 }
 
-const chipBase = 'px-3.5 py-2 rounded-full text-[11px] font-medium border transition-all duration-200';
-const chipActive = 'bg-primary text-primary-foreground border-primary';
-const chipInactive = 'bg-secondary text-muted-foreground border-border/50 hover:border-border hover:text-foreground';
-
 const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanelProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -87,72 +83,110 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Bar Row - Glass Container */}
-      <div className="flex items-center gap-2 bg-secondary/85 backdrop-blur-xl border border-border/30 rounded-[18px] p-1.5">
+      {/* Filter Bar Row */}
+      <div className="flex items-center gap-2">
+        {/* Filter Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`h-9 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-full border transition-all duration-300 ${
-            isOpen ? chipActive : chipInactive
+          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen
+              ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
           }`}
         >
-          <SlidersHorizontal className="w-3.5 h-3.5" />
-          <span className="text-[11px] font-medium">Filters</span>
+          <SlidersHorizontal className="w-4 h-4" />
+          <span className="text-[10px] font-semibold">Filters</span>
         </button>
 
+        {/* Add Service Button */}
         <button
           onClick={() => navigate('/add/service')}
-          className="h-9 flex items-center gap-1.5 px-3.5 rounded-full bg-primary text-primary-foreground shadow-glow-red hover:bg-primary/90 active:scale-[0.97] transition-all"
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#1B4D3E] text-white shadow-sm hover:bg-[#1B4D3E]/90 active:scale-[0.97] transition-all"
         >
-          <Plus className="w-3.5 h-3.5" />
-          <span className="text-[11px] font-medium whitespace-nowrap">Add</span>
+          <Plus className="w-4 h-4" />
+          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 
       {/* Filter Panel */}
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/30 shadow-premium p-5 space-y-5 animate-fade-up">
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
+          {/* Header with close */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Services</h3>
-            <button onClick={() => setIsOpen(false)} className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-accent transition-colors">
-              <X className="w-3.5 h-3.5 text-muted-foreground" />
+            <button 
+              onClick={() => setIsOpen(false)}
+              className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+            >
+              <X className="w-3 h-3 text-muted-foreground" />
             </button>
           </div>
 
-          {/* Distance */}
-          <div className="space-y-2.5">
+          {/* Distance Filter */}
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Distance</p>
               <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
             </div>
-            <Slider value={[isDistanceNumeric ? distanceValue : 25]} onValueChange={handleDistanceChange} min={1} max={50} step={1} className="w-full" disabled={!isDistanceNumeric} />
-            <div className="flex gap-2 mt-2">
+            <Slider
+              value={[isDistanceNumeric ? distanceValue : 25]}
+              onValueChange={handleDistanceChange}
+              min={1}
+              max={50}
+              step={1}
+              className="w-full"
+              disabled={!isDistanceNumeric}
+            />
+            <div className="flex gap-1.5 mt-2">
               {distancePresets.map((preset) => (
-                <button key={preset.id} onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
-                  className={`flex-1 ${chipBase} ${filters.distance === preset.id ? chipActive : chipInactive}`}
-                >{preset.label}</button>
+                <button
+                  key={preset.id}
+                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
+                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.distance === preset.id
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
+                >
+                  {preset.label}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Type */}
-          <div className="space-y-2.5">
+          {/* Type Filter */}
+          <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Type</p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {typeOptions.map((type) => (
-                <button key={type.id} onClick={() => toggleType(type.id)}
-                  className={`${chipBase} ${filters.types.includes(type.id) ? chipActive : chipInactive}`}
-                >{type.label}</button>
+                <button
+                  key={type.id}
+                  onClick={() => toggleType(type.id)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.types.includes(type.id)
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
+                >
+                  {type.label}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Rating */}
-          <div className="space-y-2.5">
+          {/* Rating Filter */}
+          <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Minimum Rating</p>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               {ratingOptions.map((option) => (
-                <button key={option.value} onClick={() => handleRatingChange(option.value)}
-                  className={`flex-1 flex items-center justify-center gap-1 ${chipBase} ${filters.minRating === option.value ? chipActive : chipInactive}`}
+                <button
+                  key={option.value}
+                  onClick={() => handleRatingChange(option.value)}
+                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.minRating === option.value
+                      ? 'bg-[#1B4D3E]/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                  }`}
                 >
                   <Star className="w-3 h-3" />
                   {option.label}
@@ -161,16 +195,23 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </div>
           </div>
 
-          {/* Open Now */}
+          {/* Open Now Toggle */}
           <div className="flex items-center justify-between py-1">
             <p className="text-xs font-medium text-foreground">Open Now</p>
-            <Switch checked={filters.openNow} onCheckedChange={handleOpenNowChange} className="data-[state=checked]:bg-primary" />
+            <Switch
+              checked={filters.openNow}
+              onCheckedChange={handleOpenNowChange}
+              className="data-[state=checked]:bg-[#1B4D3E]"
+            />
           </div>
 
-          {/* Apply */}
-          <button onClick={() => setIsOpen(false)}
-            className="w-full py-3 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-glow-red"
-          >Apply Filters</button>
+          {/* Apply Button */}
+          <button
+            onClick={() => setIsOpen(false)}
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#1B4D3E]/80 text-white hover:bg-[#1B4D3E] transition-colors"
+          >
+            Apply Filters
+          </button>
         </div>
       )}
     </div>

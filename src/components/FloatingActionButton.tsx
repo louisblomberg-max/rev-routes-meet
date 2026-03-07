@@ -47,13 +47,13 @@ const FloatingActionButton = ({
       {/* Backdrop */}
       {isOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-[3px] z-30"
+          className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-30"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Options fan-out */}
-      <div className={`absolute bottom-0 right-0 mb-14 space-y-2 transition-all duration-300 ${
+      <div className={`absolute bottom-0 right-0 mb-14 space-y-1.5 transition-all duration-300 ${
         isOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
       }`} style={{ zIndex: 31 }}>
         {options.map((option, index) => {
@@ -63,14 +63,14 @@ const FloatingActionButton = ({
             <button
               key={option.label}
               onClick={() => handleOptionClick(option)}
-              className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-2xl bg-card backdrop-blur-md shadow-premium transition-all duration-200 hover:bg-accent active:scale-95 ${locked ? 'opacity-50' : ''}`}
+              className={`flex items-center gap-2.5 pl-3 pr-4 py-2.5 rounded-full bg-white/95 backdrop-blur-md shadow-lg border border-white/60 transition-all duration-200 hover:bg-white hover:shadow-xl hover:translate-x-[-4px] active:scale-95 ${locked ? 'opacity-50' : ''}`}
               style={{ 
                 animationDelay: `${index * 40}ms`,
                 transform: isOpen ? 'translateX(0)' : 'translateX(20px)',
                 transition: `all 0.25s cubic-bezier(0.4, 0, 0.2, 1) ${index * 40}ms`,
               }}
             >
-              <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${locked ? 'bg-muted' : 'bg-muted/60'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${locked ? 'bg-muted' : 'bg-muted/60'}`}>
                 <Icon className={`w-4 h-4 ${locked ? 'text-muted-foreground' : option.color}`} />
               </div>
               <span className="text-sm font-semibold text-foreground whitespace-nowrap">
@@ -88,10 +88,10 @@ const FloatingActionButton = ({
         className="flex flex-col items-center gap-0.5 group"
         aria-label="Create new content"
       >
-        <div className={`relative w-11 h-11 rounded-full bg-primary shadow-glow-blue flex items-center justify-center transition-all duration-300 group-hover:shadow-elevated group-active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}>
-          <Plus className="w-6 h-6 text-primary-foreground transition-colors duration-300" />
+        <div className={`relative w-10 h-10 rounded-xl bg-white shadow-lg border border-border/60 flex items-center justify-center transition-all duration-300 group-hover:shadow-xl group-active:scale-90 ${isOpen ? 'rotate-45 scale-95' : 'rotate-0'}`}>
+          <Plus className="w-6 h-6 text-foreground" />
         </div>
-        <span className="text-[9px] font-semibold text-muted-foreground">Add</span>
+        <span className="text-[9px] font-semibold text-foreground/70 drop-shadow-sm">Add</span>
       </button>
     </>
   );

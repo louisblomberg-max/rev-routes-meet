@@ -41,26 +41,26 @@ const SearchBar = ({
       {!isSearchActive && (
         <div 
           onClick={onFocus}
-          className="group cursor-pointer h-10 bg-muted rounded-full shadow-soft px-3.5 flex items-center gap-2.5 transition-all duration-200 hover:shadow-card active:scale-[0.99]"
+          className="group cursor-pointer h-10 bg-white/90 backdrop-blur-md border border-amber-500/30 rounded-xl shadow-sm px-3.5 flex items-center gap-2.5 transition-all duration-200 hover:shadow-md hover:border-amber-500/50 active:scale-[0.99]"
         >
-          <Sparkles className="w-4 h-4 text-primary" />
+          <Sparkles className="w-4 h-4 text-amber-500" />
           <span className="flex-1 text-sm text-muted-foreground truncate">AI Search: events, routes, services...</span>
         </div>
       )}
 
       {/* Expanded State */}
       {isSearchActive && (
-        <div className="bg-card rounded-2xl shadow-elevated overflow-hidden animate-fade-up">
+        <div className="bg-card border border-amber-500/30 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
           {/* AI Header */}
-          <div className="px-4 pt-3 pb-2 flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-xs font-semibold text-primary uppercase tracking-wide">AI Discovery</span>
+          <div className="px-4 pt-3 pb-2 border-b border-border/50 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-semibold text-amber-500 uppercase tracking-wide">AI Discovery</span>
           </div>
           
           {/* Search Input */}
           <div className="p-3">
-            <div className={`flex items-center gap-3 bg-muted rounded-[14px] px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-primary/30' : ''}`}>
-              <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
+            <div className={`flex items-center gap-3 bg-muted/50 rounded-lg px-4 py-3 transition-all ${isFocused ? 'ring-2 ring-amber-500/30 bg-background' : ''}`}>
+              <Sparkles className="w-4 h-4 text-amber-500 flex-shrink-0" />
               <input
                 type="text"
                 placeholder="Ask anything about events, routes, services..."
@@ -73,7 +73,7 @@ const SearchBar = ({
               />
               <button 
                 onClick={handleClose}
-                className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-border transition-colors"
+                className="w-7 h-7 rounded-md bg-muted flex items-center justify-center hover:bg-border transition-colors"
               >
                 <X className="w-3.5 h-3.5 text-muted-foreground" />
               </button>
@@ -89,7 +89,7 @@ const SearchBar = ({
                   <button
                     key={index}
                     onClick={() => handleExampleClick(prompt)}
-                    className="px-3 py-1.5 rounded-full bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                    className="px-3 py-1.5 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
                   >
                     {prompt}
                   </button>
@@ -102,7 +102,7 @@ const SearchBar = ({
           {searchValue && (
             <div className="px-4 pb-4 space-y-2">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 <p className="text-sm text-foreground font-semibold">
                   AI searching "{searchValue}"
                 </p>

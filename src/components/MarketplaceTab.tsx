@@ -39,7 +39,7 @@ interface MarketplaceFilters {
   sellerType: string | null;
   negotiable: boolean;
 }
-
+// Gated create button for marketplace
 const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => void }) => {
   const { hasAccess, getPlanLabel, getRequiredPlan } = usePlan();
   const allowed = hasAccess('create_marketplace_listing');
@@ -49,7 +49,10 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
       const required = getRequiredPlan('create_marketplace_listing');
       toast.info(`This requires ${getPlanLabel(required)}`, {
         description: 'Upgrade your plan to create listings.',
-        action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+        action: {
+          label: 'Upgrade',
+          onClick: () => navigate('/upgrade'),
+        },
       });
       return;
     }
@@ -59,7 +62,7 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
   return (
     <button 
       onClick={handleClick}
-      className={`relative w-11 h-11 rounded-full bg-primary flex items-center justify-center shadow-glow-blue hover:bg-primary/90 active:scale-95 transition-all ${!allowed ? 'opacity-70' : ''}`}
+      className={`relative w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
     >
       <Plus className="w-5 h-5 text-primary-foreground" />
       {!allowed && (
@@ -90,12 +93,12 @@ const MarketplaceTab = () => {
   });
 
   const categories = [
-    { id: 'Cars', icon: Car },
-    { id: 'Bikes', icon: Bike },
-    { id: 'Parts', icon: Package },
-    { id: 'Wheels', icon: CircleDot },
-    { id: 'Gear', icon: Shirt },
-    { id: 'Accessories', icon: Watch },
+    { id: 'Cars', icon: Car, gradient: 'from-blue-500 to-blue-600' },
+    { id: 'Bikes', icon: Bike, gradient: 'from-orange-500 to-red-500' },
+    { id: 'Parts', icon: Package, gradient: 'from-emerald-500 to-teal-500' },
+    { id: 'Wheels', icon: CircleDot, gradient: 'from-purple-500 to-violet-500' },
+    { id: 'Gear', icon: Shirt, gradient: 'from-pink-500 to-rose-500' },
+    { id: 'Accessories', icon: Watch, gradient: 'from-amber-500 to-orange-500' },
   ];
 
   const popularSearches = [
@@ -123,8 +126,10 @@ const MarketplaceTab = () => {
     { id: 'trade', label: 'Trade' },
   ];
 
+  // Enhanced search - searches across title, category, and location
   const filteredListings = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
+    
     let results = mockMarketplaceListings
       .filter(l => !activeCategory || l.category === activeCategory)
       .filter(l => {
@@ -136,29 +141,56 @@ const MarketplaceTab = () => {
           (l.mileage && l.mileage.toLowerCase().includes(query))
         );
       });
+
+    // Apply sorting
     if (filters.sortBy === 'price-low') {
-      results = [...results].sort((a, b) => parseInt(a.price.replace(/[£,]/g, '')) - parseInt(b.price.replace(/[£,]/g, '')));
+      results = [...results].sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[£,]/g, ''));
+        const priceB = parseInt(b.price.replace(/[£,]/g, ''));
+        return priceA - priceB;
+      });
     } else if (filters.sortBy === 'price-high') {
-      results = [...results].sort((a, b) => parseInt(b.price.replace(/[£,]/g, '')) - parseInt(a.price.replace(/[£,]/g, '')));
+      results = [...results].sort((a, b) => {
+        const priceA = parseInt(a.price.replace(/[£,]/g, ''));
+        const priceB = parseInt(b.price.replace(/[£,]/g, ''));
+        return priceB - priceA;
+      });
     }
+
     return results;
   }, [searchQuery, activeCategory, filters.sortBy]);
 
+  // Live search suggestions based on current query
   const searchSuggestions = useMemo(() => {
     if (!searchQuery.trim() || searchQuery.length < 2) return [];
+    
     const query = searchQuery.toLowerCase();
     const suggestions: string[] = [];
+    
+    // Get matching titles
     mockMarketplaceListings.forEach(l => {
-      if (l.title.toLowerCase().includes(query) && !suggestions.includes(l.title)) suggestions.push(l.title);
+      if (l.title.toLowerCase().includes(query) && !suggestions.includes(l.title)) {
+        suggestions.push(l.title);
+      }
     });
+    
+    // Get matching categories
     categories.forEach(c => {
-      if (c.id.toLowerCase().includes(query) && !suggestions.includes(c.id)) suggestions.push(c.id);
+      if (c.id.toLowerCase().includes(query) && !suggestions.includes(c.id)) {
+        suggestions.push(c.id);
+      }
     });
+    
     return suggestions.slice(0, 5);
   }, [searchQuery]);
 
   const toggleCondition = (conditionId: string) => {
-    setFilters(prev => ({ ...prev, condition: prev.condition.includes(conditionId) ? prev.condition.filter(c => c !== conditionId) : [...prev.condition, conditionId] }));
+    setFilters(prev => ({
+      ...prev,
+      condition: prev.condition.includes(conditionId)
+        ? prev.condition.filter(c => c !== conditionId)
+        : [...prev.condition, conditionId]
+    }));
   };
 
   const activeFiltersCount = [
@@ -171,28 +203,43 @@ const MarketplaceTab = () => {
   ].filter(Boolean).length;
 
   const toggleSaved = (id: string) => {
-    setSavedListings(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSavedListings(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const resetFilters = () => {
-    setFilters({ priceMin: 0, priceMax: 100000, distance: 50, condition: [], sortBy: 'newest', sellerType: null, negotiable: false });
+    setFilters({
+      priceMin: 0,
+      priceMax: 100000,
+      distance: 50,
+      condition: [],
+      sortBy: 'newest',
+      sellerType: null,
+      negotiable: false,
+    });
   };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setIsSearchFocused(false);
+    
+    // Add to recent searches
     if (query.trim() && !recentSearches.includes(query)) {
       setRecentSearches(prev => [query, ...prev.slice(0, 4)]);
     }
   };
 
-  const clearSearch = () => { setSearchQuery(''); setIsSearchFocused(false); };
-  const removeRecentSearch = (search: string) => { setRecentSearches(prev => prev.filter(s => s !== search)); };
-  const featuredListing = mockMarketplaceListings[0];
+  const clearSearch = () => {
+    setSearchQuery('');
+    setIsSearchFocused(false);
+  };
 
-  const chipBase = 'px-3.5 py-2 rounded-full text-[11px] font-medium transition-all duration-200';
-  const chipActive = 'bg-primary text-primary-foreground';
-  const chipInactive = 'bg-muted text-muted-foreground hover:text-foreground';
+  const removeRecentSearch = (search: string) => {
+    setRecentSearches(prev => prev.filter(s => s !== search));
+  };
+
+  const featuredListing = mockMarketplaceListings[0];
 
   return (
     <div className="h-full bg-background overflow-y-auto pb-24">
@@ -200,38 +247,44 @@ const MarketplaceTab = () => {
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center justify-between">
           <div>
+            <p className="text-label mb-1">Buy & Sell</p>
             <h1 className="heading-display text-foreground">Marketplace</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">Buy & sell vehicles, parts & gear</p>
           </div>
           <MarketplaceCreateButton navigate={navigate} />
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="px-5 pt-1 relative">
+      <div className="px-4 pt-2 relative">
         <div className="flex gap-2">
           <div className="flex-1 relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input 
               type="text"
               placeholder="Search by name, category, location..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              className="w-full h-11 pl-10 pr-10 bg-muted rounded-[14px] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all font-medium"
             />
             {searchQuery && (
-              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-secondary flex items-center justify-center hover:bg-border">
+              <button 
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md bg-muted flex items-center justify-center hover:bg-border"
+              >
                 <X className="w-3 h-3 text-muted-foreground" />
               </button>
             )}
           </div>
           <button 
-            onClick={() => { setIsFiltersOpen(!isFiltersOpen); setIsSearchFocused(false); }}
-            className={`relative w-11 h-11 rounded-[14px] flex items-center justify-center transition-all ${
+            onClick={() => {
+              setIsFiltersOpen(!isFiltersOpen);
+              setIsSearchFocused(false);
+            }}
+            className={`relative w-11 h-11 rounded-lg border shadow-card flex items-center justify-center transition-all ${
               isFiltersOpen || activeFiltersCount > 0
-                ? 'bg-primary text-primary-foreground shadow-glow-blue'
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+                ? 'bg-primary text-primary-foreground border-primary'
+                : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -245,64 +298,98 @@ const MarketplaceTab = () => {
 
         {/* Search Dropdown */}
         {isSearchFocused && !isFiltersOpen && (
-          <div className="absolute left-5 right-5 top-14 z-30 bg-card rounded-2xl shadow-elevated overflow-hidden animate-fade-up">
+          <div className="absolute left-4 right-4 top-14 z-30 bg-card border border-border/50 rounded-xl shadow-elevated overflow-hidden animate-fade-up">
+            {/* Live Suggestions */}
             {searchSuggestions.length > 0 && (
-              <div className="p-3">
+              <div className="p-3 border-b border-border/50">
                 <p className="text-label mb-2">Suggestions</p>
                 {searchSuggestions.map((suggestion, i) => (
-                  <button key={i} onClick={() => handleSearch(suggestion)} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors text-left">
+                  <button
+                    key={i}
+                    onClick={() => handleSearch(suggestion)}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/50 transition-colors text-left"
+                  >
                     <Search className="w-4 h-4 text-muted-foreground" />
                     <span className="text-sm font-medium text-foreground">{suggestion}</span>
                   </button>
                 ))}
               </div>
             )}
+
+            {/* Recent Searches */}
             {!searchQuery && recentSearches.length > 0 && (
-              <div className="p-3">
+              <div className="p-3 border-b border-border/30">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-label">Recent</p>
-                  <button onClick={() => setRecentSearches([])} className="text-[10px] text-muted-foreground hover:text-foreground">Clear all</button>
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Recent</p>
+                  <button 
+                    onClick={() => setRecentSearches([])}
+                    className="text-[10px] text-muted-foreground hover:text-foreground"
+                  >
+                    Clear all
+                  </button>
                 </div>
                 {recentSearches.map((search, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group">
-                    <button onClick={() => handleSearch(search)} className="flex items-center gap-3 flex-1 text-left">
+                  <div
+                    key={i}
+                    className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors group"
+                  >
+                    <button
+                      onClick={() => handleSearch(search)}
+                      className="flex items-center gap-3 flex-1 text-left"
+                    >
                       <History className="w-4 h-4 text-muted-foreground" />
                       <span className="text-sm text-foreground">{search}</span>
                     </button>
-                    <button onClick={() => removeRecentSearch(search)} className="w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-muted transition-all">
+                    <button 
+                      onClick={() => removeRecentSearch(search)}
+                      className="w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-muted transition-all"
+                    >
                       <X className="w-3 h-3 text-muted-foreground" />
                     </button>
                   </div>
                 ))}
               </div>
             )}
+
+            {/* Popular Searches */}
             {!searchQuery && (
-              <div className="p-3 border-t border-border/20">
+              <div className="p-3">
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-3 h-3 text-services" />
-                  <p className="text-label">Popular</p>
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Popular</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {popularSearches.map((search, i) => (
-                    <button key={i} onClick={() => handleSearch(search)} className="px-3 py-1.5 rounded-full bg-muted text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all">
+                    <button
+                      key={i}
+                      onClick={() => handleSearch(search)}
+                      className="px-3 py-1.5 rounded-lg bg-muted/60 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
+                    >
                       {search}
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Quick Category Search */}
             {!searchQuery && (
-              <div className="p-3 bg-muted/20 border-t border-border/20">
-                <p className="text-label mb-2">Browse by Category</p>
+              <div className="p-3 bg-muted/30 border-t border-border/30">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-2">Browse by Category</p>
                 <div className="grid grid-cols-3 gap-2">
                   {categories.slice(0, 6).map((cat) => {
                     const Icon = cat.icon;
                     return (
-                      <button key={cat.id} onClick={() => { setActiveCategory(cat.id); setIsSearchFocused(false); }}
-                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card hover:shadow-soft transition-all"
+                      <button
+                        key={cat.id}
+                        onClick={() => {
+                          setActiveCategory(cat.id);
+                          setIsSearchFocused(false);
+                        }}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/80 hover:bg-white hover:shadow-md transition-all"
                       >
-                        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-muted-foreground" />
+                        <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${cat.gradient} flex items-center justify-center`}>
+                          <Icon className="w-4 h-4 text-white" />
                         </div>
                         <span className="text-[10px] font-medium text-muted-foreground">{cat.id}</span>
                       </button>
@@ -313,78 +400,197 @@ const MarketplaceTab = () => {
             )}
           </div>
         )}
-        {isSearchFocused && <div className="fixed inset-0 bg-black/20 z-20" onClick={() => setIsSearchFocused(false)} />}
+
+        {/* Backdrop when search is focused */}
+        {isSearchFocused && (
+          <div 
+            className="fixed inset-0 bg-black/20 z-20" 
+            onClick={() => setIsSearchFocused(false)}
+          />
+        )}
       </div>
 
       {/* Active Search Indicator */}
       {searchQuery && !isSearchFocused && (
-        <div className="px-5 pt-3">
-          <div className="flex items-center justify-between bg-primary/8 rounded-[14px] px-4 py-2.5">
+        <div className="px-4 pt-3">
+          <div className="flex items-center justify-between bg-primary/10 rounded-xl px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Search className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">Searching: "{searchQuery}"</span>
+              <span className="text-sm text-primary font-medium">
+                Searching: "{searchQuery}"
+              </span>
             </div>
-            <button onClick={clearSearch} className="text-xs text-primary hover:text-primary/80 font-medium">Clear</button>
+            <button 
+              onClick={clearSearch}
+              className="text-xs text-primary hover:text-primary/80 font-medium"
+            >
+              Clear
+            </button>
           </div>
         </div>
       )}
 
       {/* Filters Panel */}
       {isFiltersOpen && (
-        <div className="px-5 pt-3 animate-fade-up">
-          <div className="bg-card rounded-2xl shadow-premium p-5 space-y-4">
+        <div className="px-4 pt-3 animate-fade-up">
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg p-4 space-y-4">
+            {/* Header */}
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">Refine Search</h3>
               <div className="flex items-center gap-2">
-                <button onClick={resetFilters} className="text-xs text-muted-foreground hover:text-foreground transition-colors">Reset all</button>
-                <button onClick={() => setIsFiltersOpen(false)} className="w-7 h-7 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors">
+                <button 
+                  onClick={resetFilters}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Reset all
+                </button>
+                <button 
+                  onClick={() => setIsFiltersOpen(false)}
+                  className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+                >
                   <X className="w-3 h-3 text-muted-foreground" />
                 </button>
               </div>
             </div>
+
+            {/* Price Range */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2"><PoundSterling className="w-4 h-4 text-muted-foreground" /><p className="text-xs font-medium text-foreground">Price Range</p></div>
-                <span className="text-xs text-muted-foreground">£{filters.priceMin.toLocaleString()} - £{filters.priceMax.toLocaleString()}</span>
+                <div className="flex items-center gap-2">
+                  <PoundSterling className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-xs font-medium text-foreground">Price Range</p>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  £{filters.priceMin.toLocaleString()} - £{filters.priceMax.toLocaleString()}
+                </span>
               </div>
-              <div className="px-1"><Slider value={[filters.priceMin, filters.priceMax]} onValueChange={([min, max]) => setFilters(prev => ({ ...prev, priceMin: min, priceMax: max }))} min={0} max={100000} step={1000} className="w-full" /></div>
+              <div className="px-1">
+                <Slider
+                  value={[filters.priceMin, filters.priceMax]}
+                  onValueChange={([min, max]) => setFilters(prev => ({ ...prev, priceMin: min, priceMax: max }))}
+                  min={0}
+                  max={100000}
+                  step={1000}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+                <span>£0</span>
+                <span>£100,000+</span>
+              </div>
             </div>
+
+            {/* Distance */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2"><MapPin className="w-4 h-4 text-muted-foreground" /><p className="text-xs font-medium text-foreground">Distance</p></div>
-                <span className="text-xs text-muted-foreground">{filters.distance === 50 ? 'Nationwide' : `${filters.distance} miles`}</span>
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-muted-foreground" />
+                  <p className="text-xs font-medium text-foreground">Distance</p>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {filters.distance === 50 ? 'Nationwide' : `${filters.distance} miles`}
+                </span>
               </div>
-              <Slider value={[filters.distance]} onValueChange={([val]) => setFilters(prev => ({ ...prev, distance: val }))} min={5} max={50} step={5} className="w-full" />
+              <Slider
+                value={[filters.distance]}
+                onValueChange={([val]) => setFilters(prev => ({ ...prev, distance: val }))}
+                min={5}
+                max={50}
+                step={5}
+                className="w-full"
+              />
+              <div className="flex justify-between text-[10px] text-muted-foreground px-1">
+                <span>5 miles</span>
+                <span>Nationwide</span>
+              </div>
             </div>
+
+            {/* Condition */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2"><Gauge className="w-4 h-4 text-muted-foreground" /><p className="text-xs font-medium text-foreground">Condition</p></div>
+              <div className="flex items-center gap-2">
+                <Gauge className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs font-medium text-foreground">Condition</p>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {conditionOptions.map((option) => (
-                  <button key={option.id} onClick={() => toggleCondition(option.id)} className={`${chipBase} ${filters.condition.includes(option.id) ? chipActive : chipInactive}`}>{option.label}</button>
+                  <button
+                    key={option.id}
+                    onClick={() => toggleCondition(option.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      filters.condition.includes(option.id)
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Sort By */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2"><ArrowUpDown className="w-4 h-4 text-muted-foreground" /><p className="text-xs font-medium text-foreground">Sort By</p></div>
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs font-medium text-foreground">Sort By</p>
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {sortOptions.map((option) => (
-                  <button key={option.id} onClick={() => setFilters(prev => ({ ...prev, sortBy: option.id }))} className={`${chipBase} ${filters.sortBy === option.id ? chipActive : chipInactive}`}>{option.label}</button>
+                  <button
+                    key={option.id}
+                    onClick={() => setFilters(prev => ({ ...prev, sortBy: option.id }))}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      filters.sortBy === option.id
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Seller Type */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2"><Calendar className="w-4 h-4 text-muted-foreground" /><p className="text-xs font-medium text-foreground">Seller Type</p></div>
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs font-medium text-foreground">Seller Type</p>
+              </div>
               <div className="flex gap-1.5">
                 {sellerTypeOptions.map((option) => (
-                  <button key={option.id} onClick={() => setFilters(prev => ({ ...prev, sellerType: prev.sellerType === option.id ? null : option.id }))} className={`flex-1 ${chipBase} ${filters.sellerType === option.id ? chipActive : chipInactive}`}>{option.label}</button>
+                  <button
+                    key={option.id}
+                    onClick={() => setFilters(prev => ({ 
+                      ...prev, 
+                      sellerType: prev.sellerType === option.id ? null : option.id 
+                    }))}
+                    className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      filters.sellerType === option.id
+                        ? 'bg-primary text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
                 ))}
               </div>
             </div>
+
+            {/* Negotiable Toggle */}
             <div className="flex items-center justify-between py-1">
               <p className="text-xs font-medium text-foreground">Price Negotiable</p>
-              <Switch checked={filters.negotiable} onCheckedChange={(checked) => setFilters(prev => ({ ...prev, negotiable: checked }))} />
+              <Switch
+                checked={filters.negotiable}
+                onCheckedChange={(checked) => setFilters(prev => ({ ...prev, negotiable: checked }))}
+              />
             </div>
-            <button onClick={() => setIsFiltersOpen(false)} className="w-full h-12 rounded-[14px] text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-glow-blue">
+
+            {/* Apply Button */}
+            <button
+              onClick={() => setIsFiltersOpen(false)}
+              className="w-full py-3 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-md"
+            >
               Apply Filters
             </button>
           </div>
@@ -393,15 +599,19 @@ const MarketplaceTab = () => {
 
       {/* Category Chips */}
       {!isSearchFocused && (
-        <div className="px-5 pt-4">
+        <div className="px-4 pt-4">
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
             {categories.map((cat) => {
               const Icon = cat.icon;
               const isActive = activeCategory === cat.id;
               return (
-                <button key={cat.id} onClick={() => setActiveCategory(isActive ? null : cat.id)}
-                  className={`flex items-center gap-2 px-4 h-10 rounded-full text-xs font-semibold transition-all duration-200 whitespace-nowrap ${
-                    isActive ? 'bg-primary text-primary-foreground shadow-glow-blue' : 'bg-muted text-muted-foreground hover:text-foreground'
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(isActive ? null : cat.id)}
+                  className={`flex items-center gap-2 px-4 h-10 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap border ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      : 'bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -415,30 +625,53 @@ const MarketplaceTab = () => {
 
       {/* Active Filters Summary */}
       {activeFiltersCount > 0 && !isFiltersOpen && !isSearchFocused && (
-        <div className="px-5 pt-3">
+        <div className="px-4 pt-3">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
-            {filters.priceMax < 100000 && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">Under £{filters.priceMax.toLocaleString()}</span>}
-            {filters.distance < 50 && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">Within {filters.distance} miles</span>}
-            {filters.condition.length > 0 && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">{filters.condition.length} condition{filters.condition.length > 1 ? 's' : ''}</span>}
-            {filters.sellerType && <span className="px-3 py-1.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap capitalize">{filters.sellerType}</span>}
-            <button onClick={resetFilters} className="px-3 py-1.5 rounded-full bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap hover:bg-muted/80">Clear all</button>
+            {filters.priceMax < 100000 && (
+              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+                Under £{filters.priceMax.toLocaleString()}
+              </span>
+            )}
+            {filters.distance < 50 && (
+              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+                Within {filters.distance} miles
+              </span>
+            )}
+            {filters.condition.length > 0 && (
+              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+                {filters.condition.length} condition{filters.condition.length > 1 ? 's' : ''}
+              </span>
+            )}
+            {filters.sellerType && (
+              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap capitalize">
+                {filters.sellerType}
+              </span>
+            )}
+            <button 
+              onClick={resetFilters}
+              className="px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-[10px] font-medium whitespace-nowrap hover:bg-muted/80"
+            >
+              Clear all
+            </button>
           </div>
         </div>
       )}
 
       {/* Featured Listing */}
       {!activeCategory && !searchQuery && !isFiltersOpen && !isSearchFocused && (
-        <div className="px-5 pt-6">
+        <div className="px-4 pt-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-services" />
+              <TrendingUp className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-semibold text-foreground">Featured</span>
             </div>
-            <button className="text-xs text-primary font-medium flex items-center gap-1">View all <ChevronRight className="w-3 h-3" /></button>
+            <button className="text-xs text-primary font-medium flex items-center gap-1">
+              View all <ChevronRight className="w-3 h-3" />
+            </button>
           </div>
-          <div className="relative bg-card rounded-2xl overflow-hidden shadow-elevated">
-            <div className="aspect-[16/9] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
-              <Car className="w-20 h-20 text-muted-foreground/10" />
+          <div className="relative bg-foreground rounded-xl overflow-hidden shadow-elevated">
+            <div className="aspect-[16/9] flex items-center justify-center">
+              <Car className="w-20 h-20 text-white/10" />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4">
@@ -447,12 +680,20 @@ const MarketplaceTab = () => {
                   <p className="text-2xl font-bold text-white">{featuredListing.price}</p>
                   <h3 className="text-sm font-medium text-white/90 mt-1">{featuredListing.title}</h3>
                   <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-1 text-xs text-white/70"><MapPin className="w-3 h-3" /><span>{featuredListing.location}</span></div>
-                    {featuredListing.mileage && <span className="text-xs text-white/70">· {featuredListing.mileage}</span>}
+                    <div className="flex items-center gap-1 text-xs text-white/70">
+                      <MapPin className="w-3 h-3" />
+                      <span>{featuredListing.location}</span>
+                    </div>
+                    {featuredListing.mileage && (
+                      <span className="text-xs text-white/70">• {featuredListing.mileage}</span>
+                    )}
                   </div>
                 </div>
-                <button onClick={() => toggleSaved(featuredListing.id)} className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all">
-                  <Heart className={`w-5 h-5 ${savedListings.includes(featuredListing.id) ? 'fill-destructive text-destructive' : 'text-white'}`} />
+                <button 
+                  onClick={() => toggleSaved(featuredListing.id)}
+                  className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all"
+                >
+                  <Heart className={`w-5 h-5 ${savedListings.includes(featuredListing.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
                 </button>
               </div>
             </div>
@@ -460,11 +701,16 @@ const MarketplaceTab = () => {
         </div>
       )}
 
-      {/* Results Count */}
+      {/* Results Count & Sort */}
       {!isSearchFocused && (
-        <div className="px-5 pt-6 pb-2">
+        <div className="px-4 pt-5 pb-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">{activeCategory || (searchQuery ? 'Search Results' : 'Recent Listings')}</span>
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">
+                {activeCategory || (searchQuery ? 'Search Results' : 'Recent Listings')}
+              </span>
+            </div>
             <span className="text-xs text-muted-foreground">{filteredListings.length} items</span>
           </div>
         </div>
@@ -472,7 +718,7 @@ const MarketplaceTab = () => {
 
       {/* Listings Grid */}
       {!isSearchFocused && (
-        <div className="px-5 pb-8">
+        <div className="px-4 pb-8">
           <div className="grid grid-cols-2 gap-3">
             {filteredListings.map((listing) => {
               const category = categories.find(c => c.id === listing.category);
@@ -480,25 +726,37 @@ const MarketplaceTab = () => {
               const isSaved = savedListings.includes(listing.id);
 
               return (
-                <button key={listing.id} className="group bg-card rounded-2xl overflow-hidden shadow-premium text-left hover:shadow-elevated active:scale-[0.99] transition-all duration-300">
+                <button
+                  key={listing.id}
+                  className="group bg-card rounded-xl overflow-hidden border border-border/50 shadow-card text-left hover:shadow-elevated hover:border-border active:scale-[0.99] transition-all duration-200"
+                >
+                  {/* Image Placeholder */}
                   <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
-                    <Icon className="w-10 h-10 text-muted-foreground/15" />
-                    <button onClick={(e) => { e.stopPropagation(); toggleSaved(listing.id); }}
-                      className="absolute top-2 right-2 w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    <Icon className="w-10 h-10 text-muted-foreground/20" />
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSaved(listing.id);
+                      }}
+                      className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Heart className={`w-4 h-4 ${isSaved ? 'fill-destructive text-destructive' : 'text-muted-foreground'}`} />
+                      <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
                     </button>
-                    <div className="absolute bottom-2 left-2 px-2.5 py-1 rounded-full bg-card/90 backdrop-blur-sm text-[10px] font-semibold text-foreground">
+                    <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-gradient-to-r ${category?.gradient || 'from-gray-500 to-gray-600'} text-[10px] font-semibold text-white`}>
                       {listing.category}
                     </div>
                   </div>
-                  <div className="p-3.5">
+
+                  {/* Details */}
+                  <div className="p-3">
                     <p className="text-lg font-bold text-foreground">{listing.price}</p>
                     <h3 className="text-xs font-medium text-foreground mt-1 line-clamp-2 leading-relaxed">{listing.title}</h3>
                     <div className="flex items-center gap-1 text-[10px] text-muted-foreground mt-2">
                       <MapPin className="w-3 h-3" />
                       <span>{listing.location}</span>
-                      {listing.mileage && <span className="ml-1">· {listing.mileage}</span>}
+                      {listing.mileage && (
+                        <span className="ml-1">• {listing.mileage}</span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -508,25 +766,32 @@ const MarketplaceTab = () => {
 
           {filteredListings.length === 0 && (
             <div className="text-center py-16">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-muted-foreground/30" />
               </div>
               <p className="text-sm font-medium text-muted-foreground">No results found</p>
               <p className="text-xs text-muted-foreground/70 mt-1">Try a different search or adjust filters</p>
-              <button onClick={() => { clearSearch(); setActiveCategory(null); resetFilters(); }}
-                className="mt-4 px-5 py-2.5 rounded-[14px] bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
-              >Clear all filters</button>
+              <button 
+                onClick={() => {
+                  clearSearch();
+                  setActiveCategory(null);
+                  resetFilters();
+                }}
+                className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+              >
+                Clear all filters
+              </button>
             </div>
           )}
         </div>
       )}
 
-      {/* Saved Items */}
+      {/* Saved Items Hint */}
       {savedListings.length > 0 && !isSearchFocused && (
         <div className="fixed bottom-24 left-4 right-4 z-10">
-          <div className="bg-card rounded-2xl p-4 shadow-elevated flex items-center justify-between">
+          <div className="bg-card border border-border/50 rounded-xl p-4 shadow-elevated flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
                 <Heart className="w-5 h-5 text-primary-foreground fill-current" />
               </div>
               <div>

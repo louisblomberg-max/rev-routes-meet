@@ -200,20 +200,20 @@ export const mockForumComments: ForumComment[] = [
 export const getCategoryInfo = (categoryId: string) => {
   const categories: Record<string, { name: string; color: string }> = {
     general: { name: 'General', color: 'bg-muted text-foreground' },
-    mods: { name: 'Mods & Tuning', color: 'bg-routes/15 text-routes' },
-    troubleshooting: { name: 'Troubleshooting', color: 'bg-events/15 text-events' },
-    buying: { name: 'Buying & Selling', color: 'bg-services/15 text-services' },
-    track: { name: 'Track & Motorsport', color: 'bg-clubs/15 text-clubs' },
-    insurance: { name: 'Insurance & Ownership', color: 'bg-primary/15 text-primary' },
+    mods: { name: 'Mods & Tuning', color: 'bg-routes text-white' },
+    troubleshooting: { name: 'Troubleshooting', color: 'bg-events text-white' },
+    buying: { name: 'Buying & Selling', color: 'bg-primary text-primary-foreground' },
+    track: { name: 'Track & Motorsport', color: 'bg-clubs text-white' },
+    insurance: { name: 'Insurance & Ownership', color: 'bg-services text-foreground' },
   };
   return categories[categoryId] || { name: categoryId, color: 'bg-muted text-foreground' };
 };
 
 export const getPostTypeInfo = (type: PostType) => {
   const types: Record<PostType, { label: string; icon: string; color: string }> = {
-    question: { label: 'Question', icon: 'HelpCircle', color: 'bg-routes/15 text-routes' },
-    advice: { label: 'Advice', icon: 'Lightbulb', color: 'bg-services/15 text-services' },
-    discussion: { label: 'Discussion', icon: 'MessageSquare', color: 'bg-clubs/15 text-clubs' },
+    question: { label: 'Question', icon: 'HelpCircle', color: 'bg-blue-100 text-blue-700' },
+    advice: { label: 'Advice', icon: 'Lightbulb', color: 'bg-amber-100 text-amber-700' },
+    discussion: { label: 'Discussion', icon: 'MessageSquare', color: 'bg-purple-100 text-purple-700' },
   };
   return types[type];
 };

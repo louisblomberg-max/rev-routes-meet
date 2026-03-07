@@ -8,9 +8,9 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events & Drives', icon: Calendar, activeClass: 'bg-events text-events-foreground' },
-    { id: 'routes', label: 'Routes', icon: Route, activeClass: 'bg-routes text-routes-foreground' },
-    { id: 'services', label: 'Services', icon: Wrench, activeClass: 'bg-services text-services-foreground' },
+    { id: 'events', label: 'Events & Drives', icon: Calendar },
+    { id: 'routes', label: 'Routes', icon: Route },
+    { id: 'services', label: 'Services', icon: Wrench },
   ];
 
   const handleClick = (categoryId: string) => {
@@ -23,18 +23,24 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
         const Icon = category.icon;
         const isActive = activeCategory === category.id;
 
+        const activeStyles: Record<string, string> = {
+          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
+          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
+          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
+        };
+
+        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-white/60 shadow-sm hover:shadow-md hover:bg-white';
+
         return (
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-full transition-all duration-300 active:scale-95 ${
-              isActive
-                ? `${category.activeClass} shadow-soft`
-                : 'bg-muted text-muted-foreground hover:text-foreground'
+            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
+              isActive ? activeStyles[category.id] : inactiveStyles
             }`}
           >
-            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="text-[11px] font-semibold tracking-wide whitespace-nowrap">
+            <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+            <span className={`text-[11px] font-semibold tracking-wide whitespace-nowrap ${isActive ? 'text-white' : ''}`}>
               {category.label}
             </span>
           </button>

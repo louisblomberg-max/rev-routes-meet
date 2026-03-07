@@ -18,10 +18,10 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
 };
 
 const PIN_COLORS: Record<string, string> = {
-  events: '#A86050',
-  routes: '#5A80A8',
-  services: '#A88838',
-  clubs: '#7050A0',
+  events: '#ef4444',
+  routes: '#3b82f6',
+  services: '#059669',
+  clubs: '#7c3aed',
 };
 
 interface MapViewProps {
@@ -91,73 +91,50 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: [] },
   });
 
-  // Create colored pin icons for each category using canvas
-  const createPinIcon = (color: string, id: string) => {
-    const size = 48;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size + 12;
-    const ctx = canvas.getContext('2d')!;
-
-    // Drop shadow
-    ctx.shadowColor = 'rgba(0,0,0,0.35)';
-    ctx.shadowBlur = 6;
-    ctx.shadowOffsetY = 3;
-
-    // Pin body (teardrop)
-    ctx.beginPath();
-    ctx.moveTo(size / 2, size + 4);
-    ctx.bezierCurveTo(size / 2 - 2, size - 6, 4, size / 2 + 4, 4, size / 2 - 4);
-    ctx.arc(size / 2, size / 2 - 4, size / 2 - 4, Math.PI, 0, false);
-    ctx.bezierCurveTo(size - 4, size / 2 + 4, size / 2 + 2, size - 6, size / 2, size + 4);
-    ctx.closePath();
-
-    ctx.fillStyle = '#787B7E';
-    ctx.fill();
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Inner dot
-    ctx.shadowColor = 'transparent';
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2 - 4, 5, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
-
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    if (!map.hasImage(id)) {
-      map.addImage(id, imageData, { pixelRatio: 2 });
-    }
-  };
-
-  createPinIcon(PIN_COLORS.events, 'pin-events');
-  createPinIcon(PIN_COLORS.routes, 'pin-routes');
-  createPinIcon(PIN_COLORS.services, 'pin-services');
-  createPinIcon(PIN_COLORS.clubs, 'pin-clubs');
-
-  // Symbol layers with pin icons
-  const pinLayer = (id: string, type: string, iconImage: string): mapboxgl.SymbolLayerSpecification => ({
-    id,
-    type: 'symbol' as const,
-    source: SOURCE_ID,
-    filter: ['==', ['get', 'type'], type],
-    layout: {
-      'icon-image': iconImage,
-      'icon-size': 0.8,
-      'icon-anchor': 'bottom',
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
-    paint: {
-      'icon-opacity': 0.95,
-    },
+  // Shared pin style — smaller, refined dots with subtle shadow ring
+  const pinStyle = (color: string) => ({
+    'circle-radius': 7,
+    'circle-color': color,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#ffffff',
+    'circle-opacity': 0.9,
   });
 
-  map.addLayer(pinLayer('events-layer', 'events', 'pin-events'));
-  map.addLayer(pinLayer('routes-layer', 'routes', 'pin-routes'));
-  map.addLayer(pinLayer('services-layer', 'services', 'pin-services'));
-  map.addLayer(pinLayer('clubs-layer', 'clubs', 'pin-clubs'));
+  // Events — red
+  map.addLayer({
+    id: 'events-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'events'],
+    paint: pinStyle(PIN_COLORS.events),
+  });
+
+  // Routes — blue
+  map.addLayer({
+    id: 'routes-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'routes'],
+    paint: pinStyle(PIN_COLORS.routes),
+  });
+
+  // Services — green
+  map.addLayer({
+    id: 'services-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'services'],
+    paint: pinStyle(PIN_COLORS.services),
+  });
+
+  // Clubs — purple
+  map.addLayer({
+    id: 'clubs-layer',
+    type: 'circle',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'clubs'],
+    paint: pinStyle(PIN_COLORS.clubs),
+  });
 }
 
 const MapView = ({
@@ -459,7 +436,8 @@ const MapView = ({
     // Update opacity
     for (const layerId of LAYER_IDS) {
       if (map.current.getLayer(layerId)) {
-        map.current.setPaintProperty(layerId, 'icon-opacity', markerOpacity);
+        map.current.setPaintProperty(layerId, 'circle-opacity', markerOpacity);
+        map.current.setPaintProperty(layerId, 'circle-stroke-opacity', markerOpacity);
       }
     }
   }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity, getFilteredPins]);
