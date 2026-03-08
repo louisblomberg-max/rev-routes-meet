@@ -83,27 +83,6 @@ function buildGeoJSON(pins: MapPin[]): GeoJSON.FeatureCollection {
 const SOURCE_ID = 'map-items';
 const LAYER_IDS = ['events-layer', 'routes-layer', 'services-layer', 'clubs-layer'] as const;
 
-const PIN_IMAGES: Record<string, string> = {
-  events: '/pins/pin-events.png',
-  routes: '/pins/pin-routes.png',
-  services: '/pins/pin-services.png',
-};
-
-function loadPinImages(map: mapboxgl.Map): Promise<void> {
-  const entries = Object.entries(PIN_IMAGES);
-  return Promise.all(
-    entries.map(([key, url]) =>
-      new Promise<void>((resolve) => {
-        if (map.hasImage(`pin-${key}`)) { resolve(); return; }
-        map.loadImage(url, (err, image) => {
-          if (!err && image) map.addImage(`pin-${key}`, image, { sdf: false });
-          resolve();
-        });
-      })
-    )
-  ).then(() => {});
-}
-
 function addSourceAndLayers(map: mapboxgl.Map) {
   if (map.getSource(SOURCE_ID)) return; // already added
 
@@ -112,67 +91,49 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: [] },
   });
 
-  // Events — red pin
+  // Shared pin style — smaller, refined dots with subtle shadow ring
+  const pinStyle = (color: string) => ({
+    'circle-radius': 7,
+    'circle-color': color,
+    'circle-stroke-width': 2,
+    'circle-stroke-color': '#ffffff',
+    'circle-opacity': 0.9,
+  });
+
+  // Events — red
   map.addLayer({
     id: 'events-layer',
-    type: 'symbol',
+    type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'events'],
-    layout: {
-      'icon-image': 'pin-events',
-      'icon-size': 0.072,
-      'icon-anchor': 'bottom',
-      'icon-allow-overlap': true,
-      'icon-rotate': 180,
-      'icon-rotation-alignment': 'map',
-    },
+    paint: pinStyle(PIN_COLORS.events),
   });
 
-  // Routes — blue pin
+  // Routes — blue
   map.addLayer({
     id: 'routes-layer',
-    type: 'symbol',
+    type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'routes'],
-    layout: {
-      'icon-image': 'pin-routes',
-      'icon-size': 0.072,
-      'icon-anchor': 'bottom',
-      'icon-allow-overlap': true,
-      'icon-rotate': 180,
-      'icon-rotation-alignment': 'map',
-    },
+    paint: pinStyle(PIN_COLORS.routes),
   });
 
-  // Services — orange pin
+  // Services — green
   map.addLayer({
     id: 'services-layer',
-    type: 'symbol',
+    type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'services'],
-    layout: {
-      'icon-image': 'pin-services',
-      'icon-size': 0.072,
-      'icon-anchor': 'bottom',
-      'icon-allow-overlap': true,
-      'icon-rotate': 180,
-      'icon-rotation-alignment': 'map',
-    },
+    paint: pinStyle(PIN_COLORS.services),
   });
 
-  // Clubs — fallback circle (no custom pin)
+  // Clubs — purple
   map.addLayer({
     id: 'clubs-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'clubs'],
-    paint: {
-      'circle-radius': 7,
-      'circle-color': PIN_COLORS.clubs,
-      'circle-stroke-width': 2,
-      'circle-stroke-color': '#ffffff',
-      'circle-opacity': 0.9,
-    },
+    paint: pinStyle(PIN_COLORS.clubs),
   });
 }
 
@@ -242,10 +203,9 @@ const MapView = ({
 
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
 
-    map.current.on('load', async () => {
-      await loadPinImages(map.current!);
+    map.current.on('load', () => {
       setMapLoaded(true);
-      layersAdded.current = false;
+      layersAdded.current = false; // will be added on next render cycle
       onMapReady?.(map.current!);
       handleViewportChange();
     });
@@ -313,8 +273,7 @@ const MapView = ({
     // Only set if actually changed
     map.current.setStyle(MAP_STYLE_URLS[mapStyle]);
     // After style change, re-add layers
-    map.current.once('style.load', async () => {
-      await loadPinImages(map.current!);
+    map.current.once('style.load', () => {
       layersAdded.current = false;
       // Trigger a re-render to re-add source+layers
       setMapLoaded(prev => !prev);
@@ -475,20 +434,11 @@ const MapView = ({
     source.setData(geojson);
 
     // Update opacity
-    try {
-      const symbolLayers = ['events-layer', 'routes-layer', 'services-layer'];
-      for (const layerId of symbolLayers) {
-        if (map.current.getLayer(layerId)) {
-          map.current.setPaintProperty(layerId, 'icon-opacity' as any, markerOpacity);
-        }
+    for (const layerId of LAYER_IDS) {
+      if (map.current.getLayer(layerId)) {
+        map.current.setPaintProperty(layerId, 'circle-opacity', markerOpacity);
+        map.current.setPaintProperty(layerId, 'circle-stroke-opacity', markerOpacity);
       }
-      // Clubs is still a circle layer
-      if (map.current.getLayer('clubs-layer')) {
-        map.current.setPaintProperty('clubs-layer', 'circle-opacity', markerOpacity);
-        map.current.setPaintProperty('clubs-layer', 'circle-stroke-opacity', markerOpacity);
-      }
-    } catch {
-      // Layers not fully initialized yet
     }
   }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity, getFilteredPins]);
 
@@ -510,13 +460,9 @@ const MapView = ({
     };
 
     for (const [type, layerId] of Object.entries(typeToLayer)) {
-      try {
-        if (map.current.getLayer(layerId)) {
-          const visible = categoryToFilter.length === 0 || categoryToFilter.includes(type);
-          map.current.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
-        }
-      } catch {
-        // Layer not yet fully initialized, skip
+      if (map.current.getLayer(layerId)) {
+        const visible = categoryToFilter.length === 0 || categoryToFilter.includes(type);
+        map.current.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
       }
     }
   }, [activeCategories, activeCategory, mapLoaded]);
