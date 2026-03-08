@@ -39,9 +39,9 @@
     --radius: 0.5rem;
 
     /* RevNet Feature Colors */
-    --events: 0 0% 56%;
+    --events: 1 76% 55%;
     --events-foreground: 0 0% 100%;
-    --events-muted: 0 0% 92%;
+    --events-muted: 1 60% 95%;
     
     --routes: 150 100% 20%;
     --routes-foreground: 0 0% 100%;
