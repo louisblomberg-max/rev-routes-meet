@@ -91,12 +91,9 @@ const AddService = () => {
     priceRange: '',
   });
   const [dayHours, setDayHours] = useState<Record<string, DayHours>>(defaultDayHours);
-  const [logoImage, setLogoImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Plan gate: require Club / Business plan
   if (!hasAccess('create_services')) {
