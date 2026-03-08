@@ -108,11 +108,6 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
 
       {/* Contact buttons */}
       <div className="flex gap-2">
-        {service.phone && (
-          <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(`tel:${service.phone}`)}>
-            <Phone className="w-4 h-4" /> Call
-          </Button>
-        )}
         {service.website && (
           <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(service.website, '_blank')}>
             <Globe className="w-4 h-4" /> Website
