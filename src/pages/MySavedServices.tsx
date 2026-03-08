@@ -52,7 +52,7 @@ const MySavedServices = () => {
           <div className="space-y-3">
             {saved.map(service => (
               <div key={service.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-                <button onClick={() => navigate('/')} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
+                <button onClick={() => navigate('/', { state: { showServiceId: service.id } })} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex-1 min-w-0">
                       <Badge className="text-[10px] py-0 h-5 mb-1.5 bg-services/15 text-services">{service.category}</Badge>
