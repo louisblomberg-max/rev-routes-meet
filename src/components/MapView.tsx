@@ -83,6 +83,27 @@ function buildGeoJSON(pins: MapPin[]): GeoJSON.FeatureCollection {
 const SOURCE_ID = 'map-items';
 const LAYER_IDS = ['events-layer', 'routes-layer', 'services-layer', 'clubs-layer'] as const;
 
+const PIN_IMAGES: Record<string, string> = {
+  events: '/pins/pin-events.png',
+  routes: '/pins/pin-routes.png',
+  services: '/pins/pin-services.png',
+};
+
+function loadPinImages(map: mapboxgl.Map): Promise<void> {
+  const entries = Object.entries(PIN_IMAGES);
+  return Promise.all(
+    entries.map(([key, url]) =>
+      new Promise<void>((resolve) => {
+        if (map.hasImage(`pin-${key}`)) { resolve(); return; }
+        map.loadImage(url, (err, image) => {
+          if (!err && image) map.addImage(`pin-${key}`, image, { sdf: false });
+          resolve();
+        });
+      })
+    )
+  ).then(() => {});
+}
+
 function addSourceAndLayers(map: mapboxgl.Map) {
   if (map.getSource(SOURCE_ID)) return; // already added
 
@@ -91,49 +112,61 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     data: { type: 'FeatureCollection', features: [] },
   });
 
-  // Shared pin style — smaller, refined dots with subtle shadow ring
-  const pinStyle = (color: string) => ({
-    'circle-radius': 7,
-    'circle-color': color,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#ffffff',
-    'circle-opacity': 0.9,
-  });
-
-  // Events — red
+  // Events — red pin
   map.addLayer({
     id: 'events-layer',
-    type: 'circle',
+    type: 'symbol',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'events'],
-    paint: pinStyle(PIN_COLORS.events),
+    layout: {
+      'icon-image': 'pin-events',
+      'icon-size': 0.07,
+      'icon-anchor': 'bottom',
+      'icon-allow-overlap': true,
+    },
   });
 
-  // Routes — blue
+  // Routes — blue pin
   map.addLayer({
     id: 'routes-layer',
-    type: 'circle',
+    type: 'symbol',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'routes'],
-    paint: pinStyle(PIN_COLORS.routes),
+    layout: {
+      'icon-image': 'pin-routes',
+      'icon-size': 0.07,
+      'icon-anchor': 'bottom',
+      'icon-allow-overlap': true,
+    },
   });
 
-  // Services — green
+  // Services — orange pin
   map.addLayer({
     id: 'services-layer',
-    type: 'circle',
+    type: 'symbol',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'services'],
-    paint: pinStyle(PIN_COLORS.services),
+    layout: {
+      'icon-image': 'pin-services',
+      'icon-size': 0.07,
+      'icon-anchor': 'bottom',
+      'icon-allow-overlap': true,
+    },
   });
 
-  // Clubs — purple
+  // Clubs — fallback circle (no custom pin)
   map.addLayer({
     id: 'clubs-layer',
     type: 'circle',
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'clubs'],
-    paint: pinStyle(PIN_COLORS.clubs),
+    paint: {
+      'circle-radius': 7,
+      'circle-color': PIN_COLORS.clubs,
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#ffffff',
+      'circle-opacity': 0.9,
+    },
   });
 }
 
