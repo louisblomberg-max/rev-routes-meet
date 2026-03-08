@@ -236,65 +236,24 @@ const AddService = () => {
 
       <div className="px-4 py-6 space-y-6 pb-28">
 
-        {/* ── 2. MEDIA SECTION ── */}
+        {/* ── 2. COVER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Media</SectionTitle>
-          <div className="space-y-4">
-            {/* Logo */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Business Logo *</Label>
-              {logoImage ? (
-                <div className="relative w-24 h-24 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                  <Building className="w-8 h-8 text-muted-foreground" />
-                  <button onClick={() => { setLogoImage(null); }} className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button onClick={handleLogoUpload} className="w-24 h-24 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Upload className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-[10px] font-medium text-muted-foreground">Add Logo</span>
-                </button>
-              )}
-              {errors.logo && <p className="text-xs text-destructive mt-1">{errors.logo}</p>}
-            </div>
-
-            {/* Cover Image */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Cover Image</Label>
-              {coverImage ? (
-                <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                  <Image className="w-8 h-8 text-muted-foreground" />
-                  <button onClick={() => setCoverImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button onClick={handleCoverUpload} className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Image className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
-                </button>
-              )}
-            </div>
-
-            {/* Gallery */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Additional Photos</Label>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {galleryImages.map((_, i) => (
-                  <div key={i} className="relative w-16 h-16 rounded-xl bg-muted flex-shrink-0 flex items-center justify-center border border-border/50">
-                    <Camera className="w-5 h-5 text-muted-foreground" />
-                    <button onClick={() => setGalleryImages(prev => prev.filter((_, j) => j !== i))} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
-                      <X className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
-                ))}
-                <button onClick={handleGalleryUpload} className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-0.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Camera className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[9px] text-muted-foreground">Add</span>
+          <SectionTitle icon={Camera}>Cover Image *</SectionTitle>
+          <div>
+            {coverImage ? (
+              <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
+                <Image className="w-8 h-8 text-muted-foreground" />
+                <button onClick={() => setCoverImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
+                  <X className="w-3 h-3" />
                 </button>
               </div>
-            </div>
+            ) : (
+              <button onClick={handleCoverUpload} className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
+                <Image className="w-6 h-6 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
+              </button>
+            )}
+            {errors.cover && <p className="text-xs text-destructive mt-1">{errors.cover}</p>}
           </div>
         </SectionCard>
 
