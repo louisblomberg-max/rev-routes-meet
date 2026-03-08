@@ -54,15 +54,24 @@ const Home = () => {
   // Bridge DataContext → MapContext pins
   useMapItems();
 
-  // Center map on newly published item (via navigation state)
+  // Center map on newly published item or open a specific service (via navigation state)
   useEffect(() => {
-    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string } | null;
+    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string } | null;
     if (navState?.centerOn && mapRef.current) {
       const { lat, lng } = navState.centerOn;
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
       if (navState.category) {
         setActiveCategory(navState.category);
       }
+    }
+    if (navState?.showServiceId) {
+      const service = state.services.find(s => s.id === navState.showServiceId);
+      if (service) {
+        setSelectedDetail({ type: 'service', data: service });
+        setActiveCategory('services');
+      }
+    }
+    if (navState) {
       window.history.replaceState({}, '');
     }
   }, [location.state]);
