@@ -125,8 +125,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           onClick={() => setIsOpen(!isOpen)}
           className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
             isOpen
-              ? 'bg-[#1E40AF]/80 text-white border-[#1E40AF]/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1E40AF]/50 hover:bg-[#1E40AF]/10'
+              ? 'bg-routes/80 text-white border-routes/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-routes/50 hover:bg-routes/10'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
@@ -136,7 +136,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
         {/* Add Route Button */}
         <button
           onClick={() => navigate('/add/route')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#1E40AF] text-white shadow-sm hover:bg-[#1E40AF]/90 active:scale-[0.97] transition-all"
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-routes text-routes-foreground shadow-sm hover:bg-routes/90 active:scale-[0.97] transition-all"
         >
           <Plus className="w-4 h-4" />
           <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
@@ -179,8 +179,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.distance === preset.id
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   {preset.label}
@@ -199,8 +199,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.types.includes(type.id)
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   {type.label}
@@ -219,8 +219,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => toggleDifficulty(diff.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.difficulty.includes(diff.id)
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   {diff.label}
@@ -239,8 +239,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => handleDurationChange(dur.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.duration === dur.id
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   {dur.label}
@@ -259,8 +259,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => toggleSurface(surf.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.surface.includes(surf.id)
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   {surf.label}
@@ -279,8 +279,8 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   onClick={() => handleRatingChange(option.value)}
                   className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.minRating === option.value
-                      ? 'bg-[#1E40AF]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1E40AF]/10'
+                      ? 'bg-routes/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
                 >
                   <Star className="w-3 h-3" />
@@ -293,7 +293,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           {/* Apply Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#1E40AF]/80 text-white hover:bg-[#1E40AF] transition-colors"
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-routes/80 text-white hover:bg-routes transition-colors"
           >
             Apply Filters
           </button>
