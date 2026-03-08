@@ -104,8 +104,8 @@
     --ring: 0 72% 55%;
 
     /* Dark Mode Feature Colors */
-    --events: 0 72% 55%;
-    --events-muted: 0 50% 15%;
+    --events: 1 76% 55%;
+    --events-muted: 1 50% 15%;
     
     --routes: 220 90% 60%;
     --routes-muted: 220 60% 15%;
