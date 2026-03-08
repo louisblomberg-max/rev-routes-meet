@@ -307,7 +307,8 @@ const MapView = ({
     // Only set if actually changed
     map.current.setStyle(MAP_STYLE_URLS[mapStyle]);
     // After style change, re-add layers
-    map.current.once('style.load', () => {
+    map.current.once('style.load', async () => {
+      await loadPinImages(map.current!);
       layersAdded.current = false;
       // Trigger a re-render to re-add source+layers
       setMapLoaded(prev => !prev);
