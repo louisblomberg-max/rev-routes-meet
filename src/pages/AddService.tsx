@@ -122,7 +122,7 @@ const AddService = () => {
     );
   }
 
-  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && logoImage;
+  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && coverImage && formData.phone.trim() && formData.website.trim();
 
   const validate = () => {
     const errs: Record<string, string> = {};
