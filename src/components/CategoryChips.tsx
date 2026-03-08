@@ -24,12 +24,16 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
         const isActive = activeCategory === category.id;
 
         const activeStyles: Record<string, string> = {
-          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
-          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
-          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
+          events: 'bg-events/90 text-white border-2 border-black shadow-[0_4px_16px_-2px] shadow-events/40',
+          routes: 'bg-routes/90 text-white border-2 border-black shadow-[0_4px_16px_-2px] shadow-routes/40',
+          services: 'bg-services/90 text-white border-2 border-black shadow-[0_4px_16px_-2px] shadow-services/40',
         };
 
-        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-white/60 shadow-sm hover:shadow-md hover:bg-white';
+        const inactiveStyles: Record<string, string> = {
+          events: 'bg-events/15 backdrop-blur-md text-events border-events/30 shadow-sm hover:shadow-md hover:bg-events/25',
+          routes: 'bg-routes/15 backdrop-blur-md text-routes border-routes/30 shadow-sm hover:shadow-md hover:bg-routes/25',
+          services: 'bg-services/15 backdrop-blur-md text-services border-services/30 shadow-sm hover:shadow-md hover:bg-services/25',
+        };
 
         return (
           <button
