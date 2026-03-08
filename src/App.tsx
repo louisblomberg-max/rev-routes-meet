@@ -43,7 +43,7 @@ import AddService from "./pages/AddService";
 import AddClub from "./pages/AddClub";
 import EventDetail from "./pages/EventDetail";
 import RouteDetail from "./pages/RouteDetail";
-import ServiceDetail from "./pages/ServiceDetail";
+
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Permissions from "./pages/Permissions";
