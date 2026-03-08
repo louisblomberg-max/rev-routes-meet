@@ -448,59 +448,6 @@ const AddService = () => {
         </SectionCard>
 
 
-        {/* ── 10. BUSINESS DETAILS (Collapsible) ── */}
-        <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-          <SectionCard>
-            <CollapsibleTrigger className="w-full">
-              <div className="flex items-center justify-between">
-                <SectionTitle icon={Shield}>Business Details</SectionTitle>
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <span className="text-xs font-medium text-foreground">VAT Registered</span>
-                  <Switch checked={formData.vatRegistered} onCheckedChange={v => update('vatRegistered', v)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Company Number</Label>
-                  <Input placeholder="e.g. 12345678" value={formData.companyNumber} onChange={e => update('companyNumber', e.target.value)} className="rounded-xl h-11" />
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <span className="text-xs font-medium text-foreground">Insurance Verified</span>
-                  <Switch checked={formData.insuranceVerified} onCheckedChange={v => update('insuranceVerified', v)} />
-                </div>
-              </div>
-            </CollapsibleContent>
-          </SectionCard>
-        </Collapsible>
-
-        {/* ── 11. PRO FEATURES ── */}
-        <SectionCard className="opacity-60 relative overflow-hidden">
-          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-lg bg-services/10 border border-services/20">
-            <span className="text-[10px] font-bold text-services">PRO</span>
-          </div>
-          <SectionTitle icon={Zap}>Pro Features</SectionTitle>
-          <div className="space-y-3">
-            {[
-              { icon: Star, label: 'Featured Listing', desc: 'Appear at the top of search results' },
-              { icon: Shield, label: 'Verified Badge', desc: 'Build trust with a verified checkmark' },
-              { icon: Zap, label: 'Boost Listing', desc: 'Get more visibility for 30 days' },
-            ].map(item => (
-              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
-                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                  <item.icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.desc}</p>
-                </div>
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
 
         {/* Draft auto-save message */}
         <p className="text-center text-[11px] text-muted-foreground">Draft auto-saved • Changes sync automatically</p>
