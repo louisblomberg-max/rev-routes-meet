@@ -129,7 +129,9 @@ const AddService = () => {
     if (!formData.name.trim()) errs.name = 'Business name is required';
     if (formData.categories.length === 0) errs.category = 'Select at least one category';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    if (!logoImage) errs.logo = 'Business logo is required';
+    if (!coverImage) errs.cover = 'Cover image is required';
+    if (!formData.phone.trim()) errs.phone = 'Phone number is required';
+    if (!formData.website.trim()) errs.website = 'Website is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
