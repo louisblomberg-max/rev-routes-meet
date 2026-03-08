@@ -419,7 +419,7 @@ const AddService = () => {
           <div className="space-y-4">
             {/* Phone */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Phone</Label>
+              <Label className="text-xs text-muted-foreground">Phone *</Label>
               <div className="flex gap-2">
                 <Select value={formData.countryCode} onValueChange={v => update('countryCode', v)}>
                   <SelectTrigger className="w-[100px] flex-shrink-0 rounded-xl h-11">
@@ -433,43 +433,16 @@ const AddService = () => {
                 </Select>
                 <Input type="tel" placeholder="Phone number" value={formData.phone} onChange={e => update('phone', e.target.value)} className="rounded-xl h-11" />
               </div>
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
             {/* Website */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Website</Label>
+              <Label className="text-xs text-muted-foreground">Website *</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input type="url" placeholder="https://" className="pl-10 rounded-xl h-11" value={formData.website} onChange={e => update('website', e.target.value)} />
               </div>
-            </div>
-            {/* Instagram */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Instagram</Label>
-              <div className="relative">
-                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="@username" className="pl-10 rounded-xl h-11" value={formData.instagram} onChange={e => update('instagram', e.target.value)} />
-              </div>
-            </div>
-            {/* Facebook */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Facebook</Label>
-              <div className="relative">
-                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Page URL" className="pl-10 rounded-xl h-11" value={formData.facebook} onChange={e => update('facebook', e.target.value)} />
-              </div>
-            </div>
-            {/* TikTok */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">TikTok</Label>
-              <Input placeholder="@username" className="rounded-xl h-11" value={formData.tiktok} onChange={e => update('tiktok', e.target.value)} />
-            </div>
-            {/* Booking Link */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Booking Link</Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="url" placeholder="https://booking..." className="pl-10 rounded-xl h-11" value={formData.bookingLink} onChange={e => update('bookingLink', e.target.value)} />
-              </div>
+              {errors.website && <p className="text-xs text-destructive">{errors.website}</p>}
             </div>
           </div>
         </SectionCard>
