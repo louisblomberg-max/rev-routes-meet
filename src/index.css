@@ -43,9 +43,9 @@
     --events-foreground: 0 0% 100%;
     --events-muted: 1 60% 95%;
     
-    --routes: 150 100% 20%;
+    --routes: 220 100% 65%;
     --routes-foreground: 0 0% 100%;
-    --routes-muted: 150 40% 92%;
+    --routes-muted: 220 60% 95%;
     
     --services: 30 100% 50%;
     --services-foreground: 0 0% 100%;
