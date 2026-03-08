@@ -40,7 +40,7 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
             key={category.id}
             onClick={() => handleClick(category.id)}
             className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
-              isActive ? activeStyles[category.id] : inactiveStyles
+              isActive ? activeStyles[category.id] : inactiveStyles[category.id]
             }`}
           >
             <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
