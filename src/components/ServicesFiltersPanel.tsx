@@ -90,8 +90,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           onClick={() => setIsOpen(!isOpen)}
           className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
             isOpen
-              ? 'bg-[#1B4D3E]/80 text-white border-[#1B4D3E]/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-[#1B4D3E]/50 hover:bg-[#1B4D3E]/10'
+              ? 'bg-services/80 text-white border-services/80 shadow-lg'
+              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-services/50 hover:bg-services/10'
           }`}
         >
           <SlidersHorizontal className="w-4 h-4" />
@@ -101,7 +101,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
         {/* Add Service Button */}
         <button
           onClick={() => navigate('/add/service')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-[#1B4D3E] text-white shadow-sm hover:bg-[#1B4D3E]/90 active:scale-[0.97] transition-all"
+          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-services text-services-foreground shadow-sm hover:bg-services/90 active:scale-[0.97] transition-all"
         >
           <Plus className="w-4 h-4" />
           <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
@@ -144,8 +144,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
                   onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.distance === preset.id
-                      ? 'bg-[#1B4D3E]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                      ? 'bg-services/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-services/10'
                   }`}
                 >
                   {preset.label}
@@ -164,8 +164,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.types.includes(type.id)
-                      ? 'bg-[#1B4D3E]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                      ? 'bg-services/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-services/10'
                   }`}
                 >
                   {type.label}
@@ -184,8 +184,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
                   onClick={() => handleRatingChange(option.value)}
                   className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.minRating === option.value
-                      ? 'bg-[#1B4D3E]/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-[#1B4D3E]/10'
+                      ? 'bg-services/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-services/10'
                   }`}
                 >
                   <Star className="w-3 h-3" />
@@ -201,14 +201,14 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             <Switch
               checked={filters.openNow}
               onCheckedChange={handleOpenNowChange}
-              className="data-[state=checked]:bg-[#1B4D3E]"
+              className="data-[state=checked]:bg-services"
             />
           </div>
 
           {/* Apply Button */}
           <button
             onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-[#1B4D3E]/80 text-white hover:bg-[#1B4D3E] transition-colors"
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-services/80 text-white hover:bg-services transition-colors"
           >
             Apply Filters
           </button>
