@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 interface ServiceDetailContentProps {
   service: RevService;
   onNavigate: () => void;
-  onViewFull: () => void;
+  onViewFull?: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }
