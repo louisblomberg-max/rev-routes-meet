@@ -43,7 +43,7 @@ import AddService from "./pages/AddService";
 import AddClub from "./pages/AddClub";
 import EventDetail from "./pages/EventDetail";
 import RouteDetail from "./pages/RouteDetail";
-import ServiceDetail from "./pages/ServiceDetail";
+
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Permissions from "./pages/Permissions";
@@ -135,7 +135,7 @@ const App = () => (
           <Route path="/add/club" element={<AddClub />} />
           <Route path="/event/:id" element={<EventDetail />} />
           <Route path="/route/:id" element={<RouteDetail />} />
-          <Route path="/service/:id" element={<ServiceDetail />} />
+          
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/permissions" element={<Permissions />} />
           <Route path="/notifications" element={<Notifications />} />
