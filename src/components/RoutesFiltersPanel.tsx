@@ -149,12 +149,22 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           {/* Header with close */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Routes</h3>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
-            >
-              <X className="w-3 h-3 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onFiltersChange({
+                  distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
+                })}
+                className="text-[10px] font-medium text-routes hover:text-routes/70 transition-colors"
+              >
+                Clear All
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+              >
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
           {/* Distance Filter */}

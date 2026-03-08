@@ -204,12 +204,23 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Header with close */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
-            >
-              <X className="w-3 h-3 text-muted-foreground" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onFiltersChange({
+                  distance: 25, types: [], dateFilter: null, specificDate: undefined,
+                  vehicleTypes: [], eventSize: null, entryFee: null, clubHosted: false,
+                })}
+                className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
+              >
+                Clear All
+              </button>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
+              >
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            </div>
           </div>
 
           {/* Distance Filter */}
