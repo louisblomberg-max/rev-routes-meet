@@ -472,7 +472,7 @@ const MapView = ({
     const symbolLayers = ['events-layer', 'routes-layer', 'services-layer'];
     for (const layerId of symbolLayers) {
       if (map.current.getLayer(layerId)) {
-        map.current.setLayoutProperty(layerId, 'icon-opacity', markerOpacity);
+        (map.current as any).setLayoutProperty(layerId, 'icon-opacity', markerOpacity);
       }
     }
     // Clubs is still a circle layer
