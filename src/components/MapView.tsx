@@ -19,7 +19,7 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
 
 const PIN_COLORS: Record<string, string> = {
   events: '#E53935',   // Event red
-  routes: '#006633',   // British racing green
+  routes: '#4F7FFF',   // Routes blue
   services: '#FF8C00', // Orange
   clubs: '#7c3aed',
 };
