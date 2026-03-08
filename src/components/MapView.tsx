@@ -120,7 +120,7 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     filter: ['==', ['get', 'type'], 'events'],
     layout: {
       'icon-image': 'pin-events',
-      'icon-size': 0.018,
+      'icon-size': 0.072,
       'icon-anchor': 'bottom',
       'icon-allow-overlap': true,
       'icon-rotate': 180,
@@ -136,7 +136,7 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     filter: ['==', ['get', 'type'], 'routes'],
     layout: {
       'icon-image': 'pin-routes',
-      'icon-size': 0.018,
+      'icon-size': 0.072,
       'icon-anchor': 'bottom',
       'icon-allow-overlap': true,
       'icon-rotate': 180,
@@ -152,7 +152,7 @@ function addSourceAndLayers(map: mapboxgl.Map) {
     filter: ['==', ['get', 'type'], 'services'],
     layout: {
       'icon-image': 'pin-services',
-      'icon-size': 0.018,
+      'icon-size': 0.072,
       'icon-anchor': 'bottom',
       'icon-allow-overlap': true,
       'icon-rotate': 180,
