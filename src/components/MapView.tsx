@@ -500,9 +500,13 @@ const MapView = ({
     };
 
     for (const [type, layerId] of Object.entries(typeToLayer)) {
-      if (map.current.getLayer(layerId)) {
-        const visible = categoryToFilter.length === 0 || categoryToFilter.includes(type);
-        map.current.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+      try {
+        if (map.current.getLayer(layerId)) {
+          const visible = categoryToFilter.length === 0 || categoryToFilter.includes(type);
+          map.current.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+        }
+      } catch {
+        // Layer not yet fully initialized, skip
       }
     }
   }, [activeCategories, activeCategory, mapLoaded]);
