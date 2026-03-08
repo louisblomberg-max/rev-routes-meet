@@ -269,13 +269,16 @@ const MapView = ({
   // ── Update map style ──
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
-    const currentStyle = map.current.getStyle()?.name;
-    // Only set if actually changed
+    // Guard: only call getStyle when the style is fully loaded
+    try {
+      map.current.getStyle();
+    } catch {
+      // Style not ready yet, skip this update
+      return;
+    }
     map.current.setStyle(MAP_STYLE_URLS[mapStyle]);
-    // After style change, re-add layers
     map.current.once('style.load', () => {
       layersAdded.current = false;
-      // Trigger a re-render to re-add source+layers
       setMapLoaded(prev => !prev);
       setTimeout(() => setMapLoaded(true), 50);
     });
