@@ -236,9 +236,10 @@ const MapView = ({
 
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
 
-    map.current.on('load', () => {
+    map.current.on('load', async () => {
+      await loadPinImages(map.current!);
       setMapLoaded(true);
-      layersAdded.current = false; // will be added on next render cycle
+      layersAdded.current = false;
       onMapReady?.(map.current!);
       handleViewportChange();
     });
