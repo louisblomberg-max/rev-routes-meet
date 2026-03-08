@@ -469,11 +469,16 @@ const MapView = ({
     source.setData(geojson);
 
     // Update opacity
-    for (const layerId of LAYER_IDS) {
+    const symbolLayers = ['events-layer', 'routes-layer', 'services-layer'];
+    for (const layerId of symbolLayers) {
       if (map.current.getLayer(layerId)) {
-        map.current.setPaintProperty(layerId, 'circle-opacity', markerOpacity);
-        map.current.setPaintProperty(layerId, 'circle-stroke-opacity', markerOpacity);
+        map.current.setLayoutProperty(layerId, 'icon-opacity', markerOpacity);
       }
+    }
+    // Clubs is still a circle layer
+    if (map.current.getLayer('clubs-layer')) {
+      map.current.setPaintProperty('clubs-layer', 'circle-opacity', markerOpacity);
+      map.current.setPaintProperty('clubs-layer', 'circle-stroke-opacity', markerOpacity);
     }
   }, [activeCategories, activeCategory, isDimmed, eventsFilters, routesFilters, servicesFilters, mapLoaded, pins, markerOpacity, getFilteredPins]);
 
