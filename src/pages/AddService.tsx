@@ -136,20 +136,10 @@ const AddService = () => {
     return Object.keys(errs).length === 0;
   };
 
-  const handleLogoUpload = () => {
-    toast.info('Logo upload will connect to storage');
-    setLogoImage('logo-placeholder');
-    setErrors(prev => ({ ...prev, logo: '' }));
-  };
-
   const handleCoverUpload = () => {
     toast.info('Cover upload will connect to storage');
     setCoverImage('cover-placeholder');
-  };
-
-  const handleGalleryUpload = () => {
-    toast.info('Image upload will connect to storage');
-    setGalleryImages(prev => [...prev, `gallery-${prev.length + 1}`]);
+    setErrors(prev => ({ ...prev, cover: '' }));
   };
 
   const formatOpeningHours = (): string => {
