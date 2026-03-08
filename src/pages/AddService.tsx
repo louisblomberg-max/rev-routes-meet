@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Instagram, Facebook, ChevronDown, Lock, Star, Zap, Shield, Copy, AlertCircle, Crown } from 'lucide-react';
+import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Lock, Star, Copy, AlertCircle, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { usePlan } from '@/contexts/PlanContext';
@@ -84,27 +83,17 @@ const AddService = () => {
     phone: '',
     countryCode: '+44',
     website: '',
-    instagram: '',
-    facebook: '',
-    tiktok: '',
-    bookingLink: '',
     is24h: false,
     isEmergency: false,
     hideAddress: false,
     serviceType: 'fixed' as 'fixed' | 'mobile',
     serviceRadius: 15,
     priceRange: '',
-    vatRegistered: false,
-    companyNumber: '',
-    insuranceVerified: false,
   });
   const [dayHours, setDayHours] = useState<Record<string, DayHours>>(defaultDayHours);
-  const [logoImage, setLogoImage] = useState<string | null>(null);
   const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [detailsOpen, setDetailsOpen] = useState(false);
 
   // Plan gate: require Club / Business plan
   if (!hasAccess('create_services')) {
@@ -133,32 +122,24 @@ const AddService = () => {
     );
   }
 
-  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && logoImage;
+  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && coverImage && formData.phone.trim() && formData.website.trim();
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Business name is required';
     if (formData.categories.length === 0) errs.category = 'Select at least one category';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    if (!logoImage) errs.logo = 'Business logo is required';
+    if (!coverImage) errs.cover = 'Cover image is required';
+    if (!formData.phone.trim()) errs.phone = 'Phone number is required';
+    if (!formData.website.trim()) errs.website = 'Website is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
-  };
-
-  const handleLogoUpload = () => {
-    toast.info('Logo upload will connect to storage');
-    setLogoImage('logo-placeholder');
-    setErrors(prev => ({ ...prev, logo: '' }));
   };
 
   const handleCoverUpload = () => {
     toast.info('Cover upload will connect to storage');
     setCoverImage('cover-placeholder');
-  };
-
-  const handleGalleryUpload = () => {
-    toast.info('Image upload will connect to storage');
-    setGalleryImages(prev => [...prev, `gallery-${prev.length + 1}`]);
+    setErrors(prev => ({ ...prev, cover: '' }));
   };
 
   const formatOpeningHours = (): string => {
@@ -255,65 +236,24 @@ const AddService = () => {
 
       <div className="px-4 py-6 space-y-6 pb-28">
 
-        {/* ── 2. MEDIA SECTION ── */}
+        {/* ── 2. COVER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Media</SectionTitle>
-          <div className="space-y-4">
-            {/* Logo */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Business Logo *</Label>
-              {logoImage ? (
-                <div className="relative w-24 h-24 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                  <Building className="w-8 h-8 text-muted-foreground" />
-                  <button onClick={() => { setLogoImage(null); }} className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button onClick={handleLogoUpload} className="w-24 h-24 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Upload className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-[10px] font-medium text-muted-foreground">Add Logo</span>
-                </button>
-              )}
-              {errors.logo && <p className="text-xs text-destructive mt-1">{errors.logo}</p>}
-            </div>
-
-            {/* Cover Image */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Cover Image</Label>
-              {coverImage ? (
-                <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                  <Image className="w-8 h-8 text-muted-foreground" />
-                  <button onClick={() => setCoverImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button onClick={handleCoverUpload} className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Image className="w-6 h-6 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
-                </button>
-              )}
-            </div>
-
-            {/* Gallery */}
-            <div>
-              <Label className="text-xs text-muted-foreground mb-2 block">Additional Photos</Label>
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {galleryImages.map((_, i) => (
-                  <div key={i} className="relative w-16 h-16 rounded-xl bg-muted flex-shrink-0 flex items-center justify-center border border-border/50">
-                    <Camera className="w-5 h-5 text-muted-foreground" />
-                    <button onClick={() => setGalleryImages(prev => prev.filter((_, j) => j !== i))} className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center">
-                      <X className="w-2.5 h-2.5" />
-                    </button>
-                  </div>
-                ))}
-                <button onClick={handleGalleryUpload} className="w-16 h-16 rounded-xl border-2 border-dashed border-border flex-shrink-0 flex flex-col items-center justify-center gap-0.5 hover:border-services/50 transition-colors bg-muted/30">
-                  <Camera className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-[9px] text-muted-foreground">Add</span>
+          <SectionTitle icon={Camera}>Cover Image *</SectionTitle>
+          <div>
+            {coverImage ? (
+              <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
+                <Image className="w-8 h-8 text-muted-foreground" />
+                <button onClick={() => setCoverImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
+                  <X className="w-3 h-3" />
                 </button>
               </div>
-            </div>
+            ) : (
+              <button onClick={handleCoverUpload} className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
+                <Image className="w-6 h-6 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
+              </button>
+            )}
+            {errors.cover && <p className="text-xs text-destructive mt-1">{errors.cover}</p>}
           </div>
         </SectionCard>
 
@@ -479,7 +419,7 @@ const AddService = () => {
           <div className="space-y-4">
             {/* Phone */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Phone</Label>
+              <Label className="text-xs text-muted-foreground">Phone *</Label>
               <div className="flex gap-2">
                 <Select value={formData.countryCode} onValueChange={v => update('countryCode', v)}>
                   <SelectTrigger className="w-[100px] flex-shrink-0 rounded-xl h-11">
@@ -493,101 +433,21 @@ const AddService = () => {
                 </Select>
                 <Input type="tel" placeholder="Phone number" value={formData.phone} onChange={e => update('phone', e.target.value)} className="rounded-xl h-11" />
               </div>
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
             {/* Website */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Website</Label>
+              <Label className="text-xs text-muted-foreground">Website *</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input type="url" placeholder="https://" className="pl-10 rounded-xl h-11" value={formData.website} onChange={e => update('website', e.target.value)} />
               </div>
-            </div>
-            {/* Instagram */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Instagram</Label>
-              <div className="relative">
-                <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="@username" className="pl-10 rounded-xl h-11" value={formData.instagram} onChange={e => update('instagram', e.target.value)} />
-              </div>
-            </div>
-            {/* Facebook */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Facebook</Label>
-              <div className="relative">
-                <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input placeholder="Page URL" className="pl-10 rounded-xl h-11" value={formData.facebook} onChange={e => update('facebook', e.target.value)} />
-              </div>
-            </div>
-            {/* TikTok */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">TikTok</Label>
-              <Input placeholder="@username" className="rounded-xl h-11" value={formData.tiktok} onChange={e => update('tiktok', e.target.value)} />
-            </div>
-            {/* Booking Link */}
-            <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Booking Link</Label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input type="url" placeholder="https://booking..." className="pl-10 rounded-xl h-11" value={formData.bookingLink} onChange={e => update('bookingLink', e.target.value)} />
-              </div>
+              {errors.website && <p className="text-xs text-destructive">{errors.website}</p>}
             </div>
           </div>
         </SectionCard>
 
 
-        {/* ── 10. BUSINESS DETAILS (Collapsible) ── */}
-        <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-          <SectionCard>
-            <CollapsibleTrigger className="w-full">
-              <div className="flex items-center justify-between">
-                <SectionTitle icon={Shield}>Business Details</SectionTitle>
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${detailsOpen ? 'rotate-180' : ''}`} />
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <span className="text-xs font-medium text-foreground">VAT Registered</span>
-                  <Switch checked={formData.vatRegistered} onCheckedChange={v => update('vatRegistered', v)} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Company Number</Label>
-                  <Input placeholder="e.g. 12345678" value={formData.companyNumber} onChange={e => update('companyNumber', e.target.value)} className="rounded-xl h-11" />
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <span className="text-xs font-medium text-foreground">Insurance Verified</span>
-                  <Switch checked={formData.insuranceVerified} onCheckedChange={v => update('insuranceVerified', v)} />
-                </div>
-              </div>
-            </CollapsibleContent>
-          </SectionCard>
-        </Collapsible>
-
-        {/* ── 11. PRO FEATURES ── */}
-        <SectionCard className="opacity-60 relative overflow-hidden">
-          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-lg bg-services/10 border border-services/20">
-            <span className="text-[10px] font-bold text-services">PRO</span>
-          </div>
-          <SectionTitle icon={Zap}>Pro Features</SectionTitle>
-          <div className="space-y-3">
-            {[
-              { icon: Star, label: 'Featured Listing', desc: 'Appear at the top of search results' },
-              { icon: Shield, label: 'Verified Badge', desc: 'Build trust with a verified checkmark' },
-              { icon: Zap, label: 'Boost Listing', desc: 'Get more visibility for 30 days' },
-            ].map(item => (
-              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
-                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
-                  <item.icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.desc}</p>
-                </div>
-                <Lock className="w-4 h-4 text-muted-foreground" />
-              </div>
-            ))}
-          </div>
-        </SectionCard>
 
         {/* Draft auto-save message */}
         <p className="text-center text-[11px] text-muted-foreground">Draft auto-saved • Changes sync automatically</p>
