@@ -140,7 +140,7 @@ const Home = () => {
         <div className="absolute top-0 left-0 right-0 z-30">
           <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
             <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
-              <div className="h-10 w-20 flex-shrink-0 flex items-center justify-center bg-white/90 backdrop-blur-md rounded-xl border border-white/60 shadow-sm overflow-hidden">
+              <div className="h-10 w-20 flex-shrink-0 flex items-center justify-center bg-black rounded-xl border border-white/60 shadow-sm overflow-hidden">
                 <img src={revnetLogoNew} alt="RevNet" className="h-9 w-full object-contain" />
               </div>
               <div className="h-10 flex-1 min-w-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-white/60 shadow-sm">
