@@ -83,19 +83,12 @@ const AddService = () => {
     phone: '',
     countryCode: '+44',
     website: '',
-    instagram: '',
-    facebook: '',
-    tiktok: '',
-    bookingLink: '',
     is24h: false,
     isEmergency: false,
     hideAddress: false,
     serviceType: 'fixed' as 'fixed' | 'mobile',
     serviceRadius: 15,
     priceRange: '',
-    vatRegistered: false,
-    companyNumber: '',
-    insuranceVerified: false,
   });
   const [dayHours, setDayHours] = useState<Record<string, DayHours>>(defaultDayHours);
   const [logoImage, setLogoImage] = useState<string | null>(null);
