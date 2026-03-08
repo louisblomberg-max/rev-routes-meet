@@ -38,18 +38,18 @@
 
     --radius: 0.5rem;
 
-    /* RevNet Feature Colors - Bold & Saturated */
-    --events: 0 72% 50%;
+    /* RevNet Feature Colors */
+    --events: 0 0% 56%;
     --events-foreground: 0 0% 100%;
-    --events-muted: 0 60% 95%;
+    --events-muted: 0 0% 92%;
     
-    --routes: 220 90% 50%;
+    --routes: 150 100% 20%;
     --routes-foreground: 0 0% 100%;
-    --routes-muted: 220 70% 95%;
+    --routes-muted: 150 40% 92%;
     
-    --services: 160 60% 35%;
+    --services: 30 100% 50%;
     --services-foreground: 0 0% 100%;
-    --services-muted: 160 40% 95%;
+    --services-muted: 30 60% 92%;
     
     --clubs: 260 60% 55%;
     --clubs-foreground: 0 0% 100%;
