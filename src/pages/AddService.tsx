@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Instagram, Facebook, ChevronDown, Lock, Star, Zap, Shield, Copy, AlertCircle, Crown } from 'lucide-react';
+import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Lock, Star, Copy, AlertCircle, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
