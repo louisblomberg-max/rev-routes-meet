@@ -234,43 +234,19 @@ const AddEvent = () => {
 
         {/* ── EVENT TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Type</SectionTitle>
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => { setEventTypeMode('all'); setEventTypes([]); setErrors(prev => ({ ...prev, eventType: '' })); }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                eventTypeMode === 'all'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              All Event Types
-            </button>
-            <button
-              onClick={() => setEventTypeMode('selected')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                eventTypeMode === 'selected'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              Choose Types
-            </button>
+          <SectionTitle icon={Calendar}>Event Type *</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {EVENT_TYPES.map(type => (
+              <button key={type} onClick={() => { setEventType(type); setErrors(prev => ({ ...prev, eventType: '' })); }}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  eventType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}>
+                {type}
+              </button>
+            ))}
           </div>
-          {eventTypeMode === 'selected' && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {EVENT_TYPES.map(type => (
-                <button key={type} onClick={() => { toggleChip(eventTypes, setEventTypes, type); setErrors(prev => ({ ...prev, eventType: '' })); }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                    eventTypes.includes(type)
-                      ? 'bg-events text-events-foreground border-events shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                  }`}>
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
           {errors.eventType && <p className="text-xs text-destructive mt-2">{errors.eventType}</p>}
         </SectionCard>
 
