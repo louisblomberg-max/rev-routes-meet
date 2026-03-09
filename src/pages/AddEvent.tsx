@@ -297,43 +297,21 @@ const AddEvent = () => {
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'all'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              All Welcome
-            </button>
-            <button
-              onClick={() => setVehicleTypeMode('selected')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'selected'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              Choose Types
-            </button>
+          <div className="flex gap-2">
+            {['All', 'Cars', 'Bikes'].map(type => (
+              <button
+                key={type}
+                onClick={() => setVehicleType(type)}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
+                  vehicleType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
           </div>
-          {vehicleTypeMode === 'selected' && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {VEHICLE_TYPES.map(type => (
-                <button key={type} onClick={() => { toggleChip(vehicleTypes, setVehicleTypes, type); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                    vehicleTypes.includes(type)
-                      ? 'bg-events text-events-foreground border-events shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                  }`}>
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
-          {errors.vehicleType && <p className="text-xs text-destructive mt-2">{errors.vehicleType}</p>}
         </SectionCard>
 
         {/* ── VISIBILITY ── */}
