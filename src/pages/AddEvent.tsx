@@ -25,6 +25,8 @@ const VEHICLE_TYPE_OPTIONS = [
   { id: 'all', label: 'All' },
   { id: 'cars', label: 'Cars' },
   { id: 'bikes', label: 'Bikes' },
+];
+const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'jdm', label: 'JDM' },
   { id: 'supercars', label: 'Supercars' },
   { id: 'american', label: 'American' },
