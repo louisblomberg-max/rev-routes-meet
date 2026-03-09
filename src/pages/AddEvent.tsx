@@ -115,25 +115,24 @@ const AddEvent = () => {
 
   const doPublish = () => {
     setIsSubmitting(true);
-    const selectedTypes = eventTypeMode === 'all' ? EVENT_TYPES : eventTypes;
     const newEvent = eventsRepo.create({
       title: formData.name,
       description: formData.description,
       location: formData.location,
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
-      date: (!setDateLater && startDate) ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
-      eventType: selectedTypes[0] || 'Meets',
+      eventType: eventType,
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
-      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : undefined,
-      ticketLimit: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
+      ticketLimit: parseInt(formData.maxAttendees) || undefined,
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [...selectedTypes.map(t => t.toLowerCase()), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
+      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
       isMultiDay: false,
       isRecurring: false,
     });
