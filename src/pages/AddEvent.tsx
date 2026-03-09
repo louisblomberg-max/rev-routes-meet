@@ -304,7 +304,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Type</SectionTitle>
+          <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
