@@ -81,6 +81,8 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
+    const wordCount = formData.description.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 15) errs.description = `Description must be at least 15 words (currently ${wordCount})`;
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
@@ -88,6 +90,7 @@ const AddEvent = () => {
     if (visibility === 'club' && !clubId) errs.club = 'Select a club';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
+    if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
