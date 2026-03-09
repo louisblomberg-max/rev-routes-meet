@@ -617,6 +617,21 @@ const AddEvent = () => {
             <Input id="maxAttendees" type="number" placeholder="e.g. 50" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => { update('maxAttendees', e.target.value); setErrors(prev => ({ ...prev, maxAttendees: '' })); }} />
           </div>
           {errors.maxAttendees && <p className="text-xs text-destructive mt-1">{errors.maxAttendees}</p>}
+
+          {/* First Come First Serve */}
+          <div className="flex items-start gap-3 mt-4 p-3 rounded-xl bg-muted/40 border border-border/30">
+            <input
+              type="checkbox"
+              id="fcfs"
+              checked={formData.firstComeFirstServe}
+              onChange={e => update('firstComeFirstServe', e.target.checked)}
+              className="mt-0.5 w-4 h-4 rounded border-border text-events focus:ring-events"
+            />
+            <div>
+              <label htmlFor="fcfs" className="text-xs font-medium text-foreground cursor-pointer">First come first serve</label>
+              <p className="text-[10px] text-muted-foreground mt-0.5">The first people to attend will take the available places.</p>
+            </div>
+          </div>
         </SectionCard>
 
         {/* ── ENTRY FEE ── */}

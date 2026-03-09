@@ -185,6 +185,8 @@ function generateRandomEvents(count: number) {
       createdBy: pick(USERNAMES),
       maxAttendees,
       attendees: randBetween(0, Math.floor(maxAttendees * 0.6)),
+      attendeesList: [],
+      firstComeFirstServe: Math.random() > 0.5,
       entryFeeType: hasFee ? 'paid' as const : 'free' as const,
       entryFeeAmount: hasFee ? randBetween(3, 45) : undefined,
       currency: 'GBP',
