@@ -122,6 +122,40 @@ const AddEvent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Close brand dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
+        setIsBrandDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const availableBrands = useMemo(() => {
+    if (vehicleType === 'cars') return CAR_BRANDS;
+    if (vehicleType === 'bikes') return BIKE_BRANDS;
+    return [];
+  }, [vehicleType]);
+
+  const popularBrands = useMemo(() => {
+    if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
+    if (vehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
+    return [];
+  }, [vehicleType]);
+
+  const filteredBrandResults = useMemo(() => {
+    const query = brandSearch.trim().toLowerCase();
+    if (!query) {
+      const rest = availableBrands.filter(b => !popularBrands.includes(b));
+      return [...popularBrands, ...rest].filter(b => !vehicleBrands.includes(b)).slice(0, 8);
+    }
+    return availableBrands
+      .filter(b => b.toLowerCase().includes(query) && !vehicleBrands.includes(b))
+      .slice(0, 8);
+  }, [brandSearch, availableBrands, popularBrands, vehicleBrands]);
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
