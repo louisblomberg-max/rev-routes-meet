@@ -104,6 +104,10 @@ const AddEvent = () => {
   const [eventType, setEventType] = useState<string>('');
   const [vehicleType, setVehicleType] = useState<string>('all');
   const [vehicleCategory, setVehicleCategory] = useState<string | null>(null);
+  const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
+  const [brandSearch, setBrandSearch] = useState('');
+  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const brandRef = useRef<HTMLDivElement>(null);
   const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
