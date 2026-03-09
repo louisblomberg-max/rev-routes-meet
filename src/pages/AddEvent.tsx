@@ -351,26 +351,6 @@ const AddEvent = () => {
           </div>
         </SectionCard>
 
-        {/* ── VEHICLE CATEGORY ── */}
-        <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Category</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {VEHICLE_CATEGORY_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => setVehicleCategory(vehicleCategory === opt.id ? null : opt.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleCategory === opt.id
-                    ? 'bg-events text-events-foreground border-events shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
         {/* ── VEHICLE BRAND ── */}
         <SectionCard>
           <SectionTitle icon={Tag}>
@@ -441,6 +421,26 @@ const AddEvent = () => {
           ) : (
             <p className="text-xs text-muted-foreground">Select a vehicle type above to choose brands.</p>
           )}
+        </SectionCard>
+
+        {/* ── VEHICLE CATEGORY ── */}
+        <SectionCard>
+          <SectionTitle icon={Car}>Vehicle Category</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_CATEGORY_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setVehicleCategory(vehicleCategory === opt.id ? null : opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleCategory === opt.id
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </SectionCard>
 
         {/* ── VEHICLE AGE ── */}
