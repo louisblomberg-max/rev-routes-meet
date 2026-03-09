@@ -323,18 +323,38 @@ const AddEvent = () => {
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex gap-2">
-            {['All', 'Cars', 'Bikes'].map(type => (
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_TYPE_OPTIONS.map(opt => (
               <button
-                key={type}
-                onClick={() => setVehicleType(type)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                  vehicleType === type
+                key={opt.id}
+                onClick={() => setVehicleType(opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
               >
-                {type}
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* ── VEHICLE AGE ── */}
+        <SectionCard>
+          <SectionTitle icon={Clock}>Vehicle Age</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_AGE_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setVehicleAge(opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleAge === opt.id
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {opt.label}
               </button>
             ))}
           </div>
