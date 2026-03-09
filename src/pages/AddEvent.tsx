@@ -45,6 +45,23 @@ const VEHICLE_AGE_OPTIONS = [
   { id: 'vintage', label: 'Vintage' },
 ];
 
+const CAR_BRANDS = [
+  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
+  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
+  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
+  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
+  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
+  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
+  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
+];
+const BIKE_BRANDS = [
+  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
+  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
+  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
+];
+const POPULAR_CAR_BRANDS = ['BMW','Porsche','Mercedes-Benz','Audi','Ford','Ferrari','Lamborghini','Nissan'];
+const POPULAR_BIKE_BRANDS = ['Ducati','Harley-Davidson','Honda','Kawasaki','Yamaha','Triumph','KTM','BMW Motorrad'];
+
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
   { value: 'club' as const, label: 'Club', description: 'Post to your club', icon: UsersRound },
