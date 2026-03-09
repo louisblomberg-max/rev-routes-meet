@@ -195,7 +195,7 @@ const AddEvent = () => {
 
         {/* ── BANNER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Event Banner * * * * * * *</SectionTitle>
+          <SectionTitle icon={Camera}>Event Banner</SectionTitle>
           <Label className="text-xs text-muted-foreground mb-2 block">This image appears at the top of your event detail</Label>
           {bannerImage ? (
             <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-border/50">
@@ -218,7 +218,7 @@ const AddEvent = () => {
 
         {/* ── EVENT INFO ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Info *</SectionTitle>
+          <SectionTitle icon={Calendar}>Event Info</SectionTitle>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
@@ -226,9 +226,8 @@ const AddEvent = () => {
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-xs text-muted-foreground">Description *</Label>
-              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => { update('description', e.target.value); setErrors(prev => ({ ...prev, description: '' })); }} className="rounded-xl" />
-              {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+              <Label htmlFor="description" className="text-xs text-muted-foreground">Description</Label>
+              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
             </div>
           </div>
         </SectionCard>
@@ -253,7 +252,8 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time *  <div className="grid grid-cols-2 gap-3">
+          <SectionTitle icon={Clock}>Date & Time</SectionTitle>
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
               <Popover>
@@ -290,7 +290,8 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon *={Ma={MapP={MapP={MapP={MapPin}>Location *icker
+          <SectionTitle icon={MapPin}>Location</SectionTitle>
+          <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
             error={errors.location}
@@ -299,7 +300,8 @@ const AddEvent = () => {
 
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={C *ar}>Vehiar}>Vehiclar}>Vehiclar}>Vehicle Type *ssName="flex gap-2 mb-3">
+          <SectionTitle icon={Car}>Vehicle Type</SectionTitle>
+          <div className="flex gap-2 mb-3">
             <button
               onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
               className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
@@ -340,7 +342,8 @@ const AddEvent = () => {
 
         {/* ── VISIBILITY ── */}
         <SectionCard>
-          <SectionTitle icon={Eye}> *VisibilityVisibility *Visibility *  <div className="grid grid-cols-2 gap-2">
+          <SectionTitle icon={Eye}>Visibility</SectionTitle>
+          <div className="grid grid-cols-2 gap-2">
             {VISIBILITY_OPTIONS.map(opt => {
               const Icon = opt.icon;
               return (
@@ -405,7 +408,7 @@ const AddEvent = () => {
 
         {/* ── ENTRY FEE ── */}
         <SectionCard>
-          <SectionTitle icon={DollarSign}>Entry Fee</SectionTit *le>
+          <SectionTitle icon={DollarSign}>Entry Fee</SectionTitle>
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
             <p className="text-xs font-medium text-foreground">Charge attendees?</p>
             <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
