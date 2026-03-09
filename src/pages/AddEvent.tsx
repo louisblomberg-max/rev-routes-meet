@@ -238,7 +238,7 @@ const AddEvent = () => {
 
         {/* ── EVENT TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Type *</SectionTitle>
+          <SectionTitle icon={Calendar}>Event Type <span className="text-destructive">*</span></SectionTitle>
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPES.map(type => (
               <button key={type} onClick={() => { setEventType(type); setErrors(prev => ({ ...prev, eventType: '' })); }}
