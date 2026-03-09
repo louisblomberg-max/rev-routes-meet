@@ -279,6 +279,8 @@ const DevTools = () => {
       createdBy: state.currentUser?.id || 'dev',
       maxAttendees: 50,
       attendees: 0,
+      attendeesList: [],
+      firstComeFirstServe: false,
       entryFeeType: 'free',
       currency: 'GBP',
       vehicleTypes: ['All Welcome'],
