@@ -70,9 +70,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const toggleType = (typeId: string) => {
+    if (typeId === 'all') {
+      onFiltersChange({ ...filters, types: [] });
+      return;
+    }
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
-      : [...filters.types, typeId];
+      : [...filters.types.filter(t => t !== 'all'), typeId];
     onFiltersChange({ ...filters, types: newTypes });
   };
 
