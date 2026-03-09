@@ -119,6 +119,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'bikes', label: 'Bikes' },
   ];
 
+  const vehicleCategoryOptions = [
+    { id: 'jdm', label: 'JDM' },
+    { id: 'supercars', label: 'Supercars' },
+    { id: 'american', label: 'American' },
+    { id: 'european', label: 'European' },
+  ];
+
   const eventSizeOptions = [
     { id: 'small', label: '< 20' },
     { id: 'medium', label: '20-50' },
