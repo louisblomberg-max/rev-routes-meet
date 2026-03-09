@@ -346,7 +346,7 @@ const AddEvent = () => {
 
         {/* ── VISIBILITY ── */}
         <SectionCard>
-          <SectionTitle icon={Eye}>Visibility</SectionTitle>
+          <SectionTitle icon={Eye}>Visibility <span className="text-destructive">*</span></SectionTitle>
           <div className="grid grid-cols-2 gap-2">
             {VISIBILITY_OPTIONS.map(opt => {
               const Icon = opt.icon;
