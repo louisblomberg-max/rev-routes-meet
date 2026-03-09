@@ -11,7 +11,7 @@ import NavigateButton from '@/components/NavigateButton';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
-  motorsport: 'Motorsport', autojumble: 'Autojumble',
+  motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
 };
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
