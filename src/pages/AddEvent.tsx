@@ -237,6 +237,7 @@ const AddEvent = () => {
       clubId: visibility === 'club' ? clubId : undefined,
 
       // Capacity & fees
+      maxAttendees: parseInt(formData.maxAttendees) || 50,
       attendees: 0,
       attendeesList: [],
       firstComeFirstServe: formData.firstComeFirstServe,
