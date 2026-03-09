@@ -68,7 +68,8 @@ const AddEvent = () => {
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
-  const myClubs = mockClubs.filter(c => c.joined);
+  const currentUserId = state.currentUser?.id || 'current-user';
+  const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
   const [setDateLater, setSetDateLater] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
@@ -395,7 +396,7 @@ const AddEvent = () => {
           </div>
           {visibility === 'club' && (
             <div className="mt-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {myClubs.length > 0 ? (
+              {myOwnedClubs.length > 0 ? (
                 <>
                   <Label className="text-xs text-muted-foreground mb-1.5 block">Your Club *</Label>
                   <Select value={clubId} onValueChange={(v) => { setClubId(v); setErrors(prev => ({ ...prev, club: '' })); }}>
@@ -403,7 +404,7 @@ const AddEvent = () => {
                       <SelectValue placeholder="Select one of your clubs" />
                     </SelectTrigger>
                     <SelectContent>
-                      {myClubs.map(club => (
+                      {myOwnedClubs.map(club => (
                         <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
                       ))}
                     </SelectContent>
@@ -413,7 +414,7 @@ const AddEvent = () => {
                 </>
               ) : (
                 <div className="p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <p className="text-xs text-muted-foreground">You haven't founded or joined any clubs yet. Create or join a club first to post club events.</p>
+                  <p className="text-xs text-muted-foreground">You need to be a club founder to post club events. Create a club first.</p>
                 </div>
               )}
             </div>
