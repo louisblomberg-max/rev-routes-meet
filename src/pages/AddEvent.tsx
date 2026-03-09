@@ -195,7 +195,7 @@ const AddEvent = () => {
 
         {/* ── BANNER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Event Banner * *</SectionTitle>
+          <SectionTitle icon={Camera}>Event Banner * * *</SectionTitle>
           <Label className="text-xs text-muted-foreground mb-2 block">This image appears at the top of your event detail</Label>
           {bannerImage ? (
             <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-border/50">
@@ -218,7 +218,7 @@ const AddEvent = () => {
 
         {/* ── EVENT INFO ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event In *fo</SectionTitle>
+          <SectionTitle icon={Calendar}>Event  *In *fo</SectionTitle>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
