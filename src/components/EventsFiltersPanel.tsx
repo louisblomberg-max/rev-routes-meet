@@ -1,10 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useGarage } from '@/contexts/GarageContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, SlidersHorizontal, X, Plus } from 'lucide-react';
+import { CalendarIcon, SlidersHorizontal, X, Plus, Search, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,7 @@ export interface EventsFilterState {
   dateFilter: string | null;
   specificDate: Date | undefined;
   vehicleTypes: string[];
-  vehicleCategory: string | null;
+  vehicleBrands: string[];
   vehicleAge: string | null;
   eventSize: string | null;
   entryFee: string | null;
@@ -27,17 +27,70 @@ interface EventsFiltersPanelProps {
   onFiltersChange: (filters: EventsFilterState) => void;
 }
 
+const CAR_BRANDS = [
+  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
+  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
+  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
+  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
+  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
+  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
+  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
+];
+
+const BIKE_BRANDS = [
+  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
+  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
+  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
+];
+
+const POPULAR_CAR_BRANDS = ['BMW','Porsche','Mercedes-Benz','Audi','Ford','Ferrari','Lamborghini','Nissan'];
+const POPULAR_BIKE_BRANDS = ['Ducati','Harley-Davidson','Honda','Kawasaki','Yamaha','Triumph','KTM','BMW Motorrad'];
+
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
   const { vehicles } = useGarage();
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [brandSearch, setBrandSearch] = useState('');
+  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const brandRef = useRef<HTMLDivElement>(null);
 
-  // Build "My Vehicles" label from garage
-  const myVehicleLabel = useMemo(() => {
-    if (vehicles.length === 0) return 'My Vehicles';
-    return `My Vehicles (${vehicles.length})`;
-  }, [vehicles]);
+  // Close brand dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
+        setIsBrandDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const selectedVehicleType = filters.vehicleTypes.length > 0 ? filters.vehicleTypes[0] : null;
+
+  const availableBrands = useMemo(() => {
+    if (selectedVehicleType === 'cars') return CAR_BRANDS;
+    if (selectedVehicleType === 'bikes') return BIKE_BRANDS;
+    return [];
+  }, [selectedVehicleType]);
+
+  const popularBrands = useMemo(() => {
+    if (selectedVehicleType === 'cars') return POPULAR_CAR_BRANDS;
+    if (selectedVehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
+    return [];
+  }, [selectedVehicleType]);
+
+  const filteredBrands = useMemo(() => {
+    const query = brandSearch.trim().toLowerCase();
+    if (!query) {
+      // Show popular brands first, then rest
+      const rest = availableBrands.filter(b => !popularBrands.includes(b));
+      return [...popularBrands, ...rest].filter(b => !filters.vehicleBrands.includes(b)).slice(0, 8);
+    }
+    return availableBrands
+      .filter(b => b.toLowerCase().includes(query) && !filters.vehicleBrands.includes(b))
+      .slice(0, 8);
+  }, [brandSearch, availableBrands, popularBrands, filters.vehicleBrands]);
 
   const distancePresets = [
     { id: 'national', label: 'National' },
@@ -61,16 +114,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const vehicleTypeOptions = [
-    { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
-  ];
-
-  const vehicleCategoryOptions = [
-    { id: 'jdm', label: 'JDM' },
-    { id: 'supercars', label: 'Supercars' },
-    { id: 'american', label: 'American' },
-    { id: 'european', label: 'European' },
   ];
 
   const eventSizeOptions = [
@@ -97,7 +142,22 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   };
 
   const toggleVehicleType = (vehicleTypeId: string) => {
-    onFiltersChange({ ...filters, vehicleTypes: vehicleTypeId === 'all-vehicles' ? [] : [vehicleTypeId] });
+    const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
+    onFiltersChange({
+      ...filters,
+      vehicleTypes: isAlreadySelected ? [] : [vehicleTypeId],
+      vehicleBrands: isAlreadySelected ? [] : filters.vehicleBrands, // clear brands if deselecting type
+    });
+    setBrandSearch('');
+  };
+
+  const addBrand = (brand: string) => {
+    onFiltersChange({ ...filters, vehicleBrands: [...filters.vehicleBrands, brand] });
+    setBrandSearch('');
+  };
+
+  const removeBrand = (brand: string) => {
+    onFiltersChange({ ...filters, vehicleBrands: filters.vehicleBrands.filter(b => b !== brand) });
   };
 
   const handleDistanceChange = (value: number[]) => {
@@ -105,40 +165,40 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   };
 
   const handleDistancePreset = (preset: 'national' | 'international') => {
-    onFiltersChange({ 
-      ...filters, 
-      distance: filters.distance === preset ? 25 : preset 
+    onFiltersChange({
+      ...filters,
+      distance: filters.distance === preset ? 25 : preset,
     });
   };
 
   const handleDateFilter = (dateId: string) => {
-    onFiltersChange({ 
-      ...filters, 
+    onFiltersChange({
+      ...filters,
       dateFilter: filters.dateFilter === dateId ? null : dateId,
-      specificDate: undefined
+      specificDate: undefined,
     });
   };
 
   const handleSpecificDate = (date: Date | undefined) => {
-    onFiltersChange({ 
-      ...filters, 
+    onFiltersChange({
+      ...filters,
       dateFilter: date ? 'specific' : null,
-      specificDate: date 
+      specificDate: date,
     });
     if (date) setIsDatePickerOpen(false);
   };
 
   const handleEventSizeChange = (sizeId: string) => {
-    onFiltersChange({ 
-      ...filters, 
-      eventSize: filters.eventSize === sizeId ? null : sizeId 
+    onFiltersChange({
+      ...filters,
+      eventSize: filters.eventSize === sizeId ? null : sizeId,
     });
   };
 
   const handleEntryFeeChange = (feeId: string) => {
-    onFiltersChange({ 
-      ...filters, 
-      entryFee: filters.entryFee === feeId ? null : feeId 
+    onFiltersChange({
+      ...filters,
+      entryFee: filters.entryFee === feeId ? null : feeId,
     });
   };
 
@@ -170,10 +230,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             >
               <CalendarIcon className="w-4 h-4" />
               <span className="text-[10px] font-semibold whitespace-nowrap">
-                {filters.specificDate 
+                {filters.specificDate
                   ? format(filters.specificDate, 'MMM d')
-                  : 'Date'
-                }
+                  : 'Date'}
               </span>
             </button>
           </PopoverTrigger>
@@ -221,13 +280,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <button
                 onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleBrands: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
                 Clear All
               </button>
-              <button 
+              <button
                 onClick={() => setIsOpen(false)}
                 className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
               >
@@ -297,7 +356,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   key={vehicle.id}
                   onClick={() => toggleVehicleType(vehicle.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (vehicle.id === 'all-vehicles' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
+                    filters.vehicleTypes.includes(vehicle.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -308,24 +367,73 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             </div>
           </div>
 
-          {/* Vehicle Category Filter */}
+          {/* Vehicle Brand Filter */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
-            <div className="flex flex-wrap gap-1.5">
-              {vehicleCategoryOptions.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleCategory === cat.id
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
+            <p className={`text-xs font-medium ${selectedVehicleType ? 'text-foreground' : 'text-muted-foreground'}`}>
+              Vehicle Brand
+              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select type first)</span>}
+            </p>
+
+            {selectedVehicleType && (
+              <div ref={brandRef} className="relative">
+                {/* Selected brand chips */}
+                {filters.vehicleBrands.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {filters.vehicleBrands.map((brand) => (
+                      <span
+                        key={brand}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-events/15 text-events text-[10px] font-semibold border border-events/30"
+                      >
+                        {brand}
+                        <button
+                          onClick={() => removeBrand(brand)}
+                          className="w-3.5 h-3.5 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {/* Search input */}
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input
+                    type="text"
+                    value={brandSearch}
+                    onChange={(e) => {
+                      setBrandSearch(e.target.value);
+                      setIsBrandDropdownOpen(true);
+                    }}
+                    onFocus={() => setIsBrandDropdownOpen(true)}
+                    placeholder="Search vehicle brand..."
+                    className="w-full h-9 pl-8 pr-3 rounded-lg border border-border/60 bg-background text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
+                  />
+                </div>
+
+                {/* Dropdown results */}
+                {isBrandDropdownOpen && filteredBrands.length > 0 && (
+                  <div className="absolute left-0 right-0 mt-1 bg-card border border-border/60 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
+                    {!brandSearch.trim() && (
+                      <p className="px-3 pt-2 pb-1 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
+                    )}
+                    {filteredBrands.map((brand) => (
+                      <button
+                        key={brand}
+                        onClick={() => {
+                          addBrand(brand);
+                          setIsBrandDropdownOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-events/10 transition-colors"
+                      >
+                        {brand}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Vehicle Age Filter */}
@@ -376,7 +484,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   {option.label}
                 </button>
               ))}
-              
+
               {/* Specific Date Picker */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
@@ -388,10 +496,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                     }`}
                   >
                     <CalendarIcon className="w-3 h-3" />
-                    {filters.specificDate 
+                    {filters.specificDate
                       ? format(filters.specificDate, 'MMM d, yyyy')
-                      : 'Pick Date'
-                    }
+                      : 'Pick Date'}
                   </button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
