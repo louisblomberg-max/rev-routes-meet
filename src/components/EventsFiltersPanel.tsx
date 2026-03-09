@@ -218,7 +218,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <button
                 onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
