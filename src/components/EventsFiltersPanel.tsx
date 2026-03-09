@@ -53,13 +53,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
-    { id: 'motorcycles', label: 'Motorcycles' },
-    { id: 'classic', label: 'Classic' },
-    { id: 'supercars', label: 'Supercars' },
-    { id: 'jdm', label: 'JDM' },
-    { id: 'euro', label: 'Euro' },
-    { id: 'american', label: 'American' },
-    { id: 'off-road', label: 'Off-road' },
+    { id: 'bikes', label: 'Bikes' },
+    { id: 'my-vehicles', label: 'My Vehicles' },
   ];
 
   const eventSizeOptions = [
