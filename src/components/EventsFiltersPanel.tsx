@@ -27,8 +27,15 @@ interface EventsFiltersPanelProps {
 
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
+  const { vehicles } = useGarage();
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Build "My Vehicles" label from garage
+  const myVehicleLabel = useMemo(() => {
+    if (vehicles.length === 0) return 'My Vehicles';
+    return `My Vehicles (${vehicles.length})`;
+  }, [vehicles]);
 
   const distancePresets = [
     { id: 'national', label: 'National' },
