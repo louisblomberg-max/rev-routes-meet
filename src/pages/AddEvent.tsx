@@ -276,54 +276,6 @@ const AddEvent = () => {
           {errors.eventType && <p className="text-xs text-destructive mt-2">{errors.eventType}</p>}
         </SectionCard>
 
-        {/* ── DATE & TIME ── */}
-        <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time <span className="text-destructive">*</span></SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">Start *</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !startDate && "text-muted-foreground")}>
-                    <Calendar className="mr-2 h-3.5 w-3.5" />
-                    {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setErrors(prev => ({ ...prev, startDate: '' })); }} disabled={(date) => date < new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-9 text-xs rounded-xl" />
-              {errors.startDate && <p className="text-xs text-destructive">{errors.startDate}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">End</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !endDate && "text-muted-foreground")}>
-                    <Clock className="mr-2 h-3.5 w-3.5" />
-                    {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => date < (startDate || new Date())} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-9 text-xs rounded-xl" />
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* ── LOCATION ── */}
-        <SectionCard>
-          <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
-          <LocationPicker
-            value={formData.location}
-            onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
-            error={errors.location}
-          />
-        </SectionCard>
-
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
@@ -382,6 +334,54 @@ const AddEvent = () => {
               </button>
             ))}
           </div>
+        </SectionCard>
+
+        {/* ── DATE & TIME ── */}
+        <SectionCard>
+          <SectionTitle icon={Clock}>Date & Time <span className="text-destructive">*</span></SectionTitle>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">Start *</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !startDate && "text-muted-foreground")}>
+                    <Calendar className="mr-2 h-3.5 w-3.5" />
+                    {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarUI mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setErrors(prev => ({ ...prev, startDate: '' })); }} disabled={(date) => date < new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-9 text-xs rounded-xl" />
+              {errors.startDate && <p className="text-xs text-destructive">{errors.startDate}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground font-medium">End</span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !endDate && "text-muted-foreground")}>
+                    <Clock className="mr-2 h-3.5 w-3.5" />
+                    {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarUI mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => date < (startDate || new Date())} initialFocus className={cn("p-3 pointer-events-auto")} />
+                </PopoverContent>
+              </Popover>
+              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-9 text-xs rounded-xl" />
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* ── LOCATION ── */}
+        <SectionCard>
+          <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
+          <LocationPicker
+            value={formData.location}
+            onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
+            error={errors.location}
+          />
         </SectionCard>
 
         {/* ── VISIBILITY ── */}
