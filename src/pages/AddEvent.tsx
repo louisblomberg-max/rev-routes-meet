@@ -395,18 +395,27 @@ const AddEvent = () => {
           </div>
           {visibility === 'club' && (
             <div className="mt-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Choose Club *</Label>
-              <Select value={clubId} onValueChange={(v) => { setClubId(v); setErrors(prev => ({ ...prev, club: '' })); }}>
-                <SelectTrigger className="rounded-xl h-11">
-                  <SelectValue placeholder="Select a club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClubs.map(club => (
-                    <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
+              {myClubs.length > 0 ? (
+                <>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Your Club *</Label>
+                  <Select value={clubId} onValueChange={(v) => { setClubId(v); setErrors(prev => ({ ...prev, club: '' })); }}>
+                    <SelectTrigger className="rounded-xl h-11">
+                      <SelectValue placeholder="Select one of your clubs" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {myClubs.map(club => (
+                        <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-muted-foreground mt-1.5">This event will appear in your club's Events section</p>
+                  {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
+                </>
+              ) : (
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/30">
+                  <p className="text-xs text-muted-foreground">You haven't founded or joined any clubs yet. Create or join a club first to post club events.</p>
+                </div>
+              )}
             </div>
           )}
         </SectionCard>
