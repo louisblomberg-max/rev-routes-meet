@@ -112,6 +112,7 @@ const AddEvent = () => {
     entryFee: false,
     feeAmount: '',
     maxAttendees: '',
+    firstComeFirstServe: false,
   });
   const [eventType, setEventType] = useState<EventType | ''>('');
   const [vehicleType, setVehicleType] = useState<VehicleType>('all');
