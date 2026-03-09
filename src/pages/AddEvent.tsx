@@ -66,8 +66,9 @@ const AddEvent = () => {
   const [eventTypes, setEventTypes] = useState<string[]>([]);
   const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>('all');
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
-  const [visibility, setVisibility] = useState<'public' | 'club' | 'friends' | 'private'>('public');
+  const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
+  const myClubs = mockClubs.filter(c => c.joined);
   const [setDateLater, setSetDateLater] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
