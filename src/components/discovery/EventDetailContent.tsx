@@ -276,13 +276,6 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         </Button>
       </div>
 
-      {/* View full */}
-      <button
-        onClick={onViewFull}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-      >
-        View full details →
-      </button>
     </div>
   );
 };
