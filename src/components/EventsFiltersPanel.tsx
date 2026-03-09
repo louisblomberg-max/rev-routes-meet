@@ -81,9 +81,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   };
 
   const toggleVehicleType = (vehicleTypeId: string) => {
+    if (vehicleTypeId === 'all-vehicles') {
+      onFiltersChange({ ...filters, vehicleTypes: [] });
+      return;
+    }
     const newVehicleTypes = filters.vehicleTypes.includes(vehicleTypeId)
       ? filters.vehicleTypes.filter(v => v !== vehicleTypeId)
-      : [...filters.vehicleTypes, vehicleTypeId];
+      : [...filters.vehicleTypes.filter(v => v !== 'all-vehicles'), vehicleTypeId];
     onFiltersChange({ ...filters, vehicleTypes: newVehicleTypes });
   };
 
