@@ -76,7 +76,7 @@ const VEHICLE_TYPE_OPTIONS_GEN = [
   { id: 'cars', label: 'Cars' },
   { id: 'bikes', label: 'Bikes' },
 ];
-const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'american', 'european'];
+const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european'];
 const VEHICLE_AGE_OPTIONS_GEN = ['all-ages', 'classics', 'modern', 'vintage', 'pre-00s', 'pre-90s', 'pre-80s', 'pre-70s', 'pre-60s', 'pre-50s'];
 
 const CAR_BRANDS_GEN = [
