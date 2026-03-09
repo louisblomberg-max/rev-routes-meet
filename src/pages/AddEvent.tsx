@@ -83,7 +83,8 @@ const AddEvent = () => {
     maxAttendees: '',
   });
   const [eventType, setEventType] = useState<string>('');
-  const [vehicleType, setVehicleType] = useState<string>('All');
+  const [vehicleType, setVehicleType] = useState<string>('all');
+  const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
