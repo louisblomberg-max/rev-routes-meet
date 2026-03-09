@@ -32,7 +32,6 @@ const CATEGORY_LABELS: Record<string, string> = {
 interface EventDetailContentProps {
   event: RevEvent;
   onNavigate: () => void;
-  onViewFull: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }
