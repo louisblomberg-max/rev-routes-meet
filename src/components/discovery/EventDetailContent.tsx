@@ -36,7 +36,7 @@ interface EventDetailContentProps {
   onToggleSave: () => void;
 }
 
-const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSave }: EventDetailContentProps) => {
+const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
   const [rsvpStatus, setRsvpStatus] = useState<'none' | 'going' | 'interested'>('none');
 
   const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
