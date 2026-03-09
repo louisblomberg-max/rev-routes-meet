@@ -28,6 +28,7 @@ const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
   { id: 'track_day', label: 'Track Day' },
   { id: 'motorsport', label: 'Motorsport' },
   { id: 'autojumble', label: 'Autojumble' },
+  { id: 'off_road', label: 'Off-Road' },
 ];
 
 const VEHICLE_TYPE_OPTIONS: { id: VehicleType; label: string }[] = [
