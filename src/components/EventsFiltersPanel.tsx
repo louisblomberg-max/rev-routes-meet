@@ -105,6 +105,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'track-day', label: 'Track Day' },
     { id: 'motorsport', label: 'Motorsport' },
     { id: 'autojumble', label: 'Autojumble' },
+    { id: 'off-road', label: 'Off-Road' },
   ];
 
   const dateOptions = [
@@ -125,6 +126,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'muscle-car', label: 'Muscle Car' },
     { id: 'american', label: 'American' },
     { id: 'european', label: 'European' },
+    { id: '4x4', label: '4x4' },
   ];
 
   // IDs match the structured vehicleAge values

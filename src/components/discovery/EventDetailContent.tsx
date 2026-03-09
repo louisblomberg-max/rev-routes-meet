@@ -13,7 +13,7 @@ const REVNET_FEE_PENCE = 50;
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
-  motorsport: 'Motorsport', autojumble: 'Autojumble',
+  motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
 };
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
@@ -28,7 +28,7 @@ const VEHICLE_AGE_LABELS: Record<string, string> = {
 
 const CATEGORY_LABELS: Record<string, string> = {
   jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
-  american: 'American', european: 'European',
+  american: 'American', european: 'European', '4x4': '4x4',
 };
 
 interface EventDetailContentProps {

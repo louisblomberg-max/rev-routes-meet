@@ -25,6 +25,7 @@ const FILTER_TYPE_MAP: Record<string, string> = {
   'track-day': 'track_day',
   motorsport: 'motorsport',
   autojumble: 'autojumble',
+  'off-road': 'off_road',
 };
 
 /** Map event size filter IDs to maxAttendees ranges */

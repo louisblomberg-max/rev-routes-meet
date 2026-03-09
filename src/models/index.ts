@@ -120,7 +120,7 @@ export interface MapItem {
 export type ContentVisibility = 'public' | 'club' | 'friends' | 'private';
 
 // ---- Events ----
-export type EventType = 'meets' | 'shows' | 'drive' | 'track_day' | 'motorsport' | 'autojumble';
+export type EventType = 'meets' | 'shows' | 'drive' | 'track_day' | 'motorsport' | 'autojumble' | 'off_road';
 export type VehicleType = 'cars' | 'bikes' | 'all';
 export type EntryFeeType = 'free' | 'paid';
 

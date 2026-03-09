@@ -28,6 +28,7 @@ const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
   { id: 'track_day', label: 'Track Day' },
   { id: 'motorsport', label: 'Motorsport' },
   { id: 'autojumble', label: 'Autojumble' },
+  { id: 'off_road', label: 'Off-Road' },
 ];
 
 const VEHICLE_TYPE_OPTIONS: { id: VehicleType; label: string }[] = [
@@ -42,6 +43,7 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'muscle-car', label: 'Muscle Car' },
   { id: 'american', label: 'American' },
   { id: 'european', label: 'European' },
+  { id: '4x4', label: '4x4' },
 ];
 
 const VEHICLE_AGE_OPTIONS = [
