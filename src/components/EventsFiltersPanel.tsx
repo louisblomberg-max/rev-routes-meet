@@ -251,9 +251,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             </div>
           </div>
 
-          {/* Type Filter */}
+          {/* Event Type Filter */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Type</p>
+            <p className="text-xs font-medium text-foreground">Event Type</p>
             <div className="flex flex-wrap gap-1.5">
               {typeOptions.map((type) => (
                 <button
