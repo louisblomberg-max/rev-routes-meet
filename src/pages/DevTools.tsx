@@ -192,7 +192,7 @@ const DevTools = () => {
   const navigate = useNavigate();
   const { user: authUser, updateProfile, logout } = useAuth();
   const { setPlan, setSubscriptionStatus, currentPlan, effectivePlan, getPlanLabel } = usePlan();
-  const { state, events: eventsRepo, routes: routesRepo, services: servicesRepo } = useData();
+  const { state, events: eventsRepo } = useData();
 
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     return localStorage.getItem('revnet_dev_preset') || null;
