@@ -155,7 +155,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'All' ? [] : [vehicleType.toLowerCase()])],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
       isMultiDay: false,
       isRecurring: false,
     });
