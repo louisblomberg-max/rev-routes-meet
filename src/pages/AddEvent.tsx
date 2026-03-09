@@ -62,10 +62,7 @@ const AddEvent = () => {
     feeAmount: '',
     maxAttendees: '',
   });
-  const [eventType, setEventType] = useState<string>('');
-  const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>('all');
-  const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
-  const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
+  const [vehicleType, setVehicleType] = useState<string>('All');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
   const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
