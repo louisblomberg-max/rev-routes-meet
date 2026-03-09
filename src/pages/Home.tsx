@@ -39,7 +39,7 @@ const Home = () => {
   const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
-    vehicleTypes: [], vehicleBrands: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+    vehicleTypes: [], vehicleBrands: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,

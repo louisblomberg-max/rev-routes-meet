@@ -444,6 +444,26 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             )}
           </div>
 
+          {/* Vehicle Category Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
+            <div className="flex flex-wrap gap-1.5">
+              {vehicleCategoryOptions.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.vehicleCategory === cat.id
+                      ? 'bg-events/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Vehicle Age Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Vehicle Age</p>
