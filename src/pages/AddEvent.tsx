@@ -294,7 +294,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon={MapPin}>Location</SectionTitle>
+          <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
           <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
