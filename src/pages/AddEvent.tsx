@@ -69,7 +69,7 @@ const AddEvent = () => {
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends' | 'private'>('public');
   const [clubId, setClubId] = useState('');
-  const [setDateLater, setSetDateLater] = useState(true);
+  const [setDateLater, setSetDateLater] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
