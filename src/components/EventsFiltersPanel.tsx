@@ -35,12 +35,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const typeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'meets', label: 'Meets' },
-    { id: 'cars-coffee', label: 'Cars & Coffee' },
-    { id: 'drive', label: 'Drive / Drive-Out' },
-    { id: 'group-drive', label: 'Group Drive' },
+    { id: 'shows', label: 'Shows' },
+    { id: 'drive', label: 'Drive' },
     { id: 'track-day', label: 'Track Day' },
-    { id: 'show', label: 'Show / Exhibition' },
+    { id: 'motorsport', label: 'Motorsport' },
+    { id: 'autojumble', label: 'Autojumble' },
   ];
 
   const dateOptions = [
