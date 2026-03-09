@@ -8,7 +8,7 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: 'events', label: 'Events & Drives', icon: Calendar },
+    { id: 'events', label: 'Events', icon: Calendar },
     { id: 'routes', label: 'Routes', icon: Route },
     { id: 'services', label: 'Services', icon: Wrench },
   ];
