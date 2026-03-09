@@ -289,7 +289,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Vehicle Type Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Vehicle Type</p>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-col gap-1.5">
               {vehicleTypeOptions.map((vehicle) => (
                 <button
                   key={vehicle.id}
