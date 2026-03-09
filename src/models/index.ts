@@ -120,34 +120,67 @@ export interface MapItem {
 export type ContentVisibility = 'public' | 'club' | 'friends' | 'private';
 
 // ---- Events ----
+export type EventType = 'meets' | 'shows' | 'drive' | 'track_day' | 'motorsport' | 'autojumble';
+export type VehicleType = 'cars' | 'bikes' | 'all';
+export type EntryFeeType = 'free' | 'paid';
+
 export interface RevEvent {
   id: string;
-  title: string;
-  description?: string;
-  date: string;
-  endDate?: string;
-  location: string;
-  lat?: number;
-  lng?: number;
-  vehicleTypes: string[];
-  /** @deprecated Use vehicleTypes instead. Kept for backward compat. */
-  vehicleType?: string;
-  eventType: string;
-  attendees: number;
   createdBy: string;
   createdAt: string;
+  updatedAt?: string;
+  title: string;
+  description?: string;
+  bannerImage?: string;
   photos?: string[];
-  entryFee?: string;
-  clubId?: string;
+
+  // Structured event fields
+  eventType: EventType;
+  vehicleType: VehicleType;
+  vehicleBrands: string[];
+  vehicleCategories: string[];
+  vehicleAge: string;
+
+  // Date & time
+  startDate: string; // ISO date string
+  endDate?: string;
+  startTime: string; // "HH:mm"
+  endTime?: string;
+
+  // Location
+  locationName: string;
+  lat?: number;
+  lng?: number;
+
+  // Visibility & club
   visibility: ContentVisibility;
-  tags: string[];
-  // New fields
-  isMultiDay: boolean;
-  isRecurring: boolean;
-  recurrenceType?: 'weekly' | 'monthly';
-  earlyBirdPrice?: string;
-  earlyBirdDeadline?: string;
+  clubId?: string;
+
+  // Capacity & fees
+  maxAttendees: number;
+  attendees: number;
+  entryFeeType: EntryFeeType;
+  entryFeeAmount?: number; // in GBP
+  currency: string;
+
+  // Legacy compat (derived, not stored separately)
+  /** @deprecated Use locationName */
+  location?: string;
+  /** @deprecated Use startDate + startTime */
+  date?: string;
+  /** @deprecated Use entryFeeType/entryFeeAmount */
+  entryFee?: string;
+  /** @deprecated Use vehicleType */
+  vehicleTypes?: string[];
+  /** @deprecated */
+  tags?: string[];
+  /** @deprecated */
+  isMultiDay?: boolean;
+  /** @deprecated */
+  isRecurring?: boolean;
+  /** @deprecated */
   ticketLimit?: number;
+  /** @deprecated */
   ticketsSold?: number;
 }
 
