@@ -62,8 +62,7 @@ const AddEvent = () => {
     feeAmount: '',
     maxAttendees: '',
   });
-  const [eventTypeMode, setEventTypeMode] = useState<'all' | 'selected'>('all');
-  const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [eventType, setEventType] = useState<string>('');
   const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>('all');
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
