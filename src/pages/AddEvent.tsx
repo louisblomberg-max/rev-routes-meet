@@ -213,7 +213,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...vehicleBrands.map(b => b.toLowerCase()), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
       isMultiDay: false,
       isRecurring: false,
     });
