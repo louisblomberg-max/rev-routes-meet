@@ -1,12 +1,33 @@
 import { useState } from 'react';
-import { Calendar, MapPin, Car, Users, Share2, Bookmark, Check, Flag, Clock, DollarSign } from 'lucide-react';
+import { Calendar, MapPin, Car, Users, Share2, Bookmark, Check, Flag, Clock, DollarSign, Tag, Shield } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { format, parseISO } from 'date-fns';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import NavigateButton from '@/components/NavigateButton';
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
+  motorsport: 'Motorsport', autojumble: 'Autojumble',
+};
+
+const VEHICLE_TYPE_LABELS: Record<string, string> = {
+  cars: 'Cars', bikes: 'Bikes', all: 'All Welcome',
+};
+
+const VEHICLE_AGE_LABELS: Record<string, string> = {
+  all: 'All Ages', classics: 'Classics', modern: 'Modern', vintage: 'Vintage',
+  pre_2000: "Pre 00's", pre_1990: "Pre 90's", pre_1980: "Pre 80's",
+  pre_1970: "Pre 70's", pre_1960: "Pre 60's", pre_1950: "Pre 50's",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
+  american: 'American', european: 'European',
+};
 
 const EventDetail = () => {
   const navigate = useNavigate();
@@ -53,15 +74,28 @@ const EventDetail = () => {
     });
   };
 
-  const hasFee = event.entryFee && event.entryFee !== '£0' && event.entryFee !== 'Free';
-  const platformFee = hasFee ? '£0.50' : null;
+  const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
+  const platformFee = !isFree ? '£0.50' : null;
+  const isClubHosted = event.visibility === 'club' || !!event.clubId;
+
+  const displayDate = event.startDate
+    ? format(parseISO(event.startDate), 'EEE, MMM d yyyy') + (event.startTime ? ` • ${event.startTime}` : '')
+    : event.date || 'Date TBD';
+
+  const endDisplayDate = event.endDate
+    ? format(parseISO(event.endDate), 'EEE, MMM d yyyy') + (event.endTime ? ` • ${event.endTime}` : '')
+    : null;
+
+  const feeDisplay = event.entryFeeType === 'paid' && event.entryFeeAmount
+    ? `£${event.entryFeeAmount.toFixed(2)}`
+    : event.entryFee || 'Free';
 
   return (
     <div className="mobile-container bg-background min-h-screen">
       {/* Header Image */}
       <div className="relative h-52 bg-gradient-to-br from-primary to-primary/60 overflow-hidden">
-        {event.photos?.[0] && (
-          <img src={event.photos[0]} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
+        {(event.bannerImage || event.photos?.[0]) && (
+          <img src={event.bannerImage || event.photos![0]} alt={event.title} className="absolute inset-0 w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-full bg-white/90 backdrop-blur safe-top hover:bg-white" />
@@ -81,36 +115,85 @@ const EventDetail = () => {
       <div className="px-4 -mt-6 relative pb-8 space-y-4">
         <div className="bg-card rounded-2xl shadow-lg p-5 border border-border/30">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <Badge className="bg-primary/10 text-primary text-xs">{event.eventType}</Badge>
+            <Badge className="bg-primary/10 text-primary text-xs">
+              {EVENT_TYPE_LABELS[event.eventType] || event.eventType}
+            </Badge>
+            <Badge variant="outline" className="text-xs">
+              {VEHICLE_TYPE_LABELS[event.vehicleType] || event.vehicleType}
+            </Badge>
             {isHost && <Badge variant="secondary" className="text-[10px]">Your Event</Badge>}
             {event.visibility !== 'public' && <Badge variant="outline" className="text-[10px] capitalize">{event.visibility}</Badge>}
+            {isClubHosted && (
+              <Badge variant="outline" className="text-[10px] bg-clubs/10 text-clubs border-clubs/20">
+                <Shield className="w-3 h-3 mr-1" /> Club
+              </Badge>
+            )}
           </div>
           <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
 
           <div className="mt-4 space-y-2.5">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Calendar className="w-4.5 h-4.5 text-primary shrink-0" />
-              <span>{event.date}{event.endDate ? ` — ${new Date(event.endDate).toLocaleDateString()}` : ''}</span>
+              <div>
+                <span>{displayDate}</span>
+                {endDisplayDate && <span className="text-muted-foreground"> — {endDisplayDate}</span>}
+              </div>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <MapPin className="w-4.5 h-4.5 shrink-0" />
-              <span>{event.location}</span>
+              <span>{event.locationName || event.location}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Car className="w-4.5 h-4.5 shrink-0" />
-              <span>{event.vehicleTypes?.join(', ') || event.vehicleType || 'All Welcome'}</span>
+              <span>{VEHICLE_TYPE_LABELS[event.vehicleType] || 'All Welcome'}</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-muted-foreground">
               <Users className="w-4.5 h-4.5 shrink-0" />
-              <span>{event.attendees + (isAttending ? 1 : 0)} attending{event.ticketLimit ? ` / ${event.ticketLimit} max` : ''}</span>
+              <span>{event.attendees + (isAttending ? 1 : 0)} attending{event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}</span>
             </div>
-            {hasFee && (
+            {!isFree && (
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <DollarSign className="w-4.5 h-4.5 shrink-0" />
-                <span>{event.entryFee}{platformFee ? ` + ${platformFee} platform fee` : ''}</span>
+                <span>{feeDisplay}{platformFee ? ` + ${platformFee} platform fee` : ''}</span>
               </div>
             )}
           </div>
+
+          {/* Vehicle Brands */}
+          {event.vehicleBrands && event.vehicleBrands.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Brands</p>
+              <div className="flex flex-wrap gap-1">
+                {event.vehicleBrands.map(brand => (
+                  <span key={brand} className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+                    {brand}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Vehicle Categories */}
+          {event.vehicleCategories && event.vehicleCategories.length > 0 && (
+            <div className="mt-2">
+              <p className="text-xs font-medium text-muted-foreground mb-1.5">Categories</p>
+              <div className="flex flex-wrap gap-1">
+                {event.vehicleCategories.map(cat => (
+                  <span key={cat} className="px-2 py-0.5 rounded-full bg-events/10 text-[10px] font-medium text-events">
+                    {CATEGORY_LABELS[cat] || cat}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Vehicle Age */}
+          {event.vehicleAge && event.vehicleAge !== 'all' && (
+            <div className="mt-2">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Vehicle Era</p>
+              <Badge variant="outline" className="text-xs">{VEHICLE_AGE_LABELS[event.vehicleAge] || event.vehicleAge}</Badge>
+            </div>
+          )}
         </div>
 
         {/* Description */}
