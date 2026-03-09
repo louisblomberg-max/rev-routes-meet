@@ -253,7 +253,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time *</SectionTitle>
+          <SectionTitle icon={Clock}>Date & Time *ionTitle>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
@@ -291,7 +291,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon *={MapP *in}>Lo *cation</SectionTitle>
+          <SectionTitle icon *={Ma={MapPin}>Location *ionTitle>
           <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
