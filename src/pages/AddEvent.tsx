@@ -21,7 +21,27 @@ import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
 
 const EVENT_TYPES = ['Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble'];
-const VEHICLE_TYPES = ['Cars', 'Bikes'];
+const VEHICLE_TYPE_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'cars', label: 'Cars' },
+  { id: 'bikes', label: 'Bikes' },
+  { id: 'jdm', label: 'JDM' },
+  { id: 'supercars', label: 'Supercars' },
+  { id: 'american', label: 'American' },
+  { id: 'european', label: 'European' },
+];
+const VEHICLE_AGE_OPTIONS = [
+  { id: 'all-ages', label: 'All' },
+  { id: 'classics', label: 'Classics' },
+  { id: 'modern', label: 'Modern' },
+  { id: 'pre-00s', label: "Pre 00's" },
+  { id: 'pre-90s', label: "Pre 90's" },
+  { id: 'pre-80s', label: "Pre 80's" },
+  { id: 'pre-70s', label: "Pre 70's" },
+  { id: 'pre-60s', label: "Pre 60's" },
+  { id: 'pre-50s', label: "Pre 50's" },
+  { id: 'vintage', label: 'Vintage' },
+];
 
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
@@ -63,7 +83,8 @@ const AddEvent = () => {
     maxAttendees: '',
   });
   const [eventType, setEventType] = useState<string>('');
-  const [vehicleType, setVehicleType] = useState<string>('All');
+  const [vehicleType, setVehicleType] = useState<string>('all');
+  const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
@@ -125,7 +146,8 @@ const AddEvent = () => {
       date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
       eventType: eventType,
-      vehicleTypes: vehicleType === 'All' ? ['All Welcome'] : [vehicleType],
+      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
+      // vehicleAge stored in tags for filtering
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
@@ -133,7 +155,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'All' ? [] : [vehicleType.toLowerCase()])],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
       isMultiDay: false,
       isRecurring: false,
     });
@@ -302,18 +324,38 @@ const AddEvent = () => {
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex gap-2">
-            {['All', 'Cars', 'Bikes'].map(type => (
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_TYPE_OPTIONS.map(opt => (
               <button
-                key={type}
-                onClick={() => setVehicleType(type)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                  vehicleType === type
+                key={opt.id}
+                onClick={() => setVehicleType(opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
               >
-                {type}
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* ── VEHICLE AGE ── */}
+        <SectionCard>
+          <SectionTitle icon={Clock}>Vehicle Age</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_AGE_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setVehicleAge(opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleAge === opt.id
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {opt.label}
               </button>
             ))}
           </div>
