@@ -371,6 +371,78 @@ const AddEvent = () => {
           </div>
         </SectionCard>
 
+        {/* ── VEHICLE BRAND ── */}
+        <SectionCard>
+          <SectionTitle icon={Tag}>
+            Vehicle Brand
+            {(vehicleType === 'all') && <span className="text-[10px] ml-1 text-muted-foreground font-normal">(select Cars or Bikes first)</span>}
+          </SectionTitle>
+
+          {(vehicleType === 'cars' || vehicleType === 'bikes') ? (
+            <div ref={brandRef} className="relative">
+              {/* Selected brand chips */}
+              {vehicleBrands.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {vehicleBrands.map((brand) => (
+                    <span
+                      key={brand}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30"
+                    >
+                      {brand}
+                      <button
+                        onClick={() => setVehicleBrands(vehicleBrands.filter(b => b !== brand))}
+                        className="w-4 h-4 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={brandSearch}
+                  onChange={(e) => {
+                    setBrandSearch(e.target.value);
+                    setIsBrandDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsBrandDropdownOpen(true)}
+                  placeholder="Search vehicle brand..."
+                  className="w-full h-11 pl-9 pr-3 rounded-xl border border-border/50 bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
+                />
+              </div>
+
+              {/* Dropdown results */}
+              {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
+                <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+                  {!brandSearch.trim() && (
+                    <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
+                  )}
+                  {filteredBrandResults.map((brand) => (
+                    <button
+                      key={brand}
+                      onClick={() => {
+                        setVehicleBrands([...vehicleBrands, brand]);
+                        setBrandSearch('');
+                        setIsBrandDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-events/10 transition-colors"
+                    >
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Select a vehicle type above to choose brands.</p>
+          )}
+        </SectionCard>
+
         {/* ── VEHICLE AGE ── */}
         <SectionCard>
           <SectionTitle icon={Clock}>Vehicle Age</SectionTitle>
