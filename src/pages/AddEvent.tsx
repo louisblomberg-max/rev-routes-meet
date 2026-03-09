@@ -412,7 +412,7 @@ const AddEvent = () => {
 
         {/* ── ENTRY FEE ── */}
         <SectionCard>
-          <SectionTitle icon={DollarSign}>Entry Fee</SectionTitle>
+          <SectionTitle icon={DollarSign}>Entry Fee <span className="text-destructive">*</span></SectionTitle>
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
             <p className="text-xs font-medium text-foreground">Charge attendees?</p>
             <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
