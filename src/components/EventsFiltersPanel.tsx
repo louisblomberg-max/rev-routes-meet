@@ -15,6 +15,7 @@ export interface EventsFilterState {
   dateFilter: string | null;
   specificDate: Date | undefined;
   vehicleTypes: string[];
+  vehicleCategory: string | null;
   vehicleAge: string | null;
   eventSize: string | null;
   entryFee: string | null;
@@ -63,6 +64,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
+  ];
+
+  const vehicleCategoryOptions = [
     { id: 'jdm', label: 'JDM' },
     { id: 'supercars', label: 'Supercars' },
     { id: 'american', label: 'American' },
@@ -217,7 +221,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <button
                 onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
@@ -299,6 +303,26 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   }`}
                 >
                   {vehicle.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Vehicle Category Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
+            <div className="flex flex-wrap gap-1.5">
+              {vehicleCategoryOptions.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.vehicleCategory === cat.id
+                      ? 'bg-events/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  }`}
+                >
+                  {cat.label}
                 </button>
               ))}
             </div>

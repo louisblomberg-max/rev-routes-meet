@@ -25,6 +25,8 @@ const VEHICLE_TYPE_OPTIONS = [
   { id: 'all', label: 'All' },
   { id: 'cars', label: 'Cars' },
   { id: 'bikes', label: 'Bikes' },
+];
+const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'jdm', label: 'JDM' },
   { id: 'supercars', label: 'Supercars' },
   { id: 'american', label: 'American' },
@@ -84,6 +86,7 @@ const AddEvent = () => {
   });
   const [eventType, setEventType] = useState<string>('');
   const [vehicleType, setVehicleType] = useState<string>('all');
+  const [vehicleCategory, setVehicleCategory] = useState<string | null>(null);
   const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
@@ -155,7 +158,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
       isMultiDay: false,
       isRecurring: false,
     });
@@ -331,6 +334,26 @@ const AddEvent = () => {
                 onClick={() => setVehicleType(opt.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
                   vehicleType === opt.id
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* ── VEHICLE CATEGORY ── */}
+        <SectionCard>
+          <SectionTitle icon={Car}>Vehicle Category</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {VEHICLE_CATEGORY_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setVehicleCategory(vehicleCategory === opt.id ? null : opt.id)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  vehicleCategory === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
