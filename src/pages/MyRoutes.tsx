@@ -83,7 +83,7 @@ const MyRoutes = () => {
           <div className="space-y-3">
             {displayRoutes.map(route => (
               <div key={route.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-                <button onClick={() => navigate(`/route/${route.id}`)} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
+                <button onClick={() => navigate('/', { state: { showRouteId: route.id } })} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <Badge className={`text-[10px] py-0 h-5 mb-1.5 ${routeTypeColors[route.type] || 'bg-muted text-foreground'}`}>{route.type}</Badge>
