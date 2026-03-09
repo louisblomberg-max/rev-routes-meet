@@ -16,6 +16,9 @@ interface RouteDetailContentProps {
 
 const RouteDetailContent = ({ route, onNavigate, onViewFull, isSaved, onToggleSave }: RouteDetailContentProps) => {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [routeUserRating, setRouteUserRating] = useState(0);
+  const [routeHoveredStar, setRouteHoveredStar] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const photos = (route as any).photos as string[] | undefined;
   const hasPhotos = photos && photos.length > 0;
 
