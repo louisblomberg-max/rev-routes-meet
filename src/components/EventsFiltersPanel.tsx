@@ -16,6 +16,7 @@ export interface EventsFilterState {
   specificDate: Date | undefined;
   vehicleTypes: string[];
   vehicleBrands: string[];
+  vehicleCategory: string | null;
   vehicleAge: string | null;
   eventSize: string | null;
   entryFee: string | null;
