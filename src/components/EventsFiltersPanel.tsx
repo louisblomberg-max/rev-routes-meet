@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useGarage } from '@/contexts/GarageContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
@@ -26,8 +27,15 @@ interface EventsFiltersPanelProps {
 
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
+  const { vehicles } = useGarage();
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Build "My Vehicles" label from garage
+  const myVehicleLabel = useMemo(() => {
+    if (vehicles.length === 0) return 'My Vehicles';
+    return `My Vehicles (${vehicles.length})`;
+  }, [vehicles]);
 
   const distancePresets = [
     { id: 'national', label: 'National' },
@@ -35,12 +43,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const typeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'meets', label: 'Meets' },
-    { id: 'cars-coffee', label: 'Cars & Coffee' },
-    { id: 'drive', label: 'Drive / Drive-Out' },
-    { id: 'group-drive', label: 'Group Drive' },
+    { id: 'shows', label: 'Shows' },
+    { id: 'drive', label: 'Drive' },
     { id: 'track-day', label: 'Track Day' },
-    { id: 'show', label: 'Show / Exhibition' },
+    { id: 'motorsport', label: 'Motorsport' },
+    { id: 'autojumble', label: 'Autojumble' },
   ];
 
   const dateOptions = [
@@ -52,13 +61,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
-    { id: 'motorcycles', label: 'Motorcycles' },
-    { id: 'classic', label: 'Classic' },
-    { id: 'supercars', label: 'Supercars' },
-    { id: 'jdm', label: 'JDM' },
-    { id: 'euro', label: 'Euro' },
-    { id: 'american', label: 'American' },
-    { id: 'off-road', label: 'Off-road' },
+    { id: 'bikes', label: 'Bikes' },
+    { id: 'my-vehicles', label: myVehicleLabel },
   ];
 
   const eventSizeOptions = [
@@ -74,16 +78,24 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const toggleType = (typeId: string) => {
+    if (typeId === 'all') {
+      onFiltersChange({ ...filters, types: [] });
+      return;
+    }
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
-      : [...filters.types, typeId];
+      : [...filters.types.filter(t => t !== 'all'), typeId];
     onFiltersChange({ ...filters, types: newTypes });
   };
 
   const toggleVehicleType = (vehicleTypeId: string) => {
+    if (vehicleTypeId === 'all-vehicles') {
+      onFiltersChange({ ...filters, vehicleTypes: [] });
+      return;
+    }
     const newVehicleTypes = filters.vehicleTypes.includes(vehicleTypeId)
       ? filters.vehicleTypes.filter(v => v !== vehicleTypeId)
-      : [...filters.vehicleTypes, vehicleTypeId];
+      : [...filters.vehicleTypes.filter(v => v !== 'all-vehicles'), vehicleTypeId];
     onFiltersChange({ ...filters, vehicleTypes: newVehicleTypes });
   };
 
@@ -255,16 +267,16 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             </div>
           </div>
 
-          {/* Type Filter */}
+          {/* Event Type Filter */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Type</p>
+            <p className="text-xs font-medium text-foreground">Event Type</p>
             <div className="flex flex-wrap gap-1.5">
               {typeOptions.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.types.includes(type.id)
+                    (type.id === 'all' && filters.types.length === 0) || filters.types.includes(type.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -284,7 +296,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   key={vehicle.id}
                   onClick={() => toggleVehicleType(vehicle.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleTypes.includes(vehicle.id)
+                    (vehicle.id === 'all-vehicles' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}

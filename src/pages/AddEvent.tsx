@@ -20,8 +20,8 @@ import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
 
-const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Drive / Drive-Out', 'Group Drive', 'Track Day', 'Show / Exhibition'];
-const VEHICLE_TYPES = ['Cars', 'Motorcycles', 'Classic', 'Supercars', 'JDM', 'Euro', 'American', 'Off-road'];
+const EVENT_TYPES = ['Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble'];
+const VEHICLE_TYPES = ['Cars', 'Bikes'];
 
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
