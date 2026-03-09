@@ -147,7 +147,7 @@ const AddEvent = () => {
       endDate: endDate?.toISOString(),
       eventType: eventType,
       vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
-      vehicleAge: vehicleAge === 'all-ages' ? undefined : VEHICLE_AGE_OPTIONS.find(o => o.id === vehicleAge)?.label,
+      // vehicleAge stored in tags for filtering
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
