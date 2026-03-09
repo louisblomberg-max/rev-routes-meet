@@ -195,7 +195,7 @@ const AddEvent = () => {
 
         {/* ── BANNER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Event Banner * * * *</SectionTitle>
+          <SectionTitle icon={Camera}>Event Banner * * * * *</SectionTitle>
           <Label className="text-xs text-muted-foreground mb-2 block">This image appears at the top of your event detail</Label>
           {bannerImage ? (
             <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-border/50">
@@ -218,7 +218,7 @@ const AddEvent = () => {
 
         {/* ── EVENT INFO ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Even *t  *In *fo</SectionTitle>
+          <SectionTitle icon={Calendar}>Ev *en *t  *In *fo</SectionTitle>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
@@ -252,7 +252,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date &  *Time</SectionTitle>
+          <SectionTitle icon={Clock}>Dat *e &  *Time</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
@@ -290,7 +290,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon={MapPin}>Location</SectionTitle>
+          <SectionTitle icon={MapPin}>Lo *cation</SectionTitle>
           <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
