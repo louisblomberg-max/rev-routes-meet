@@ -286,9 +286,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onFiltersChange({
+              onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleBrands: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleBrands: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
