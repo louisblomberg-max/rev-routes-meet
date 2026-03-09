@@ -268,7 +268,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   key={type.id}
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.types.includes(type.id)
+                    (type.id === 'all' && filters.types.length === 0) || filters.types.includes(type.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
