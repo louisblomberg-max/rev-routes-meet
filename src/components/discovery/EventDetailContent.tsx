@@ -32,12 +32,11 @@ const CATEGORY_LABELS: Record<string, string> = {
 interface EventDetailContentProps {
   event: RevEvent;
   onNavigate: () => void;
-  onViewFull: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }
 
-const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSave }: EventDetailContentProps) => {
+const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
   const [rsvpStatus, setRsvpStatus] = useState<'none' | 'going' | 'interested'>('none');
 
   const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
@@ -277,13 +276,6 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
         </Button>
       </div>
 
-      {/* View full */}
-      <button
-        onClick={onViewFull}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors py-1"
-      >
-        View full details →
-      </button>
     </div>
   );
 };

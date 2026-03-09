@@ -95,7 +95,6 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
             <EventDetailContent
               event={item.data}
               onNavigate={handleNavigate}
-              onViewFull={handleViewFull}
               isSaved={state.savedEvents.includes(item.data.id)}
               onToggleSave={() => handleSaveEvent(item.data.id)}
             />
