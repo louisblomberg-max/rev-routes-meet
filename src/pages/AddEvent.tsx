@@ -81,6 +81,8 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
+    const wordCount = formData.description.trim().split(/\s+/).filter(Boolean).length;
+    if (wordCount < 15) errs.description = `Description must be at least 15 words (currently ${wordCount})`;
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
@@ -88,6 +90,7 @@ const AddEvent = () => {
     if (visibility === 'club' && !clubId) errs.club = 'Select a club';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
+    if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -218,7 +221,7 @@ const AddEvent = () => {
 
         {/* ── EVENT INFO ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Info</SectionTitle>
+          <SectionTitle icon={Calendar}>Event Info <span className="text-destructive">*</span></SectionTitle>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
@@ -226,15 +229,16 @@ const AddEvent = () => {
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-xs text-muted-foreground">Description</Label>
-              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
+              <Label htmlFor="description" className="text-xs text-muted-foreground">Description * <span className="text-muted-foreground/60">(min 15 words)</span></Label>
+              <Textarea id="description" placeholder="Tell people what to expect... (minimum 15 words)" rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
+              {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
           </div>
         </SectionCard>
 
         {/* ── EVENT TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Type *</SectionTitle>
+          <SectionTitle icon={Calendar}>Event Type <span className="text-destructive">*</span></SectionTitle>
           <div className="flex flex-wrap gap-2">
             {EVENT_TYPES.map(type => (
               <button key={type} onClick={() => { setEventType(type); setErrors(prev => ({ ...prev, eventType: '' })); }}
@@ -252,7 +256,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time</SectionTitle>
+          <SectionTitle icon={Clock}>Date & Time <span className="text-destructive">*</span></SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
@@ -290,7 +294,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon={MapPin}>Location</SectionTitle>
+          <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
           <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
@@ -300,7 +304,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Type</SectionTitle>
+          <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
@@ -342,7 +346,7 @@ const AddEvent = () => {
 
         {/* ── VISIBILITY ── */}
         <SectionCard>
-          <SectionTitle icon={Eye}>Visibility</SectionTitle>
+          <SectionTitle icon={Eye}>Visibility <span className="text-destructive">*</span></SectionTitle>
           <div className="grid grid-cols-2 gap-2">
             {VISIBILITY_OPTIONS.map(opt => {
               const Icon = opt.icon;
@@ -398,7 +402,7 @@ const AddEvent = () => {
 
         {/* ── MAX ATTENDEES ── */}
         <SectionCard>
-          <SectionTitle icon={Users}>Max Attendees *</SectionTitle>
+          <SectionTitle icon={Users}>Max Attendees <span className="text-destructive">*</span></SectionTitle>
           <div className="relative">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input id="maxAttendees" type="number" placeholder="e.g. 50" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => { update('maxAttendees', e.target.value); setErrors(prev => ({ ...prev, maxAttendees: '' })); }} />
@@ -408,7 +412,7 @@ const AddEvent = () => {
 
         {/* ── ENTRY FEE ── */}
         <SectionCard>
-          <SectionTitle icon={DollarSign}>Entry Fee</SectionTitle>
+          <SectionTitle icon={DollarSign}>Entry Fee <span className="text-destructive">*</span></SectionTitle>
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
             <p className="text-xs font-medium text-foreground">Charge attendees?</p>
             <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
