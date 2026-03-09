@@ -63,8 +63,7 @@ const AddEvent = () => {
     maxAttendees: '',
   });
   const [eventType, setEventType] = useState<string>('');
-  const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>('all');
-  const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
+  const [vehicleType, setVehicleType] = useState<string>('All');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
@@ -86,8 +85,7 @@ const AddEvent = () => {
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
-    if (visibility === 'club' && !clubId) errs.club = 'Select a club';
+    // vehicleType always has a value ('All', 'Cars', or 'Bikes')
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
     if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
@@ -127,7 +125,7 @@ const AddEvent = () => {
       date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
       eventType: eventType,
-      vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
+      vehicleTypes: vehicleType === 'All' ? ['All Welcome'] : [vehicleType],
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
@@ -135,11 +133,10 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'All' ? [] : [vehicleType.toLowerCase()])],
       isMultiDay: false,
       isRecurring: false,
     });
-
     // Deduct credit if free user
     const check = canCreateEvent();
     if (check.creditsRemaining > 0) {
@@ -305,43 +302,21 @@ const AddEvent = () => {
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
           <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'all'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              All Welcome
-            </button>
-            <button
-              onClick={() => setVehicleTypeMode('selected')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                vehicleTypeMode === 'selected'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              Choose Types
-            </button>
+          <div className="flex gap-2">
+            {['All', 'Cars', 'Bikes'].map(type => (
+              <button
+                key={type}
+                onClick={() => setVehicleType(type)}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
+                  vehicleType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}
+              >
+                {type}
+              </button>
+            ))}
           </div>
-          {vehicleTypeMode === 'selected' && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {VEHICLE_TYPES.map(type => (
-                <button key={type} onClick={() => { toggleChip(vehicleTypes, setVehicleTypes, type); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                    vehicleTypes.includes(type)
-                      ? 'bg-events text-events-foreground border-events shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                  }`}>
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
-          {errors.vehicleType && <p className="text-xs text-destructive mt-2">{errors.vehicleType}</p>}
         </SectionCard>
 
         {/* ── VISIBILITY ── */}
