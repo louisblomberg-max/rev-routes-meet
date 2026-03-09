@@ -85,7 +85,7 @@ const AddEvent = () => {
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
+    // vehicleType always has a value ('All', 'Cars', or 'Bikes')
     if (visibility === 'club' && !clubId) errs.club = 'Select a club';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
