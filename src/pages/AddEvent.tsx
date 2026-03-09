@@ -253,8 +253,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time *le>
-          <div className="grid grid-cols-2 gap-3">
+          <SectionTitle icon={Clock}>Date & Time *        <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
               <Popover>
@@ -291,7 +290,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon *={Ma={MapP={MapPin}>Location *          <LocationPicker
+          <SectionTitle icon *={Ma={MapP={MapP={MapPin}>Location *<LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
             error={errors.location}
@@ -300,8 +299,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={C *ar}>Vehiar}>Vehicle Type *itle>
-          <div className="flex gap-2 mb-3">
+          <SectionTitle icon={C *ar}>Vehiar}>Vehiclar}>Vehicle Type *    <div className="flex gap-2 mb-3">
             <button
               onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
               className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
@@ -342,7 +340,7 @@ const AddEvent = () => {
 
         {/* ── VISIBILITY ── */}
         <SectionCard>
-          <SectionTitle icon={Eye}> *Visibility</SectionTitle>
+          <SectionTitle icon={Eye}> *VisibilityVisibility *le>
           <div className="grid grid-cols-2 gap-2">
             {VISIBILITY_OPTIONS.map(opt => {
               const Icon = opt.icon;
