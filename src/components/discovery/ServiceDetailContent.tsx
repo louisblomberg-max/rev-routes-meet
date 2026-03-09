@@ -1,8 +1,18 @@
-import { MapPin, Star, Clock, Phone, Globe, Navigation, Bookmark, Share2, Shield, BadgeCheck } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Star, Clock, Phone, Globe, Navigation, Bookmark, Share2, Shield, BadgeCheck, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import { RevService } from '@/models';
 import { toast } from 'sonner';
+
+interface Review {
+  id: string;
+  author: string;
+  rating: number;
+  text: string;
+  date: string;
+}
 
 interface ServiceDetailContentProps {
   service: RevService;
@@ -13,6 +23,15 @@ interface ServiceDetailContentProps {
 }
 
 const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onToggleSave }: ServiceDetailContentProps) => {
+  const [userRating, setUserRating] = useState(0);
+  const [hoveredStar, setHoveredStar] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [reviews, setReviews] = useState<Review[]>([
+    { id: '1', author: 'Alex M.', rating: 5, text: 'Excellent service, very professional. Would highly recommend!', date: '2 days ago' },
+    { id: '2', author: 'Jordan K.', rating: 4, text: 'Great work on my car. Slightly slow but quality was top notch.', date: '1 week ago' },
+  ]);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({ title: service.name, text: `Check out ${service.name} on RevNet` }).catch(() => {});
@@ -24,6 +43,24 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
   const handleSave = () => {
     onToggleSave();
     toast.success(isSaved ? 'Removed from saved' : 'Saved to your collection');
+  };
+
+  const handleSubmitReview = () => {
+    if (userRating === 0) {
+      toast.error('Please select a rating');
+      return;
+    }
+    const newReview: Review = {
+      id: Date.now().toString(),
+      author: 'You',
+      rating: userRating,
+      text: reviewText.trim(),
+      date: 'Just now',
+    };
+    setReviews(prev => [newReview, ...prev]);
+    setRatingSubmitted(true);
+    setReviewText('');
+    toast.success('Review submitted — thanks!');
   };
 
   return (
@@ -131,6 +168,72 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
         </Button>
       </div>
 
+      {/* Rate this service */}
+      <div className="bg-muted/30 rounded-xl p-4 border border-border/50 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Rate & Review</h3>
+        {ratingSubmitted ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <span>You rated this service {userRating}/5</span>
+          </div>
+        ) : (
+          <>
+            <div className="flex gap-1.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onMouseEnter={() => setHoveredStar(star)}
+                  onMouseLeave={() => setHoveredStar(0)}
+                  onClick={() => setUserRating(star)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <Star
+                    className={`w-7 h-7 transition-colors ${
+                      star <= (hoveredStar || userRating)
+                        ? 'fill-amber-500 text-amber-500'
+                        : 'text-muted-foreground/30'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <Textarea
+              placeholder="Write a review (optional)..."
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              className="min-h-[60px] text-sm bg-background"
+              maxLength={500}
+            />
+            <Button size="sm" onClick={handleSubmitReview} disabled={userRating === 0} className="gap-1.5">
+              <Send className="w-3.5 h-3.5" /> Submit review
+            </Button>
+          </>
+        )}
+      </div>
+
+      {/* Reviews */}
+      {reviews.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">Reviews ({reviews.length})</h3>
+          {reviews.map((review) => (
+            <div key={review.id} className="bg-muted/30 rounded-xl p-3 border border-border/50 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">{review.author}</span>
+                <span className="text-xs text-muted-foreground">{review.date}</span>
+              </div>
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <Star
+                    key={s}
+                    className={`w-3.5 h-3.5 ${s <= review.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/20'}`}
+                  />
+                ))}
+              </div>
+              {review.text && <p className="text-xs text-muted-foreground leading-relaxed">{review.text}</p>}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -16,6 +16,9 @@ interface RouteDetailContentProps {
 
 const RouteDetailContent = ({ route, onNavigate, onViewFull, isSaved, onToggleSave }: RouteDetailContentProps) => {
   const [photoIndex, setPhotoIndex] = useState(0);
+  const [routeUserRating, setRouteUserRating] = useState(0);
+  const [routeHoveredStar, setRouteHoveredStar] = useState(0);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const photos = (route as any).photos as string[] | undefined;
   const hasPhotos = photos && photos.length > 0;
 
@@ -171,6 +174,52 @@ const RouteDetailContent = ({ route, onNavigate, onViewFull, isSaved, onToggleSa
         <Button className="flex-1 gap-2 bg-routes hover:bg-routes/90 text-white py-5" onClick={onNavigate}>
           <Navigation className="w-4 h-4" /> Start Navigation
         </Button>
+      </div>
+
+      {/* Rate this route */}
+      <div className="bg-muted/30 rounded-xl p-4 border border-border/50 space-y-3">
+        <h3 className="text-sm font-semibold text-foreground">Rate this route</h3>
+        {ratingSubmitted ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+            <span>You rated this route {routeUserRating}/5</span>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <div className="flex gap-1.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onMouseEnter={() => setRouteHoveredStar(star)}
+                  onMouseLeave={() => setRouteHoveredStar(0)}
+                  onClick={() => setRouteUserRating(star)}
+                  className="transition-transform hover:scale-110 active:scale-95"
+                >
+                  <Star
+                    className={`w-7 h-7 transition-colors ${
+                      star <= (routeHoveredStar || routeUserRating)
+                        ? 'fill-amber-500 text-amber-500'
+                        : 'text-muted-foreground/30'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                if (routeUserRating === 0) { toast.error('Please select a rating'); return; }
+                setRatingSubmitted(true);
+                toast.success(`Rated ${routeUserRating}/5 — thanks!`);
+              }}
+              disabled={routeUserRating === 0}
+              className="text-xs"
+            >
+              Submit rating
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Actions row */}

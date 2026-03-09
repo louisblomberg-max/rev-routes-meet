@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock } from 'lucide-react';
+import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock, Send } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import NavigateButton from '@/components/NavigateButton';
+import RouteRatingSection from '@/components/discovery/RouteRatingSection';
 
 const RouteDetail = () => {
   const navigate = useNavigate();
@@ -234,6 +235,9 @@ const RouteDetail = () => {
             </div>
           </div>
         )}
+
+        {/* Rate this route */}
+        <RouteRatingSection routeId={route.id} currentRating={route.rating} />
 
         {/* Navigate */}
         <NavigateButton destination={routeStart} colorClass="bg-routes hover:bg-routes/90" />
