@@ -253,7 +253,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time *ionTitle>
+          <SectionTitle icon={Clock}>Date & Time *le>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
@@ -291,8 +291,7 @@ const AddEvent = () => {
 
         {/* ── LOCATION ── */}
         <SectionCard>
-          <SectionTitle icon *={Ma={MapPin}>Location *ionTitle>
-          <LocationPicker
+          <SectionTitle icon *={Ma={MapP={MapPin}>Location *          <LocationPicker
             value={formData.location}
             onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
             error={errors.location}
@@ -301,7 +300,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={C *ar}>Vehi *cle Type</SectionTitle>
+          <SectionTitle icon={C *ar}>Vehiar}>Vehicle Type *itle>
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => { setVehicleTypeMode('all'); setVehicleTypes([]); setErrors(prev => ({ ...prev, vehicleType: '' })); }}
