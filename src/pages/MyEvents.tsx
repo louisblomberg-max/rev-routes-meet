@@ -87,7 +87,7 @@ const MyEvents = () => {
             {displayEvents.map(event => (
               <button
                 key={event.id}
-                onClick={() => navigate(`/`)}}
+                onClick={() => navigate('/')}
                 className={`w-full bg-card rounded-2xl border border-border/50 shadow-sm p-4 text-left hover:shadow-md hover:border-border transition-all active:scale-[0.99] ${activeTab === 'past' ? 'opacity-75' : ''}`}
               >
                 <div className="flex items-start justify-between gap-3 mb-3">
