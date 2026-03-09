@@ -122,6 +122,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleCategoryOptions = [
     { id: 'jdm', label: 'JDM' },
     { id: 'supercars', label: 'Supercars' },
+    { id: 'muscle-car', label: 'Muscle Car' },
     { id: 'american', label: 'American' },
     { id: 'european', label: 'European' },
   ];
