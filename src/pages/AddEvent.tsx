@@ -25,9 +25,8 @@ const VEHICLE_TYPES = ['Cars', 'Motorcycles', 'Classic', 'Supercars', 'JDM', 'Eu
 
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
-  { value: 'club' as const, label: 'Club', description: 'Choose a club', icon: UsersRound },
+  { value: 'club' as const, label: 'Club', description: 'Post to your club', icon: UsersRound },
   { value: 'friends' as const, label: 'Friends Only', description: 'Visible to friends', icon: Users },
-  { value: 'private' as const, label: 'Private', description: 'Only me', icon: Lock },
 ];
 
 // ── Shared layout components (matching Add Service) ──
