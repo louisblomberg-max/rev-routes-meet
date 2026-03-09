@@ -62,15 +62,14 @@ const AddEvent = () => {
     feeAmount: '',
     maxAttendees: '',
   });
-  const [eventTypeMode, setEventTypeMode] = useState<'all' | 'selected'>('all');
-  const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [eventType, setEventType] = useState<string>('');
   const [vehicleTypeMode, setVehicleTypeMode] = useState<'all' | 'selected'>('all');
   const [vehicleTypes, setVehicleTypes] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
   const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
-  const [setDateLater, setSetDateLater] = useState(false);
+  
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -82,11 +81,12 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
-    if (!formData.location.trim()) errs.location = 'Location is required';
+    if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
-    if (eventTypeMode === 'selected' && eventTypes.length === 0) errs.eventType = 'Select at least one event type';
+    if (!formData.location.trim()) errs.location = 'Location is required';
     if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
     if (visibility === 'club' && !clubId) errs.club = 'Select a club';
+    if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -115,25 +115,24 @@ const AddEvent = () => {
 
   const doPublish = () => {
     setIsSubmitting(true);
-    const selectedTypes = eventTypeMode === 'all' ? EVENT_TYPES : eventTypes;
     const newEvent = eventsRepo.create({
       title: formData.name,
       description: formData.description,
       location: formData.location,
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
-      date: (!setDateLater && startDate) ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
-      eventType: selectedTypes[0] || 'Meets',
+      eventType: eventType,
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
-      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : undefined,
-      ticketLimit: formData.maxAttendees ? parseInt(formData.maxAttendees) : undefined,
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
+      ticketLimit: parseInt(formData.maxAttendees) || undefined,
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [...selectedTypes.map(t => t.toLowerCase()), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
+      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
       isMultiDay: false,
       isRecurring: false,
     });
@@ -235,43 +234,19 @@ const AddEvent = () => {
 
         {/* ── EVENT TYPE ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar}>Event Type</SectionTitle>
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => { setEventTypeMode('all'); setEventTypes([]); setErrors(prev => ({ ...prev, eventType: '' })); }}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                eventTypeMode === 'all'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              All Event Types
-            </button>
-            <button
-              onClick={() => setEventTypeMode('selected')}
-              className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                eventTypeMode === 'selected'
-                  ? 'bg-events text-events-foreground border-events shadow-sm'
-                  : 'bg-muted/50 text-muted-foreground border-border/50'
-              }`}
-            >
-              Choose Types
-            </button>
+          <SectionTitle icon={Calendar}>Event Type *</SectionTitle>
+          <div className="flex flex-wrap gap-2">
+            {EVENT_TYPES.map(type => (
+              <button key={type} onClick={() => { setEventType(type); setErrors(prev => ({ ...prev, eventType: '' })); }}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
+                  eventType === type
+                    ? 'bg-events text-events-foreground border-events shadow-sm'
+                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                }`}>
+                {type}
+              </button>
+            ))}
           </div>
-          {eventTypeMode === 'selected' && (
-            <div className="flex flex-wrap gap-2 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {EVENT_TYPES.map(type => (
-                <button key={type} onClick={() => { toggleChip(eventTypes, setEventTypes, type); setErrors(prev => ({ ...prev, eventType: '' })); }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                    eventTypes.includes(type)
-                      ? 'bg-events text-events-foreground border-events shadow-sm'
-                      : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                  }`}>
-                  {type}
-                </button>
-              ))}
-            </div>
-          )}
           {errors.eventType && <p className="text-xs text-destructive mt-2">{errors.eventType}</p>}
         </SectionCard>
 
@@ -423,11 +398,12 @@ const AddEvent = () => {
 
         {/* ── MAX ATTENDEES ── */}
         <SectionCard>
-          <SectionTitle icon={Users}>Max Attendees</SectionTitle>
+          <SectionTitle icon={Users}>Max Attendees *</SectionTitle>
           <div className="relative">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="maxAttendees" type="number" placeholder="Unlimited" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => update('maxAttendees', e.target.value)} />
+            <Input id="maxAttendees" type="number" placeholder="e.g. 50" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => { update('maxAttendees', e.target.value); setErrors(prev => ({ ...prev, maxAttendees: '' })); }} />
           </div>
+          {errors.maxAttendees && <p className="text-xs text-destructive mt-1">{errors.maxAttendees}</p>}
         </SectionCard>
 
         {/* ── ENTRY FEE ── */}
