@@ -15,6 +15,7 @@ export interface EventsFilterState {
   dateFilter: string | null;
   specificDate: Date | undefined;
   vehicleTypes: string[];
+  vehicleAge: string | null;
   eventSize: string | null;
   entryFee: string | null;
   clubHosted: boolean;
@@ -217,7 +218,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <button
                 onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
@@ -320,6 +321,37 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Vehicle Age Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Vehicle Age</p>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                { id: 'all-ages', label: 'All' },
+                { id: 'classics', label: 'Classics' },
+                { id: 'modern', label: 'Modern' },
+                { id: 'pre-00s', label: "Pre 00's" },
+                { id: 'pre-90s', label: "Pre 90's" },
+                { id: 'pre-80s', label: "Pre 80's" },
+                { id: 'pre-70s', label: "Pre 70's" },
+                { id: 'pre-60s', label: "Pre 60's" },
+                { id: 'pre-50s', label: "Pre 50's" },
+                { id: 'vintage', label: 'Vintage' },
+              ].map((age) => (
+                <button
+                  key={age.id}
+                  onClick={() => onFiltersChange({ ...filters, vehicleAge: age.id === 'all-ages' ? null : (filters.vehicleAge === age.id ? null : age.id) })}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    (age.id === 'all-ages' && !filters.vehicleAge) || filters.vehicleAge === age.id
+                      ? 'bg-events/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  }`}
+                >
+                  {age.label}
+                </button>
+              ))}
             </div>
           </div>
 
