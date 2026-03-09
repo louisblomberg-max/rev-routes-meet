@@ -256,7 +256,7 @@ const AddEvent = () => {
 
         {/* ── DATE & TIME ── */}
         <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time</SectionTitle>
+          <SectionTitle icon={Clock}>Date & Time <span className="text-destructive">*</span></SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <span className="text-xs text-muted-foreground font-medium">Start *</span>
