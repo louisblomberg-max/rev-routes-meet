@@ -70,14 +70,10 @@ const EVENT_NAMES = [
   'Retro Rides Gathering', 'Rev Harder Track Day', 'EV Owners Social', 'Rally Stage Experience', 'Midnight Run',
   'Chrome & Coffee', 'Petrolhead Picnic', 'Alpine Run Convoy', 'Detailing Demo Day', 'Dyno Day',
 ];
-const EVENT_TYPES = ['Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble'];
-const VEHICLE_TYPE_OPTIONS_GEN = [
-  { id: 'all', label: 'All' },
-  { id: 'cars', label: 'Cars' },
-  { id: 'bikes', label: 'Bikes' },
-];
+const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport', 'autojumble'] as const;
+const VEHICLE_TYPE_IDS = ['all', 'cars', 'bikes'] as const;
 const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european'];
-const VEHICLE_AGE_OPTIONS_GEN = ['all-ages', 'classics', 'modern', 'vintage', 'pre-00s', 'pre-90s', 'pre-80s', 'pre-70s', 'pre-60s', 'pre-50s'];
+const VEHICLE_AGE_OPTIONS_GEN = ['all', 'classics', 'modern', 'vintage', 'pre_2000', 'pre_1990', 'pre_1980', 'pre_1970', 'pre_1960', 'pre_1950'];
 
 const CAR_BRANDS_GEN = [
   'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
@@ -126,21 +122,27 @@ const EVENT_DESCRIPTIONS = [
   'Classic and vintage car rally through picturesque villages with timed checkpoints. Open to pre-1990 vehicles only. Period dress encouraged but not required for participants.',
 ];
 
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day', motorsport: 'Motorsport', autojumble: 'Autojumble',
+};
+
 function generateRandomEvents(count: number) {
   const events = [];
   for (let i = 0; i < count; i++) {
     const coords = randCoordUK();
-    const eventType = pick(EVENT_TYPES);
-    const vehicleTypeOpt = pick(VEHICLE_TYPE_OPTIONS_GEN);
-    const vehicleCategory = Math.random() > 0.3 ? pick(VEHICLE_CATEGORY_OPTIONS_GEN) : null;
+    const eventType = pick([...EVENT_TYPE_IDS]);
+    const vehicleType = pick([...VEHICLE_TYPE_IDS]);
+    const vehicleCategories = Math.random() > 0.3 ? pickN(VEHICLE_CATEGORY_OPTIONS_GEN, randBetween(1, 2)) : [];
     const vehicleAge = pick(VEHICLE_AGE_OPTIONS_GEN);
 
     // Pick brands based on vehicle type
     let vehicleBrands: string[] = [];
-    if (vehicleTypeOpt.id === 'cars') {
+    if (vehicleType === 'cars') {
       vehicleBrands = pickN(CAR_BRANDS_GEN, randBetween(1, 3));
-    } else if (vehicleTypeOpt.id === 'bikes') {
+    } else if (vehicleType === 'bikes') {
       vehicleBrands = pickN(BIKE_BRANDS_GEN, randBetween(1, 2));
+    } else {
+      vehicleBrands = pickN([...CAR_BRANDS_GEN, ...BIKE_BRANDS_GEN], randBetween(1, 3));
     }
 
     // Generate a future date
@@ -148,35 +150,50 @@ function generateRandomEvents(count: number) {
     futureDate.setDate(futureDate.getDate() + randBetween(1, 90));
     const hours = randBetween(7, 20);
     const mins = pick(['00', '30']);
-    const dateStr = futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ` • ${hours}:${mins} ${hours < 12 ? 'AM' : 'PM'}`;
-    
-    const hasFee = Math.random() > 0.5;
-    const maxAttendees = randBetween(20, 500);
+    const startTime = `${String(hours).padStart(2, '0')}:${mins}`;
+    const endHours = Math.min(hours + randBetween(2, 5), 23);
+    const endTime = `${String(endHours).padStart(2, '0')}:${mins}`;
 
-    // Build tags exactly like the real Add Event form
-    const tags: string[] = [eventType.toLowerCase()];
-    if (vehicleTypeOpt.id !== 'all') tags.push(vehicleTypeOpt.id);
-    if (vehicleCategory) tags.push(vehicleCategory);
-    vehicleBrands.forEach(b => tags.push(b.toLowerCase()));
-    if (vehicleAge !== 'all-ages') tags.push(vehicleAge);
+    const hasFee = Math.random() > 0.5;
+    const maxAttendees = randBetween(10, 500);
+    const locationName = `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`;
 
     events.push({
       title: pick(EVENT_NAMES),
       description: pick(EVENT_DESCRIPTIONS),
-      location: `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`,
+      locationName,
+      location: locationName,
       lat: coords.lat,
       lng: coords.lng,
-      date: dateStr,
+
+      // Structured fields
       eventType,
-      vehicleTypes: vehicleTypeOpt.id === 'all' ? ['All Welcome'] : [vehicleTypeOpt.label],
+      vehicleType,
+      vehicleBrands,
+      vehicleCategories,
+      vehicleAge,
+
+      // Dates
+      startDate: futureDate.toISOString(),
+      startTime,
+      endTime,
+
+      // Legacy date for display
+      date: futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ` • ${startTime}`,
+
       visibility: pick(['public', 'public', 'public', 'club', 'friends'] as const),
       createdBy: pick(USERNAMES),
+      maxAttendees,
       attendees: randBetween(0, Math.floor(maxAttendees * 0.6)),
-      isMultiDay: false,
-      isRecurring: false,
+      entryFeeType: hasFee ? 'paid' as const : 'free' as const,
+      entryFeeAmount: hasFee ? randBetween(3, 45) : undefined,
+      currency: 'GBP',
+
+      // Legacy
       entryFee: hasFee ? `£${randBetween(3, 45)}` : 'Free',
+      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [vehicleType === 'cars' ? 'Cars' : 'Bikes'],
       ticketLimit: maxAttendees,
-      tags,
+      tags: [],
     });
   }
   return events;
@@ -245,18 +262,27 @@ const DevTools = () => {
   const createTestEvent = (lat: number, lng: number) => {
     eventsRepo.create({
       title: `Test Event ${Date.now().toString(36)}`,
-      description: 'Auto-generated test event from Dev Tools',
+      description: 'Auto-generated test event from Dev Tools for quick testing and verification of the event system.',
+      locationName: 'Current Location',
       location: 'Current Location',
       lat, lng,
+      eventType: 'meets',
+      vehicleType: 'all',
+      vehicleBrands: [],
+      vehicleCategories: [],
+      vehicleAge: 'all',
+      startDate: new Date().toISOString(),
+      startTime: '12:00',
+      endTime: '14:00',
       date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
-      eventType: 'Meets',
-      vehicleTypes: ['All Welcome'],
       visibility: 'public' as const,
       createdBy: state.currentUser?.id || 'dev',
+      maxAttendees: 50,
       attendees: 0,
-      isMultiDay: false,
-      isRecurring: false,
-      tags: ['meets'],
+      entryFeeType: 'free',
+      currency: 'GBP',
+      vehicleTypes: ['All Welcome'],
+      tags: [],
     });
     toast.success('Test event created at your location!', {
       description: 'Switch to Discovery → Events to see the pin.',

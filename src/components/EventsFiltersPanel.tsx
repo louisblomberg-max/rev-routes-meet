@@ -56,7 +56,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const brandRef = useRef<HTMLDivElement>(null);
 
-  // Close brand dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
@@ -84,7 +83,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const filteredBrands = useMemo(() => {
     const query = brandSearch.trim().toLowerCase();
     if (!query) {
-      // Show popular brands first, then rest
       const rest = availableBrands.filter(b => !popularBrands.includes(b));
       return [...popularBrands, ...rest].filter(b => !filters.vehicleBrands.includes(b)).slice(0, 8);
     }
@@ -98,6 +96,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'international', label: 'International' },
   ];
 
+  // These IDs match EventType values in the model exactly
   const typeOptions = [
     { id: 'all', label: 'All' },
     { id: 'meets', label: 'Meets' },
@@ -119,12 +118,27 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'bikes', label: 'Bikes' },
   ];
 
+  // IDs match the structured vehicleCategories values
   const vehicleCategoryOptions = [
     { id: 'jdm', label: 'JDM' },
     { id: 'supercars', label: 'Supercars' },
     { id: 'muscle-car', label: 'Muscle Car' },
     { id: 'american', label: 'American' },
     { id: 'european', label: 'European' },
+  ];
+
+  // IDs match the structured vehicleAge values
+  const vehicleAgeOptions = [
+    { id: 'all', label: 'All' },
+    { id: 'classics', label: 'Classics' },
+    { id: 'modern', label: 'Modern' },
+    { id: 'pre_2000', label: "Pre 00's" },
+    { id: 'pre_1990', label: "Pre 90's" },
+    { id: 'pre_1980', label: "Pre 80's" },
+    { id: 'pre_1970', label: "Pre 70's" },
+    { id: 'pre_1960', label: "Pre 60's" },
+    { id: 'pre_1950', label: "Pre 50's" },
+    { id: 'vintage', label: 'Vintage' },
   ];
 
   const eventSizeOptions = [
@@ -155,7 +169,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     onFiltersChange({
       ...filters,
       vehicleTypes: isAlreadySelected ? [] : [vehicleTypeId],
-      vehicleBrands: isAlreadySelected ? [] : filters.vehicleBrands, // clear brands if deselecting type
+      vehicleBrands: isAlreadySelected ? [] : filters.vehicleBrands,
     });
     setBrandSearch('');
   };
@@ -195,24 +209,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
       specificDate: date,
     });
     if (date) setIsDatePickerOpen(false);
-  };
-
-  const handleEventSizeChange = (sizeId: string) => {
-    onFiltersChange({
-      ...filters,
-      eventSize: filters.eventSize === sizeId ? null : sizeId,
-    });
-  };
-
-  const handleEntryFeeChange = (feeId: string) => {
-    onFiltersChange({
-      ...filters,
-      entryFee: filters.entryFee === feeId ? null : feeId,
-    });
-  };
-
-  const handleClubHostedChange = (checked: boolean) => {
-    onFiltersChange({ ...filters, clubHosted: checked });
   };
 
   const isDistanceNumeric = typeof filters.distance === 'number';
@@ -284,10 +280,10 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[60vh] overflow-y-auto">
           {/* Header with close */}
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
+            <h3 className="text-sm font-semibold text-foreground">Filter Events</h3>
             <div className="flex items-center gap-2">
               <button
-              onClick={() => onFiltersChange({
+                onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
                   vehicleTypes: [], vehicleBrands: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
@@ -380,12 +376,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           <div className="space-y-2">
             <p className={`text-xs font-medium ${selectedVehicleType ? 'text-foreground' : 'text-muted-foreground'}`}>
               Vehicle Brand
-              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select type first)</span>}
+              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select Cars or Bikes first)</span>}
             </p>
 
             {selectedVehicleType && (
               <div ref={brandRef} className="relative">
-                {/* Selected brand chips */}
                 {filters.vehicleBrands.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {filters.vehicleBrands.map((brand) => (
@@ -405,7 +400,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   </div>
                 )}
 
-                {/* Search input */}
                 <div className="relative">
                   <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input
@@ -421,7 +415,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   />
                 </div>
 
-                {/* Dropdown results */}
                 {isBrandDropdownOpen && filteredBrands.length > 0 && (
                   <div className="absolute left-0 right-0 mt-1 bg-card border border-border/60 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
                     {!brandSearch.trim() && (
@@ -469,23 +462,12 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Vehicle Age</p>
             <div className="flex flex-wrap gap-1.5">
-              {[
-                { id: 'all-ages', label: 'All' },
-                { id: 'classics', label: 'Classics' },
-                { id: 'modern', label: 'Modern' },
-                { id: 'pre-00s', label: "Pre 00's" },
-                { id: 'pre-90s', label: "Pre 90's" },
-                { id: 'pre-80s', label: "Pre 80's" },
-                { id: 'pre-70s', label: "Pre 70's" },
-                { id: 'pre-60s', label: "Pre 60's" },
-                { id: 'pre-50s', label: "Pre 50's" },
-                { id: 'vintage', label: 'Vintage' },
-              ].map((age) => (
+              {vehicleAgeOptions.map((age) => (
                 <button
                   key={age.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleAge: age.id === 'all-ages' ? null : (filters.vehicleAge === age.id ? null : age.id) })}
+                  onClick={() => onFiltersChange({ ...filters, vehicleAge: age.id === 'all' ? null : (filters.vehicleAge === age.id ? null : age.id) })}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (age.id === 'all-ages' && !filters.vehicleAge) || filters.vehicleAge === age.id
+                    (age.id === 'all' && !filters.vehicleAge) || filters.vehicleAge === age.id
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -513,8 +495,6 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   {option.label}
                 </button>
               ))}
-
-              {/* Specific Date Picker */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <button
@@ -550,7 +530,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {eventSizeOptions.map((size) => (
                 <button
                   key={size.id}
-                  onClick={() => handleEventSizeChange(size.id)}
+                  onClick={() => onFiltersChange({ ...filters, eventSize: filters.eventSize === size.id ? null : size.id })}
                   className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.eventSize === size.id
                       ? 'bg-events/80 text-white'
@@ -570,7 +550,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {entryFeeOptions.map((fee) => (
                 <button
                   key={fee.id}
-                  onClick={() => handleEntryFeeChange(fee.id)}
+                  onClick={() => onFiltersChange({ ...filters, entryFee: filters.entryFee === fee.id ? null : fee.id })}
                   className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     filters.entryFee === fee.id
                       ? 'bg-events/80 text-white'
@@ -588,7 +568,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             <p className="text-xs font-medium text-foreground">Club Hosted Only</p>
             <Switch
               checked={filters.clubHosted}
-              onCheckedChange={handleClubHostedChange}
+              onCheckedChange={(checked) => onFiltersChange({ ...filters, clubHosted: checked })}
               className="data-[state=checked]:bg-events"
             />
           </div>

@@ -1,12 +1,33 @@
-import { Calendar, MapPin, User, Users, Tag, Info, Navigation, Bookmark, Share2 } from 'lucide-react';
+import { Calendar, MapPin, User, Users, Tag, Info, Navigation, Bookmark, Share2, Car, Clock, DollarSign, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { RevEvent } from '@/models';
 import { toast } from 'sonner';
 import { useState } from 'react';
+import { format, parseISO } from 'date-fns';
 
 const REVNET_FEE_PENCE = 50;
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
+  motorsport: 'Motorsport', autojumble: 'Autojumble',
+};
+
+const VEHICLE_TYPE_LABELS: Record<string, string> = {
+  cars: 'Cars', bikes: 'Bikes', all: 'All Welcome',
+};
+
+const VEHICLE_AGE_LABELS: Record<string, string> = {
+  all: 'All Ages', classics: 'Classics', modern: 'Modern', vintage: 'Vintage',
+  pre_2000: "Pre 00's", pre_1990: "Pre 90's", pre_1980: "Pre 80's",
+  pre_1970: "Pre 70's", pre_1960: "Pre 60's", pre_1950: "Pre 50's",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
+  american: 'American', european: 'European',
+};
 
 interface EventDetailContentProps {
   event: RevEvent;
@@ -19,9 +40,17 @@ interface EventDetailContentProps {
 const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSave }: EventDetailContentProps) => {
   const [rsvpStatus, setRsvpStatus] = useState<'none' | 'going' | 'interested'>('none');
 
-  const pricePence = event.entryFee ? parseFloat(event.entryFee) * 100 : 0;
-  const isFree = pricePence === 0;
-  const totalPence = isFree ? 0 : pricePence + REVNET_FEE_PENCE;
+  const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
+  const feeAmountPence = event.entryFeeAmount ? event.entryFeeAmount * 100 : 0;
+  const totalPence = isFree ? 0 : feeAmountPence + REVNET_FEE_PENCE;
+
+  const displayDate = event.startDate
+    ? format(parseISO(event.startDate), 'EEE, MMM d yyyy') + (event.startTime ? ` • ${event.startTime}` : '')
+    : event.date || 'Date TBD';
+
+  const endDisplayDate = event.endDate
+    ? format(parseISO(event.endDate), 'EEE, MMM d yyyy') + (event.endTime ? ` • ${event.endTime}` : '')
+    : null;
 
   const handleRSVP = () => {
     if (rsvpStatus === 'going') {
@@ -51,12 +80,14 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
     toast.success(isSaved ? 'Removed from saved' : 'Saved to My Events');
   };
 
+  const isClubHosted = event.visibility === 'club' || !!event.clubId;
+
   return (
     <div className="space-y-4">
       {/* Banner */}
       <div className="relative h-40 -mx-5 -mt-1 rounded-t-2xl overflow-hidden">
-        {event.photos?.[0] ? (
-          <img src={event.photos[0]} alt={event.title} className="w-full h-full object-cover" />
+        {(event.bannerImage || event.photos?.[0]) ? (
+          <img src={event.bannerImage || event.photos![0]} alt={event.title} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-events/80 to-events/40 flex items-center justify-center">
             <Calendar className="w-12 h-12 text-events-foreground/60" />
@@ -64,26 +95,51 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
         )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
           <h2 className="text-lg font-bold text-white">{event.title}</h2>
-          <p className="text-sm text-white/80">
-            {event.date && event.date !== 'TBD' ? event.date : 'Date TBD'}
-          </p>
+          <p className="text-sm text-white/80">{displayDate}</p>
         </div>
       </div>
 
-      {/* Tags */}
+      {/* Tags / Badges */}
       <div className="flex flex-wrap gap-1.5">
         <Badge variant="outline" className="bg-events/10 text-events border-events/20 text-xs">
-          {event.eventType}
+          {EVENT_TYPE_LABELS[event.eventType] || event.eventType}
         </Badge>
-        {event.vehicleTypes?.map(v => (
-          <Badge key={v} variant="outline" className="text-xs">{v}</Badge>
-        ))}
-        {(!event.date || event.date === 'TBD') && (
-          <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-600 border-amber-500/20">
-            Add date later
+        <Badge variant="outline" className="text-xs">
+          {VEHICLE_TYPE_LABELS[event.vehicleType] || event.vehicleType}
+        </Badge>
+        {event.vehicleAge && event.vehicleAge !== 'all' && (
+          <Badge variant="outline" className="text-xs">
+            {VEHICLE_AGE_LABELS[event.vehicleAge] || event.vehicleAge}
+          </Badge>
+        )}
+        {isClubHosted && (
+          <Badge variant="outline" className="text-xs bg-clubs/10 text-clubs border-clubs/20">
+            <Shield className="w-3 h-3 mr-1" /> Club Hosted
           </Badge>
         )}
       </div>
+
+      {/* Vehicle Brands */}
+      {event.vehicleBrands && event.vehicleBrands.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {event.vehicleBrands.map(brand => (
+            <span key={brand} className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+              {brand}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Vehicle Categories */}
+      {event.vehicleCategories && event.vehicleCategories.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {event.vehicleCategories.map(cat => (
+            <span key={cat} className="px-2 py-0.5 rounded-full bg-events/10 text-[10px] font-medium text-events">
+              {CATEGORY_LABELS[cat] || cat}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Description */}
       {event.description && (
@@ -94,13 +150,20 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
       <div className="space-y-2.5">
         <div className="flex items-center gap-3 text-sm">
           <Calendar className="w-4 h-4 text-events shrink-0" />
-          <span className="text-foreground">
-            {event.date && event.date !== 'TBD' ? event.date : <span className="italic text-muted-foreground">Date TBD</span>}
-          </span>
+          <div>
+            <span className="text-foreground">{displayDate}</span>
+            {endDisplayDate && (
+              <span className="text-muted-foreground"> — {endDisplayDate}</span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span className="text-foreground">{event.location || 'Location not set'}</span>
+          <span className="text-foreground">{event.locationName || event.location || 'Location not set'}</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm">
+          <Car className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="text-foreground">{VEHICLE_TYPE_LABELS[event.vehicleType] || 'All Welcome'}</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <User className="w-4 h-4 text-muted-foreground shrink-0" />
@@ -119,7 +182,10 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">{event.attendees || 0} attending</span>
+            <span className="text-sm font-medium text-foreground">
+              {event.attendees || 0} attending
+              {event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}
+            </span>
           </div>
           <div className="flex -space-x-2">
             {[...Array(Math.min(event.attendees || 0, 4))].map((_, i) => (
@@ -154,7 +220,7 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
       {/* Pricing */}
       <div className="bg-muted/50 rounded-xl p-3">
         <div className="flex items-center gap-2 mb-1">
-          <Tag className="w-4 h-4 text-muted-foreground" />
+          <DollarSign className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">Entry fee</span>
         </div>
         {isFree ? (
@@ -163,7 +229,7 @@ const EventDetailContent = ({ event, onNavigate, onViewFull, isSaved, onToggleSa
           <div className="space-y-1">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Ticket</span>
-              <span className="text-foreground">£{(pricePence / 100).toFixed(2)}</span>
+              <span className="text-foreground">£{(feeAmountPence / 100).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm items-center">
               <span className="text-muted-foreground flex items-center gap-1">
