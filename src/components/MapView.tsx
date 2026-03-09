@@ -304,7 +304,7 @@ const MapView = ({
         if (eventsFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
             'meets': 'meets', 'shows': 'shows', 'drive': 'drive',
-            'track-day': 'track_day', 'motorsport': 'motorsport', 'autojumble': 'autojumble',
+            'track-day': 'track_day', 'motorsport': 'motorsport', 'autojumble': 'autojumble', 'off-road': 'off_road',
           };
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.eventType && !allowedTypes.includes(pin.eventType as string)) return false;

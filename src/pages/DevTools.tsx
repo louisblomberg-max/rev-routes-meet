@@ -123,7 +123,7 @@ const EVENT_DESCRIPTIONS = [
 ];
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
-  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day', motorsport: 'Motorsport', autojumble: 'Autojumble',
+  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day', motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
 };
 
 function generateRandomEvents(count: number) {

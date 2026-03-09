@@ -43,6 +43,7 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'muscle-car', label: 'Muscle Car' },
   { id: 'american', label: 'American' },
   { id: 'european', label: 'European' },
+  { id: '4x4', label: '4x4' },
 ];
 
 const VEHICLE_AGE_OPTIONS = [
