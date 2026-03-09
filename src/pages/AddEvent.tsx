@@ -338,7 +338,7 @@ const AddEvent = () => {
             {VEHICLE_TYPE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleType(opt.id)}
+                onClick={() => { setVehicleType(opt.id); if (opt.id === 'all') { setVehicleBrands([]); setBrandSearch(''); } }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
                   vehicleType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
