@@ -69,7 +69,7 @@ const AddEvent = () => {
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
   const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
-  const [setDateLater, setSetDateLater] = useState(false);
+  
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
