@@ -105,6 +105,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'track-day', label: 'Track Day' },
     { id: 'motorsport', label: 'Motorsport' },
     { id: 'autojumble', label: 'Autojumble' },
+    { id: 'off-road', label: 'Off-Road' },
   ];
 
   const dateOptions = [
