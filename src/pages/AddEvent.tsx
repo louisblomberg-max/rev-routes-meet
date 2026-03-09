@@ -19,13 +19,23 @@ import { useData } from '@/contexts/DataContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
+import type { EventType, VehicleType, EntryFeeType } from '@/models';
 
-const EVENT_TYPES = ['Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble'];
-const VEHICLE_TYPE_OPTIONS = [
+const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
+  { id: 'meets', label: 'Meets' },
+  { id: 'shows', label: 'Shows' },
+  { id: 'drive', label: 'Drive' },
+  { id: 'track_day', label: 'Track Day' },
+  { id: 'motorsport', label: 'Motorsport' },
+  { id: 'autojumble', label: 'Autojumble' },
+];
+
+const VEHICLE_TYPE_OPTIONS: { id: VehicleType; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'cars', label: 'Cars' },
   { id: 'bikes', label: 'Bikes' },
 ];
+
 const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'jdm', label: 'JDM' },
   { id: 'supercars', label: 'Supercars' },
@@ -33,17 +43,18 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'american', label: 'American' },
   { id: 'european', label: 'European' },
 ];
+
 const VEHICLE_AGE_OPTIONS = [
-  { id: 'all-ages', label: 'All' },
+  { id: 'all', label: 'All' },
   { id: 'classics', label: 'Classics' },
   { id: 'modern', label: 'Modern' },
   { id: 'vintage', label: 'Vintage' },
-  { id: 'pre-00s', label: "Pre 00's" },
-  { id: 'pre-90s', label: "Pre 90's" },
-  { id: 'pre-80s', label: "Pre 80's" },
-  { id: 'pre-70s', label: "Pre 70's" },
-  { id: 'pre-60s', label: "Pre 60's" },
-  { id: 'pre-50s', label: "Pre 50's" },
+  { id: 'pre_2000', label: "Pre 00's" },
+  { id: 'pre_1990', label: "Pre 90's" },
+  { id: 'pre_1980', label: "Pre 80's" },
+  { id: 'pre_1970', label: "Pre 70's" },
+  { id: 'pre_1960', label: "Pre 60's" },
+  { id: 'pre_1950', label: "Pre 50's" },
 ];
 
 const CAR_BRANDS = [
@@ -69,7 +80,7 @@ const VISIBILITY_OPTIONS = [
   { value: 'friends' as const, label: 'Friends Only', description: 'Visible to friends', icon: Users },
 ];
 
-// ── Shared layout components (matching Add Service) ──
+// ── Shared layout components ──
 const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div className={`bg-card rounded-2xl border border-border/50 shadow-card p-5 ${className}`}>
     {children}
@@ -96,20 +107,20 @@ const AddEvent = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    location: '',
+    locationName: '',
     locationCoords: undefined as { lat: number; lng: number } | undefined,
     entryFee: false,
     feeAmount: '',
     maxAttendees: '',
   });
-  const [eventType, setEventType] = useState<string>('');
-  const [vehicleType, setVehicleType] = useState<string>('all');
-  const [vehicleCategory, setVehicleCategory] = useState<string | null>(null);
+  const [eventType, setEventType] = useState<EventType | ''>('');
+  const [vehicleType, setVehicleType] = useState<VehicleType>('all');
+  const [vehicleCategories, setVehicleCategories] = useState<string[]>([]);
   const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState('');
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const brandRef = useRef<HTMLDivElement>(null);
-  const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
+  const [vehicleAge, setVehicleAge] = useState<string>('all');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
@@ -137,12 +148,14 @@ const AddEvent = () => {
   const availableBrands = useMemo(() => {
     if (vehicleType === 'cars') return CAR_BRANDS;
     if (vehicleType === 'bikes') return BIKE_BRANDS;
+    if (vehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
     return [];
   }, [vehicleType]);
 
   const popularBrands = useMemo(() => {
     if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
     if (vehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
+    if (vehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
     return [];
   }, [vehicleType]);
 
@@ -164,11 +177,9 @@ const AddEvent = () => {
     if (wordCount < 15) errs.description = `Description must be at least 15 words (currently ${wordCount})`;
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
-    if (!formData.location.trim()) errs.location = 'Location is required';
-    // vehicleType always has a value ('All', 'Cars', or 'Bikes')
+    if (!formData.locationName.trim()) errs.locationName = 'Location is required';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
-    if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -190,34 +201,60 @@ const AddEvent = () => {
     }
   };
 
-  const toggleChip = (list: string[], setList: (v: string[]) => void, value: string) => {
-    setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
-  };
-
   const doPublish = () => {
     setIsSubmitting(true);
+
+    const entryFeeType: EntryFeeType = formData.entryFee ? 'paid' : 'free';
+    const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : undefined;
+
     const newEvent = eventsRepo.create({
       title: formData.name,
       description: formData.description,
-      location: formData.location,
+      locationName: formData.locationName,
+      location: formData.locationName,
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
-      date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
+
+      // Structured fields
+      eventType: eventType as EventType,
+      vehicleType,
+      vehicleBrands,
+      vehicleCategories,
+      vehicleAge,
+
+      // Dates
+      startDate: startDate ? startDate.toISOString() : new Date().toISOString(),
       endDate: endDate?.toISOString(),
-      eventType: eventType,
-      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
-      // vehicleAge stored in tags for filtering
+      startTime,
+      endTime,
+
+      // Legacy date field for display
+      date: startDate ? format(startDate, "EEE, MMM d • ") + startTime : 'TBD',
+
+      // Visibility
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
-      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
-      ticketLimit: parseInt(formData.maxAttendees) || undefined,
-      createdBy: state.currentUser?.id || 'unknown',
+
+      // Capacity & fees
+      maxAttendees: parseInt(formData.maxAttendees) || 50,
       attendees: 0,
+      entryFeeType,
+      entryFeeAmount,
+      currency: 'GBP',
+
+      // Legacy fields
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
+      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
+      ticketLimit: parseInt(formData.maxAttendees) || undefined,
+
+      // Banner
+      bannerImage: bannerImage?.preview,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...vehicleBrands.map(b => b.toLowerCase()), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
-      isMultiDay: false,
-      isRecurring: false,
+
+      createdBy: state.currentUser?.id || 'unknown',
+      tags: [],
     });
+
     // Deduct credit if free user
     const check = canCreateEvent();
     if (check.creditsRemaining > 0) {
@@ -231,8 +268,6 @@ const AddEvent = () => {
 
   const handleSubmit = () => {
     if (!validate()) return;
-
-    // Check paywall
     const check = canCreateEvent();
     if (!check.allowed) {
       setPaywallReason(check.reason!);
@@ -245,13 +280,11 @@ const AddEvent = () => {
   const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
     setShowPaywall(false);
     if (!success) return;
-
     if (method === 'subscribe') {
       setPlan('pro');
       setSubscriptionStatus('active');
       upgradeToPlan('pro');
     }
-    // Proceed to publish
     doPublish();
   };
 
@@ -318,14 +351,14 @@ const AddEvent = () => {
         <SectionCard>
           <SectionTitle icon={Calendar}>Event Type <span className="text-destructive">*</span></SectionTitle>
           <div className="flex flex-wrap gap-2">
-            {EVENT_TYPES.map(type => (
-              <button key={type} onClick={() => { setEventType(type); setErrors(prev => ({ ...prev, eventType: '' })); }}
+            {EVENT_TYPE_OPTIONS.map(opt => (
+              <button key={opt.id} onClick={() => { setEventType(opt.id); setErrors(prev => ({ ...prev, eventType: '' })); }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  eventType === type
+                  eventType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}>
-                {type}
+                {opt.label}
               </button>
             ))}
           </div>
@@ -339,7 +372,13 @@ const AddEvent = () => {
             {VEHICLE_TYPE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => { setVehicleType(opt.id); if (opt.id === 'all') { setVehicleBrands([]); setBrandSearch(''); } }}
+                onClick={() => {
+                  setVehicleType(opt.id);
+                  if (opt.id !== vehicleType) {
+                    setVehicleBrands([]);
+                    setBrandSearch('');
+                  }
+                }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
                   vehicleType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
@@ -356,72 +395,67 @@ const AddEvent = () => {
         <SectionCard>
           <SectionTitle icon={Tag}>
             Vehicle Brand
-            {(vehicleType === 'all') && <span className="text-[10px] ml-1 text-muted-foreground font-normal">(select Cars or Bikes first)</span>}
           </SectionTitle>
 
-          {(vehicleType === 'cars' || vehicleType === 'bikes') ? (
-            <div ref={brandRef} className="relative">
-              {/* Selected brand chips */}
-              {vehicleBrands.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {vehicleBrands.map((brand) => (
-                    <span
-                      key={brand}
-                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30"
-                    >
-                      {brand}
-                      <button
-                        onClick={() => setVehicleBrands(vehicleBrands.filter(b => b !== brand))}
-                        className="w-4 h-4 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Search input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={brandSearch}
-                  onChange={(e) => {
-                    setBrandSearch(e.target.value);
-                    setIsBrandDropdownOpen(true);
-                  }}
-                  onFocus={() => setIsBrandDropdownOpen(true)}
-                  placeholder="Search vehicle brand..."
-                  className="w-full h-11 pl-9 pr-3 rounded-xl border border-border/50 bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
-                />
-              </div>
-
-              {/* Dropdown results */}
-              {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
-                <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
-                  {!brandSearch.trim() && (
-                    <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
-                  )}
-                  {filteredBrandResults.map((brand) => (
+          <div ref={brandRef} className="relative">
+            {/* Selected brand chips */}
+            {vehicleBrands.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-3">
+                {vehicleBrands.map((brand) => (
+                  <span
+                    key={brand}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30"
+                  >
+                    {brand}
                     <button
-                      key={brand}
-                      onClick={() => {
-                        setVehicleBrands([...vehicleBrands, brand]);
-                        setBrandSearch('');
-                        setIsBrandDropdownOpen(false);
-                      }}
-                      className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-events/10 transition-colors"
+                      onClick={() => setVehicleBrands(vehicleBrands.filter(b => b !== brand))}
+                      className="w-4 h-4 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
                     >
-                      {brand}
+                      <X className="w-3 h-3" />
                     </button>
-                  ))}
-                </div>
-              )}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Search input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={brandSearch}
+                onChange={(e) => {
+                  setBrandSearch(e.target.value);
+                  setIsBrandDropdownOpen(true);
+                }}
+                onFocus={() => setIsBrandDropdownOpen(true)}
+                placeholder="Search vehicle brand..."
+                className="w-full h-11 pl-9 pr-3 rounded-xl border border-border/50 bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
+              />
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">Select a vehicle type above to choose brands.</p>
-          )}
+
+            {/* Dropdown results */}
+            {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
+              <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+                {!brandSearch.trim() && (
+                  <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
+                )}
+                {filteredBrandResults.map((brand) => (
+                  <button
+                    key={brand}
+                    onClick={() => {
+                      setVehicleBrands([...vehicleBrands, brand]);
+                      setBrandSearch('');
+                      setIsBrandDropdownOpen(false);
+                    }}
+                    className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-events/10 transition-colors"
+                  >
+                    {brand}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </SectionCard>
 
         {/* ── VEHICLE CATEGORY ── */}
@@ -431,9 +465,13 @@ const AddEvent = () => {
             {VEHICLE_CATEGORY_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleCategory(vehicleCategory === opt.id ? null : opt.id)}
+                onClick={() => {
+                  setVehicleCategories(prev =>
+                    prev.includes(opt.id) ? prev.filter(c => c !== opt.id) : [...prev, opt.id]
+                  );
+                }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleCategory === opt.id
+                  vehicleCategories.includes(opt.id)
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
@@ -506,9 +544,9 @@ const AddEvent = () => {
         <SectionCard>
           <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
           <LocationPicker
-            value={formData.location}
-            onChange={(loc, coords) => { update('location', loc); update('locationCoords', coords); }}
-            error={errors.location}
+            value={formData.locationName}
+            onChange={(loc, coords) => { update('locationName', loc); update('locationCoords', coords); }}
+            error={errors.locationName}
           />
         </SectionCard>
 
