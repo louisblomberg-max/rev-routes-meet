@@ -116,7 +116,7 @@ export function useContentFilter() {
   }
 
   // ── Filtered + scored content ──
-  const filteredEvents = useMemo(() => scoreAndSort(state.events), [state.events, userContext]);
+  const filteredEvents = useMemo(() => scoreAndSort(state.events.map(e => ({ ...e, tags: e.tags || [] }))), [state.events, userContext]);
   const filteredRoutes = useMemo(() => scoreAndSort(state.routes), [state.routes, userContext]);
   const filteredServices = useMemo(() => scoreAndSort(state.services), [state.services, userContext]);
   const filteredClubs = useMemo(() => scoreAndSort(state.clubs), [state.clubs, userContext]);
