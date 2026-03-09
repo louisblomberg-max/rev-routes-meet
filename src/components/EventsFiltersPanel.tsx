@@ -61,6 +61,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
+    { id: 'classics', label: 'Classics' },
+    { id: 'jdm', label: 'JDM' },
+    { id: 'supercars', label: 'Supercars' },
+    { id: 'american', label: 'American' },
+    { id: 'european', label: 'European' },
     { id: 'bikes', label: 'Bikes' },
   ];
 
