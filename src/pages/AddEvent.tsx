@@ -85,8 +85,7 @@ const AddEvent = () => {
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    // vehicleType always has a value ('All', 'Cars', or 'Bikes')
-    if (visibility === 'club' && !clubId) errs.club = 'Select a club';
+    // vehicleType always has a value ('All', 'Cars', or 'Bikes')lect a club';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
     if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
@@ -127,8 +126,7 @@ const AddEvent = () => {
       endDate: endDate?.toISOString(),
       eventType: eventType,
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
-      visibility,
-      clubId: visibility === 'club' ? clubId : undefined,
+      vis === 'All' ? ['All Welcome'] : [vehicleType]clubId : undefined,
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
       createdBy: state.currentUser?.id || 'unknown',
