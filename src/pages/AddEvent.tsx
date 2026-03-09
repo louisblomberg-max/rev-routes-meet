@@ -85,8 +85,7 @@ const AddEvent = () => {
     if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    // vehicleType always has a value ('All', 'Cars', or 'Bikes')lect a club';
-    if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
+    // vehicleType always has a value ('All', 'Cars', or 'Bikes')maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
     if (!formData.entryFee && formData.feeAmount === '') errs.entryFee = 'Please set the entry fee option';
     setErrors(errs);
@@ -126,16 +125,12 @@ const AddEvent = () => {
       endDate: endDate?.toISOString(),
       eventType: eventType,
       vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
-      vis === 'All' ? ['All Welcome'] : [vehicleType]clubId : undefined,
-      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
+      vis === 'All' ? ['All Welcome'] : [vehicleType]clubId : undef === 'All' ? ['All Welcome'] : [vehicleType]formData.feeAmount || '0'}` : 'Free',
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase()))],
-      isMultiDay: false,
-      isRecurring: false,
-    });
+      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase())) === 'All' ? [] : [vehicleType.toLowerCase()];
 
     // Deduct credit if free user
     const check = canCreateEvent();
