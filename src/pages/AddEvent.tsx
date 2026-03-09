@@ -86,6 +86,7 @@ const AddEvent = () => {
   });
   const [eventType, setEventType] = useState<string>('');
   const [vehicleType, setVehicleType] = useState<string>('all');
+  const [vehicleCategory, setVehicleCategory] = useState<string | null>(null);
   const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
