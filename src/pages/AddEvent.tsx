@@ -218,7 +218,7 @@ const AddEvent = () => {
 
         {/* ── EVENT INFO ── */}
         <SectionCard>
-          <SectionTitle icon={Calendar *}> *Ev *en *t  *In *fo</SectionTitle>
+          <SectionTitle icon={Calendar}>Event Info *</SectionTitle>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
@@ -226,8 +226,9 @@ const AddEvent = () => {
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-xs text-muted-foreground">Description</Label>
-              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
+              <Label htmlFor="description" className="text-xs text-muted-foreground">Description *</Label>
+              <Textarea id="description" placeholder="Tell people what to expect..." rows={3} value={formData.description} onChange={e => { update('description', e.target.value); setErrors(prev => ({ ...prev, description: '' })); }} className="rounded-xl" />
+              {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
             </div>
           </div>
         </SectionCard>
