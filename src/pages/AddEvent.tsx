@@ -81,11 +81,12 @@ const AddEvent = () => {
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
-    if (!formData.location.trim()) errs.location = 'Location is required';
+    if (!eventType) errs.eventType = 'Select an event type';
     if (!startDate) errs.startDate = 'Start date is required';
-    if (eventTypeMode === 'selected' && eventTypes.length === 0) errs.eventType = 'Select at least one event type';
+    if (!formData.location.trim()) errs.location = 'Location is required';
     if (vehicleTypeMode === 'selected' && vehicleTypes.length === 0) errs.vehicleType = 'Select at least one vehicle type';
     if (visibility === 'club' && !clubId) errs.club = 'Select a club';
+    if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
     setErrors(errs);
     return Object.keys(errs).length === 0;
