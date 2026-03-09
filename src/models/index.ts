@@ -226,8 +226,8 @@ export const SAFETY_TAGS = [
 
 export type SafetyTag = typeof SAFETY_TAGS[number];
 
-// ---- Event Types (canonical list) ----
-export const EVENT_TYPES = [
+// ---- Event Types Display Labels (legacy) ----
+export const EVENT_TYPES_DISPLAY = [
   'Meets',
   'Cars & Coffee',
   'Track Day',
@@ -235,8 +235,6 @@ export const EVENT_TYPES = [
   'Show / Exhibition',
   'Drive-Out',
 ] as const;
-
-export type EventType = typeof EVENT_TYPES[number];
 
 // ---- Services ----
 export interface RevService {
