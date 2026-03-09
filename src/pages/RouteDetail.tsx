@@ -235,6 +235,9 @@ const RouteDetail = () => {
           </div>
         )}
 
+        {/* Rate this route */}
+        <RouteRatingSection routeId={route.id} currentRating={route.rating} />
+
         {/* Navigate */}
         <NavigateButton destination={routeStart} colorClass="bg-routes hover:bg-routes/90" />
 
