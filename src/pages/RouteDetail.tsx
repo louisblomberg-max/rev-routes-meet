@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import NavigateButton from '@/components/NavigateButton';
+import RouteRatingSection from '@/components/discovery/RouteRatingSection';
 
 const RouteDetail = () => {
   const navigate = useNavigate();
