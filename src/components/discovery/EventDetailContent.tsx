@@ -13,7 +13,7 @@ const REVNET_FEE_PENCE = 50;
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
-  motorsport: 'Motorsport', autojumble: 'Autojumble',
+  motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
 };
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
