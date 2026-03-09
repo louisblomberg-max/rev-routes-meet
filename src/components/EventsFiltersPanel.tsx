@@ -287,20 +287,39 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Vehicle Type Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Vehicle Type</p>
-            <div className="flex flex-wrap gap-1.5">
-              {vehicleTypeOptions.map((vehicle) => (
-                <button
-                  key={vehicle.id}
-                  onClick={() => toggleVehicleType(vehicle.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (vehicle.id === 'all-vehicles' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {vehicle.label}
-                </button>
-              ))}
+            <div className="flex gap-3">
+              {/* Main types stacked vertically */}
+              <div className="flex flex-col gap-1.5 items-start">
+                {vehicleTypeOptions.filter(v => ['all-vehicles', 'cars', 'bikes'].includes(v.id)).map((vehicle) => (
+                  <button
+                    key={vehicle.id}
+                    onClick={() => toggleVehicleType(vehicle.id)}
+                    className={`w-[4.5rem] px-3 py-1.5 rounded-lg text-[10px] font-medium text-center transition-all ${
+                      (vehicle.id === 'all-vehicles' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
+                        ? 'bg-events/80 text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-events/10'
+                    }`}
+                  >
+                    {vehicle.label}
+                  </button>
+                ))}
+              </div>
+              {/* Sub-types wrapped */}
+              <div className="flex flex-wrap gap-1.5 flex-1">
+                {vehicleTypeOptions.filter(v => !['all-vehicles', 'cars', 'bikes'].includes(v.id)).map((vehicle) => (
+                  <button
+                    key={vehicle.id}
+                    onClick={() => toggleVehicleType(vehicle.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      filters.vehicleTypes.includes(vehicle.id)
+                        ? 'bg-events/80 text-white'
+                        : 'bg-muted text-muted-foreground hover:bg-events/10'
+                    }`}
+                  >
+                    {vehicle.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
