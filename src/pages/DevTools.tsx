@@ -70,7 +70,7 @@ const EVENT_NAMES = [
   'Retro Rides Gathering', 'Rev Harder Track Day', 'EV Owners Social', 'Rally Stage Experience', 'Midnight Run',
   'Chrome & Coffee', 'Petrolhead Picnic', 'Alpine Run Convoy', 'Detailing Demo Day', 'Dyno Day',
 ];
-const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport', 'autojumble'] as const;
+const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport', 'autojumble', 'off_road'] as const;
 const VEHICLE_TYPE_IDS = ['all', 'cars', 'bikes'] as const;
 const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european'];
 const VEHICLE_AGE_OPTIONS_GEN = ['all', 'classics', 'modern', 'vintage', 'pre_2000', 'pre_1990', 'pre_1980', 'pre_1970', 'pre_1960', 'pre_1950'];
