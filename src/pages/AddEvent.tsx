@@ -402,7 +402,7 @@ const AddEvent = () => {
 
         {/* ── MAX ATTENDEES ── */}
         <SectionCard>
-          <SectionTitle icon={Users}>Max Attendees *</SectionTitle>
+          <SectionTitle icon={Users}>Max Attendees <span className="text-destructive">*</span></SectionTitle>
           <div className="relative">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input id="maxAttendees" type="number" placeholder="e.g. 50" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => { update('maxAttendees', e.target.value); setErrors(prev => ({ ...prev, maxAttendees: '' })); }} />
