@@ -72,7 +72,7 @@ const EVENT_NAMES = [
 ];
 const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport', 'autojumble', 'off_road'] as const;
 const VEHICLE_TYPE_IDS = ['all', 'cars', 'bikes'] as const;
-const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european'];
+const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european', '4x4'];
 const VEHICLE_AGE_OPTIONS_GEN = ['all', 'classics', 'modern', 'vintage', 'pre_2000', 'pre_1990', 'pre_1980', 'pre_1970', 'pre_1960', 'pre_1950'];
 
 const CAR_BRANDS_GEN = [
