@@ -300,50 +300,60 @@ const MapView = ({
       if (!categoryToFilter.includes(pin.type)) return false;
 
       if (pin.type === 'events' && eventsFilters) {
+        // Event type filter — map filter IDs to structured EventType values
         if (eventsFilters.types.length > 0) {
           const typeMapping: Record<string, string> = {
-            'meets': 'Meets', 'cars-coffee': 'Cars & Coffee', 'drive': 'Drive / Drive-Out',
-            'group-drive': 'Group Drive', 'track-day': 'Track Day', 'show': 'Show / Exhibition',
+            'meets': 'meets', 'shows': 'shows', 'drive': 'drive',
+            'track-day': 'track_day', 'motorsport': 'motorsport', 'autojumble': 'autojumble',
           };
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.eventType && !allowedTypes.includes(pin.eventType as string)) return false;
         }
-        if (eventsFilters.vehicleTypes.length > 0 && !eventsFilters.vehicleTypes.includes('all-vehicles')) {
-          const vehicleTypeMapping: Record<string, string[]> = {
-            'cars': ['All Welcome', 'Cars Only', 'European Cars', 'Classic Cars'],
-            'motorcycles': ['All Welcome', 'Motorcycles Only'],
-            'classic': ['Classic Cars', 'All Welcome'],
-            'supercars': ['Supercars Only', 'European Cars', 'All Welcome'],
-            'jdm': ['JDM Only', 'All Welcome'],
-            'euro': ['European Cars', 'All Welcome'],
-            'american': ['American Muscle', 'All Welcome'],
-            'off-road': ['Off-road', 'All Welcome'],
-          };
-          const allowedVehicles = eventsFilters.vehicleTypes.flatMap(v => vehicleTypeMapping[v] || []);
-          if (allowedVehicles.length > 0 && pin.vehicleType && !allowedVehicles.includes(pin.vehicleType as string)) return false;
+        // Vehicle type filter — structured field
+        if (eventsFilters.vehicleTypes.length > 0) {
+          const filterVType = eventsFilters.vehicleTypes[0];
+          const pinVType = pin.vehicleType as string;
+          if (filterVType === 'cars' && pinVType !== 'cars' && pinVType !== 'all') return false;
+          if (filterVType === 'bikes' && pinVType !== 'bikes' && pinVType !== 'all') return false;
         }
-        // Event size filter
+        // Vehicle brand filter — array intersection
+        if (eventsFilters.vehicleBrands.length > 0) {
+          const pinBrands = (pin.vehicleBrands as string[] || []).map(b => b.toLowerCase());
+          const hasMatch = eventsFilters.vehicleBrands.some(fb => pinBrands.includes(fb.toLowerCase()));
+          if (!hasMatch) return false;
+        }
+        // Vehicle category filter
+        if (eventsFilters.vehicleCategory) {
+          const pinCategories = pin.vehicleCategories as string[] || [];
+          if (!pinCategories.includes(eventsFilters.vehicleCategory)) return false;
+        }
+        // Vehicle age filter
+        if (eventsFilters.vehicleAge) {
+          if (pin.vehicleAge !== eventsFilters.vehicleAge) return false;
+        }
+        // Event size filter — based on maxAttendees
         if (eventsFilters.eventSize) {
-          const attendees = typeof pin.attendees === 'number' ? pin.attendees : 0;
-          if (eventsFilters.eventSize === 'small' && attendees >= 20) return false;
-          if (eventsFilters.eventSize === 'medium' && (attendees < 20 || attendees > 50)) return false;
-          if (eventsFilters.eventSize === 'large' && (attendees < 50 || attendees > 100)) return false;
-          if (eventsFilters.eventSize === 'massive' && attendees < 100) return false;
+          const maxAtt = typeof pin.maxAttendees === 'number' ? pin.maxAttendees : 0;
+          if (eventsFilters.eventSize === 'small' && maxAtt >= 20) return false;
+          if (eventsFilters.eventSize === 'medium' && (maxAtt < 20 || maxAtt > 50)) return false;
+          if (eventsFilters.eventSize === 'large' && (maxAtt < 50 || maxAtt > 100)) return false;
+          if (eventsFilters.eventSize === 'massive' && maxAtt < 100) return false;
         }
-        // Entry fee filter
+        // Entry fee filter — structured field
         if (eventsFilters.entryFee) {
-          const fee = (pin as any).entryFee;
-          if (eventsFilters.entryFee === 'free' && fee && fee !== 'Free' && fee !== '£0') return false;
-          if (eventsFilters.entryFee === 'paid' && (!fee || fee === 'Free' || fee === '£0')) return false;
+          const feeType = pin.entryFeeType as string;
+          if (eventsFilters.entryFee === 'free' && feeType !== 'free') return false;
+          if (eventsFilters.entryFee === 'paid' && feeType !== 'paid') return false;
         }
         // Club hosted filter
         if (eventsFilters.clubHosted) {
-          if (!(pin as any).clubId) return false;
+          if (pin.visibility !== 'club' && !(pin as any).clubId) return false;
         }
-        // Date filter
-        if (eventsFilters.dateFilter && eventsFilters.dateFilter !== 'specific') {
-          const pinDate = pin.date ? parseDisplayDate(pin.date as string) : null;
-          if (pinDate) {
+        // Date filter — uses startDate ISO string
+        if (eventsFilters.dateFilter) {
+          const startDateStr = pin.startDate as string;
+          const pinDate = startDateStr ? new Date(startDateStr) : null;
+          if (pinDate && !isNaN(pinDate.getTime())) {
             const now = new Date();
             if (eventsFilters.dateFilter === 'today' && !isSameDay(pinDate, now)) return false;
             if (eventsFilters.dateFilter === 'this-week') {
@@ -353,10 +363,13 @@ const MapView = ({
             if (eventsFilters.dateFilter === 'this-month') {
               if (pinDate.getMonth() !== now.getMonth() || pinDate.getFullYear() !== now.getFullYear()) return false;
             }
+          } else if (eventsFilters.dateFilter !== 'specific') {
+            return false; // no date data, exclude
           }
         }
         if (eventsFilters.dateFilter === 'specific' && eventsFilters.specificDate) {
-          const pinDate = pin.date ? parseDisplayDate(pin.date as string) : null;
+          const startDateStr = pin.startDate as string;
+          const pinDate = startDateStr ? new Date(startDateStr) : null;
           if (!pinDate || !isSameDay(pinDate, eventsFilters.specificDate)) return false;
         }
       }
