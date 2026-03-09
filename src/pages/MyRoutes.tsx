@@ -112,7 +112,7 @@ const MyRoutes = () => {
                 )}
                 {activeTab === 'created' && (
                   <div className="flex border-t border-border/30 divide-x divide-border/30">
-                    <button onClick={() => navigate(`/route/${route.id}`)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
+                    <button onClick={() => navigate('/', { state: { showRouteId: route.id } })} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
                       <Route className="w-4 h-4" /> View
                     </button>
                     <button onClick={() => toast('Edit coming soon')} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
