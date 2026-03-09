@@ -56,7 +56,7 @@ const Home = () => {
 
   // Center map on newly published item or open a specific service (via navigation state)
   useEffect(() => {
-    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string } | null;
+    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string } | null;
     if (navState?.centerOn && mapRef.current) {
       const { lat, lng } = navState.centerOn;
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
@@ -69,6 +69,26 @@ const Home = () => {
       if (service) {
         setSelectedDetail({ type: 'service', data: service });
         setActiveCategory('services');
+      }
+    }
+    if (navState?.showEventId) {
+      const event = state.events.find(e => e.id === navState.showEventId);
+      if (event) {
+        setSelectedDetail({ type: 'event', data: event });
+        setActiveCategory('events');
+        if (event.lat && event.lng && mapRef.current) {
+          mapRef.current.flyTo({ center: [event.lng, event.lat], zoom: 14, duration: 1500 });
+        }
+      }
+    }
+    if (navState?.showRouteId) {
+      const route = state.routes.find(r => r.id === navState.showRouteId);
+      if (route) {
+        setSelectedDetail({ type: 'route', data: route });
+        setActiveCategory('routes');
+        if (route.lat && route.lng && mapRef.current) {
+          mapRef.current.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
+        }
       }
     }
     if (navState) {
