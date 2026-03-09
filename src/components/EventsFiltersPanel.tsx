@@ -61,6 +61,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'all-vehicles', label: 'All' },
     { id: 'cars', label: 'Cars' },
+    { id: 'classics', label: 'Classics' },
+    { id: 'jdm', label: 'JDM' },
+    { id: 'supercars', label: 'Supercars' },
+    { id: 'american', label: 'American' },
+    { id: 'european', label: 'European' },
     { id: 'bikes', label: 'Bikes' },
   ];
 
@@ -282,12 +287,12 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Vehicle Type Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Vehicle Type</p>
-            <div className="flex flex-col gap-1.5 items-start">
+            <div className="flex flex-wrap gap-1.5">
               {vehicleTypeOptions.map((vehicle) => (
                 <button
                   key={vehicle.id}
                   onClick={() => toggleVehicleType(vehicle.id)}
-                  className={`w-[4.5rem] px-3 py-1.5 rounded-lg text-[10px] font-medium text-center transition-all ${
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                     (vehicle.id === 'all-vehicles' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
