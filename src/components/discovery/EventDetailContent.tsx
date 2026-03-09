@@ -1,4 +1,4 @@
-import { Calendar, MapPin, User, Users, Tag, Info, Navigation, Bookmark, Share2, Car, Clock, DollarSign, Shield } from 'lucide-react';
+import { Calendar, MapPin, User, Users, Navigation, Bookmark, Share2, Car, DollarSign, Shield, Info, ClipboardList, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -6,6 +6,8 @@ import { RevEvent } from '@/models';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
+import { AttendEventSheet, AttendeeListSheet } from '@/components/AttendEventSheet';
+import { useData } from '@/contexts/DataContext';
 
 const REVNET_FEE_PENCE = 50;
 
@@ -37,7 +39,17 @@ interface EventDetailContentProps {
 }
 
 const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
-  const [rsvpStatus, setRsvpStatus] = useState<'none' | 'going' | 'interested'>('none');
+  const { events: eventsRepo, state } = useData();
+  const currentUserId = state.currentUser?.id || '';
+  const isHost = event.createdBy === currentUserId;
+
+  const [showAttendSheet, setShowAttendSheet] = useState(false);
+  const [showAttendeeList, setShowAttendeeList] = useState(false);
+
+  const isAttending = (event.attendeesList || []).some(a => a.userId === currentUserId);
+  const attendeeCount = event.attendees || (event.attendeesList?.length ?? 0);
+  const isFull = event.maxAttendees > 0 && attendeeCount >= event.maxAttendees;
+  const isNearlyFull = event.maxAttendees > 0 && attendeeCount >= event.maxAttendees * 0.8 && !isFull;
 
   const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
   const feeAmountPence = event.entryFeeAmount ? event.entryFeeAmount * 100 : 0;
@@ -51,19 +63,46 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
     ? format(parseISO(event.endDate), 'EEE, MMM d yyyy') + (event.endTime ? ` • ${event.endTime}` : '')
     : null;
 
-  const handleRSVP = () => {
-    if (rsvpStatus === 'going') {
-      setRsvpStatus('none');
-      toast('RSVP removed');
+  const handleAttendClick = () => {
+    if (isAttending) {
+      // Cancel attendance
+      const updated = (event.attendeesList || []).filter(a => a.userId !== currentUserId);
+      eventsRepo.update(event.id, {
+        attendeesList: updated,
+        attendees: Math.max(0, (event.attendees || 0) - 1),
+      });
+      toast.success('Attendance cancelled');
     } else {
-      setRsvpStatus('going');
-      toast.success(isFree ? 'You\'re going!' : 'Payment flow coming soon');
+      if (isFull) return;
+      setShowAttendSheet(true);
     }
   };
 
-  const handleInterested = () => {
-    setRsvpStatus(prev => prev === 'interested' ? 'none' : 'interested');
-    toast.success(rsvpStatus === 'interested' ? 'Removed' : 'Marked as interested');
+  const handleConfirmAttendance = (registration: string) => {
+    const newAttendee = {
+      userId: currentUserId,
+      username: state.currentUser?.username || 'user',
+      displayName: state.currentUser?.displayName || 'User',
+      profileImage: state.currentUser?.avatar || null,
+      vehicleRegistration: registration,
+      joinedAt: new Date().toISOString(),
+    };
+    const updatedList = [...(event.attendeesList || []), newAttendee];
+    eventsRepo.update(event.id, {
+      attendeesList: updatedList,
+      attendees: (event.attendees || 0) + 1,
+    });
+    setShowAttendSheet(false);
+    toast.success('You\'re attending!', { description: `See you at ${event.title}!` });
+  };
+
+  const handleRemoveAttendee = (userId: string) => {
+    const updated = (event.attendeesList || []).filter(a => a.userId !== userId);
+    eventsRepo.update(event.id, {
+      attendeesList: updated,
+      attendees: Math.max(0, (event.attendees || 0) - 1),
+    });
+    toast.success('Attendee removed');
   };
 
   const handleShare = () => {
@@ -182,37 +221,37 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4 text-muted-foreground" />
             <span className="text-sm font-medium text-foreground">
-              {event.attendees || 0} attending
-              {event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}
+              {attendeeCount} attending{event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}
             </span>
           </div>
-          <div className="flex -space-x-2">
-            {[...Array(Math.min(event.attendees || 0, 4))].map((_, i) => (
-              <Avatar key={i} className="h-6 w-6 border-2 border-card">
-                <AvatarFallback className="text-[9px] bg-muted-foreground/20">
-                  {String.fromCharCode(65 + i)}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-          </div>
+          {/* Organiser: view attendee list */}
+          {isHost && (
+            <button
+              onClick={() => setShowAttendeeList(true)}
+              className="flex items-center gap-1 text-xs font-medium text-events hover:text-events/80 transition-colors"
+            >
+              <ClipboardList className="w-3.5 h-3.5" />
+              View list
+            </button>
+          )}
         </div>
-        <div className="flex gap-2 mt-3">
-          <Button
-            size="sm"
-            variant={rsvpStatus === 'going' ? 'default' : 'outline'}
-            className={rsvpStatus === 'going' ? 'bg-events hover:bg-events/90 text-events-foreground' : ''}
-            onClick={handleRSVP}
-          >
-            {rsvpStatus === 'going' ? '✓ Going' : 'Going'}
-          </Button>
-          <Button
-            size="sm"
-            variant={rsvpStatus === 'interested' ? 'default' : 'outline'}
-            className={rsvpStatus === 'interested' ? 'bg-amber-500 hover:bg-amber-500/90 text-white' : ''}
-            onClick={handleInterested}
-          >
-            {rsvpStatus === 'interested' ? '✓ Interested' : 'Interested'}
-          </Button>
+
+        {/* Status labels */}
+        <div className="mt-2 space-y-1">
+          {event.firstComeFirstServe && !isFull && (
+            <p className="text-xs text-muted-foreground">First come, first served</p>
+          )}
+          {isNearlyFull && (
+            <p className="text-xs text-amber-500 font-medium flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> Limited spaces available
+            </p>
+          )}
+          {isFull && (
+            <p className="text-xs text-destructive font-medium">This event is full</p>
+          )}
+          {attendeeCount === 0 && (
+            <p className="text-xs text-muted-foreground">No attendees yet</p>
+          )}
         </div>
       </div>
 
@@ -252,10 +291,17 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
       {/* CTA */}
       <Button
-        className="w-full bg-events hover:bg-events/90 text-events-foreground py-5 font-semibold"
-        onClick={handleRSVP}
+        className={`w-full py-5 font-semibold ${
+          isAttending
+            ? 'bg-green-600 hover:bg-green-700 text-white'
+            : isFull
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-events hover:bg-events/90 text-events-foreground'
+        }`}
+        onClick={handleAttendClick}
+        disabled={isFull && !isAttending}
       >
-        {isFree ? 'Join / RSVP' : `Pay & RSVP £${(totalPence / 100).toFixed(2)}`}
+        {isAttending ? '✓ Attending' : isFull ? 'Event Full' : 'Attend'}
       </Button>
 
       {/* Actions row */}
@@ -276,6 +322,23 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         </Button>
       </div>
 
+      {/* Attend Sheet */}
+      <AttendEventSheet
+        open={showAttendSheet}
+        onClose={() => setShowAttendSheet(false)}
+        onConfirm={handleConfirmAttendance}
+        eventTitle={event.title}
+      />
+
+      {/* Attendee List (organiser only) */}
+      {isHost && (
+        <AttendeeListSheet
+          open={showAttendeeList}
+          onClose={() => setShowAttendeeList(false)}
+          attendees={event.attendeesList || []}
+          onRemoveAttendee={handleRemoveAttendee}
+        />
+      )}
     </div>
   );
 };

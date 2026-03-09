@@ -124,6 +124,15 @@ export type EventType = 'meets' | 'shows' | 'drive' | 'track_day' | 'motorsport'
 export type VehicleType = 'cars' | 'bikes' | 'all';
 export type EntryFeeType = 'free' | 'paid';
 
+export interface EventAttendee {
+  userId: string;
+  username: string;
+  displayName: string;
+  profileImage: string | null;
+  vehicleRegistration: string;
+  joinedAt: string;
+}
+
 export interface RevEvent {
   id: string;
   createdBy: string;
@@ -159,6 +168,8 @@ export interface RevEvent {
   // Capacity & fees
   maxAttendees: number;
   attendees: number;
+  attendeesList: EventAttendee[];
+  firstComeFirstServe: boolean;
   entryFeeType: EntryFeeType;
   entryFeeAmount?: number; // in GBP
   currency: string;
