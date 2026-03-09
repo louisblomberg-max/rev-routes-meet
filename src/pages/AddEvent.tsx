@@ -125,14 +125,18 @@ const AddEvent = () => {
       date: startDate ? format(startDate, "EEE, MMM d • h:mm a") : 'TBD',
       endDate: endDate?.toISOString(),
       eventType: eventType,
-      vehicleTypes: vehicleTypeMode === 'all' ? ['All Welcome'] : vehicleTypes,
-      vis === 'All' ? ['All Welcome'] : [vehicleType]clubId : undef === 'All' ? ['All Welcome'] : [vehicleType]formData.feeAmount || '0'}` : 'Free',
+      vehicleTypes: vehicleType === 'All' ? ['All Welcome'] : [vehicleType],
+      visibility,
+      clubId: visibility === 'club' ? clubId : undefined,
+      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleTypeMode === 'all' ? [] : vehicleTypes.map(v => v.toLowerCase())) === 'All' ? [] : [vehicleType.toLowerCase()];
-
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'All' ? [] : [vehicleType.toLowerCase()])],
+      isMultiDay: false,
+      isRecurring: false,
+    });
     // Deduct credit if free user
     const check = canCreateEvent();
     if (check.creditsRemaining > 0) {
