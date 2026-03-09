@@ -36,13 +36,13 @@ const VEHICLE_AGE_OPTIONS = [
   { id: 'all-ages', label: 'All' },
   { id: 'classics', label: 'Classics' },
   { id: 'modern', label: 'Modern' },
+  { id: 'vintage', label: 'Vintage' },
   { id: 'pre-00s', label: "Pre 00's" },
   { id: 'pre-90s', label: "Pre 90's" },
   { id: 'pre-80s', label: "Pre 80's" },
   { id: 'pre-70s', label: "Pre 70's" },
   { id: 'pre-60s', label: "Pre 60's" },
   { id: 'pre-50s', label: "Pre 50's" },
-  { id: 'vintage', label: 'Vintage' },
 ];
 
 const CAR_BRANDS = [
