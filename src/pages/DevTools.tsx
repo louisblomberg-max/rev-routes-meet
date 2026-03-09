@@ -70,68 +70,38 @@ const EVENT_NAMES = [
   'Retro Rides Gathering', 'Rev Harder Track Day', 'EV Owners Social', 'Rally Stage Experience', 'Midnight Run',
   'Chrome & Coffee', 'Petrolhead Picnic', 'Alpine Run Convoy', 'Detailing Demo Day', 'Dyno Day',
 ];
-const EVENT_TYPES = ['Meets', 'Cars & Coffee', 'Track Day', 'Group Drive', 'Show / Exhibition', 'Drive-Out'];
-const EVENT_VEHICLE_TYPES = [
-  'All Welcome', 'Japanese Cars', 'European Cars', 'Supercars Only', 'Classic Cars',
-  'Motorcycles Only', 'American Muscle', 'BMW Only', 'Porsche Only', 'Modified Only',
+const EVENT_TYPES = ['Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble'];
+const VEHICLE_TYPE_OPTIONS_GEN = [
+  { id: 'all', label: 'All' },
+  { id: 'cars', label: 'Cars' },
+  { id: 'bikes', label: 'Bikes' },
 ];
-const EVENT_LOCATIONS = [
-  'Ace Cafe, London', 'Caffeine & Machine, Warwickshire', 'Goodwood Motor Circuit', 'Silverstone Circuit',
-  'Brands Hatch, Kent', 'Castle Combe Circuit', 'Donnington Park', 'Beaulieu Motor Museum',
-  'Brooklands Museum, Surrey', 'Blenheim Palace', 'Santa Pod Raceway', 'Bicester Heritage',
-  'Shelsley Walsh Hill Climb', 'Oulton Park, Cheshire', 'Box Hill, Surrey',
+const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'american', 'european'];
+const VEHICLE_AGE_OPTIONS_GEN = ['all-ages', 'classics', 'modern', 'vintage', 'pre-00s', 'pre-90s', 'pre-80s', 'pre-70s', 'pre-60s', 'pre-50s'];
+
+const CAR_BRANDS_GEN = [
+  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
+  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
+  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
+  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
+  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
+  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
+  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
 ];
-const EVENT_TAGS_POOL = [
-  'meets', 'cars & coffee', 'track days', 'drive-outs', 'car shows', 'jdm', 'euro', 'american',
-  'classic', 'supercars', 'motorcycle', 'performance', 'track', 'drift', 'modified', 'ev',
-  'motorsport', 'show / exhibition', 'group drive', 'bmw', 'porsche', 'mercedes', 'audi',
+const BIKE_BRANDS_GEN = [
+  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
+  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
+  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
 ];
 
-const ROUTE_NAMES = [
-  'Snake Pass Blast', 'Amalfi of Wales', 'Highlands Glory Road', 'Jurassic Coastliner',
-  'Snowdonia Summit Run', 'Brecon Beacons Loop', 'North Coast 500 Slice', 'Cat & Fiddle Classic',
-  'Black Mountain Pass', 'Cheddar Gorge Sprint', 'Devil\'s Staircase', 'Buttertubs Pass',
-  'Hardknott Pass Challenge', 'Great Orme Coastal', 'Bealach na Bà', 'A4069 Black Mountain',
-  'Yorkshire Moors Explorer', 'Dartmoor Wilderness', 'Border Ridge Run', 'Exmoor Twisties',
-];
-const ROUTE_TYPES = ['Scenic', 'Twisty', 'Coastal', 'Off-road', 'Mixed', 'Track'];
-const ROUTE_TAGS_POOL = [
-  'scenic', 'scenic routes', 'twisty', 'twisty roads', 'coastal', 'off-road', 'off-road routes',
-  'performance', 'track', 'motorcycle', 'classic',
+const EVENT_LOCATIONS_GEN = [
+  'Ace Cafe', 'Caffeine & Machine', 'Goodwood Motor Circuit', 'Silverstone Circuit',
+  'Brands Hatch', 'Castle Combe Circuit', 'Donnington Park', 'Beaulieu Motor Museum',
+  'Brooklands Museum', 'Blenheim Palace', 'Santa Pod Raceway', 'Bicester Heritage',
+  'Shelsley Walsh Hill Climb', 'Oulton Park', 'Box Hill Viewpoint',
+  'The Paddock', 'Main Car Park', 'Exhibition Hall', 'South Field', 'Circuit Entrance',
 ];
 
-const SERVICE_NAMES = [
-  'ProTune Performance', 'Shine Studio Detailing', 'German Auto Clinic', 'Apex Motorsport',
-  'Heritage Garage', 'TurboTech Tuning', 'Prestige Parts Co.', 'WrapKing Studios',
-  'Drift Spec Garage', 'MotorMedic 24/7', 'JDM Workshop', 'Tyre Kingdom',
-  'Body Perfect Repairs', 'Chrome Finish Detailing', 'EV Charge Solutions',
-  'Bolt-On Performance', 'Classic Restore Co.', 'Two Wheels Workshop', 'Paint Correction Pro', 'GearHead Garage',
-];
-const SERVICE_CATEGORIES = ['Mechanic', 'Detailing', 'Tuning', 'Tyres', 'Parts', 'Specialist', 'Garage'];
-const SERVICE_TYPES_POOL: Record<string, string[]> = {
-  Mechanic: ['Servicing', 'Diagnostics', 'Brakes', 'Suspension', 'Clutch', 'Timing Belt'],
-  Detailing: ['Full Valet', 'Ceramic Coating', 'PPF', 'Interior', 'Machine Polish', 'Paint Correction'],
-  Tuning: ['ECU Remapping', 'Dyno Testing', 'Turbo Upgrades', 'Exhaust Systems', 'Intake Kits'],
-  Tyres: ['Tyre Fitting', 'Wheel Alignment', 'Balancing', 'Puncture Repair', 'Run Flats'],
-  Parts: ['Performance', 'OEM', 'Aftermarket', 'Accessories', 'Body Kits'],
-  Specialist: ['Diagnostics', 'Wiring', 'ECU Tuning', 'Audio Install', 'Air Ride'],
-  Garage: ['MOT', 'Servicing', 'Brakes', 'Exhausts', 'Air Con Regas'],
-};
-const SERVICE_TAGS_POOL = [
-  'mechanics', 'detailing', 'tuning', 'tyres', 'parts suppliers', 'performance',
-  'jdm', 'euro', 'classic', 'body shop', 'ceramic coating', 'ppf', 'ecu', 'turbo',
-];
-const SERVICE_ADDRESSES = [
-  '12 Motor Lane, London', '45 High Street, Birmingham', '78 Speed Way, Manchester',
-  '23 Garage Road, Bristol', '56 Engine Close, Leeds', '89 Pit Lane, Sheffield',
-  '34 Track Avenue, Nottingham', '67 Circuit Drive, Liverpool', '91 Horsepower Way, Brighton',
-  '15 Torque Street, Oxford', '42 RPM Road, Cambridge', '73 Boost Lane, Southampton',
-];
-const PRICE_RANGES = ['£', '££', '£££'];
-const OPENING_HOURS = [
-  'Mon-Fri: 8am-6pm', 'Mon-Sat: 8am-6pm', 'Mon-Fri: 9am-5:30pm',
-  'Mon-Sat: 9am-5pm', 'Tue-Sat: 9am-6pm', 'Mon-Sat: 8am-7pm, Sun: 10am-4pm',
-];
 const USERNAMES = [
   'BimmerFan92', 'TurboTom', 'DriftKingUK', 'CleanFreak', 'TrackDayAddict', 'V8Thunder',
   'JDMLover', 'PorschePete', 'ClassicCarl', 'EVDave', 'ModifiedMike', 'BikerBen',
@@ -139,47 +109,21 @@ const USERNAMES = [
 ];
 
 const EVENT_DESCRIPTIONS = [
-  'Join fellow enthusiasts for an incredible day of automotive passion. Food trucks, live DJ, and prizes for best in show.',
-  'A relaxed morning meet with specialty coffee, pastries, and some of the finest machines in the region. All marques welcome.',
-  'High-octane track action with professional marshalling, timed sessions, and on-board photography available.',
-  'Cruise through stunning scenery with a group of like-minded petrolheads. Route cards and walkie-talkies provided.',
-  'Annual charity car show raising money for local causes. Trophy categories include Best Paint, Best Engine Bay, and People\'s Choice.',
-  'Late-night meet under the lights. Bring your best spec and cleanest build. Sound-off competition at 10pm.',
-  'Family-friendly automotive festival with go-karts for kids, a detailing masterclass, and vendor village.',
-  'Exclusive invite-only gathering for supercars and hypercars. Champagne reception and professional photography included.',
-  'Monthly recurring meet at a legendary venue. Rain or shine, the community always turns out strong.',
-  'A spirited drive through the countryside finishing at a pub lunch. Approximately 60 miles of B-roads.',
-];
-
-const ROUTE_DESCRIPTIONS = [
-  'An exhilarating ribbon of tarmac carving through dramatic valleys with sweeping bends and stunning summit views. Best enjoyed early morning before traffic builds.',
-  'A coastal masterpiece hugging clifftops with panoramic ocean views. Several lay-bys for photos. Watch for crosswinds on exposed sections.',
-  'Technical mountain pass with tight hairpins and steep gradients. Not for the faint-hearted but incredibly rewarding. Gravel patches possible after rain.',
-  'A gentle touring route through quintessential English countryside. Thatched cottages, rolling hills, and a perfect pub stop halfway.',
-  'Fast-flowing A-road with long straights and flowing curves. Popular with bikers at weekends. Speed cameras at both ends.',
-  'Hidden gem through ancient woodland with dappled light and smooth tarmac. Very narrow in places — use passing places.',
-  'Epic moor-crossing route with 360° views and virtually no traffic. Sheep on road likely. Fuel up beforehand — no stations for 40 miles.',
-  'Heritage route passing multiple historic sites. Combines B-roads with brief dual carriageway sections. Great autumn colours.',
-];
-
-const SERVICE_DESCRIPTIONS = [
-  'Family-run independent specialist with over 20 years of experience. Known for honest pricing and exceptional attention to detail.',
-  'State-of-the-art facility with the latest diagnostic equipment. Factory-trained technicians for all major European brands.',
-  'Award-winning detailing studio offering everything from maintenance washes to full paint correction and ceramic coating.',
-  'Performance tuning experts with in-house dyno. Custom mapping for all popular ECU platforms. Results guaranteed.',
-  'Friendly local garage trusted by the community. MOT station, servicing, and all general repairs at competitive prices.',
-  'Premium tyre fitting centre with a huge stock of performance and track-day rubber. Free alignment check with every set of four.',
-  'Specialist restoration workshop bringing classics back to concours condition. Panel fabrication, paint, and mechanical rebuild.',
-  'Mobile detailing service covering a 25-mile radius. We come to you — home, office, or event. Fully insured and self-sufficient.',
-];
-
-const SERVICE_WEBSITES = [
-  'www.example-garage.co.uk', 'www.protuneperformance.co.uk', 'www.shinestudio.co.uk',
-  'www.apexmotorsport.co.uk', 'www.heritagegarage.co.uk', 'www.tyrekingdom.co.uk',
-];
-const SERVICE_EMAILS = [
-  'info@example-garage.co.uk', 'bookings@detailstudio.co.uk', 'hello@tuningpro.co.uk',
-  'service@localgarage.co.uk', 'enquiries@tyreshop.co.uk', 'contact@bodyworks.co.uk',
+  'Join fellow enthusiasts for an incredible day of automotive passion. Food trucks, live DJ, and prizes for best in show. All skill levels and marques are welcome to attend.',
+  'A relaxed morning meet with specialty coffee, freshly baked pastries, and some of the finest machines in the region. Bring your pride and joy for a chilled Sunday morning.',
+  'High-octane track action with professional marshalling, timed sessions, and on-board photography available. Helmets required. All experience levels welcome with instructor support.',
+  'Cruise through stunning scenery with a group of like-minded petrolheads. Route cards and walkie-talkies provided. Approximately 60 miles of B-roads finishing at a pub lunch.',
+  'Annual charity car show raising money for local causes. Trophy categories include Best Paint, Best Engine Bay, and People\'s Choice. Family-friendly with food and entertainment.',
+  'Late-night meet under the lights for the modified car community. Bring your best spec and cleanest build. Sound-off competition at 10pm followed by a short cruise.',
+  'Family-friendly automotive festival with go-karts for kids, a detailing masterclass, and vendor village. Over 200 cars expected across all categories and decades of motoring.',
+  'Exclusive gathering for supercars and hypercars only. Champagne reception, professional photography included, and scenic group drive through the countryside to finish the day off.',
+  'Monthly recurring meet at a legendary venue that brings together the community rain or shine. Great atmosphere, good people, and some seriously impressive machinery on display.',
+  'A spirited group drive through the countryside finishing with a fantastic pub lunch. Expect around 60 miles of flowing B-roads with some truly stunning views along the way.',
+  'Celebrating Japanese automotive culture with a curated display of JDM icons. From classic Skylines to modern GR Yaris builds, this meet showcases the best of Japan.',
+  'American muscle and classic car showcase with live music, BBQ, and drag racing demonstrations. Bring your V8 and join the rumble for a truly unforgettable weekend event.',
+  'Track day exclusively for motorcycle riders with marshalled sessions and professional coaching available. All bike types welcome from sports to adventure. Full leathers mandatory for safety.',
+  'A dedicated EV and hybrid owners social with charging available on site. Tech talks, range challenges, and a chance to compare the latest electric vehicles up close.',
+  'Classic and vintage car rally through picturesque villages with timed checkpoints. Open to pre-1990 vehicles only. Period dress encouraged but not required for participants.',
 ];
 
 function generateRandomEvents(count: number) {
@@ -187,35 +131,52 @@ function generateRandomEvents(count: number) {
   for (let i = 0; i < count; i++) {
     const coords = randCoordUK();
     const eventType = pick(EVENT_TYPES);
+    const vehicleTypeOpt = pick(VEHICLE_TYPE_OPTIONS_GEN);
+    const vehicleCategory = Math.random() > 0.3 ? pick(VEHICLE_CATEGORY_OPTIONS_GEN) : null;
+    const vehicleAge = pick(VEHICLE_AGE_OPTIONS_GEN);
+
+    // Pick brands based on vehicle type
+    let vehicleBrands: string[] = [];
+    if (vehicleTypeOpt.id === 'cars') {
+      vehicleBrands = pickN(CAR_BRANDS_GEN, randBetween(1, 3));
+    } else if (vehicleTypeOpt.id === 'bikes') {
+      vehicleBrands = pickN(BIKE_BRANDS_GEN, randBetween(1, 2));
+    }
+
+    // Generate a future date
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + randBetween(1, 90));
     const hours = randBetween(7, 20);
     const mins = pick(['00', '30']);
     const dateStr = futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ` • ${hours}:${mins} ${hours < 12 ? 'AM' : 'PM'}`;
+    
     const hasFee = Math.random() > 0.5;
-    const isMultiDay = Math.random() > 0.85;
-    const isRecurring = Math.random() > 0.75;
-    const vehicleTypes = pickN(EVENT_VEHICLE_TYPES, randBetween(1, 3));
+    const maxAttendees = randBetween(20, 500);
+
+    // Build tags exactly like the real Add Event form
+    const tags: string[] = [eventType.toLowerCase()];
+    if (vehicleTypeOpt.id !== 'all') tags.push(vehicleTypeOpt.id);
+    if (vehicleCategory) tags.push(vehicleCategory);
+    vehicleBrands.forEach(b => tags.push(b.toLowerCase()));
+    if (vehicleAge !== 'all-ages') tags.push(vehicleAge);
 
     events.push({
       title: pick(EVENT_NAMES),
       description: pick(EVENT_DESCRIPTIONS),
-      location: `${pick(['The Paddock', 'Unit 4 Industrial Estate', 'Main Car Park', 'South Field', 'Exhibition Hall', 'Circuit Entrance'])}${', ' + coords.city}`,
+      location: `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`,
       lat: coords.lat,
       lng: coords.lng,
       date: dateStr,
       eventType,
-      vehicleTypes,
+      vehicleTypes: vehicleTypeOpt.id === 'all' ? ['All Welcome'] : [vehicleTypeOpt.label],
       visibility: pick(['public', 'public', 'public', 'club', 'friends'] as const),
       createdBy: pick(USERNAMES),
-      attendees: randBetween(8, 500),
-      isMultiDay,
-      isRecurring,
-      recurrenceType: isRecurring ? pick(['weekly', 'monthly'] as const) : undefined,
+      attendees: randBetween(0, Math.floor(maxAttendees * 0.6)),
+      isMultiDay: false,
+      isRecurring: false,
       entryFee: hasFee ? `£${randBetween(3, 45)}` : 'Free',
-      ticketLimit: hasFee ? randBetween(50, 500) : undefined,
-      earlyBirdPrice: hasFee && Math.random() > 0.5 ? `£${randBetween(2, 30)}` : undefined,
-      tags: pickN(EVENT_TAGS_POOL, randBetween(3, 6)),
+      ticketLimit: maxAttendees,
+      tags,
     });
   }
   return events;
