@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown } from 'lucide-react';
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown, Search, Tag } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -45,6 +45,23 @@ const VEHICLE_AGE_OPTIONS = [
   { id: 'vintage', label: 'Vintage' },
 ];
 
+const CAR_BRANDS = [
+  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
+  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
+  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
+  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
+  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
+  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
+  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
+];
+const BIKE_BRANDS = [
+  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
+  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
+  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
+];
+const POPULAR_CAR_BRANDS = ['BMW','Porsche','Mercedes-Benz','Audi','Ford','Ferrari','Lamborghini','Nissan'];
+const POPULAR_BIKE_BRANDS = ['Ducati','Harley-Davidson','Honda','Kawasaki','Yamaha','Triumph','KTM','BMW Motorrad'];
+
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
   { value: 'club' as const, label: 'Club', description: 'Post to your club', icon: UsersRound },
@@ -87,6 +104,10 @@ const AddEvent = () => {
   const [eventType, setEventType] = useState<string>('');
   const [vehicleType, setVehicleType] = useState<string>('all');
   const [vehicleCategory, setVehicleCategory] = useState<string | null>(null);
+  const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
+  const [brandSearch, setBrandSearch] = useState('');
+  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const brandRef = useRef<HTMLDivElement>(null);
   const [vehicleAge, setVehicleAge] = useState<string>('all-ages');
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
@@ -100,6 +121,40 @@ const AddEvent = () => {
   const [bannerImage, setBannerImage] = useState<{ file: File; preview: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Close brand dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
+        setIsBrandDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const availableBrands = useMemo(() => {
+    if (vehicleType === 'cars') return CAR_BRANDS;
+    if (vehicleType === 'bikes') return BIKE_BRANDS;
+    return [];
+  }, [vehicleType]);
+
+  const popularBrands = useMemo(() => {
+    if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
+    if (vehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
+    return [];
+  }, [vehicleType]);
+
+  const filteredBrandResults = useMemo(() => {
+    const query = brandSearch.trim().toLowerCase();
+    if (!query) {
+      const rest = availableBrands.filter(b => !popularBrands.includes(b));
+      return [...popularBrands, ...rest].filter(b => !vehicleBrands.includes(b)).slice(0, 8);
+    }
+    return availableBrands
+      .filter(b => b.toLowerCase().includes(query) && !vehicleBrands.includes(b))
+      .slice(0, 8);
+  }, [brandSearch, availableBrands, popularBrands, vehicleBrands]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -158,7 +213,7 @@ const AddEvent = () => {
       createdBy: state.currentUser?.id || 'unknown',
       attendees: 0,
       photos: bannerImage ? [bannerImage.preview] : undefined,
-      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
+      tags: [eventType.toLowerCase(), ...(vehicleType === 'all' ? [] : [vehicleType]), ...(vehicleCategory ? [vehicleCategory] : []), ...vehicleBrands.map(b => b.toLowerCase()), ...(vehicleAge === 'all-ages' ? [] : [vehicleAge])],
       isMultiDay: false,
       isRecurring: false,
     });
@@ -283,7 +338,7 @@ const AddEvent = () => {
             {VEHICLE_TYPE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleType(opt.id)}
+                onClick={() => { setVehicleType(opt.id); if (opt.id === 'all') { setVehicleBrands([]); setBrandSearch(''); } }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
                   vehicleType === opt.id
                     ? 'bg-events text-events-foreground border-events shadow-sm'
@@ -314,6 +369,78 @@ const AddEvent = () => {
               </button>
             ))}
           </div>
+        </SectionCard>
+
+        {/* ── VEHICLE BRAND ── */}
+        <SectionCard>
+          <SectionTitle icon={Tag}>
+            Vehicle Brand
+            {(vehicleType === 'all') && <span className="text-[10px] ml-1 text-muted-foreground font-normal">(select Cars or Bikes first)</span>}
+          </SectionTitle>
+
+          {(vehicleType === 'cars' || vehicleType === 'bikes') ? (
+            <div ref={brandRef} className="relative">
+              {/* Selected brand chips */}
+              {vehicleBrands.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {vehicleBrands.map((brand) => (
+                    <span
+                      key={brand}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30"
+                    >
+                      {brand}
+                      <button
+                        onClick={() => setVehicleBrands(vehicleBrands.filter(b => b !== brand))}
+                        className="w-4 h-4 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={brandSearch}
+                  onChange={(e) => {
+                    setBrandSearch(e.target.value);
+                    setIsBrandDropdownOpen(true);
+                  }}
+                  onFocus={() => setIsBrandDropdownOpen(true)}
+                  placeholder="Search vehicle brand..."
+                  className="w-full h-11 pl-9 pr-3 rounded-xl border border-border/50 bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
+                />
+              </div>
+
+              {/* Dropdown results */}
+              {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
+                <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
+                  {!brandSearch.trim() && (
+                    <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
+                  )}
+                  {filteredBrandResults.map((brand) => (
+                    <button
+                      key={brand}
+                      onClick={() => {
+                        setVehicleBrands([...vehicleBrands, brand]);
+                        setBrandSearch('');
+                        setIsBrandDropdownOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-events/10 transition-colors"
+                    >
+                      {brand}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">Select a vehicle type above to choose brands.</p>
+          )}
         </SectionCard>
 
         {/* ── VEHICLE AGE ── */}

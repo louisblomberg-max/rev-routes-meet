@@ -16,6 +16,7 @@ export interface EventsFilterState {
   specificDate: Date | undefined;
   vehicleTypes: string[];
   vehicleBrands: string[];
+  vehicleCategory: string | null;
   vehicleAge: string | null;
   eventSize: string | null;
   entryFee: string | null;
@@ -116,6 +117,13 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
+  ];
+
+  const vehicleCategoryOptions = [
+    { id: 'jdm', label: 'JDM' },
+    { id: 'supercars', label: 'Supercars' },
+    { id: 'american', label: 'American' },
+    { id: 'european', label: 'European' },
   ];
 
   const eventSizeOptions = [
@@ -278,9 +286,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             <h3 className="text-sm font-semibold text-foreground">Filter Events & Drives</h3>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => onFiltersChange({
+              onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleBrands: [], vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleBrands: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
@@ -434,6 +442,26 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                 )}
               </div>
             )}
+          </div>
+
+          {/* Vehicle Category Filter */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
+            <div className="flex flex-wrap gap-1.5">
+              {vehicleCategoryOptions.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                    filters.vehicleCategory === cat.id
+                      ? 'bg-events/80 text-white'
+                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Vehicle Age Filter */}
