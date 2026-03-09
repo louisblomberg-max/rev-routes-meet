@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock } from 'lucide-react';
+import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock, Send } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
