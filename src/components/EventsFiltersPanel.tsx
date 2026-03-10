@@ -115,6 +115,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const vehicleTypeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
     { id: 'big_stuff', label: 'Big Stuff' },
