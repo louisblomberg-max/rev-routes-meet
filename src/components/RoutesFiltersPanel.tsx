@@ -67,6 +67,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const toggleType = (typeId: string) => {
+    if (typeId === 'all') {
+      onFiltersChange({ ...filters, types: [] });
+      return;
+    }
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
       : [...filters.types, typeId];
@@ -74,6 +78,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const toggleDifficulty = (difficultyId: string) => {
+    if (difficultyId === 'all') {
+      onFiltersChange({ ...filters, difficulty: [] });
+      return;
+    }
     const newDifficulty = filters.difficulty.includes(difficultyId)
       ? filters.difficulty.filter(d => d !== difficultyId)
       : [...filters.difficulty, difficultyId];
@@ -81,6 +89,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const toggleSurface = (surfaceId: string) => {
+    if (surfaceId === 'all') {
+      onFiltersChange({ ...filters, surface: [] });
+      return;
+    }
     const newSurface = filters.surface.includes(surfaceId)
       ? filters.surface.filter(s => s !== surfaceId)
       : [...filters.surface, surfaceId];
@@ -99,6 +111,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const handleDurationChange = (durationId: string) => {
+    if (durationId === 'all') {
+      onFiltersChange({ ...filters, duration: null });
+      return;
+    }
     onFiltersChange({ 
       ...filters, 
       duration: filters.duration === durationId ? null : durationId 
