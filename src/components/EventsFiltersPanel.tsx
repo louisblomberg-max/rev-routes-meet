@@ -171,6 +171,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   };
 
   const toggleVehicleType = (vehicleTypeId: string) => {
+    if (vehicleTypeId === 'all') {
+      onFiltersChange({ ...filters, vehicleTypes: [], vehicleBrands: [] });
+      setBrandSearch('');
+      return;
+    }
     const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
     onFiltersChange({
       ...filters,
