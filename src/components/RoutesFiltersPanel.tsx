@@ -268,7 +268,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={dur.id}
                   onClick={() => handleDurationChange(dur.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.duration === dur.id
+                    (dur.id === 'all' && filters.duration === null) || filters.duration === dur.id
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
