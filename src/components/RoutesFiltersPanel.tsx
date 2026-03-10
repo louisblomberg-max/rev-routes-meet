@@ -27,6 +27,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const typeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'scenic', label: 'Scenic' },
     { id: 'coastal', label: 'Coastal' },
     { id: 'off-road', label: 'Off-road' },
@@ -36,6 +37,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const difficultyOptions = [
+    { id: 'all', label: 'All' },
     { id: 'easy', label: 'Easy' },
     { id: 'moderate', label: 'Moderate' },
     { id: 'challenging', label: 'Challenging' },
@@ -43,6 +45,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const durationOptions = [
+    { id: 'all', label: 'All' },
     { id: 'under-1h', label: '< 1 hour' },
     { id: '1-2h', label: '1-2 hours' },
     { id: '2-4h', label: '2-4 hours' },
@@ -50,6 +53,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const surfaceOptions = [
+    { id: 'all', label: 'All' },
     { id: 'paved', label: 'Paved' },
     { id: 'gravel', label: 'Gravel' },
     { id: 'dirt', label: 'Dirt' },
