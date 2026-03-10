@@ -35,6 +35,8 @@ const VEHICLE_TYPE_OPTIONS: { id: VehicleType; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'cars', label: 'Cars' },
   { id: 'bikes', label: 'Bikes' },
+  { id: 'big_stuff', label: 'Big Stuff' },
+  { id: 'military', label: 'Military' },
 ];
 
 const VEHICLE_CATEGORY_OPTIONS = [
@@ -44,6 +46,7 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'american', label: 'American' },
   { id: 'european', label: 'European' },
   { id: '4x4', label: '4x4' },
+  { id: 'row', label: 'ROW' },
 ];
 
 const VEHICLE_AGE_OPTIONS = [

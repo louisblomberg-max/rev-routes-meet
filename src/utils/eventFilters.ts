@@ -66,8 +66,7 @@ export function filterEvents(
     if (filters.vehicleTypes.length > 0) {
       const filterVType = filters.vehicleTypes[0]; // single-select
       // If event is 'all', it matches any filter. If filter is specific, event must match or be 'all'.
-      if (filterVType === 'cars' && event.vehicleType !== 'cars' && event.vehicleType !== 'all') return false;
-      if (filterVType === 'bikes' && event.vehicleType !== 'bikes' && event.vehicleType !== 'all') return false;
+      if (event.vehicleType !== 'all' && event.vehicleType !== filterVType) return false;
     }
 
     // Vehicle brand filter (any match)

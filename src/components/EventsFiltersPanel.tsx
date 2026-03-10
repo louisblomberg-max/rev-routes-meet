@@ -117,6 +117,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
+    { id: 'big_stuff', label: 'Big Stuff' },
+    { id: 'military', label: 'Military' },
   ];
 
   // IDs match the structured vehicleCategories values
@@ -127,6 +129,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'american', label: 'American' },
     { id: 'european', label: 'European' },
     { id: '4x4', label: '4x4' },
+    { id: 'row', label: 'ROW' },
   ];
 
   // IDs match the structured vehicleAge values
@@ -378,7 +381,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           <div className="space-y-2">
             <p className={`text-xs font-medium ${selectedVehicleType ? 'text-foreground' : 'text-muted-foreground'}`}>
               Vehicle Brand
-              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select Cars or Bikes first)</span>}
+              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select a vehicle type first)</span>}
             </p>
 
             {selectedVehicleType && (
