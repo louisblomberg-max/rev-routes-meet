@@ -387,12 +387,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
           {/* Vehicle Brand Filter */}
           <div className="space-y-2">
-            <p className={`text-xs font-medium ${selectedVehicleType ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <p className="text-xs font-medium text-foreground">
               Vehicle Brand
-              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select a vehicle type first)</span>}
             </p>
 
-            {selectedVehicleType && (
+            {(
               <div ref={brandRef} className="relative">
                 {filters.vehicleBrands.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
