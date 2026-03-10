@@ -117,6 +117,8 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const vehicleTypeOptions = [
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
+    { id: 'big_stuff', label: 'Big Stuff' },
+    { id: 'military', label: 'Military' },
   ];
 
   // IDs match the structured vehicleCategories values
