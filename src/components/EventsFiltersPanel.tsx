@@ -69,15 +69,17 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const selectedVehicleType = filters.vehicleTypes.length > 0 ? filters.vehicleTypes[0] : null;
 
   const availableBrands = useMemo(() => {
+    if (!selectedVehicleType || selectedVehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
     if (selectedVehicleType === 'cars') return CAR_BRANDS;
     if (selectedVehicleType === 'bikes') return BIKE_BRANDS;
-    return [];
+    return CAR_BRANDS; // big_stuff/military default to car brands
   }, [selectedVehicleType]);
 
   const popularBrands = useMemo(() => {
+    if (!selectedVehicleType || selectedVehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
     if (selectedVehicleType === 'cars') return POPULAR_CAR_BRANDS;
     if (selectedVehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    return [];
+    return POPULAR_CAR_BRANDS;
   }, [selectedVehicleType]);
 
   const filteredBrands = useMemo(() => {
@@ -115,6 +117,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   ];
 
   const vehicleTypeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'cars', label: 'Cars' },
     { id: 'bikes', label: 'Bikes' },
     { id: 'big_stuff', label: 'Big Stuff' },
@@ -170,6 +173,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   };
 
   const toggleVehicleType = (vehicleTypeId: string) => {
+    if (vehicleTypeId === 'all') {
+      onFiltersChange({ ...filters, vehicleTypes: [], vehicleBrands: [] });
+      setBrandSearch('');
+      return;
+    }
     const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
     onFiltersChange({
       ...filters,
@@ -366,7 +374,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   key={vehicle.id}
                   onClick={() => toggleVehicleType(vehicle.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleTypes.includes(vehicle.id)
+                    (vehicle.id === 'all' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -379,12 +387,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
           {/* Vehicle Brand Filter */}
           <div className="space-y-2">
-            <p className={`text-xs font-medium ${selectedVehicleType ? 'text-foreground' : 'text-muted-foreground'}`}>
+            <p className="text-xs font-medium text-foreground">
               Vehicle Brand
-              {!selectedVehicleType && <span className="text-[10px] ml-1 text-muted-foreground/60">(select a vehicle type first)</span>}
             </p>
 
-            {selectedVehicleType && (
+            {(
               <div ref={brandRef} className="relative">
                 {filters.vehicleBrands.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
