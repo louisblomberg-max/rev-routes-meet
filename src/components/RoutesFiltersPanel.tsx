@@ -248,7 +248,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={diff.id}
                   onClick={() => toggleDifficulty(diff.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.difficulty.includes(diff.id)
+                    (diff.id === 'all' && filters.difficulty.length === 0) || filters.difficulty.includes(diff.id)
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
