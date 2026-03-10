@@ -27,6 +27,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const typeOptions = [
+    { id: 'all', label: 'All' },
     { id: 'scenic', label: 'Scenic' },
     { id: 'coastal', label: 'Coastal' },
     { id: 'off-road', label: 'Off-road' },
@@ -36,6 +37,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const difficultyOptions = [
+    { id: 'all', label: 'All' },
     { id: 'easy', label: 'Easy' },
     { id: 'moderate', label: 'Moderate' },
     { id: 'challenging', label: 'Challenging' },
@@ -43,6 +45,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const durationOptions = [
+    { id: 'all', label: 'All' },
     { id: 'under-1h', label: '< 1 hour' },
     { id: '1-2h', label: '1-2 hours' },
     { id: '2-4h', label: '2-4 hours' },
@@ -50,6 +53,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const surfaceOptions = [
+    { id: 'all', label: 'All' },
     { id: 'paved', label: 'Paved' },
     { id: 'gravel', label: 'Gravel' },
     { id: 'dirt', label: 'Dirt' },
@@ -63,6 +67,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   ];
 
   const toggleType = (typeId: string) => {
+    if (typeId === 'all') {
+      onFiltersChange({ ...filters, types: [] });
+      return;
+    }
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
       : [...filters.types, typeId];
@@ -70,6 +78,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const toggleDifficulty = (difficultyId: string) => {
+    if (difficultyId === 'all') {
+      onFiltersChange({ ...filters, difficulty: [] });
+      return;
+    }
     const newDifficulty = filters.difficulty.includes(difficultyId)
       ? filters.difficulty.filter(d => d !== difficultyId)
       : [...filters.difficulty, difficultyId];
@@ -77,6 +89,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const toggleSurface = (surfaceId: string) => {
+    if (surfaceId === 'all') {
+      onFiltersChange({ ...filters, surface: [] });
+      return;
+    }
     const newSurface = filters.surface.includes(surfaceId)
       ? filters.surface.filter(s => s !== surfaceId)
       : [...filters.surface, surfaceId];
@@ -95,6 +111,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
   };
 
   const handleDurationChange = (durationId: string) => {
+    if (durationId === 'all') {
+      onFiltersChange({ ...filters, duration: null });
+      return;
+    }
     onFiltersChange({ 
       ...filters, 
       duration: filters.duration === durationId ? null : durationId 
@@ -208,7 +228,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={type.id}
                   onClick={() => toggleType(type.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.types.includes(type.id)
+                    (type.id === 'all' && filters.types.length === 0) || filters.types.includes(type.id)
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
@@ -228,7 +248,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={diff.id}
                   onClick={() => toggleDifficulty(diff.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.difficulty.includes(diff.id)
+                    (diff.id === 'all' && filters.difficulty.length === 0) || filters.difficulty.includes(diff.id)
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
@@ -248,7 +268,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={dur.id}
                   onClick={() => handleDurationChange(dur.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.duration === dur.id
+                    (dur.id === 'all' && filters.duration === null) || filters.duration === dur.id
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
@@ -268,7 +288,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={surf.id}
                   onClick={() => toggleSurface(surf.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.surface.includes(surf.id)
+                    (surf.id === 'all' && filters.surface.length === 0) || filters.surface.includes(surf.id)
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
