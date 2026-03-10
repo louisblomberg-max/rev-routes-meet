@@ -288,7 +288,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
                   key={surf.id}
                   onClick={() => toggleSurface(surf.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.surface.includes(surf.id)
+                    (surf.id === 'all' && filters.surface.length === 0) || filters.surface.includes(surf.id)
                       ? 'bg-routes/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-routes/10'
                   }`}
