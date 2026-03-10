@@ -69,15 +69,17 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   const selectedVehicleType = filters.vehicleTypes.length > 0 ? filters.vehicleTypes[0] : null;
 
   const availableBrands = useMemo(() => {
+    if (!selectedVehicleType || selectedVehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
     if (selectedVehicleType === 'cars') return CAR_BRANDS;
     if (selectedVehicleType === 'bikes') return BIKE_BRANDS;
-    return [];
+    return CAR_BRANDS; // big_stuff/military default to car brands
   }, [selectedVehicleType]);
 
   const popularBrands = useMemo(() => {
+    if (!selectedVehicleType || selectedVehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
     if (selectedVehicleType === 'cars') return POPULAR_CAR_BRANDS;
     if (selectedVehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    return [];
+    return POPULAR_CAR_BRANDS;
   }, [selectedVehicleType]);
 
   const filteredBrands = useMemo(() => {
