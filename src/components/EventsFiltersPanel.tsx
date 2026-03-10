@@ -372,7 +372,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
                   key={vehicle.id}
                   onClick={() => toggleVehicleType(vehicle.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleTypes.includes(vehicle.id)
+                    (vehicle.id === 'all' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
