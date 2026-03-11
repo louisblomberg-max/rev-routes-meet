@@ -153,11 +153,15 @@ const AddEvent = () => {
   }, []);
 
   const availableBrands = useMemo(() => {
-    if (vehicleType === 'cars') return CAR_BRANDS;
-    if (vehicleType === 'bikes') return BIKE_BRANDS;
-    if (vehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
-    return [];
-  }, [vehicleType]);
+    const types = selectedVehicleTypes.filter(t => t !== 'all');
+    if (types.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
+    const brands = new Set<string>();
+    for (const vt of types) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
+      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
+    }
+    return brands.size > 0 ? [...brands].sort() : [...CAR_BRANDS, ...BIKE_BRANDS].sort();
+  }, [selectedVehicleTypes]);
 
   const popularBrands = useMemo(() => {
     if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
