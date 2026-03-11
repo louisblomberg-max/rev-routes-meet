@@ -77,11 +77,14 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   }, [filters.vehicleTypes]);
 
   const popularBrands = useMemo(() => {
-    if (!selectedVehicleType || selectedVehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
-    if (selectedVehicleType === 'cars') return POPULAR_CAR_BRANDS;
-    if (selectedVehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    return POPULAR_CAR_BRANDS;
-  }, [selectedVehicleType]);
+    if (filters.vehicleTypes.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
+    const pBrands = new Set<string>();
+    for (const vt of filters.vehicleTypes) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
+      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
+    }
+    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
+  }, [filters.vehicleTypes]);
 
   const filteredBrands = useMemo(() => {
     const query = brandSearch.trim().toLowerCase();

@@ -183,6 +183,8 @@ export interface RevEvent {
   entryFee?: string;
   /** @deprecated Use vehicleType */
   vehicleTypes?: string[];
+  /** Multiple vehicle ages selected */
+  vehicleAges?: string[];
   /** @deprecated */
   tags?: string[];
   /** @deprecated */
