@@ -145,11 +145,16 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         <Badge variant="outline" className="text-xs">
           {VEHICLE_TYPE_LABELS[event.vehicleType] || event.vehicleType}
         </Badge>
-        {event.vehicleAge && event.vehicleAge !== 'all' && (
-          <Badge variant="outline" className="text-xs">
-            {VEHICLE_AGE_LABELS[event.vehicleAge] || event.vehicleAge}
-          </Badge>
-        )}
+        {(() => {
+          const ages = event.vehicleAges && event.vehicleAges.length > 0
+            ? event.vehicleAges
+            : (event.vehicleAge && event.vehicleAge !== 'all' ? [event.vehicleAge] : []);
+          return ages.map(age => (
+            <Badge key={age} variant="outline" className="text-xs">
+              {VEHICLE_AGE_LABELS[age] || age}
+            </Badge>
+          ));
+        })()}
         {isClubHosted && (
           <Badge variant="outline" className="text-xs bg-clubs/10 text-clubs border-clubs/20">
             <Shield className="w-3 h-3 mr-1" /> Club Hosted

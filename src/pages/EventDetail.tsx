@@ -188,12 +188,21 @@ const EventDetail = () => {
           )}
 
           {/* Vehicle Age */}
-          {event.vehicleAge && event.vehicleAge !== 'all' && (
-            <div className="mt-2">
-              <p className="text-xs font-medium text-muted-foreground mb-1">Vehicle Era</p>
-              <Badge variant="outline" className="text-xs">{VEHICLE_AGE_LABELS[event.vehicleAge] || event.vehicleAge}</Badge>
-            </div>
-          )}
+          {(() => {
+            const ages = event.vehicleAges && event.vehicleAges.length > 0
+              ? event.vehicleAges
+              : (event.vehicleAge && event.vehicleAge !== 'all' ? [event.vehicleAge] : []);
+            return ages.length > 0 ? (
+              <div className="mt-2">
+                <p className="text-xs font-medium text-muted-foreground mb-1">Vehicle Era</p>
+                <div className="flex flex-wrap gap-1">
+                  {ages.map(age => (
+                    <Badge key={age} variant="outline" className="text-xs">{VEHICLE_AGE_LABELS[age] || age}</Badge>
+                  ))}
+                </div>
+              </div>
+            ) : null;
+          })()}
         </div>
 
         {/* Description */}

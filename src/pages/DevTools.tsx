@@ -171,7 +171,8 @@ function generateRandomEvents(count: number) {
       vehicleType,
       vehicleBrands,
       vehicleCategories,
-      vehicleAge,
+      vehicleAge: vehicleAges.includes('all') ? 'all' : vehicleAges[0],
+      vehicleAges: vehicleAges.filter(a => a !== 'all'),
 
       // Dates
       startDate: futureDate.toISOString(),
