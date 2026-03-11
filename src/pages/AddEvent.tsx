@@ -391,14 +391,25 @@ const AddEvent = () => {
               <button
                 key={opt.id}
                 onClick={() => {
-                  setVehicleType(opt.id);
-                  if (opt.id !== vehicleType) {
+                  if (opt.id === 'all') {
+                    setSelectedVehicleTypes(['all']);
+                    setVehicleType('all');
                     setVehicleBrands([]);
                     setBrandSearch('');
+                  } else {
+                    setSelectedVehicleTypes(prev => {
+                      const withoutAll = prev.filter(t => t !== 'all');
+                      const newTypes = withoutAll.includes(opt.id)
+                        ? withoutAll.filter(t => t !== opt.id)
+                        : [...withoutAll, opt.id];
+                      const result = newTypes.length === 0 ? ['all' as VehicleType] : newTypes;
+                      setVehicleType(result[0]);
+                      return result;
+                    });
                   }
                 }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleType === opt.id
+                  selectedVehicleTypes.includes(opt.id)
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
