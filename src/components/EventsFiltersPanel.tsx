@@ -66,14 +66,15 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const selectedVehicleType = filters.vehicleTypes.length > 0 ? filters.vehicleTypes[0] : null;
-
   const availableBrands = useMemo(() => {
-    if (!selectedVehicleType || selectedVehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
-    if (selectedVehicleType === 'cars') return CAR_BRANDS;
-    if (selectedVehicleType === 'bikes') return BIKE_BRANDS;
-    return CAR_BRANDS; // big_stuff/military default to car brands
-  }, [selectedVehicleType]);
+    if (filters.vehicleTypes.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
+    const brands = new Set<string>();
+    for (const vt of filters.vehicleTypes) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
+      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
+    }
+    return brands.size > 0 ? [...brands] : [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
+  }, [filters.vehicleTypes]);
 
   const popularBrands = useMemo(() => {
     if (!selectedVehicleType || selectedVehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
