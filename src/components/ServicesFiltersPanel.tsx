@@ -34,8 +34,10 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     { id: 'tuning', label: 'Tuning' },
     { id: 'bodywork', label: 'Bodywork' },
     { id: 'car-wash', label: 'Car Wash' },
-    { id: 'fuel', label: 'Fuel' },
     { id: 'ev-charging', label: 'EV Charging' },
+    { id: 'accessories', label: 'Accessories' },
+    { id: 'wheels', label: 'Wheels' },
+    { id: 'glass-repair', label: 'Glass Repair' },
   ];
 
   const ratingOptions = [
