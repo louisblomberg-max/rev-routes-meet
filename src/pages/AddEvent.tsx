@@ -518,9 +518,21 @@ const AddEvent = () => {
             {VEHICLE_AGE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleAge(opt.id)}
+                onClick={() => {
+                  if (opt.id === 'all') {
+                    setVehicleAges(['all']);
+                  } else {
+                    setVehicleAges(prev => {
+                      const withoutAll = prev.filter(a => a !== 'all');
+                      const newAges = withoutAll.includes(opt.id)
+                        ? withoutAll.filter(a => a !== opt.id)
+                        : [...withoutAll, opt.id];
+                      return newAges.length === 0 ? ['all'] : newAges;
+                    });
+                  }
+                }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleAge === opt.id
+                  vehicleAges.includes(opt.id)
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
