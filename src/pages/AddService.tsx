@@ -14,7 +14,7 @@ import { useData } from '@/contexts/DataContext';
 import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 
-const SERVICE_CATEGORIES = ['Mechanic', 'Detailing', 'Parts', 'Tyres', 'MOT', 'Tuning', 'Bodywork', 'Car Wash', 'Fuel', 'EV Charging'];
+const SERVICE_CATEGORIES = ['Mechanic', 'Detailing', 'Parts', 'Tyres', 'MOT', 'Tuning', 'Bodywork', 'Car Wash', 'EV Charging', 'Accessories', 'Wheels', 'Glass Repair'];
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 

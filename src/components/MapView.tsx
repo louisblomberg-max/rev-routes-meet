@@ -419,7 +419,8 @@ const MapView = ({
           const typeMapping: Record<string, string> = {
             'mechanics': 'Mechanic', 'detailing': 'Detailing', 'parts': 'Parts',
             'tyres': 'Tyres', 'mot': 'MOT', 'tuning': 'Tuning', 'bodywork': 'Bodywork',
-            'car-wash': 'Car Wash', 'fuel': 'Fuel', 'ev-charging': 'EV Charging',
+            'car-wash': 'Car Wash', 'ev-charging': 'EV Charging',
+            'accessories': 'Accessories', 'wheels': 'Wheels', 'glass-repair': 'Glass Repair',
           };
           const allowedTypes = servicesFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.category && !allowedTypes.includes(pin.category as string)) return false;
