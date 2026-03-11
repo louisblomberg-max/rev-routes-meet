@@ -309,12 +309,10 @@ const MapView = ({
           const allowedTypes = eventsFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.eventType && !allowedTypes.includes(pin.eventType as string)) return false;
         }
-        // Vehicle type filter — structured field
+        // Vehicle type filter — multi-select
         if (eventsFilters.vehicleTypes.length > 0) {
-          const filterVType = eventsFilters.vehicleTypes[0];
           const pinVType = pin.vehicleType as string;
-          if (filterVType === 'cars' && pinVType !== 'cars' && pinVType !== 'all') return false;
-          if (filterVType === 'bikes' && pinVType !== 'bikes' && pinVType !== 'all') return false;
+          if (pinVType !== 'all' && !eventsFilters.vehicleTypes.includes(pinVType)) return false;
         }
         // Vehicle brand filter — array intersection
         if (eventsFilters.vehicleBrands.length > 0) {
@@ -322,14 +320,19 @@ const MapView = ({
           const hasMatch = eventsFilters.vehicleBrands.some(fb => pinBrands.includes(fb.toLowerCase()));
           if (!hasMatch) return false;
         }
-        // Vehicle category filter
-        if (eventsFilters.vehicleCategory) {
+        // Vehicle category filter — multi-select
+        if (eventsFilters.vehicleCategories.length > 0) {
           const pinCategories = pin.vehicleCategories as string[] || [];
-          if (!pinCategories.includes(eventsFilters.vehicleCategory)) return false;
+          const hasMatch = eventsFilters.vehicleCategories.some(fc => pinCategories.includes(fc));
+          if (!hasMatch) return false;
         }
-        // Vehicle age filter
-        if (eventsFilters.vehicleAge) {
-          if (pin.vehicleAge !== eventsFilters.vehicleAge) return false;
+        // Vehicle age filter — multi-select
+        if (eventsFilters.vehicleAges.length > 0) {
+          const pinAge = pin.vehicleAge as string;
+          const pinAges = pin.vehicleAges as string[] || [];
+          const allAges = pinAges.length > 0 ? pinAges : (pinAge ? [pinAge] : []);
+          const hasMatch = eventsFilters.vehicleAges.some(fa => allAges.includes(fa));
+          if (!hasMatch) return false;
         }
         // Event size filter — based on maxAttendees
         if (eventsFilters.eventSize) {

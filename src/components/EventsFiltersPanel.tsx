@@ -488,9 +488,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {vehicleCategoryOptions.map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
+                  onClick={() => toggleVehicleCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleCategory === cat.id
+                    filters.vehicleCategories.includes(cat.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -508,9 +508,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {vehicleAgeOptions.map((age) => (
                 <button
                   key={age.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleAge: age.id === 'all' ? null : (filters.vehicleAge === age.id ? null : age.id) })}
+                  onClick={() => toggleVehicleAge(age.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (age.id === 'all' && !filters.vehicleAge) || filters.vehicleAge === age.id
+                    (age.id === 'all' && filters.vehicleAges.length === 0) || filters.vehicleAges.includes(age.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
