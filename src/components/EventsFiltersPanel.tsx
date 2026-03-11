@@ -179,12 +179,39 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
       return;
     }
     const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
+    const newTypes = isAlreadySelected
+      ? filters.vehicleTypes.filter(t => t !== vehicleTypeId)
+      : [...filters.vehicleTypes, vehicleTypeId];
     onFiltersChange({
       ...filters,
-      vehicleTypes: isAlreadySelected ? [] : [vehicleTypeId],
-      vehicleBrands: isAlreadySelected ? [] : filters.vehicleBrands,
+      vehicleTypes: newTypes,
+      vehicleBrands: newTypes.length === 0 ? [] : filters.vehicleBrands,
     });
     setBrandSearch('');
+  };
+
+  const toggleVehicleCategory = (catId: string) => {
+    const isSelected = filters.vehicleCategories.includes(catId);
+    onFiltersChange({
+      ...filters,
+      vehicleCategories: isSelected
+        ? filters.vehicleCategories.filter(c => c !== catId)
+        : [...filters.vehicleCategories, catId],
+    });
+  };
+
+  const toggleVehicleAge = (ageId: string) => {
+    if (ageId === 'all') {
+      onFiltersChange({ ...filters, vehicleAges: [] });
+      return;
+    }
+    const isSelected = filters.vehicleAges.includes(ageId);
+    onFiltersChange({
+      ...filters,
+      vehicleAges: isSelected
+        ? filters.vehicleAges.filter(a => a !== ageId)
+        : [...filters.vehicleAges, ageId],
+    });
   };
 
   const addBrand = (brand: string) => {
