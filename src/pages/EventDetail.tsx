@@ -15,7 +15,7 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
 };
 
 const VEHICLE_TYPE_LABELS: Record<string, string> = {
-  cars: 'Cars', bikes: 'Bikes', all: 'All Welcome',
+  cars: 'Cars', bikes: 'Bikes', all: 'All Welcome', big_stuff: 'Big Stuff', military: 'Military',
 };
 
 const VEHICLE_AGE_LABELS: Record<string, string> = {
