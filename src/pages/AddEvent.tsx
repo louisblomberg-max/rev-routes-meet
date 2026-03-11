@@ -121,12 +121,13 @@ const AddEvent = () => {
   });
   const [eventType, setEventType] = useState<EventType | ''>('');
   const [vehicleType, setVehicleType] = useState<VehicleType>('all');
+  const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<VehicleType[]>(['all']);
   const [vehicleCategories, setVehicleCategories] = useState<string[]>([]);
   const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState('');
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const brandRef = useRef<HTMLDivElement>(null);
-  const [vehicleAge, setVehicleAge] = useState<string>('all');
+  const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
@@ -152,18 +153,26 @@ const AddEvent = () => {
   }, []);
 
   const availableBrands = useMemo(() => {
-    if (vehicleType === 'cars') return CAR_BRANDS;
-    if (vehicleType === 'bikes') return BIKE_BRANDS;
-    if (vehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
-    return [];
-  }, [vehicleType]);
+    const types = selectedVehicleTypes.filter(t => t !== 'all');
+    if (types.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
+    const brands = new Set<string>();
+    for (const vt of types) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
+      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
+    }
+    return brands.size > 0 ? [...brands].sort() : [...CAR_BRANDS, ...BIKE_BRANDS].sort();
+  }, [selectedVehicleTypes]);
 
   const popularBrands = useMemo(() => {
-    if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
-    if (vehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    if (vehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
-    return [];
-  }, [vehicleType]);
+    const types = selectedVehicleTypes.filter(t => t !== 'all');
+    if (types.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
+    const pBrands = new Set<string>();
+    for (const vt of types) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
+      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
+    }
+    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
+  }, [selectedVehicleTypes]);
 
   const filteredBrandResults = useMemo(() => {
     const query = brandSearch.trim().toLowerCase();
@@ -223,10 +232,11 @@ const AddEvent = () => {
 
       // Structured fields
       eventType: eventType as EventType,
-      vehicleType,
+      vehicleType: selectedVehicleTypes.includes('all') ? 'all' : (selectedVehicleTypes[0] || 'all'),
       vehicleBrands,
       vehicleCategories,
-      vehicleAge,
+      vehicleAge: vehicleAges.includes('all') ? 'all' : (vehicleAges[0] || 'all'),
+      vehicleAges: vehicleAges.filter(a => a !== 'all'),
 
       // Dates
       startDate: startDate ? startDate.toISOString() : new Date().toISOString(),
@@ -252,7 +262,7 @@ const AddEvent = () => {
 
       // Legacy fields
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
-      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
+      vehicleTypes: selectedVehicleTypes.includes('all') ? ['All Welcome'] : selectedVehicleTypes.map(vt => VEHICLE_TYPE_OPTIONS.find(o => o.id === vt)?.label || vt),
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
 
       // Banner
@@ -381,14 +391,25 @@ const AddEvent = () => {
               <button
                 key={opt.id}
                 onClick={() => {
-                  setVehicleType(opt.id);
-                  if (opt.id !== vehicleType) {
+                  if (opt.id === 'all') {
+                    setSelectedVehicleTypes(['all']);
+                    setVehicleType('all');
                     setVehicleBrands([]);
                     setBrandSearch('');
+                  } else {
+                    setSelectedVehicleTypes(prev => {
+                      const withoutAll = prev.filter(t => t !== 'all') as VehicleType[];
+                      const newTypes: VehicleType[] = withoutAll.includes(opt.id)
+                        ? withoutAll.filter(t => t !== opt.id)
+                        : [...withoutAll, opt.id];
+                      const result: VehicleType[] = newTypes.length === 0 ? ['all'] : newTypes;
+                      setVehicleType(result[0]);
+                      return result;
+                    });
                   }
                 }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleType === opt.id
+                  selectedVehicleTypes.includes(opt.id)
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}
@@ -497,9 +518,21 @@ const AddEvent = () => {
             {VEHICLE_AGE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleAge(opt.id)}
+                onClick={() => {
+                  if (opt.id === 'all') {
+                    setVehicleAges(['all']);
+                  } else {
+                    setVehicleAges(prev => {
+                      const withoutAll = prev.filter(a => a !== 'all');
+                      const newAges = withoutAll.includes(opt.id)
+                        ? withoutAll.filter(a => a !== opt.id)
+                        : [...withoutAll, opt.id];
+                      return newAges.length === 0 ? ['all'] : newAges;
+                    });
+                  }
+                }}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleAge === opt.id
+                  vehicleAges.includes(opt.id)
                     ? 'bg-events text-events-foreground border-events shadow-sm'
                     : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
                 }`}

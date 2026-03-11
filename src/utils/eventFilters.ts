@@ -62,11 +62,9 @@ export function filterEvents(
       if (allowedTypes.length > 0 && !allowedTypes.includes(event.eventType)) return false;
     }
 
-    // Vehicle type filter
+    // Vehicle type filter — multi-select
     if (filters.vehicleTypes.length > 0) {
-      const filterVType = filters.vehicleTypes[0]; // single-select
-      // If event is 'all', it matches any filter. If filter is specific, event must match or be 'all'.
-      if (event.vehicleType !== 'all' && event.vehicleType !== filterVType) return false;
+      if (event.vehicleType !== 'all' && !filters.vehicleTypes.includes(event.vehicleType)) return false;
     }
 
     // Vehicle brand filter (any match)
@@ -76,14 +74,17 @@ export function filterEvents(
       if (!hasMatch) return false;
     }
 
-    // Vehicle category filter
-    if (filters.vehicleCategory) {
-      if (!event.vehicleCategories.includes(filters.vehicleCategory)) return false;
+    // Vehicle category filter — multi-select
+    if (filters.vehicleCategories.length > 0) {
+      const hasMatch = filters.vehicleCategories.some(fc => event.vehicleCategories.includes(fc));
+      if (!hasMatch) return false;
     }
 
-    // Vehicle age filter
-    if (filters.vehicleAge) {
-      if (event.vehicleAge !== filters.vehicleAge) return false;
+    // Vehicle age filter — multi-select
+    if (filters.vehicleAges.length > 0) {
+      const eventAges = event.vehicleAges && event.vehicleAges.length > 0 ? event.vehicleAges : (event.vehicleAge ? [event.vehicleAge] : []);
+      const hasMatch = filters.vehicleAges.some(fa => eventAges.includes(fa));
+      if (!hasMatch) return false;
     }
 
     // Date filter

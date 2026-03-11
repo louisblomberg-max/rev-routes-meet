@@ -16,8 +16,8 @@ export interface EventsFilterState {
   specificDate: Date | undefined;
   vehicleTypes: string[];
   vehicleBrands: string[];
-  vehicleCategory: string | null;
-  vehicleAge: string | null;
+  vehicleCategories: string[];
+  vehicleAges: string[];
   eventSize: string | null;
   entryFee: string | null;
   clubHosted: boolean;
@@ -66,21 +66,25 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const selectedVehicleType = filters.vehicleTypes.length > 0 ? filters.vehicleTypes[0] : null;
-
   const availableBrands = useMemo(() => {
-    if (!selectedVehicleType || selectedVehicleType === 'all') return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
-    if (selectedVehicleType === 'cars') return CAR_BRANDS;
-    if (selectedVehicleType === 'bikes') return BIKE_BRANDS;
-    return CAR_BRANDS; // big_stuff/military default to car brands
-  }, [selectedVehicleType]);
+    if (filters.vehicleTypes.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
+    const brands = new Set<string>();
+    for (const vt of filters.vehicleTypes) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
+      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
+    }
+    return brands.size > 0 ? [...brands] : [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
+  }, [filters.vehicleTypes]);
 
   const popularBrands = useMemo(() => {
-    if (!selectedVehicleType || selectedVehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
-    if (selectedVehicleType === 'cars') return POPULAR_CAR_BRANDS;
-    if (selectedVehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    return POPULAR_CAR_BRANDS;
-  }, [selectedVehicleType]);
+    if (filters.vehicleTypes.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
+    const pBrands = new Set<string>();
+    for (const vt of filters.vehicleTypes) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
+      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
+    }
+    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
+  }, [filters.vehicleTypes]);
 
   const filteredBrands = useMemo(() => {
     const query = brandSearch.trim().toLowerCase();
@@ -179,12 +183,39 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
       return;
     }
     const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
+    const newTypes = isAlreadySelected
+      ? filters.vehicleTypes.filter(t => t !== vehicleTypeId)
+      : [...filters.vehicleTypes, vehicleTypeId];
     onFiltersChange({
       ...filters,
-      vehicleTypes: isAlreadySelected ? [] : [vehicleTypeId],
-      vehicleBrands: isAlreadySelected ? [] : filters.vehicleBrands,
+      vehicleTypes: newTypes,
+      vehicleBrands: newTypes.length === 0 ? [] : filters.vehicleBrands,
     });
     setBrandSearch('');
+  };
+
+  const toggleVehicleCategory = (catId: string) => {
+    const isSelected = filters.vehicleCategories.includes(catId);
+    onFiltersChange({
+      ...filters,
+      vehicleCategories: isSelected
+        ? filters.vehicleCategories.filter(c => c !== catId)
+        : [...filters.vehicleCategories, catId],
+    });
+  };
+
+  const toggleVehicleAge = (ageId: string) => {
+    if (ageId === 'all') {
+      onFiltersChange({ ...filters, vehicleAges: [] });
+      return;
+    }
+    const isSelected = filters.vehicleAges.includes(ageId);
+    onFiltersChange({
+      ...filters,
+      vehicleAges: isSelected
+        ? filters.vehicleAges.filter(a => a !== ageId)
+        : [...filters.vehicleAges, ageId],
+    });
   };
 
   const addBrand = (brand: string) => {
@@ -298,7 +329,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <button
                 onClick={() => onFiltersChange({
                   distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleBrands: [], vehicleCategory: null, vehicleAge: null, eventSize: null, entryFee: null, clubHosted: false,
+                  vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
                 })}
                 className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
               >
@@ -457,9 +488,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {vehicleCategoryOptions.map((cat) => (
                 <button
                   key={cat.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleCategory: filters.vehicleCategory === cat.id ? null : cat.id })}
+                  onClick={() => toggleVehicleCategory(cat.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleCategory === cat.id
+                    filters.vehicleCategories.includes(cat.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}
@@ -477,9 +508,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               {vehicleAgeOptions.map((age) => (
                 <button
                   key={age.id}
-                  onClick={() => onFiltersChange({ ...filters, vehicleAge: age.id === 'all' ? null : (filters.vehicleAge === age.id ? null : age.id) })}
+                  onClick={() => toggleVehicleAge(age.id)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (age.id === 'all' && !filters.vehicleAge) || filters.vehicleAge === age.id
+                    (age.id === 'all' && filters.vehicleAges.length === 0) || filters.vehicleAges.includes(age.id)
                       ? 'bg-events/80 text-white'
                       : 'bg-muted text-muted-foreground hover:bg-events/10'
                   }`}

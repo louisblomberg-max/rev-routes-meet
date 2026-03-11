@@ -133,7 +133,7 @@ function generateRandomEvents(count: number) {
     const eventType = pick([...EVENT_TYPE_IDS]);
     const vehicleType = pick([...VEHICLE_TYPE_IDS]);
     const vehicleCategories = Math.random() > 0.3 ? pickN(VEHICLE_CATEGORY_OPTIONS_GEN, randBetween(1, 2)) : [];
-    const vehicleAge = pick(VEHICLE_AGE_OPTIONS_GEN);
+    const vehicleAges = Math.random() > 0.5 ? pickN(VEHICLE_AGE_OPTIONS_GEN.filter(a => a !== 'all'), randBetween(1, 3)) : ['all'];
 
     // Pick brands based on vehicle type
     let vehicleBrands: string[] = [];
@@ -171,7 +171,8 @@ function generateRandomEvents(count: number) {
       vehicleType,
       vehicleBrands,
       vehicleCategories,
-      vehicleAge,
+      vehicleAge: vehicleAges.includes('all') ? 'all' : vehicleAges[0],
+      vehicleAges: vehicleAges.filter(a => a !== 'all'),
 
       // Dates
       startDate: futureDate.toISOString(),

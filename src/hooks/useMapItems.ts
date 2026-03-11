@@ -30,6 +30,7 @@ export function useMapItems() {
           vehicleBrands: ev.vehicleBrands || [],
           vehicleCategories: ev.vehicleCategories || [],
           vehicleAge: ev.vehicleAge || 'all',
+          vehicleAges: ev.vehicleAges || [],
           startDate: ev.startDate,
           startTime: ev.startTime,
           endDate: ev.endDate,
