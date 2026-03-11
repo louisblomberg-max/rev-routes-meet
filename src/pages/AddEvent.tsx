@@ -127,7 +127,7 @@ const AddEvent = () => {
   const [brandSearch, setBrandSearch] = useState('');
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const brandRef = useRef<HTMLDivElement>(null);
-  const [vehicleAge, setVehicleAge] = useState<string>('all');
+  const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
   const currentUserId = state.currentUser?.id || 'current-user';
