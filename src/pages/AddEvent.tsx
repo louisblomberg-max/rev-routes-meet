@@ -232,10 +232,11 @@ const AddEvent = () => {
 
       // Structured fields
       eventType: eventType as EventType,
-      vehicleType,
+      vehicleType: selectedVehicleTypes.includes('all') ? 'all' : (selectedVehicleTypes[0] || 'all'),
       vehicleBrands,
       vehicleCategories,
-      vehicleAge,
+      vehicleAge: vehicleAges.includes('all') ? 'all' : (vehicleAges[0] || 'all'),
+      vehicleAges: vehicleAges.filter(a => a !== 'all'),
 
       // Dates
       startDate: startDate ? startDate.toISOString() : new Date().toISOString(),
