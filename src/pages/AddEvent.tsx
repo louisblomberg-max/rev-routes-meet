@@ -121,6 +121,7 @@ const AddEvent = () => {
   });
   const [eventType, setEventType] = useState<EventType | ''>('');
   const [vehicleType, setVehicleType] = useState<VehicleType>('all');
+  const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<VehicleType[]>(['all']);
   const [vehicleCategories, setVehicleCategories] = useState<string[]>([]);
   const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState('');
