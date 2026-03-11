@@ -164,11 +164,15 @@ const AddEvent = () => {
   }, [selectedVehicleTypes]);
 
   const popularBrands = useMemo(() => {
-    if (vehicleType === 'cars') return POPULAR_CAR_BRANDS;
-    if (vehicleType === 'bikes') return POPULAR_BIKE_BRANDS;
-    if (vehicleType === 'all') return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
-    return [];
-  }, [vehicleType]);
+    const types = selectedVehicleTypes.filter(t => t !== 'all');
+    if (types.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
+    const pBrands = new Set<string>();
+    for (const vt of types) {
+      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
+      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
+    }
+    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
+  }, [selectedVehicleTypes]);
 
   const filteredBrandResults = useMemo(() => {
     const query = brandSearch.trim().toLowerCase();
