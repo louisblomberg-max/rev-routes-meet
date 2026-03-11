@@ -398,11 +398,11 @@ const AddEvent = () => {
                     setBrandSearch('');
                   } else {
                     setSelectedVehicleTypes(prev => {
-                      const withoutAll = prev.filter(t => t !== 'all');
-                      const newTypes = withoutAll.includes(opt.id)
+                      const withoutAll = prev.filter(t => t !== 'all') as VehicleType[];
+                      const newTypes: VehicleType[] = withoutAll.includes(opt.id)
                         ? withoutAll.filter(t => t !== opt.id)
                         : [...withoutAll, opt.id];
-                      const result = newTypes.length === 0 ? ['all' as VehicleType] : newTypes;
+                      const result: VehicleType[] = newTypes.length === 0 ? ['all'] : newTypes;
                       setVehicleType(result[0]);
                       return result;
                     });
