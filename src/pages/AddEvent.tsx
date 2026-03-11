@@ -262,7 +262,7 @@ const AddEvent = () => {
 
       // Legacy fields
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
-      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [VEHICLE_TYPE_OPTIONS.find(o => o.id === vehicleType)?.label || vehicleType],
+      vehicleTypes: selectedVehicleTypes.includes('all') ? ['All Welcome'] : selectedVehicleTypes.map(vt => VEHICLE_TYPE_OPTIONS.find(o => o.id === vt)?.label || vt),
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
 
       // Banner
