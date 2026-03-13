@@ -130,6 +130,7 @@ export interface EventAttendee {
   displayName: string;
   profileImage: string | null;
   vehicleRegistration: string;
+  vehicleColour: string;
   joinedAt: string;
 }
 
