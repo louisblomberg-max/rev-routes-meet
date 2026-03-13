@@ -161,6 +161,7 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       </div>
     </>
   );
+  };
 
   const renderServiceDetails = (service: ServiceItem) => (
     <>
