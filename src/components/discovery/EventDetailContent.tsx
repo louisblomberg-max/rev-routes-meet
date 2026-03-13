@@ -29,6 +29,7 @@ const VEHICLE_AGE_LABELS: Record<string, string> = {
 const CATEGORY_LABELS: Record<string, string> = {
   jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
   american: 'American', european: 'European', '4x4': '4x4', row: 'ROW',
+  modern: 'Modern', classics: 'Classics', vintage: 'Vintage',
 };
 
 interface EventDetailContentProps {
