@@ -47,6 +47,9 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'european', label: 'European' },
   { id: '4x4', label: '4x4' },
   { id: 'row', label: 'ROW' },
+  { id: 'modern', label: 'Modern' },
+  { id: 'classics', label: 'Classics' },
+  { id: 'vintage', label: 'Vintage' },
 ];
 
 const VEHICLE_AGE_OPTIONS = [
