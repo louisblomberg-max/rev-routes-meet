@@ -115,7 +115,16 @@ const EventDetail = () => {
       {/* Content */}
       <div className="px-4 -mt-6 relative pb-8 space-y-4">
         <div className="bg-card rounded-2xl shadow-lg p-5 border border-border/30">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
+          {/* Event Name & Date — below banner */}
+          <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
+          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+            <Calendar className="w-4 h-4 text-primary shrink-0" />
+            <span>{displayDate}</span>
+            {endDisplayDate && <span> — {endDisplayDate}</span>}
+          </div>
+
+          {/* Badges */}
+          <div className="flex items-center gap-2 mt-3 flex-wrap">
             <Badge className="bg-primary/10 text-primary text-xs">
               {EVENT_TYPE_LABELS[event.eventType] || event.eventType}
             </Badge>
@@ -130,7 +139,6 @@ const EventDetail = () => {
               </Badge>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
 
           <div className="mt-4 space-y-2.5">
             <div className="flex items-center gap-3 text-sm text-muted-foreground">

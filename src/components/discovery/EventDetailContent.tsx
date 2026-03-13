@@ -133,10 +133,12 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
             <Calendar className="w-12 h-12 text-events-foreground/60" />
           </div>
         )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-          <h2 className="text-lg font-bold text-white">{event.title}</h2>
-          <p className="text-sm text-white/80">{displayDate}</p>
-        </div>
+      </div>
+
+      {/* Title & Date below banner */}
+      <div className="mt-3">
+        <h2 className="text-lg font-bold text-foreground">{event.title}</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">{displayDate}</p>
       </div>
 
       {/* Tags / Badges */}
