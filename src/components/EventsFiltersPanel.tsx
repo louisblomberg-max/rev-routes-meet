@@ -137,6 +137,9 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'european', label: 'European' },
     { id: '4x4', label: '4x4' },
     { id: 'row', label: 'ROW' },
+    { id: 'modern', label: 'Modern' },
+    { id: 'classics', label: 'Classics' },
+    { id: 'vintage', label: 'Vintage' },
   ];
 
   // IDs match the structured vehicleAge values
