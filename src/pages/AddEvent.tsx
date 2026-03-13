@@ -423,7 +423,7 @@ const AddEvent = () => {
         {/* ── VEHICLE BRAND ── */}
         <SectionCard>
           <SectionTitle icon={Tag}>
-            Vehicle Brand
+            Specific Vehicle Brand
           </SectionTitle>
 
           <div ref={brandRef} className="relative">
