@@ -145,15 +145,12 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
   // IDs match the structured vehicleAge values
   const vehicleAgeOptions = [
     { id: 'all', label: 'All' },
-    { id: 'classics', label: 'Classics' },
-    { id: 'modern', label: 'Modern' },
     { id: 'pre_2000', label: "Pre 00's" },
     { id: 'pre_1990', label: "Pre 90's" },
     { id: 'pre_1980', label: "Pre 80's" },
     { id: 'pre_1970', label: "Pre 70's" },
     { id: 'pre_1960', label: "Pre 60's" },
     { id: 'pre_1950', label: "Pre 50's" },
-    { id: 'vintage', label: 'Vintage' },
   ];
 
   const eventSizeOptions = [
