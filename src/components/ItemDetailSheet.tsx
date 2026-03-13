@@ -1,5 +1,6 @@
-import { X, Calendar, MapPin, Car, Users, Star, Clock, Route, Navigation, Share2, Bookmark, Phone, DollarSign } from 'lucide-react';
+import { X, Calendar, MapPin, Car, Users, Star, Clock, Route, Navigation, Share2, Bookmark, Phone, DollarSign, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 // Types for different content
 interface EventItem {
@@ -13,6 +14,8 @@ interface EventItem {
   attendees: number;
   description?: string;
   distance?: string;
+  vehicleBrands?: string[];
+  vehicleCategories?: string[];
 }
 
 interface ServiceItem {
@@ -63,14 +66,39 @@ interface ItemDetailSheetProps {
 const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) => {
   if (!item) return null;
 
-  const renderEventDetails = (event: EventItem) => (
+  const renderEventDetails = (event: EventItem) => {
+  const EVENT_TYPE_LABELS: Record<string, string> = {
+    meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
+    motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
+  };
+  const VEHICLE_TYPE_LABELS: Record<string, string> = {
+    cars: 'Cars', bikes: 'Bikes', all: 'All Welcome', big_stuff: 'Big Stuff', military: 'Military',
+  };
+  const CATEGORY_LABELS: Record<string, string> = {
+    jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
+    american: 'American', european: 'European', '4x4': '4x4', row: 'ROW',
+    modern: 'Modern', classics: 'Classics', vintage: 'Vintage',
+  };
+
+  const hasSpecificBrands = event.vehicleBrands && event.vehicleBrands.length > 0;
+  const hasSpecificCategories = event.vehicleCategories && event.vehicleCategories.length > 0;
+
+  return (
     <>
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xs px-2 py-0.5 bg-events/10 text-events rounded-full font-medium">
-              {event.eventType}
-            </span>
+          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+            <Badge className="bg-events/10 text-events border-events/20 text-[10px]">
+              {EVENT_TYPE_LABELS[event.eventType] || event.eventType}
+            </Badge>
+            <Badge variant="outline" className="text-[10px]">
+              {VEHICLE_TYPE_LABELS[event.vehicleType] || event.vehicleType}
+            </Badge>
+            {hasSpecificCategories && event.vehicleCategories!.slice(0, 2).map(cat => (
+              <Badge key={cat} variant="outline" className="text-[10px] bg-events/5 text-events border-events/15">
+                {CATEGORY_LABELS[cat] || cat}
+              </Badge>
+            ))}
           </div>
           <h2 className="text-xl font-bold text-foreground">{event.title}</h2>
           <p className="text-sm text-muted-foreground mt-1">{event.distance || '2.5 miles away'}</p>
@@ -93,14 +121,25 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
           <span>{event.location}</span>
         </div>
         <div className="flex items-center gap-3 text-foreground">
-          <Car className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-          <span>{event.vehicleType}</span>
-        </div>
-        <div className="flex items-center gap-3 text-foreground">
           <Users className="w-5 h-5 text-muted-foreground flex-shrink-0" />
           <span>{event.attendees} attending</span>
         </div>
       </div>
+
+      {/* Specific brands */}
+      {hasSpecificBrands && (
+        <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+          <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          {event.vehicleBrands!.slice(0, 4).map(brand => (
+            <span key={brand} className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
+              {brand}
+            </span>
+          ))}
+          {event.vehicleBrands!.length > 4 && (
+            <span className="text-[10px] text-muted-foreground">+{event.vehicleBrands!.length - 4} more</span>
+          )}
+        </div>
+      )}
 
       {event.description && (
         <p className="mt-4 text-sm text-muted-foreground">{event.description}</p>
@@ -122,6 +161,7 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       </div>
     </>
   );
+  };
 
   const renderServiceDetails = (service: ServiceItem) => (
     <>
@@ -305,10 +345,10 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
 
         {/* Content */}
         <div className="px-5 pb-5">
-          {item.type === 'event' && renderEventDetails(item)}
-          {item.type === 'service' && renderServiceDetails(item)}
-          {item.type === 'route' && renderRouteDetails(item)}
-          {item.type === 'club' && renderClubDetails(item)}
+          {item.type === 'event' && renderEventDetails(item as EventItem)}
+          {item.type === 'service' && renderServiceDetails(item as ServiceItem)}
+          {item.type === 'route' && renderRouteDetails(item as RouteItem)}
+          {item.type === 'club' && renderClubDetails(item as ClubItem)}
         </div>
       </div>
     </div>
