@@ -419,7 +419,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Vehicle Brand Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">
-              Vehicle Brand
+              Specific Vehicle Brand
             </p>
 
             {(
