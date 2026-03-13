@@ -137,20 +137,20 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     { id: 'european', label: 'European' },
     { id: '4x4', label: '4x4' },
     { id: 'row', label: 'ROW' },
+    { id: 'modern', label: 'Modern' },
+    { id: 'classics', label: 'Classics' },
+    { id: 'vintage', label: 'Vintage' },
   ];
 
   // IDs match the structured vehicleAge values
   const vehicleAgeOptions = [
     { id: 'all', label: 'All' },
-    { id: 'classics', label: 'Classics' },
-    { id: 'modern', label: 'Modern' },
     { id: 'pre_2000', label: "Pre 00's" },
     { id: 'pre_1990', label: "Pre 90's" },
     { id: 'pre_1980', label: "Pre 80's" },
     { id: 'pre_1970', label: "Pre 70's" },
     { id: 'pre_1960', label: "Pre 60's" },
     { id: 'pre_1950', label: "Pre 50's" },
-    { id: 'vintage', label: 'Vintage' },
   ];
 
   const eventSizeOptions = [
@@ -419,7 +419,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           {/* Vehicle Brand Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">
-              Vehicle Brand
+              Specific Vehicle Brand
             </p>
 
             {(
@@ -483,7 +483,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
           {/* Vehicle Category Filter */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
+            <p className="text-xs font-medium text-foreground">Specific Vehicle Category</p>
             <div className="flex flex-wrap gap-1.5">
               {vehicleCategoryOptions.map((cat) => (
                 <button

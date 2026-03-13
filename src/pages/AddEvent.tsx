@@ -47,13 +47,13 @@ const VEHICLE_CATEGORY_OPTIONS = [
   { id: 'european', label: 'European' },
   { id: '4x4', label: '4x4' },
   { id: 'row', label: 'ROW' },
+  { id: 'modern', label: 'Modern' },
+  { id: 'classics', label: 'Classics' },
+  { id: 'vintage', label: 'Vintage' },
 ];
 
 const VEHICLE_AGE_OPTIONS = [
   { id: 'all', label: 'All' },
-  { id: 'classics', label: 'Classics' },
-  { id: 'modern', label: 'Modern' },
-  { id: 'vintage', label: 'Vintage' },
   { id: 'pre_2000', label: "Pre 00's" },
   { id: 'pre_1990', label: "Pre 90's" },
   { id: 'pre_1980', label: "Pre 80's" },
@@ -423,7 +423,7 @@ const AddEvent = () => {
         {/* ── VEHICLE BRAND ── */}
         <SectionCard>
           <SectionTitle icon={Tag}>
-            Vehicle Brand
+            Specific Vehicle Brand
           </SectionTitle>
 
           <div ref={brandRef} className="relative">
@@ -489,7 +489,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE CATEGORY ── */}
         <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Category</SectionTitle>
+          <SectionTitle icon={Car}>Specific Vehicle Category</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {VEHICLE_CATEGORY_OPTIONS.map(opt => (
               <button

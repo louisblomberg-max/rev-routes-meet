@@ -174,13 +174,6 @@ const LocationPicker = ({ value, onChange, error }: LocationPickerProps) => {
       {/* Map */}
       <div className="rounded-xl overflow-hidden border border-border relative">
         <div ref={mapContainer} className="w-full h-44" />
-        {!coords && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-background/30">
-            <p className="text-xs text-muted-foreground font-medium bg-card/90 px-3 py-1.5 rounded-full backdrop-blur-sm">
-              Tap map or search to set location
-            </p>
-          </div>
-        )}
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
