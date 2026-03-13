@@ -483,7 +483,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
           {/* Vehicle Category Filter */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Vehicle Category</p>
+            <p className="text-xs font-medium text-foreground">Specific Vehicle Category</p>
             <div className="flex flex-wrap gap-1.5">
               {vehicleCategoryOptions.map((cat) => (
                 <button

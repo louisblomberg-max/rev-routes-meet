@@ -489,7 +489,7 @@ const AddEvent = () => {
 
         {/* ── VEHICLE CATEGORY ── */}
         <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Category</SectionTitle>
+          <SectionTitle icon={Car}>Specific Vehicle Category</SectionTitle>
           <div className="flex flex-wrap gap-2">
             {VEHICLE_CATEGORY_OPTIONS.map(opt => (
               <button
