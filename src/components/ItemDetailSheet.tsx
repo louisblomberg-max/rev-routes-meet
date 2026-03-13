@@ -345,10 +345,10 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
 
         {/* Content */}
         <div className="px-5 pb-5">
-          {item.type === 'event' && renderEventDetails(item)}
-          {item.type === 'service' && renderServiceDetails(item)}
-          {item.type === 'route' && renderRouteDetails(item)}
-          {item.type === 'club' && renderClubDetails(item)}
+          {item.type === 'event' && renderEventDetails(item as EventItem)}
+          {item.type === 'service' && renderServiceDetails(item as ServiceItem)}
+          {item.type === 'route' && renderRouteDetails(item as RouteItem)}
+          {item.type === 'club' && renderClubDetails(item as ClubItem)}
         </div>
       </div>
     </div>
