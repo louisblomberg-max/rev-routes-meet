@@ -54,9 +54,6 @@ const VEHICLE_CATEGORY_OPTIONS = [
 
 const VEHICLE_AGE_OPTIONS = [
   { id: 'all', label: 'All' },
-  { id: 'classics', label: 'Classics' },
-  { id: 'modern', label: 'Modern' },
-  { id: 'vintage', label: 'Vintage' },
   { id: 'pre_2000', label: "Pre 00's" },
   { id: 'pre_1990', label: "Pre 90's" },
   { id: 'pre_1980', label: "Pre 80's" },
