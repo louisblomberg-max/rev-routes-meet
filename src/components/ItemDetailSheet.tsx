@@ -13,6 +13,8 @@ interface EventItem {
   attendees: number;
   description?: string;
   distance?: string;
+  vehicleBrands?: string[];
+  vehicleCategories?: string[];
 }
 
 interface ServiceItem {
