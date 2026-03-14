@@ -54,7 +54,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
 
   const surfaceOptions = [
     { id: 'all', label: 'All' },
-    { id: 'paved', label: 'Paved' },
+    { id: 'tarmac', label: 'Tarmac' },
     { id: 'gravel', label: 'Gravel' },
     { id: 'dirt', label: 'Dirt' },
     { id: 'mixed', label: 'Mixed' },
