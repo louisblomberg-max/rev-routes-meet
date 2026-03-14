@@ -252,8 +252,8 @@ const AddRoute = () => {
       drives: 0,
       visibility: data.visibility?.level || 'public',
       tags: [data.routeType?.toLowerCase() || 'mixed', ...data.vehicleTypes.map((v: string) => v.toLowerCase())],
-      difficulty: data.difficulty?.toLowerCase(),
-      surfaceType: data.surfaceType?.toLowerCase(),
+      difficulty: data.difficulty?.toLowerCase() as any,
+      surfaceType: data.surfaceType?.toLowerCase() as any,
       safetyTags: data.safetyTags,
       durationMinutes,
     });
