@@ -22,12 +22,18 @@ export interface RouteGeometry {
 export interface RouteStats {
   distanceMeters: number;
   durationSeconds: number;
+  /** Max speed in km/h (recorded drives) */
+  maxSpeedKmh?: number;
+  /** Average speed in km/h */
+  avgSpeedKmh?: number;
+  /** Elevation gain in meters */
+  elevationGainMeters?: number;
 }
 
 export interface RouteVisibility {
-  level: 'public' | 'friends' | 'club' | 'private';
-  clubId?: string;
-  clubName?: string;
+  level: 'public' | 'friends';
+  /** When 'friends', optionally specific friend IDs. Empty = all friends. */
+  friendIds?: string[];
 }
 
 export interface RouteMedia {

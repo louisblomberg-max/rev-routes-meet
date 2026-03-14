@@ -2,16 +2,14 @@
  * Edit & Publish Route — premium SectionCard layout matching Add Event/Service.
  */
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Camera, X, Route, Car, Mountain, Eye, Globe, Users, UsersRound, Lock, MapPin, ImagePlus, AlertTriangle, Layers, Compass } from 'lucide-react';
+import { ArrowLeft, Camera, X, Route, Car, Mountain, Eye, Globe, Users, MapPin, ImagePlus, AlertTriangle, Layers, Compass, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { formatRouteDistance, formatRouteDuration, reverseGeocode } from '@/services/routeService';
 import type { RouteDraft, PublishRouteFormData, RouteVisibility } from '@/models/route';
 import { toast } from 'sonner';
-import { mockClubs } from '@/data/mockData';
 
 const VEHICLE_TYPES = ['Cars', 'Motorcycles'];
 const ROUTE_TYPES = ['Scenic', 'Coastal', 'Off-road', 'Twisties', 'Urban', 'Track'];
@@ -22,8 +20,16 @@ const SAFETY_TAGS = ['Narrow roads', 'Low-car warning', 'Avoid at night', 'High 
 const VISIBILITY_OPTIONS = [
   { value: 'public' as const, label: 'Public', description: 'Visible to everyone', icon: Globe },
   { value: 'friends' as const, label: 'Friends', description: 'Visible to friends', icon: Users },
-  { value: 'club' as const, label: 'Club Only', description: 'Choose a club', icon: UsersRound },
-  { value: 'private' as const, label: 'Private', description: 'Only me', icon: Lock },
+];
+
+// Mock friends for friend selection
+const MOCK_FRIENDS = [
+  { id: 'f1', name: 'Alex Turner', username: 'alexturner' },
+  { id: 'f2', name: 'Jamie Wilson', username: 'jamiewilson' },
+  { id: 'f3', name: 'Sam Davies', username: 'samdavies' },
+  { id: 'f4', name: 'Chris Evans', username: 'chrisevans' },
+  { id: 'f5', name: 'Morgan Lee', username: 'morganlee' },
+  { id: 'f6', name: 'Taylor Smith', username: 'taylorsmith' },
 ];
 
 // ── Shared layout components (matching Add Event) ──
@@ -62,6 +68,7 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
   const [visibility, setVisibility] = useState<RouteVisibility>(
     draft.visibility || { level: 'public' }
   );
+  const [selectedFriendIds, setSelectedFriendIds] = useState<string[]>(draft.visibility?.friendIds || []);
   const [photos, setPhotos] = useState<string[]>(draft.media?.photoUrls || []);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,12 +86,24 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
     setList(list.includes(value) ? list.filter(v => v !== value) : [...list, value]);
   };
 
+  const toggleFriend = (friendId: string) => {
+    setSelectedFriendIds(prev =>
+      prev.includes(friendId) ? prev.filter(id => id !== friendId) : [...prev, friendId]
+    );
+  };
+
+  const selectAllFriends = () => {
+    setSelectedFriendIds(MOCK_FRIENDS.map(f => f.id));
+  };
+
+  const deselectAllFriends = () => {
+    setSelectedFriendIds([]);
+  };
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!name.trim()) errs.name = 'Route name is required';
     if (!routeType) errs.routeType = 'Select a route type';
-    // Vehicle types are optional — user can select both, one, or none
-    if (visibility.level === 'club' && !visibility.clubId) errs.club = 'Select a club';
     if (!draft.geometry?.coordinates || draft.geometry.coordinates.length < 2) errs.draft = 'Route must have at least 2 points';
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -94,7 +113,13 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
     name, description, bestTime, tips,
     vehicleTypeMode: vehicleTypes.length > 0 ? 'selected' : 'all', vehicleTypes,
     routeType, difficulty, surfaceType, safetyTags,
-    visibility, photos, draft,
+    visibility: {
+      level: visibility.level,
+      ...(visibility.level === 'friends' && selectedFriendIds.length > 0 && selectedFriendIds.length < MOCK_FRIENDS.length
+        ? { friendIds: selectedFriendIds }
+        : {}),
+    },
+    photos, draft,
   });
 
   const handlePublish = () => {
@@ -142,6 +167,18 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
               <p className="text-[10px] uppercase text-muted-foreground tracking-wider font-medium">Duration</p>
               <p className="text-lg font-bold text-foreground">{formatRouteDuration(draft.stats.durationSeconds)}</p>
             </div>
+            {draft.stats.maxSpeedKmh != null && (
+              <div className="p-3 rounded-xl bg-muted/40">
+                <p className="text-[10px] uppercase text-muted-foreground tracking-wider font-medium">Max Speed</p>
+                <p className="text-lg font-bold text-foreground">{Math.round(draft.stats.maxSpeedKmh)} km/h</p>
+              </div>
+            )}
+            {draft.stats.avgSpeedKmh != null && (
+              <div className="p-3 rounded-xl bg-muted/40">
+                <p className="text-[10px] uppercase text-muted-foreground tracking-wider font-medium">Avg Speed</p>
+                <p className="text-lg font-bold text-foreground">{Math.round(draft.stats.avgSpeedKmh)} km/h</p>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2 p-2.5 rounded-xl bg-muted/30">
@@ -293,8 +330,7 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
                 <button
                   key={opt.value}
                   onClick={() => {
-                    setVisibility({ level: opt.value, ...(opt.value !== 'club' ? {} : { clubId: visibility.clubId, clubName: visibility.clubName }) });
-                    if (opt.value !== 'club') setVisibility({ level: opt.value });
+                    setVisibility({ level: opt.value });
                     setErrors(p => ({ ...p, club: '' }));
                   }}
                   className={`flex items-center gap-2.5 p-3 rounded-xl text-left transition-all duration-200 border ${
@@ -316,24 +352,43 @@ const EditPublishRoute = ({ draft, onPublish, onSaveDraft, onBack }: Props) => {
               );
             })}
           </div>
-          {visibility.level === 'club' && (
+
+          {/* Friend selector when Friends visibility is chosen */}
+          {visibility.level === 'friends' && (
             <div className="mt-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Choose Club *</Label>
-              <Select value={visibility.clubId || ''} onValueChange={(v) => {
-                const club = mockClubs.find(c => c.id === v);
-                setVisibility({ level: 'club', clubId: v, clubName: club?.name });
-                setErrors(p => ({ ...p, club: '' }));
-              }}>
-                <SelectTrigger className="rounded-xl h-11">
-                  <SelectValue placeholder="Select a club" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockClubs.map(club => (
-                    <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-xs text-muted-foreground">Share with specific friends</Label>
+                <div className="flex gap-2">
+                  <button onClick={selectAllFriends} className="text-[10px] font-semibold text-routes hover:text-routes/70">Select All</button>
+                  <button onClick={deselectAllFriends} className="text-[10px] font-semibold text-muted-foreground hover:text-foreground">Clear</button>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground mb-2">Leave empty to share with all friends</p>
+              <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                {MOCK_FRIENDS.map(friend => (
+                  <button
+                    key={friend.id}
+                    onClick={() => toggleFriend(friend.id)}
+                    className={`w-full flex items-center gap-3 p-2.5 rounded-xl transition-all duration-200 border ${
+                      selectedFriendIds.includes(friend.id)
+                        ? 'bg-routes/10 border-routes/30'
+                        : 'bg-muted/20 border-border/30 hover:border-routes/20'
+                    }`}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                      selectedFriendIds.includes(friend.id)
+                        ? 'bg-routes text-routes-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {selectedFriendIds.includes(friend.id) ? <Check className="w-3 h-3" /> : friend.name[0]}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-xs font-semibold text-foreground">{friend.name}</p>
+                      <p className="text-[10px] text-muted-foreground">@{friend.username}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
         </SectionCard>

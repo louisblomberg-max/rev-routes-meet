@@ -21,7 +21,7 @@ import { usePlan } from '@/contexts/PlanContext';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
-type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'edit';
+type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
 
 const AddRoute = () => {
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const AddRoute = () => {
   // Track snapped coordinates for the draw line
   const snappedCoordsRef = useRef<[number, number][] | null>(null);
 
-  const showMap = phase === 'record' || phase === 'draw';
+  const showMap = phase === 'record' || phase === 'draw' || phase === 'gpx-preview';
 
   const clearMarkersSafely = () => {
     markersRef.current.forEach((mk) => {
@@ -54,7 +54,7 @@ const AddRoute = () => {
     markersRef.current = [];
   };
 
-  // Init map for record/draw
+  // Init map for record/draw/gpx-preview
   useEffect(() => {
     if (!showMap || !mapContainerRef.current || mapRef.current) return;
 
@@ -71,13 +71,39 @@ const AddRoute = () => {
       m.addLayer({ id: 'draw-route-casing', type: 'line', source: 'draw-route', paint: { 'line-color': '#1a56db', 'line-width': 8, 'line-opacity': 0.3 } });
       m.addLayer({ id: 'draw-route-line', type: 'line', source: 'draw-route', paint: { 'line-color': '#3b82f6', 'line-width': 4, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
       lineSourceRef.current = true;
+
+      // If GPX preview, render the route immediately
+      if (phase === 'gpx-preview' && draftRoute) {
+        const coords = draftRoute.geometry.coordinates;
+        const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
+        if (src) {
+          src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
+        }
+        // Add start/end markers
+        const startEl = document.createElement('div');
+        startEl.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);';
+        new mapboxgl.Marker({ element: startEl }).setLngLat(coords[0]).addTo(m);
+
+        const endEl = document.createElement('div');
+        endEl.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#ef4444;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);';
+        new mapboxgl.Marker({ element: endEl }).setLngLat(coords[coords.length - 1]).addTo(m);
+
+        // Fit bounds
+        const bounds = coords.reduce(
+          (b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c),
+          new mapboxgl.LngLatBounds(coords[0], coords[0]),
+        );
+        m.fitBounds(bounds, { padding: 60, duration: 800 });
+      }
     });
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => m.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1000 }),
-      () => {},
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
+    if (phase !== 'gpx-preview') {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => m.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1000 }),
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    }
 
     mapRef.current = m;
 
@@ -86,7 +112,7 @@ const AddRoute = () => {
       mapRef.current = null;
       lineSourceRef.current = false;
     };
-  }, [showMap]);
+  }, [showMap, phase]);
 
   // Draw mode: add waypoints on map click
   useEffect(() => {
@@ -175,7 +201,7 @@ const AddRoute = () => {
     setDrawWaypoints([]);
   }, []);
 
-  // Handle GPX import — convert old DraftRoute to new RouteDraft
+  // Handle GPX import — show on map first, then proceed to edit
   const handleGPXImport = useCallback((oldDraft: any) => {
     const coords = oldDraft.geometry?.coordinates || [];
     if (coords.length < 2) {
@@ -183,8 +209,9 @@ const AddRoute = () => {
       return;
     }
     const draft = buildRouteDraft(coords, [coords[0], coords[coords.length - 1]], false);
-    handleDraftReady(draft);
-  }, [handleDraftReady]);
+    setDraftRoute(draft);
+    setPhase('gpx-preview');
+  }, []);
 
   // Record drive: update map line with new coords
   const handleRecordCoordsUpdate = useCallback((coords: [number, number][]) => {
@@ -208,6 +235,7 @@ const AddRoute = () => {
       return;
     }
     const userId = state.currentUser?.id || 'anon';
+    const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
     routesRepo.create({
       name: data.name,
       description: data.description,
@@ -223,6 +251,10 @@ const AddRoute = () => {
       drives: 0,
       visibility: data.visibility?.level || 'public',
       tags: [data.routeType?.toLowerCase() || 'mixed', ...data.vehicleTypes.map((v: string) => v.toLowerCase())],
+      difficulty: data.difficulty?.toLowerCase(),
+      surfaceType: data.surfaceType?.toLowerCase(),
+      safetyTags: data.safetyTags,
+      durationMinutes,
     });
 
     // Deduct credit if free user with credits
@@ -291,7 +323,7 @@ const AddRoute = () => {
     );
   }
 
-  // Map-based phases (record / draw)
+  // Map-based phases (record / draw / gpx-preview)
   if (showMap) {
     return (
       <div className="mobile-container relative">
@@ -313,6 +345,25 @@ const AddRoute = () => {
             onFinish={handleDraftReady}
             onCancel={handleCancel}
           />
+        )}
+
+        {phase === 'gpx-preview' && draftRoute && (
+          <div className="absolute bottom-4 left-3 right-3 z-40">
+            <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-elevated border border-border/40 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-xs font-bold text-foreground">GPX Route Imported</p>
+                  <p className="text-[10px] text-muted-foreground">{draftRoute.geometry.coordinates.length} points · {formatRouteDistance(draftRoute.stats.distanceMeters)}</p>
+                </div>
+                <button onClick={() => { setDraftRoute(null); setPhase('pick'); cleanupMap(); }}
+                  className="text-[11px] text-muted-foreground hover:text-foreground font-medium">Cancel</button>
+              </div>
+              <Button size="sm" onClick={() => handleDraftReady(draftRoute)}
+                className="w-full gap-1.5 bg-routes hover:bg-routes/90 text-routes-foreground rounded-xl font-semibold h-10 text-xs">
+                Continue to Edit & Publish
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     );
