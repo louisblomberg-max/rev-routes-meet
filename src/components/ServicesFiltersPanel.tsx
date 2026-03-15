@@ -118,7 +118,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onFiltersChange({
-                  distance: 25, types: [], minRating: null, openNow: false,
+                  distance: 25, types: [], openNow: false,
                 })}
                 className="text-[10px] font-medium text-services hover:text-services/70 transition-colors"
               >
