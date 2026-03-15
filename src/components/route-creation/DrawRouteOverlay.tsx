@@ -35,7 +35,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
   const distance = segments.length > 0 ? snappedDistance : rawDistance;
   const duration = segments.length > 0 ? snappedDuration : rawDuration;
 
-  // Auto-snap every new segment
+  // Auto-snap every new segment and move waypoints to road-snapped positions
   const handleSnapNewSegment = useCallback(async (newWaypoints: [number, number][]) => {
     if (newWaypoints.length < 2) return;
 
@@ -45,6 +45,14 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
     setIsSnapping(true);
     try {
       const seg = await snapSegment(from, to);
+      // Snap waypoints to road positions
+      const snappedFrom = seg.coordinates[0];
+      const snappedTo = seg.coordinates[seg.coordinates.length - 1];
+      const updatedWaypoints = [...newWaypoints];
+      updatedWaypoints[updatedWaypoints.length - 2] = snappedFrom;
+      updatedWaypoints[updatedWaypoints.length - 1] = snappedTo;
+      onSetWaypoints(updatedWaypoints);
+
       setSegments(prev => {
         const updated = [...prev, seg];
         const merged = mergeSegments(updated);
@@ -58,7 +66,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
     } finally {
       setIsSnapping(false);
     }
-  }, [onSnappedCoordsUpdate]);
+  }, [onSnappedCoordsUpdate, onSetWaypoints]);
 
   // Expose this so AddRoute can call it after adding waypoints
   const handleAddWaypoint = useCallback((pt: [number, number]) => {
