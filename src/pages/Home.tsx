@@ -45,7 +45,7 @@ const Home = () => {
     distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
   });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
-    distance: 25, types: [], minRating: null, openNow: false,
+    distance: 25, types: [], openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');

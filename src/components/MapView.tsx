@@ -428,7 +428,7 @@ const MapView = ({
           const allowedTypes = servicesFilters.types.map(t => typeMapping[t]).filter(Boolean);
           if (allowedTypes.length > 0 && pin.category && !allowedTypes.includes(pin.category as string)) return false;
         }
-        if (servicesFilters.minRating && typeof pin.rating === 'number' && pin.rating < servicesFilters.minRating) return false;
+        if (servicesFilters.openNow && !pin.isOpen) return false;
         if (servicesFilters.openNow && !pin.isOpen) return false;
       }
 

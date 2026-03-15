@@ -39,35 +39,11 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     { id: 'glass-repair', label: 'Glass Repair' },
   ];
 
-  const ratingOptions = [
-    { value: 4, label: '4+' },
-    { value: 3, label: '3+' },
-    { value: 2, label: '2+' },
-  ];
-
   const toggleType = (typeId: string) => {
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
       : [...filters.types, typeId];
     onFiltersChange({ ...filters, types: newTypes });
-  };
-
-  const handleDistanceChange = (value: number[]) => {
-    onFiltersChange({ ...filters, distance: value[0] });
-  };
-
-  const handleDistancePreset = (preset: 'national' | 'international') => {
-    onFiltersChange({ 
-      ...filters, 
-      distance: filters.distance === preset ? 25 : preset 
-    });
-  };
-
-  const handleRatingChange = (rating: number) => {
-    onFiltersChange({ 
-      ...filters, 
-      minRating: filters.minRating === rating ? null : rating 
-    });
   };
 
   const handleOpenNowChange = (checked: boolean) => {
