@@ -115,12 +115,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     });
   };
 
-  const handleRatingChange = (rating: number) => {
-    onFiltersChange({ 
-      ...filters, 
-      minRating: filters.minRating === rating ? null : rating 
-    });
-  };
 
   const isDistanceNumeric = typeof filters.distance === 'number';
   const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
