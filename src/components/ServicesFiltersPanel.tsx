@@ -46,6 +46,17 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     onFiltersChange({ ...filters, types: newTypes });
   };
 
+  const handleDistanceChange = (value: number[]) => {
+    onFiltersChange({ ...filters, distance: value[0] });
+  };
+
+  const handleDistancePreset = (preset: 'national' | 'international') => {
+    onFiltersChange({ 
+      ...filters, 
+      distance: filters.distance === preset ? 25 : preset 
+    });
+  };
+
   const handleOpenNowChange = (checked: boolean) => {
     onFiltersChange({ ...filters, openNow: checked });
   };
