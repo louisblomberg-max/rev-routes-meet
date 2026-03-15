@@ -59,11 +59,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     { id: 'mixed', label: 'Mixed' },
   ];
 
-  const ratingOptions = [
-    { value: 4, label: '4+' },
-    { value: 3, label: '3+' },
-    { value: 2, label: '2+' },
-  ];
 
   const toggleType = (typeId: string) => {
     if (typeId === 'all') {
