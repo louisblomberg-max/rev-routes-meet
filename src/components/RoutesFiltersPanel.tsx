@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
-import { SlidersHorizontal, X, Star, Plus } from 'lucide-react';
+import { SlidersHorizontal, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface RoutesFilterState {
