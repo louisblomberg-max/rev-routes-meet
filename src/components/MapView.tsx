@@ -414,7 +414,7 @@ const MapView = ({
             return false; // no duration data, exclude
           }
         }
-        if (routesFilters.minRating && typeof pin.rating === 'number' && pin.rating < routesFilters.minRating) return false;
+        
       }
 
       if (pin.type === 'services' && servicesFilters) {

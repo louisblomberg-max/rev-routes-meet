@@ -287,26 +287,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
             </div>
           </div>
 
-          {/* Rating Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
-            <div className="flex gap-1.5">
-              {ratingOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRatingChange(option.value)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.minRating === option.value
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  <Star className="w-3 h-3" />
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Apply Button */}
           <button

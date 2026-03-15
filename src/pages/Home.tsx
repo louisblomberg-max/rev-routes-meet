@@ -42,7 +42,7 @@ const Home = () => {
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
-    distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
+    distance: 25, types: [], difficulty: [], duration: null, surface: [],
   });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
     distance: 25, types: [], openNow: false,
