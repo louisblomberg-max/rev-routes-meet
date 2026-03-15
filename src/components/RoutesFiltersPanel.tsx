@@ -9,7 +9,6 @@ export interface RoutesFilterState {
   difficulty: string[];
   duration: string | null;
   surface: string[];
-  minRating: number | null;
 }
 
 interface RoutesFiltersPanelProps {
