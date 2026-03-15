@@ -85,6 +85,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
 
   const handleUndo = () => {
     if (waypoints.length > 0) {
+      prevWaypointCountRef.current = waypoints.length - 1;
       onSetWaypoints(waypoints.slice(0, -1));
       if (segments.length > 0) {
         const newSegs = segments.slice(0, -1);
@@ -104,6 +105,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
   };
 
   const handleClear = () => {
+    prevWaypointCountRef.current = 0;
     onSetWaypoints([]);
     setSegments([]);
     setSnappedDistance(0);
