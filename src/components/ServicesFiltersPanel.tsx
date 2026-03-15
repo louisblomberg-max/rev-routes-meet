@@ -7,7 +7,6 @@ import { useNavigate } from 'react-router-dom';
 export interface ServicesFilterState {
   distance: number | 'national' | 'international';
   types: string[];
-  minRating: number | null;
   openNow: boolean;
 }
 
