@@ -119,7 +119,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const pt: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-        handleAddWaypoint(pt);
+        onSetWaypoints([...waypoints, pt]);
       },
       () => toast.error('Could not get location'),
       { enableHighAccuracy: true, timeout: 10000 },
