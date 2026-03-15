@@ -185,27 +185,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </div>
           </div>
 
-          {/* Rating Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
-            <div className="flex gap-1.5">
-              {ratingOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRatingChange(option.value)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.minRating === option.value
-                      ? 'bg-services/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-services/10'
-                  }`}
-                >
-                  <Star className="w-3 h-3" />
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Open Now Toggle */}
           <div className="flex items-center justify-between py-1">
             <p className="text-xs font-medium text-foreground">Open Now</p>
