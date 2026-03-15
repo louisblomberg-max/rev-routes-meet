@@ -160,7 +160,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onFiltersChange({
-                  distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
+                  distance: 25, types: [], difficulty: [], duration: null, surface: [],
                 })}
                 className="text-[10px] font-medium text-routes hover:text-routes/70 transition-colors"
               >
