@@ -2,7 +2,7 @@
  * Overlay for draw-route mode with automatic snap-to-roads.
  * Positioned at bottom of screen for maximum map visibility.
  */
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { Undo2, Trash2, Check, Crosshair } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +27,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
   const [segments, setSegments] = useState<SnappedSegment[]>([]);
   const [snappedDistance, setSnappedDistance] = useState(0);
   const [snappedDuration, setSnappedDuration] = useState(0);
+  const prevWaypointCountRef = useRef(waypoints.length);
 
   // Calculate raw distance/duration as fallback
   const rawDistance = waypoints.length >= 2 ? calculateDistance(waypoints) : 0;
@@ -35,50 +36,56 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
   const distance = segments.length > 0 ? snappedDistance : rawDistance;
   const duration = segments.length > 0 ? snappedDuration : rawDuration;
 
-  // Auto-snap every new segment and move waypoints to road-snapped positions
-  const handleSnapNewSegment = useCallback(async (newWaypoints: [number, number][]) => {
-    if (newWaypoints.length < 2) return;
+  // Auto-snap when a new waypoint is added
+  useEffect(() => {
+    const prevCount = prevWaypointCountRef.current;
+    prevWaypointCountRef.current = waypoints.length;
 
-    const from = newWaypoints[newWaypoints.length - 2];
-    const to = newWaypoints[newWaypoints.length - 1];
+    // Only snap when a new waypoint was added (count increased) and we have 2+
+    if (waypoints.length < 2 || waypoints.length <= prevCount) return;
 
+    const from = waypoints[waypoints.length - 2];
+    const to = waypoints[waypoints.length - 1];
+
+    let cancelled = false;
     setIsSnapping(true);
-    try {
-      const seg = await snapSegment(from, to);
-      // Snap waypoints to road positions
-      const snappedFrom = seg.coordinates[0];
-      const snappedTo = seg.coordinates[seg.coordinates.length - 1];
-      const updatedWaypoints = [...newWaypoints];
-      updatedWaypoints[updatedWaypoints.length - 2] = snappedFrom;
-      updatedWaypoints[updatedWaypoints.length - 1] = snappedTo;
-      onSetWaypoints(updatedWaypoints);
 
-      setSegments(prev => {
-        const updated = [...prev, seg];
-        const merged = mergeSegments(updated);
-        setSnappedDistance(merged.totalDistance);
-        setSnappedDuration(merged.totalDuration);
-        onSnappedCoordsUpdate?.(merged.coordinates);
-        return updated;
+    snapSegment(from, to)
+      .then((seg) => {
+        if (cancelled) return;
+        // Snap waypoint positions to road
+        const snappedFrom = seg.coordinates[0];
+        const snappedTo = seg.coordinates[seg.coordinates.length - 1];
+        const updatedWaypoints = [...waypoints];
+        // Only update the "from" if it's the very first segment (first waypoint)
+        if (waypoints.length === 2) {
+          updatedWaypoints[0] = snappedFrom;
+        }
+        updatedWaypoints[updatedWaypoints.length - 1] = snappedTo;
+        onSetWaypoints(updatedWaypoints);
+
+        setSegments(prev => {
+          const updated = [...prev, seg];
+          const merged = mergeSegments(updated);
+          setSnappedDistance(merged.totalDistance);
+          setSnappedDuration(merged.totalDuration);
+          onSnappedCoordsUpdate?.(merged.coordinates);
+          return updated;
+        });
+      })
+      .catch((e: any) => {
+        if (!cancelled) toast.error('Snap failed for segment', { description: e.message });
+      })
+      .finally(() => {
+        if (!cancelled) setIsSnapping(false);
       });
-    } catch (e: any) {
-      toast.error('Snap failed for segment', { description: e.message });
-    } finally {
-      setIsSnapping(false);
-    }
-  }, [onSnappedCoordsUpdate, onSetWaypoints]);
 
-  // Expose this so AddRoute can call it after adding waypoints
-  const handleAddWaypoint = useCallback((pt: [number, number]) => {
-    const newWps = [...waypoints, pt];
-    onSetWaypoints(newWps);
-    if (newWps.length >= 2) {
-      handleSnapNewSegment(newWps);
-    }
-  }, [waypoints, onSetWaypoints, handleSnapNewSegment]);
+    return () => { cancelled = true; };
+  }, [waypoints.length]); // Only trigger on count change
 
   const handleUndo = () => {
     if (waypoints.length > 0) {
+      prevWaypointCountRef.current = waypoints.length - 1;
       onSetWaypoints(waypoints.slice(0, -1));
       if (segments.length > 0) {
         const newSegs = segments.slice(0, -1);
@@ -98,6 +105,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
   };
 
   const handleClear = () => {
+    prevWaypointCountRef.current = 0;
     onSetWaypoints([]);
     setSegments([]);
     setSnappedDistance(0);
@@ -113,7 +121,7 @@ const DrawRouteOverlay = ({ waypoints, onSetWaypoints, onSnappedCoordsUpdate, on
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const pt: [number, number] = [pos.coords.longitude, pos.coords.latitude];
-        handleAddWaypoint(pt);
+        onSetWaypoints([...waypoints, pt]);
       },
       () => toast.error('Could not get location'),
       { enableHighAccuracy: true, timeout: 10000 },
