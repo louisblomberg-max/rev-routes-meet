@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
-import { SlidersHorizontal, X, Star, Plus } from 'lucide-react';
+import { SlidersHorizontal, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface RoutesFilterState {
@@ -9,7 +9,6 @@ export interface RoutesFilterState {
   difficulty: string[];
   duration: string | null;
   surface: string[];
-  minRating: number | null;
 }
 
 interface RoutesFiltersPanelProps {
@@ -60,11 +59,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     { id: 'mixed', label: 'Mixed' },
   ];
 
-  const ratingOptions = [
-    { value: 4, label: '4+' },
-    { value: 3, label: '3+' },
-    { value: 2, label: '2+' },
-  ];
 
   const toggleType = (typeId: string) => {
     if (typeId === 'all') {
@@ -121,12 +115,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
     });
   };
 
-  const handleRatingChange = (rating: number) => {
-    onFiltersChange({ 
-      ...filters, 
-      minRating: filters.minRating === rating ? null : rating 
-    });
-  };
 
   const isDistanceNumeric = typeof filters.distance === 'number';
   const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
@@ -172,7 +160,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onFiltersChange({
-                  distance: 25, types: [], difficulty: [], duration: null, surface: [], minRating: null,
+                  distance: 25, types: [], difficulty: [], duration: null, surface: [],
                 })}
                 className="text-[10px] font-medium text-routes hover:text-routes/70 transition-colors"
               >
@@ -299,26 +287,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
             </div>
           </div>
 
-          {/* Rating Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
-            <div className="flex gap-1.5">
-              {ratingOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRatingChange(option.value)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.minRating === option.value
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  <Star className="w-3 h-3" />
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Apply Button */}
           <button

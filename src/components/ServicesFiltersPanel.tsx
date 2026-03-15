@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { SlidersHorizontal, X, Star, Plus } from 'lucide-react';
+import { SlidersHorizontal, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export interface ServicesFilterState {
   distance: number | 'national' | 'international';
   types: string[];
-  minRating: number | null;
   openNow: boolean;
 }
 
@@ -40,12 +39,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     { id: 'glass-repair', label: 'Glass Repair' },
   ];
 
-  const ratingOptions = [
-    { value: 4, label: '4+' },
-    { value: 3, label: '3+' },
-    { value: 2, label: '2+' },
-  ];
-
   const toggleType = (typeId: string) => {
     const newTypes = filters.types.includes(typeId)
       ? filters.types.filter(t => t !== typeId)
@@ -61,13 +54,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     onFiltersChange({ 
       ...filters, 
       distance: filters.distance === preset ? 25 : preset 
-    });
-  };
-
-  const handleRatingChange = (rating: number) => {
-    onFiltersChange({ 
-      ...filters, 
-      minRating: filters.minRating === rating ? null : rating 
     });
   };
 
@@ -119,7 +105,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             <div className="flex items-center gap-2">
               <button
                 onClick={() => onFiltersChange({
-                  distance: 25, types: [], minRating: null, openNow: false,
+                  distance: 25, types: [], openNow: false,
                 })}
                 className="text-[10px] font-medium text-services hover:text-services/70 transition-colors"
               >
@@ -181,27 +167,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
                   }`}
                 >
                   {type.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Rating Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Minimum Rating</p>
-            <div className="flex gap-1.5">
-              {ratingOptions.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => handleRatingChange(option.value)}
-                  className={`flex-1 flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.minRating === option.value
-                      ? 'bg-services/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-services/10'
-                  }`}
-                >
-                  <Star className="w-3 h-3" />
-                  {option.label}
                 </button>
               ))}
             </div>
