@@ -65,6 +65,7 @@ import OnboardingNotifications from "./pages/OnboardingNotifications";
 import Onboarding from "./pages/Onboarding";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
+import StolenVehicles from "./pages/StolenVehicles";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,7 @@ const App = () => (
           <Route path="/routes" element={<RoutesList />} />
           <Route path="/services" element={<ServicesList />} />
           <Route path="/settings/devtools" element={<DevTools />} />
+          <Route path="/stolen-vehicles" element={<StolenVehicles />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
