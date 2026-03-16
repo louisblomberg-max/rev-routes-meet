@@ -291,7 +291,8 @@ const AddService = () => {
 
         {/* ── 4. CATEGORIES ── */}
         <SectionCard>
-          <SectionTitle icon={Star}>Category</SectionTitle>
+          <SectionTitle icon={Star}>Services Offered</SectionTitle>
+          <p className="text-xs text-muted-foreground -mt-2 mb-3">Select all that apply to your business</p>
           <div className="flex flex-wrap gap-2">
             {SERVICE_CATEGORIES.map(cat => (
               <button key={cat} onClick={() => toggleCategory(cat)}
@@ -304,6 +305,9 @@ const AddService = () => {
               </button>
             ))}
           </div>
+          {formData.categories.length > 0 && (
+            <p className="text-[11px] text-services mt-2 font-medium">{formData.categories.length} selected</p>
+          )}
           {errors.category && <p className="text-xs text-destructive mt-2">{errors.category}</p>}
         </SectionCard>
 
