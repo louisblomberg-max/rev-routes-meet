@@ -144,6 +144,7 @@ const App = () => (
           <Route path="/routes" element={<RoutesList />} />
           <Route path="/services" element={<ServicesList />} />
           <Route path="/settings/devtools" element={<DevTools />} />
+          <Route path="/stolen-vehicles" element={<StolenVehicles />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
