@@ -65,6 +65,7 @@ import OnboardingNotifications from "./pages/OnboardingNotifications";
 import Onboarding from "./pages/Onboarding";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
+import StolenVehicles from "./pages/StolenVehicles";
 
 const queryClient = new QueryClient();
 
