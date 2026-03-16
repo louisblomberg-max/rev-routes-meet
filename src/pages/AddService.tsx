@@ -356,19 +356,46 @@ const AddService = () => {
               </button>
             </div>
             {formData.serviceType === 'mobile' && (
-              <div className="space-y-2 animate-fade-up">
+              <div className="space-y-3 animate-fade-up">
                 <div className="flex justify-between">
                   <Label className="text-xs text-muted-foreground">Service Radius</Label>
-                  <span className="text-xs font-semibold text-services">{formData.serviceRadius} miles</span>
+                  <span className="text-xs font-semibold text-services">
+                    {formData.serviceRadius >= 500 ? 'Nationwide' : `${formData.serviceRadius} miles`}
+                  </span>
                 </div>
                 <Slider
                   value={[formData.serviceRadius]}
                   onValueChange={([v]) => update('serviceRadius', v)}
                   min={5}
-                  max={50}
+                  max={500}
                   step={5}
                   className="py-2"
                 />
+                <div className="flex gap-1.5">
+                  {[25, 50, 100, 250].map(r => (
+                    <button
+                      key={r}
+                      onClick={() => update('serviceRadius', r)}
+                      className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                        formData.serviceRadius === r
+                          ? 'bg-services text-services-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-services/10'
+                      }`}
+                    >
+                      {r} mi
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => update('serviceRadius', 500)}
+                    className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
+                      formData.serviceRadius >= 500
+                        ? 'bg-services text-services-foreground'
+                        : 'bg-muted text-muted-foreground hover:bg-services/10'
+                    }`}
+                  >
+                    National
+                  </button>
+                </div>
               </div>
             )}
           </div>

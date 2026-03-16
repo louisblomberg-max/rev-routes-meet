@@ -124,8 +124,9 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
       {/* Info rows */}
       <div className="space-y-2.5">
         <div className="flex items-center gap-3 text-sm">
-          <Star className="w-4 h-4 text-amber-500 shrink-0" />
-          <span className="text-foreground">{service.rating} ({service.reviewCount} reviews)</span>
+          <Star className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0" />
+          <span className="text-foreground font-medium">{service.rating}</span>
+          <span className="text-muted-foreground">({service.reviewCount} reviews by RevNet users)</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
