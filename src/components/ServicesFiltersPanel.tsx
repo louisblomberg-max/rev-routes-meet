@@ -25,18 +25,16 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
   ];
 
   const typeOptions = [
-    { id: 'mechanics', label: 'Mechanics' },
-    { id: 'detailing', label: 'Detailing' },
-    { id: 'parts', label: 'Parts' },
-    { id: 'tyres', label: 'Tyres' },
-    { id: 'mot', label: 'MOT' },
-    { id: 'tuning', label: 'Tuning' },
-    { id: 'bodywork', label: 'Bodywork' },
-    { id: 'car-wash', label: 'Car Wash' },
-    { id: 'ev-charging', label: 'EV Charging' },
-    { id: 'accessories', label: 'Accessories' },
-    { id: 'wheels', label: 'Wheels' },
-    { id: 'glass-repair', label: 'Glass Repair' },
+    { id: 'garages-mechanics', label: 'Garages & Mechanics' },
+    { id: 'vehicle-servicing', label: 'Vehicle Servicing' },
+    { id: 'tyres-wheels', label: 'Tyres & Wheels' },
+    { id: 'bodywork-paint', label: 'Bodywork & Paint' },
+    { id: 'detailing-car-care', label: 'Detailing & Car Care' },
+    { id: 'tuning-performance', label: 'Tuning & Performance' },
+    { id: 'parts-accessories', label: 'Parts & Accessories' },
+    { id: 'recovery-roadside', label: 'Recovery & Roadside' },
+    { id: 'storage-parking', label: 'Storage & Parking' },
+    { id: 'shipping-transportation', label: 'Shipping & Transport' },
   ];
 
   const toggleType = (typeId: string) => {
