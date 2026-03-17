@@ -34,7 +34,7 @@ const MapStyleButton = ({ currentStyle, onStyleChange }: MapStyleButtonProps) =>
           className="group"
           aria-label="Change map style"
         >
-          <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md shadow-md border border-white/60 flex items-center justify-center group-hover:bg-white group-hover:shadow-lg group-active:scale-90 transition-all duration-200">
+          <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-md shadow-md border border-black/20 flex items-center justify-center group-hover:bg-white group-hover:shadow-lg group-active:scale-90 transition-all duration-200">
             <Map className="w-[18px] h-[18px] text-muted-foreground" />
           </div>
         </button>

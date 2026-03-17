@@ -29,7 +29,7 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
           services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
         };
 
-        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-white/60 shadow-sm hover:shadow-md hover:bg-white';
+        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-black/20 shadow-sm hover:shadow-md hover:bg-white';
 
         return (
           <button
