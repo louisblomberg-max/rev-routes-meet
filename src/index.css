@@ -8,6 +8,7 @@
   :root {
     /* Light Mode - Clean & Minimal with Dark Accents */
     --background: 0 0% 98%;
+    --background-warm: 60 31% 93%;
     --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
