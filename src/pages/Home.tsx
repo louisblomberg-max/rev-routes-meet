@@ -167,7 +167,7 @@ const Home = () => {
 
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30">
-          <div className="bg-card/95 backdrop-blur-xl border-b border-border/50 safe-top">
+          <div className="backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
             <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
               <div className="h-10 w-20 flex-shrink-0 flex items-center justify-center bg-black rounded-xl border border-white/60 shadow-sm overflow-hidden">
                 <img src={revnetLogoNew} alt="RevNet" className="h-full w-full object-cover" />
