@@ -658,7 +658,7 @@ const MarketplaceTab = () => {
       )}
 
       {/* Featured Listing */}
-      {!activeCategory && !searchQuery && !isFiltersOpen && !isSearchFocused && (
+      {featuredListing && !activeCategory && !searchQuery && !isFiltersOpen && !isSearchFocused && (
         <div className="px-4 pt-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
