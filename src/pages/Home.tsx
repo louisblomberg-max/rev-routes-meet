@@ -147,7 +147,7 @@ const Home = () => {
   }
 
   return (
-    <div className="mobile-container">
+    <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <MapView
         activeCategories={activeCategories}
         onPinClick={handlePinClick}

@@ -34,7 +34,7 @@ const CommunityTab = () => {
   ];
 
   return (
-    <div className="h-full bg-background overflow-y-auto pb-24">
+    <div className="h-full overflow-y-auto pb-24" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       {/* Header */}
       <div className="px-5 pt-12 pb-6 safe-top">
         <p className="text-label mb-1">Your Network</p>
