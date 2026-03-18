@@ -297,7 +297,7 @@ const MyGarage = () => {
           <div className="py-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Type */}
             <div className="grid grid-cols-2 gap-3">
-              {(['car', 'motorcycle'] as const).map((t) => {}
+              {(['car', 'motorcycle'] as const).map((t) => (null)
 
 
 
