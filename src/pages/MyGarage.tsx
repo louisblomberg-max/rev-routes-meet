@@ -387,9 +387,8 @@ const MyGarage = () => {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div>
               <div className="space-y-1.5"><Label className="text-xs font-medium">Colour</Label><Input placeholder="Silver" value={form.colour} onChange={(e) => setForm((f) => ({ ...f, colour: e.target.value }))} className="rounded-xl" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Mileage</Label><Input type="number" placeholder="50000" value={form.mileage} onChange={(e) => setForm((f) => ({ ...f, mileage: e.target.value }))} className="rounded-xl" /></div>
             </div>
 
 
