@@ -43,7 +43,7 @@ const ProfileStep = () => {
           {data.avatarUrl ?
           <img src={data.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" /> :
 
-          <User className="w-10 h-10 bg-primary text-primary" />
+          <User className="w-10 h-10 text-black bg-white" />
           }
           <div className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center shadow-lg">
             <Camera className="w-4 h-4 text-primary-foreground" />
