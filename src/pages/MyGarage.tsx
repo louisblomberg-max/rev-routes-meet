@@ -35,6 +35,7 @@ const MyGarage = () => {
   const { preferences, updatePreferences } = useUserPreferences();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<GarageVehicle | null>(null);
   const [showPrefs, setShowPrefs] = useState(false);
 
   // Add vehicle form state
