@@ -41,6 +41,7 @@ import AddEvent from "./pages/AddEvent";
 import AddRoute from "./pages/AddRoute";
 import AddService from "./pages/AddService";
 import AddClub from "./pages/AddClub";
+import AddVehicle from "./pages/AddVehicle";
 
 import RouteDetail from "./pages/RouteDetail";
 
@@ -134,6 +135,7 @@ const App = () => (
           <Route path="/add/route" element={<AddRoute />} />
           <Route path="/add/service" element={<AddService />} />
           <Route path="/add/club" element={<AddClub />} />
+          <Route path="/add/vehicle" element={<AddVehicle />} />
           
           <Route path="/route/:id" element={<RouteDetail />} />
           
