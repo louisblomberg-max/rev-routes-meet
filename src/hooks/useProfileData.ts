@@ -45,7 +45,8 @@ export function useCurrentUser() {
 // ---- User Stats (aggregate counts) ----
 export function useUserStatsData() {
   const { state } = useData();
-  const { vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes } = state;
+  const { vehicles: garageVehicles } = useGarage();
+  const { friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes } = state;
   const userId = state.currentUser?.id;
 
   return useMemo(() => {
@@ -56,7 +57,7 @@ export function useUserStatsData() {
     const createdRouteCount = userId ? routes.filter(r => r.createdBy === userId).length : 0;
     
     return {
-      garageCount: vehicles.length,
+      garageCount: garageVehicles.length,
       friendsCount: friends.filter(f => f.status === 'accepted').length,
       clubsCount: clubMemberships.length,
       eventsCount: allEventIds.size,
@@ -64,7 +65,7 @@ export function useUserStatsData() {
       discussionsCount: activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
       savedServicesCount: savedServices.length,
     };
-  }, [vehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes, userId]);
+  }, [garageVehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes, userId]);
 }
 
 // ---- Garage (Vehicles) ----
