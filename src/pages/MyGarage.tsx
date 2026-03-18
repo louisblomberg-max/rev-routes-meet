@@ -290,6 +290,9 @@ const MyGarage = () => {
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => handleEdit(vehicle)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Edit
+                        </Button>
                         {!vehicle.isPrimary &&
                     <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => {setPrimaryVehicle(vehicle.id);toast.success('Set as primary');}}>
                             <Star className="w-3 h-3 mr-1" /> Set Primary
