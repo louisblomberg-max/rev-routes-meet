@@ -59,7 +59,7 @@ const PLANS = [
 ];
 
 const PlanStep = () => {
-  const { next, back } = useOnboarding();
+  const { next, back, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [selected, setSelected] = useState<PlanId>('pro');
 
