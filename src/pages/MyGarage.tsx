@@ -52,8 +52,27 @@ const MyGarage = () => {
   const resetForm = () => setForm({
     vehicleType: 'car', make: '', model: '', year: '', trim: '', engine: '',
     transmission: '', drivetrain: '', colour: '', mileage: '',
-    tags: [], modsText: '', visibility: 'public', isPrimary: false
+    tags: [], modsText: '', visibility: 'public', isPrimary: false, photos: []
   });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          setForm(prev => ({ ...prev, photos: [...prev.photos, reader.result as string] }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removePhoto = (idx: number) => {
+    setForm(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }));
+  };
 
   const toggleFormTag = (tag: string) => {
     setForm((prev) => ({
