@@ -402,7 +402,7 @@ const MyGarage = () => {
             {/* Visibility */}
             <div>
               <Label className="text-xs font-medium mb-2 block">Visibility</Label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 px-4">
                 {(['public', 'friends', 'private'] as const).map((vis) =>
                 <button key={vis} onClick={() => setForm((f) => ({ ...f, visibility: vis }))}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-all capitalize bg-white ${form.visibility === vis ? 'border-primary ring-1 ring-primary text-primary' : 'border-border/50 text-muted-foreground'}`}>
