@@ -375,10 +375,10 @@ const MyGarage = () => {
       </div>
 
       {/* Add Vehicle Sheet */}
-      <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Sheet open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setEditingVehicle(null); resetForm(); } }}>
         <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl">
           <SheetHeader className="px-2 pb-4 border-b border-border/30">
-            <SheetTitle className="text-lg font-bold">Add Vehicle</SheetTitle>
+            <SheetTitle className="text-lg font-bold">{editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}</SheetTitle>
           </SheetHeader>
           <div className="py-5 px-2 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Type */}
