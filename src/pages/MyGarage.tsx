@@ -395,7 +395,7 @@ const MyGarage = () => {
 
             {/* Mods */}
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Modifications</Label>
+              <Label className="text-xs font-medium">Details</Label>
               <Textarea placeholder="List your mods..." value={form.modsText} onChange={(e) => setForm((f) => ({ ...f, modsText: e.target.value }))} className="rounded-xl min-h-[60px]" />
             </div>
 
