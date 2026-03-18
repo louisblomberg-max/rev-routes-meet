@@ -41,6 +41,7 @@ import AddEvent from "./pages/AddEvent";
 import AddRoute from "./pages/AddRoute";
 import AddService from "./pages/AddService";
 import AddClub from "./pages/AddClub";
+import AddVehicle from "./pages/AddVehicle";
 
 import RouteDetail from "./pages/RouteDetail";
 
