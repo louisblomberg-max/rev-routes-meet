@@ -337,21 +337,6 @@ const MyGarage = () => {
               <div className="space-y-1.5"><Label className="text-xs font-medium">Mileage</Label><Input type="number" placeholder="50000" value={form.mileage} onChange={(e) => setForm((f) => ({ ...f, mileage: e.target.value }))} className="rounded-xl" /></div>
             </div>
 
-            {/* Tags */}
-            <div>
-              <Label className="text-xs font-medium mb-2 block">Enthusiast Tags</Label>
-              <div className="flex flex-wrap gap-1.5">
-                {ENTHUSIAST_TAGS.map((tag) => {
-                  const active = form.tags.includes(tag);
-                  return (
-                    <button key={tag} onClick={() => toggleFormTag(tag)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${active ? 'border-primary bg-primary/10 text-primary' : 'border-border/50 text-muted-foreground'}`}>
-                      {tag}
-                    </button>);
-
-                })}
-              </div>
-            </div>
 
             {/* Mods */}
             <div className="space-y-1.5">
