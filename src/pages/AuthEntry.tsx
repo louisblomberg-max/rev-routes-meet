@@ -8,7 +8,7 @@ const AuthEntry = () => {
 
   return (
     <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#171717' }}>
-      <div className="flex-1 flex flex-col items-center justify-start px-6 pt-24">
+      <div className="flex-1 flex flex-col items-center justify-start px-6 pt-16">
         <img src={revnetLogo} alt="RevNet" className="w-full h-auto" />
       </div>
 
