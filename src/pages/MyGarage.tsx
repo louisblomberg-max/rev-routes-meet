@@ -124,7 +124,7 @@ const MyGarage = () => {
       transmission: vehicle.transmission ?? '',
       drivetrain: vehicle.drivetrain ?? '',
       colour: vehicle.colour ?? '',
-      numberPlate: (vehicle as any).numberPlate ?? '',
+      numberPlate: vehicle.numberPlate ?? '',
       mileage: vehicle.mileage?.toString() ?? '',
       tags: [...vehicle.tags],
       modsText: vehicle.modsText ?? '',
