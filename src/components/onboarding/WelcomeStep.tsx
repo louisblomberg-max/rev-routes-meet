@@ -31,8 +31,7 @@ const WelcomeStep = () => {
       <div className="px-6 pb-8 safe-bottom space-y-3 bg-[#f3f3e8]">
         <Button
           onClick={next}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2">
-          
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-foreground text-background hover:bg-foreground/90">
           Create Account
           <ChevronRight className="w-5 h-5" />
         </Button>
