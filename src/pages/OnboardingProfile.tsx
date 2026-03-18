@@ -53,7 +53,7 @@ const OnboardingProfile = () => {
 
   // Step 1 of 6 now (added referral step)
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Header */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
@@ -70,14 +70,14 @@ const OnboardingProfile = () => {
 
       {/* Content */}
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Add a profile picture and bio</h1>
-        <p className="text-sm text-muted-foreground text-center mb-8">to show yourself off!</p>
+        <h1 className="text-2xl font-bold text-center mb-1 text-black">Add a profile picture and bio</h1>
+        <p className="text-sm text-center mb-8 text-black/60">to show yourself off!</p>
 
         {/* Avatar */}
         <div className="flex justify-center mb-8">
           <div className="relative">
-            <Avatar className="w-28 h-28 ring-4 ring-muted">
-              <AvatarFallback className="bg-muted text-muted-foreground text-3xl">
+            <Avatar className="w-28 h-28 ring-4 ring-black/10">
+              <AvatarFallback className="bg-white text-black text-3xl">
                 <Camera className="w-8 h-8" />
               </AvatarFallback>
             </Avatar>
@@ -95,7 +95,7 @@ const OnboardingProfile = () => {
         <Textarea
           placeholder="Add a bio..."
           rows={2}
-          className="rounded-2xl bg-muted border-0 text-sm mb-4 resize-none"
+          className="rounded-2xl bg-white text-black border-0 text-sm mb-4 resize-none placeholder:text-black/40"
           value={form.bio}
           onChange={e => update('bio', e.target.value)}
         />
@@ -105,7 +105,7 @@ const OnboardingProfile = () => {
           <div>
             <Input
               placeholder="Display Name *"
-              className="rounded-2xl h-12 bg-muted border-0 text-sm"
+              className="rounded-2xl h-12 bg-white text-black border-0 text-sm placeholder:text-black/40"
               value={form.displayName}
               onChange={e => {
                 update('displayName', e.target.value);
@@ -121,12 +121,12 @@ const OnboardingProfile = () => {
             <div className="relative">
               <Input
                 placeholder="Username *"
-                className="rounded-2xl h-12 bg-muted border-0 text-sm"
+                className="rounded-2xl h-12 bg-white text-black border-0 text-sm placeholder:text-black/40"
                 value={form.username}
                 onChange={e => update('username', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
                 maxLength={16}
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-black/40">
                 {form.username.length}/16
               </span>
             </div>
@@ -143,8 +143,8 @@ const OnboardingProfile = () => {
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
+        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-black text-white hover:bg-black/90">
           Next <ChevronRight className="w-5 h-5" />
         </Button>
         <button
@@ -152,7 +152,7 @@ const OnboardingProfile = () => {
             setOnboardingStep(1);
             navigate('/onboarding/vehicle');
           }}
-          className="w-full text-sm text-muted-foreground mt-2 py-1"
+          className="w-full text-sm text-black/50 mt-2 py-1"
         >
           Skip for now
         </button>
