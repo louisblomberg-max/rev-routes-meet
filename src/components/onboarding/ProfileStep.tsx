@@ -65,6 +65,22 @@ const ProfileStep = () => {
           />
           <p className="text-xs text-black/40 text-right mt-1">{data.bio.length}/160</p>
         </div>
+
+        {/* Location */}
+        <div className="w-full max-w-sm">
+          <label className="text-xs font-semibold uppercase tracking-wider mb-2 block text-black/60">
+            Location <span className="text-black/40">(optional)</span>
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
+            <Input
+              placeholder="London, UK"
+              className="pl-11 rounded-2xl h-12 bg-white text-black border-black/10 text-sm placeholder:text-black/40"
+              value={data.location}
+              onChange={(e) => updateData({ location: e.target.value })}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Bottom */}
