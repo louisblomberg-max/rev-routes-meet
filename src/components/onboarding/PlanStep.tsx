@@ -191,7 +191,7 @@ const PlanStep = () => {
         </Button>
         {selected !== 'free' && (
           <button
-            onClick={() => { setSelected('free'); next(); }}
+            onClick={() => { setSelected('free'); updateData({ plan: 'free' }); next(); }}
             className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors"
           >
             Continue with Free instead
