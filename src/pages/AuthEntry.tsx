@@ -1,15 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import revnetLogo from '@/assets/revnet-logo-new.png';
+import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
 
   return (
     <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#171717' }}>
-      <div className="flex-1 flex flex-col items-center justify-center px-8">
-        <img src={revnetLogo} alt="RevNet" className="h-20 w-auto" />
+      <div className="flex-1 flex flex-col items-center justify-center px-8 pt-16">
+        <img src={revnetLogo} alt="RevNet" className="w-56 h-auto" />
       </div>
 
       <div className="px-6 pb-8 safe-bottom space-y-3">
