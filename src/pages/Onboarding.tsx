@@ -143,10 +143,8 @@ const OnboardingContent = () => {
   };
 
   return (
-    <div className="dark">
-      <div className="mobile-container bg-background min-h-screen flex flex-col relative overflow-hidden">
-        {renderStep()}
-      </div>
+    <div className="mobile-container min-h-screen flex flex-col relative overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
+      {renderStep()}
     </div>
   );
 };

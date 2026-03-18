@@ -84,7 +84,7 @@ const OnboardingFeatures = () => {
   const toggle = (idx: number) => setExpanded(prev => prev === idx ? null : idx);
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Progress */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
@@ -92,7 +92,7 @@ const OnboardingFeatures = () => {
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i === 0 ? 'bg-primary' : 'bg-muted'}`} />
+                <div key={i} className={`flex-1 h-1 rounded-full ${i === 0 ? 'bg-primary' : 'bg-black/10'}`} />
               ))}
             </div>
           </div>
@@ -100,10 +100,10 @@ const OnboardingFeatures = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">
+        <h1 className="text-2xl font-bold text-black text-center mb-1">
           What you can do on RevNet
         </h1>
-        <p className="text-sm text-muted-foreground text-center mb-6">
+        <p className="text-sm text-black/50 text-center mb-6">
           Everything you need for automotive culture in one place.
         </p>
 
@@ -115,23 +115,23 @@ const OnboardingFeatures = () => {
               <button
                 key={idx}
                 onClick={() => toggle(idx)}
-                className="w-full text-left bg-card rounded-2xl border border-border/50 p-4 transition-all"
+                className="w-full text-left bg-white rounded-2xl border border-black/10 p-4 transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                    <Icon className="w-5 h-5 text-foreground" />
+                  <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                    <Icon className="w-5 h-5 text-black" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-foreground">{feat.title}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{feat.desc}</p>
+                    <h3 className="text-sm font-semibold text-black">{feat.title}</h3>
+                    <p className="text-xs text-black/50 leading-relaxed">{feat.desc}</p>
                   </div>
-                  <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`w-4 h-4 text-black/40 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
                 {isOpen && (
-                  <div className="mt-3 pt-3 border-t border-border/50">
+                  <div className="mt-3 pt-3 border-t border-black/10">
                     <ul className="space-y-1.5">
                       {feat.details.map((d, i) => (
-                        <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <li key={i} className="flex items-center gap-2 text-xs text-black/50">
                           <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                           {d}
                         </li>
@@ -145,8 +145,8 @@ const OnboardingFeatures = () => {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
-        <Button onClick={() => navigate('/onboarding/vehicle')} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
+        <Button onClick={() => navigate('/onboarding/vehicle')} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Continue <ChevronRight className="w-5 h-5" />
         </Button>
       </div>

@@ -87,17 +87,15 @@ const OnboardingVehicle = () => {
   };
 
   const handleSaveAndContinue = () => {
-    // Save preferences
     updatePreferences({
       vehicleTypes,
       styleTags: selectedTags,
     });
 
-    // Save vehicles to garage repo
     const filled = vehicles.filter(v => v.make.trim());
     filled.forEach((v, idx) => {
       addToGarage({
-        userId: '', // Will be set by context
+        userId: '',
         vehicleType: v.vehicleType,
         make: v.make,
         model: v.model,
@@ -125,7 +123,6 @@ const OnboardingVehicle = () => {
     navigate('/onboarding/notifications');
   };
 
-  // Live recommendation preview
   const previewVehicles = vehicles.filter(v => v.make.trim()).map(v => ({
     make: v.make, model: v.model,
   })) as any[];
@@ -136,7 +133,7 @@ const OnboardingVehicle = () => {
   );
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Progress */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
@@ -144,7 +141,7 @@ const OnboardingVehicle = () => {
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 1 ? 'bg-primary' : 'bg-muted'}`} />
+                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 1 ? 'bg-primary' : 'bg-black/10'}`} />
               ))}
             </div>
           </div>
@@ -152,18 +149,18 @@ const OnboardingVehicle = () => {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-y-auto pb-44">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Set up your Garage</h1>
-        <p className="text-sm text-muted-foreground text-center mb-4">Tell us what you drive.</p>
+        <h1 className="text-2xl font-bold text-black text-center mb-1">Set up your Garage</h1>
+        <p className="text-sm text-black/50 text-center mb-4">Tell us what you drive.</p>
 
         {/* Info Banner */}
-        <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-5">
+        <div className="bg-white border border-black/10 rounded-2xl p-4 mb-5">
           <div className="flex gap-3">
             <Info className="w-5 h-5 text-primary shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-foreground font-medium leading-relaxed">
+              <p className="text-sm text-black font-medium leading-relaxed">
                 Your Garage sets your preferences. We'll use your vehicles to recommend events, routes, services, clubs and marketplace listings that match what you drive.
               </p>
-              <p className="text-xs text-muted-foreground mt-1.5">
+              <p className="text-xs text-black/50 mt-1.5">
                 These preferences are saved to your account and can be changed anytime in Settings.
               </p>
             </div>
@@ -171,7 +168,7 @@ const OnboardingVehicle = () => {
         </div>
 
         {/* Section A: Vehicle Type */}
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <h3 className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-3">
           What do you drive? <span className="text-primary">*</span>
         </h3>
         <div className="flex gap-3 mb-6">
@@ -184,17 +181,17 @@ const OnboardingVehicle = () => {
                 onClick={() => toggleType(vt.id)}
                 className={`flex-1 py-5 rounded-2xl flex flex-col items-center gap-2.5 border-2 transition-all ${
                   active
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border/50 bg-card hover:border-border'
+                    ? 'border-primary bg-white shadow-md'
+                    : 'border-black/10 bg-white hover:border-black/20'
                 }`}
               >
-                <Icon className={`w-7 h-7 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`text-sm font-semibold ${active ? 'text-foreground' : 'text-muted-foreground'}`}>
+                <Icon className={`w-7 h-7 ${active ? 'text-primary' : 'text-black/50'}`} />
+                <span className={`text-sm font-semibold ${active ? 'text-black' : 'text-black/50'}`}>
                   {vt.label}
                 </span>
                 {active && (
                   <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                    <Check className="w-3 h-3 text-primary-foreground" />
+                    <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
               </button>
@@ -203,34 +200,32 @@ const OnboardingVehicle = () => {
         </div>
 
         {/* Section B: Add Vehicles */}
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-          Add your vehicles <span className="text-muted-foreground/60">(recommended)</span>
+        <h3 className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-3">
+          Add your vehicles <span className="text-black/30">(recommended)</span>
         </h3>
 
         {!showVehicleForm && vehicles.length === 0 ? (
           <button
             onClick={() => { addVehicle(); }}
-            className="w-full py-4 rounded-2xl border-2 border-dashed border-border text-sm font-semibold text-muted-foreground flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors"
+            className="w-full py-4 rounded-2xl border-2 border-dashed border-black/20 text-sm font-semibold text-black/50 flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Vehicle
           </button>
         ) : (
           <div className="space-y-3">
             {vehicles.map((vehicle, idx) => (
-              <div key={vehicle.id} className="bg-card rounded-2xl border border-border/50 overflow-hidden">
-                {/* Vehicle header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
-                  <span className="text-xs font-semibold text-muted-foreground">
+              <div key={vehicle.id} className="bg-white rounded-2xl border border-black/10 overflow-hidden">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-black/10">
+                  <span className="text-xs font-semibold text-black/50">
                     Vehicle {idx + 1}
                     {idx === 0 && <Star className="w-3 h-3 text-primary inline ml-1.5 -mt-0.5" />}
                   </span>
-                  <button onClick={() => removeVehicle(vehicle.id)} className="text-destructive hover:text-destructive/80">
+                  <button onClick={() => removeVehicle(vehicle.id)} className="text-red-500 hover:text-red-400">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="p-4 space-y-3">
-                  {/* Type toggle */}
                   <div className="flex gap-2">
                     {(['car', 'motorcycle'] as const).map(t => (
                       <button
@@ -239,7 +234,7 @@ const OnboardingVehicle = () => {
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
                           vehicle.vehicleType === t
                             ? 'border-primary bg-primary/5 text-primary'
-                            : 'border-border/50 text-muted-foreground'
+                            : 'border-black/10 text-black/50'
                         }`}
                       >
                         {t === 'car' ? <Car className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />}
@@ -248,30 +243,12 @@ const OnboardingVehicle = () => {
                     ))}
                   </div>
 
-                  {/* Required fields */}
                   <div className="grid grid-cols-2 gap-2">
-                    <Input
-                      placeholder="Make *"
-                      className="rounded-xl h-11 text-sm bg-background"
-                      value={vehicle.make}
-                      onChange={e => updateVehicle(vehicle.id, 'make', e.target.value)}
-                    />
-                    <Input
-                      placeholder="Model"
-                      className="rounded-xl h-11 text-sm bg-background"
-                      value={vehicle.model}
-                      onChange={e => updateVehicle(vehicle.id, 'model', e.target.value)}
-                    />
+                    <Input placeholder="Make *" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.make} onChange={e => updateVehicle(vehicle.id, 'make', e.target.value)} />
+                    <Input placeholder="Model" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.model} onChange={e => updateVehicle(vehicle.id, 'model', e.target.value)} />
                   </div>
-                  <Input
-                    placeholder="Year"
-                    type="number"
-                    className="rounded-xl h-11 text-sm bg-background"
-                    value={vehicle.year}
-                    onChange={e => updateVehicle(vehicle.id, 'year', e.target.value)}
-                  />
+                  <Input placeholder="Year" type="number" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.year} onChange={e => updateVehicle(vehicle.id, 'year', e.target.value)} />
 
-                  {/* More details accordion */}
                   <button
                     onClick={() => updateVehicle(vehicle.id, 'showMore', !vehicle.showMore)}
                     className="flex items-center gap-1.5 text-xs font-medium text-primary"
@@ -283,14 +260,14 @@ const OnboardingVehicle = () => {
                   {vehicle.showMore && (
                     <div className="space-y-3 pt-1">
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Trim / Variant" className="rounded-xl h-11 text-sm bg-background" value={vehicle.trim} onChange={e => updateVehicle(vehicle.id, 'trim', e.target.value)} />
-                        <Input placeholder="Engine" className="rounded-xl h-11 text-sm bg-background" value={vehicle.engine} onChange={e => updateVehicle(vehicle.id, 'engine', e.target.value)} />
+                        <Input placeholder="Trim / Variant" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.trim} onChange={e => updateVehicle(vehicle.id, 'trim', e.target.value)} />
+                        <Input placeholder="Engine" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.engine} onChange={e => updateVehicle(vehicle.id, 'engine', e.target.value)} />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <select
                           value={vehicle.transmission}
                           onChange={e => updateVehicle(vehicle.id, 'transmission', e.target.value)}
-                          className="rounded-xl h-11 text-sm bg-background border border-input px-3 text-foreground"
+                          className="rounded-xl h-11 text-sm bg-white text-black border border-black/10 px-3"
                         >
                           <option value="">Transmission</option>
                           {TRANSMISSION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -298,20 +275,19 @@ const OnboardingVehicle = () => {
                         <select
                           value={vehicle.drivetrain}
                           onChange={e => updateVehicle(vehicle.id, 'drivetrain', e.target.value)}
-                          className="rounded-xl h-11 text-sm bg-background border border-input px-3 text-foreground"
+                          className="rounded-xl h-11 text-sm bg-white text-black border border-black/10 px-3"
                         >
                           <option value="">Drivetrain</option>
                           {DRIVETRAIN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                         </select>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Input placeholder="Colour" className="rounded-xl h-11 text-sm bg-background" value={vehicle.colour} onChange={e => updateVehicle(vehicle.id, 'colour', e.target.value)} />
-                        <Input placeholder="Mileage" type="number" className="rounded-xl h-11 text-sm bg-background" value={vehicle.mileage} onChange={e => updateVehicle(vehicle.id, 'mileage', e.target.value)} />
+                        <Input placeholder="Colour" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.colour} onChange={e => updateVehicle(vehicle.id, 'colour', e.target.value)} />
+                        <Input placeholder="Mileage" type="number" className="rounded-xl h-11 text-sm bg-white text-black border-black/10 placeholder:text-black/40" value={vehicle.mileage} onChange={e => updateVehicle(vehicle.id, 'mileage', e.target.value)} />
                       </div>
 
-                      {/* Enthusiast Tags */}
                       <div>
-                        <span className="text-xs font-medium text-muted-foreground mb-2 block">Tags</span>
+                        <span className="text-xs font-medium text-black/50 mb-2 block">Tags</span>
                         <div className="flex flex-wrap gap-1.5">
                           {ENTHUSIAST_TAGS.map(tag => {
                             const active = vehicle.tags.includes(tag);
@@ -322,7 +298,7 @@ const OnboardingVehicle = () => {
                                 className={`px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                                   active
                                     ? 'border-primary bg-primary/10 text-primary'
-                                    : 'border-border/50 text-muted-foreground hover:border-border'
+                                    : 'border-black/10 text-black/50 hover:border-black/20'
                                 }`}
                               >
                                 {tag}
@@ -332,17 +308,15 @@ const OnboardingVehicle = () => {
                         </div>
                       </div>
 
-                      {/* Mods */}
                       <Textarea
                         placeholder="Modifications (optional)"
-                        className="rounded-xl text-sm bg-background min-h-[60px]"
+                        className="rounded-xl text-sm bg-white text-black border-black/10 min-h-[60px] placeholder:text-black/40"
                         value={vehicle.modsText}
                         onChange={e => updateVehicle(vehicle.id, 'modsText', e.target.value)}
                       />
 
-                      {/* Visibility */}
                       <div>
-                        <span className="text-xs font-medium text-muted-foreground mb-2 block">Visibility</span>
+                        <span className="text-xs font-medium text-black/50 mb-2 block">Visibility</span>
                         <div className="flex gap-2">
                           {(['public', 'friends', 'private'] as const).map(vis => (
                             <button
@@ -351,7 +325,7 @@ const OnboardingVehicle = () => {
                               className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all capitalize ${
                                 vehicle.visibility === vis
                                   ? 'border-primary bg-primary/5 text-primary'
-                                  : 'border-border/50 text-muted-foreground'
+                                  : 'border-black/10 text-black/50'
                               }`}
                             >
                               {vis}
@@ -368,7 +342,7 @@ const OnboardingVehicle = () => {
             {vehicles.length < 5 && (
               <button
                 onClick={addVehicle}
-                className="w-full py-3 rounded-2xl border-2 border-dashed border-border text-sm font-semibold text-muted-foreground flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors"
+                className="w-full py-3 rounded-2xl border-2 border-dashed border-black/20 text-sm font-semibold text-black/50 flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors"
               >
                 <Plus className="w-4 h-4" /> Add another vehicle
               </button>
@@ -378,8 +352,8 @@ const OnboardingVehicle = () => {
 
         {/* Style Tags (global) */}
         <div className="mt-6">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-            Style preferences <span className="text-muted-foreground/60">(optional)</span>
+          <h3 className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-3">
+            Style preferences <span className="text-black/30">(optional)</span>
           </h3>
           <div className="flex flex-wrap gap-1.5">
             {ENTHUSIAST_TAGS.map(tag => {
@@ -391,7 +365,7 @@ const OnboardingVehicle = () => {
                   className={`px-3 py-2 rounded-xl text-xs font-medium border transition-all ${
                     active
                       ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border/50 bg-card text-muted-foreground hover:border-border'
+                      : 'border-black/10 bg-white text-black/50 hover:border-black/20'
                   }`}
                 >
                   {tag}
@@ -403,14 +377,14 @@ const OnboardingVehicle = () => {
 
         {/* Section C: Recommendations Preview */}
         {(selectedTags.length > 0 || vehicles.some(v => v.make.trim())) && (
-          <div className="mt-6 bg-card rounded-2xl border border-border/50 p-4">
+          <div className="mt-6 bg-white rounded-2xl border border-black/10 p-4">
             <div className="flex items-center gap-2 mb-3">
               <Sparkles className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-foreground">Based on your garage we'll prioritise:</span>
+              <span className="text-sm font-semibold text-black">Based on your garage we'll prioritise:</span>
             </div>
             <ul className="space-y-2">
               {recBullets.map((b, i) => (
-                <li key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <li key={i} className="flex items-center gap-2 text-sm text-black/60">
                   <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                   {b}
                 </li>
@@ -421,17 +395,17 @@ const OnboardingVehicle = () => {
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button
           onClick={handleSaveAndContinue}
           disabled={vehicleTypes.length === 0}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2"
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10 disabled:opacity-50"
         >
           Save Garage & Continue <ChevronRight className="w-5 h-5" />
         </Button>
         <button
           onClick={handleSkip}
-          className="w-full text-sm text-muted-foreground mt-2 py-1"
+          className="w-full text-sm text-black/50 mt-2 py-1"
         >
           Skip for now — recommendations will be less accurate
         </button>

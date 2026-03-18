@@ -39,7 +39,7 @@ const OnboardingNotifications = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Progress */}
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
@@ -55,8 +55,8 @@ const OnboardingNotifications = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">Notifications</h1>
-        <p className="text-sm text-muted-foreground text-center mb-6">
+        <h1 className="text-2xl font-bold text-black text-center mb-1">Notifications</h1>
+        <p className="text-sm text-black/50 text-center mb-6">
           Choose what you want to hear about.
         </p>
 
@@ -64,13 +64,13 @@ const OnboardingNotifications = () => {
           {NOTIFICATION_OPTIONS.map(opt => {
             const Icon = opt.icon;
             return (
-              <div key={opt.key} className="flex items-center gap-3 bg-card rounded-2xl border border-border/50 p-4">
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center shrink-0">
-                  <Icon className="w-5 h-5 text-foreground" />
+              <div key={opt.key} className="flex items-center gap-3 bg-white rounded-2xl border border-black/10 p-4">
+                <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                  <Icon className="w-5 h-5 text-black" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="text-sm font-semibold text-foreground block">{opt.label}</span>
-                  <span className="text-xs text-muted-foreground">{opt.desc}</span>
+                  <span className="text-sm font-semibold text-black block">{opt.label}</span>
+                  <span className="text-xs text-black/50">{opt.desc}</span>
                 </div>
                 <Switch
                   checked={prefs[opt.key]}
@@ -81,13 +81,13 @@ const OnboardingNotifications = () => {
           })}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center mt-5">
+        <p className="text-xs text-black/40 text-center mt-5">
           You can change this anytime in Settings.
         </p>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
+        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Get Started <ChevronRight className="w-5 h-5" />
         </Button>
       </div>
