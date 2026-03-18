@@ -43,6 +43,7 @@ export interface OnboardingData {
 const DEFAULT_DATA: OnboardingData = {
   avatarUrl: null,
   bio: '',
+  location: '',
   username: '',
   vehicles: [],
   notifications: {
@@ -53,6 +54,7 @@ const DEFAULT_DATA: OnboardingData = {
     sosAlerts: true,
   },
   interests: [],
+  plan: 'free',
   email: '',
   password: '',
 };
