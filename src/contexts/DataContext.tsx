@@ -94,7 +94,7 @@ function createDefaultUser(): User | null {
     avatar: parsed.avatar || null,
     location: parsed.location || '',
     bio: parsed.bio || '',
-    plan: (localStorage.getItem('revnet_plan') as 'free' | 'enthusiast' | 'pro') || 'free',
+    plan: (localStorage.getItem('revnet_plan') as 'free' | 'pro' | 'club') || 'free',
     isProfileComplete: parsed.isProfileComplete ?? false,
     createdAt: parsed.createdAt || new Date().toISOString(),
     preferences: {
