@@ -319,7 +319,7 @@ const MyGarage = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label className="text-xs font-medium">Transmission</Label>
-                <select value={form.transmission} onChange={e => setForm(f => ({ ...f, transmission: e.target.value }))} className="w-full rounded-xl h-10 text-sm bg-background border border-input px-3 text-foreground">
+                <select value={form.transmission} onChange={e => setForm(f => ({ ...f, transmission: e.target.value }))} className="w-full rounded-xl h-10 text-sm bg-card border border-input px-3 text-foreground">
                   <option value="">Select</option>
                   {TRANSMISSION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
