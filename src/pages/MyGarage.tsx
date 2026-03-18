@@ -42,7 +42,7 @@ const MyGarage = () => {
   const [form, setForm] = useState({
     vehicleType: 'car' as 'car' | 'motorcycle',
     make: '', model: '', year: '', trim: '', engine: '',
-    transmission: '', drivetrain: '', colour: '', mileage: '',
+    transmission: '', drivetrain: '', colour: '', numberPlate: '', mileage: '',
     tags: [] as string[], modsText: '',
     visibility: 'public' as 'public' | 'friends' | 'private',
     isPrimary: false,
@@ -51,7 +51,7 @@ const MyGarage = () => {
 
   const resetForm = () => setForm({
     vehicleType: 'car', make: '', model: '', year: '', trim: '', engine: '',
-    transmission: '', drivetrain: '', colour: '', mileage: '',
+    transmission: '', drivetrain: '', colour: '', numberPlate: '', mileage: '',
     tags: [], modsText: '', visibility: 'public', isPrimary: false, photos: []
   });
 
@@ -387,8 +387,9 @@ const MyGarage = () => {
                 </select>
               </div>
             </div>
-            <div>
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label className="text-xs font-medium">Colour</Label><Input placeholder="Silver" value={form.colour} onChange={(e) => setForm((f) => ({ ...f, colour: e.target.value }))} className="rounded-xl" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Number Plate</Label><Input placeholder="AB12 CDE" value={form.numberPlate} onChange={(e) => setForm((f) => ({ ...f, numberPlate: e.target.value }))} className="rounded-xl" /></div>
             </div>
 
 
