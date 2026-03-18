@@ -111,6 +111,57 @@ const MyGarage = () => {
     toast.success('Vehicle removed');
   };
 
+  const handleEdit = (vehicle: GarageVehicle) => {
+    setEditingVehicle(vehicle);
+    setForm({
+      vehicleType: vehicle.vehicleType,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year?.toString() ?? '',
+      trim: vehicle.trim ?? '',
+      engine: vehicle.engine ?? '',
+      transmission: vehicle.transmission ?? '',
+      drivetrain: vehicle.drivetrain ?? '',
+      colour: vehicle.colour ?? '',
+      numberPlate: (vehicle as any).numberPlate ?? '',
+      mileage: vehicle.mileage?.toString() ?? '',
+      tags: [...vehicle.tags],
+      modsText: vehicle.modsText ?? '',
+      visibility: vehicle.visibility,
+      isPrimary: vehicle.isPrimary,
+      photos: [...vehicle.photos],
+    });
+    setIsAddOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!form.make.trim()) { toast.error('Make is required'); return; }
+    if (editingVehicle) {
+      updateVehicle(editingVehicle.id, {
+        vehicleType: form.vehicleType,
+        make: form.make, model: form.model,
+        year: form.year ? parseInt(form.year) : undefined,
+        trim: form.trim || undefined,
+        engine: form.engine || undefined,
+        transmission: (form.transmission || undefined) as GarageVehicle['transmission'],
+        drivetrain: (form.drivetrain || undefined) as GarageVehicle['drivetrain'],
+        colour: form.colour || undefined,
+        mileage: form.mileage ? parseInt(form.mileage) : undefined,
+        tags: form.tags,
+        modsText: form.modsText || undefined,
+        photos: form.photos,
+        visibility: form.visibility,
+        isPrimary: form.isPrimary,
+      });
+      setEditingVehicle(null);
+      setIsAddOpen(false);
+      resetForm();
+      toast.success('Vehicle updated!');
+    } else {
+      handleAdd();
+    }
+  };
+
   const recBullets = getRecommendationBullets(vehicles, preferences.styleTags, preferences.vehicleTypes);
 
   return (
