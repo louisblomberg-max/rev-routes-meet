@@ -488,7 +488,7 @@ const MyGarage = () => {
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-background border-t border-border/30 safe-bottom">
-            <Button onClick={handleAdd} className="w-full h-12 text-base font-semibold">Add to Garage</Button>
+            <Button onClick={handleSave} className="w-full h-12 text-base font-semibold">{editingVehicle ? 'Save Changes' : 'Add to Garage'}</Button>
           </div>
         </SheetContent>
       </Sheet>
