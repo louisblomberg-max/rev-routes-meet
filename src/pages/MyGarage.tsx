@@ -364,7 +364,7 @@ const MyGarage = () => {
 
             {/* Required */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Make *</Label><Input placeholder="e.g. BMW" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="rounded-xl" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Make *</Label><Input placeholder="e.g. Porsche" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="rounded-xl" /></div>
               <div className="space-y-1.5"><Label className="text-xs font-medium">Model</Label><Input placeholder="e.g. M3" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="rounded-xl" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
