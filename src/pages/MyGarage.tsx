@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Car, Bike, Plus, ChevronDown, ChevronUp, Eye, Users, Lock,
-  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check } from
+  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check, ImagePlus } from
 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -38,20 +38,41 @@ const MyGarage = () => {
   const [showPrefs, setShowPrefs] = useState(false);
 
   // Add vehicle form state
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     vehicleType: 'car' as 'car' | 'motorcycle',
     make: '', model: '', year: '', trim: '', engine: '',
     transmission: '', drivetrain: '', colour: '', mileage: '',
     tags: [] as string[], modsText: '',
     visibility: 'public' as 'public' | 'friends' | 'private',
-    isPrimary: false
+    isPrimary: false,
+    photos: [] as string[]
   });
 
   const resetForm = () => setForm({
     vehicleType: 'car', make: '', model: '', year: '', trim: '', engine: '',
     transmission: '', drivetrain: '', colour: '', mileage: '',
-    tags: [], modsText: '', visibility: 'public', isPrimary: false
+    tags: [], modsText: '', visibility: 'public', isPrimary: false, photos: []
   });
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          setForm(prev => ({ ...prev, photos: [...prev.photos, reader.result as string] }));
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removePhoto = (idx: number) => {
+    setForm(prev => ({ ...prev, photos: prev.photos.filter((_, i) => i !== idx) }));
+  };
 
   const toggleFormTag = (tag: string) => {
     setForm((prev) => ({
@@ -75,7 +96,7 @@ const MyGarage = () => {
       mileage: form.mileage ? parseInt(form.mileage) : undefined,
       tags: form.tags,
       modsText: form.modsText || undefined,
-      photos: [],
+      photos: form.photos,
       visibility: form.visibility,
       isPrimary: form.isPrimary || vehicles.length === 0
     });
@@ -304,6 +325,41 @@ const MyGarage = () => {
 
 
               )}
+            </div>
+
+            {/* Photos */}
+            <div>
+              <Label className="text-xs font-medium mb-2 block">Photos</Label>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {form.photos.map((img, idx) => (
+                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removePhoto(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+                {form.photos.length < 6 && (
+                  <button
+                    onClick={() => photoInputRef.current?.click()}
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0"
+                  >
+                    <ImagePlus className="w-5 h-5" />
+                    <span className="text-[9px] font-medium">Add</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Required */}
