@@ -50,14 +50,14 @@ const OnboardingLocation = () => {
 
   if (step === 'ask') {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
+      <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
         <div className="px-6 pt-8 safe-top">
           <div className="flex items-center gap-3 mb-2">
             <BackButton fallbackPath="/onboarding/vehicle" />
             <div className="flex-1">
               <div className="flex gap-1.5">
                 {[0, 1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`} />
                 ))}
               </div>
             </div>
@@ -65,19 +65,19 @@ const OnboardingLocation = () => {
         </div>
 
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-          <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+          <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-6 border border-black/10">
             <MapPin className="w-10 h-10 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground leading-tight mb-3">
+          <h1 className="text-2xl font-bold text-black leading-tight mb-3">
             Enable location
           </h1>
-          <p className="text-sm text-muted-foreground max-w-[280px]">
+          <p className="text-sm text-black/50 max-w-[280px]">
             To show nearby routes, events & services on your map
           </p>
         </div>
 
         <div className="px-6 pb-10 safe-bottom space-y-3">
-          <Button onClick={grantLocation} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+          <Button onClick={grantLocation} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
             {locationGranted ? (
               <><Check className="w-5 h-5" /> Location enabled</>
             ) : (
@@ -86,7 +86,7 @@ const OnboardingLocation = () => {
           </Button>
           <button
             onClick={() => setStep('radius')}
-            className="w-full text-sm text-muted-foreground py-1"
+            className="w-full text-sm text-black/50 py-1"
           >
             Not now
           </button>
@@ -96,14 +96,14 @@ const OnboardingLocation = () => {
   }
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
           <BackButton fallbackPath="/onboarding/vehicle" />
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`} />
               ))}
             </div>
           </div>
@@ -111,15 +111,15 @@ const OnboardingLocation = () => {
       </div>
 
       <div className="flex-1 px-6 py-6 overflow-y-auto pb-32">
-        <h1 className="text-2xl font-bold text-foreground text-center mb-1">How far do you want to explore?</h1>
-        <p className="text-sm text-muted-foreground text-center mb-8">
+        <h1 className="text-2xl font-bold text-black text-center mb-1">How far do you want to explore?</h1>
+        <p className="text-sm text-black/50 text-center mb-8">
           Step 5 of 6 — Set your discovery distance
         </p>
 
         {/* Radius slider */}
-        <div className="bg-card rounded-2xl border border-border/50 p-5 mb-6">
+        <div className="bg-white rounded-2xl border border-black/10 p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-foreground">Default radius</span>
+            <span className="text-sm font-semibold text-black">Default radius</span>
             <span className="text-lg font-bold text-primary">{radius} mi</span>
           </div>
           <Slider
@@ -130,14 +130,14 @@ const OnboardingLocation = () => {
             step={1}
             className="mb-2"
           />
-          <div className="flex justify-between text-[10px] text-muted-foreground">
+          <div className="flex justify-between text-[10px] text-black/40">
             <span>1 mile</span>
             <span>50 miles</span>
           </div>
         </div>
 
         {/* Scope cards */}
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Or choose a scope</h3>
+        <h3 className="text-xs font-semibold text-black/50 uppercase tracking-wider mb-3">Or choose a scope</h3>
         <div className="grid grid-cols-2 gap-2.5">
           {SCOPE_OPTIONS.map(opt => (
             <button
@@ -145,23 +145,23 @@ const OnboardingLocation = () => {
               onClick={() => setScope(opt.id)}
               className={`py-4 px-4 rounded-2xl text-left border-2 transition-all ${
                 scope === opt.id
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border/50 bg-card hover:border-border'
+                  ? 'border-primary bg-white shadow-md'
+                  : 'border-black/10 bg-white hover:border-black/20'
               }`}
             >
-              <span className="text-sm font-bold text-foreground block">{opt.label}</span>
-              <span className="text-[11px] text-muted-foreground">{opt.desc}</span>
+              <span className="text-sm font-bold text-black block">{opt.label}</span>
+              <span className="text-[11px] text-black/50">{opt.desc}</span>
             </button>
           ))}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center mt-5">
+        <p className="text-xs text-black/40 text-center mt-5">
           You can change this anytime in Settings.
         </p>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl px-6 py-4 safe-bottom z-20">
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
+        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Next <ChevronRight className="w-5 h-5" />
         </Button>
       </div>

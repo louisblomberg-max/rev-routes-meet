@@ -37,14 +37,14 @@ const OnboardingPermissions = () => {
 
   if (step === 'intro') {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
+      <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
         <div className="px-6 pt-8 safe-top">
           <div className="flex items-center gap-3 mb-2">
             <BackButton fallbackPath="/onboarding/interests" />
             <div className="flex-1">
               <div className="flex gap-1.5">
                 {[0, 1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`} />
                 ))}
               </div>
             </div>
@@ -53,16 +53,16 @@ const OnboardingPermissions = () => {
 
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <div className="text-7xl mb-6">📍</div>
-          <h1 className="text-2xl font-bold text-foreground leading-tight mb-3">
+          <h1 className="text-2xl font-bold text-black leading-tight mb-3">
             Now let's set up your{'\n'}location & notifications!
           </h1>
-          <p className="text-sm text-muted-foreground max-w-[280px]">
+          <p className="text-sm text-black/50 max-w-[280px]">
             We'll need a few permissions to show you nearby meets, routes and services
           </p>
         </div>
 
         <div className="px-6 pb-10 safe-bottom">
-          <Button onClick={() => setStep('permissions')} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+          <Button onClick={() => setStep('permissions')} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
             Let's do it! <ChevronRight className="w-5 h-5" />
           </Button>
         </div>
@@ -72,14 +72,14 @@ const OnboardingPermissions = () => {
 
   if (step === 'permissions') {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
+      <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
         <div className="px-6 pt-8 safe-top">
           <div className="flex items-center gap-3 mb-2">
             <BackButton fallbackPath="/onboarding/interests" />
             <div className="flex-1">
               <div className="flex gap-1.5">
                 {[0, 1, 2, 3, 4, 5].map(i => (
-                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                  <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`} />
                 ))}
               </div>
             </div>
@@ -87,8 +87,8 @@ const OnboardingPermissions = () => {
         </div>
 
         <div className="flex-1 px-6 py-8">
-          <h1 className="text-2xl font-bold text-foreground text-center mb-2">Enable Location</h1>
-          <p className="text-sm text-muted-foreground text-center mb-10">
+          <h1 className="text-2xl font-bold text-black text-center mb-2">Enable Location</h1>
+          <p className="text-sm text-black/50 text-center mb-10">
             We NEED this permission to show you nearby events, routes and services
           </p>
 
@@ -97,8 +97,8 @@ const OnboardingPermissions = () => {
               onClick={grantLocation}
               className={`w-full py-4 px-5 rounded-2xl text-sm font-semibold text-center transition-all ${
                 locationGranted
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-foreground'
+                  ? 'bg-primary text-white'
+                  : 'bg-white text-black border border-black/10'
               }`}
             >
               {locationGranted ? (
@@ -113,7 +113,7 @@ const OnboardingPermissions = () => {
         <div className="px-6 pb-10 safe-bottom">
           <Button
             onClick={() => setStep('notifications')}
-            className="w-full h-14 text-base font-semibold rounded-full gap-2"
+            className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10"
           >
             Next <ChevronRight className="w-5 h-5" />
           </Button>
@@ -124,14 +124,14 @@ const OnboardingPermissions = () => {
 
   // Notifications step
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       <div className="px-6 pt-8 safe-top">
         <div className="flex items-center gap-3 mb-2">
           <BackButton fallbackPath="/onboarding/interests" />
           <div className="flex-1">
             <div className="flex gap-1.5">
               {[0, 1, 2, 3, 4, 5].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-muted'}`} />
+                <div key={i} className={`flex-1 h-1 rounded-full ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`} />
               ))}
             </div>
           </div>
@@ -139,15 +139,15 @@ const OnboardingPermissions = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <h1 className="text-2xl font-bold text-foreground mb-2">Stay in the Loop</h1>
-        <p className="text-sm text-muted-foreground mb-8 max-w-[280px]">
+        <h1 className="text-2xl font-bold text-black mb-2">Stay in the Loop</h1>
+        <p className="text-sm text-black/50 mb-8 max-w-[280px]">
           Get notified about nearby meets, club updates and important alerts
         </p>
         <div className="text-7xl mb-4">🔔</div>
       </div>
 
       <div className="px-6 pb-10 safe-bottom">
-        <Button onClick={handleNotifications} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+        <Button onClick={handleNotifications} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Enable Notifications
         </Button>
         <button
@@ -155,7 +155,7 @@ const OnboardingPermissions = () => {
             setOnboardingStep(4);
             navigate('/onboarding/referral');
           }}
-          className="w-full text-sm text-muted-foreground mt-3 py-1"
+          className="w-full text-sm text-black/50 mt-3 py-1"
         >
           Not now
         </button>

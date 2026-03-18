@@ -78,7 +78,7 @@ const OnboardingPlan = () => {
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       <div className="flex-1 overflow-y-auto pb-48">
         <div className="px-6 pt-8 safe-top">
           <div className="flex items-center gap-3 mb-4">
@@ -95,19 +95,19 @@ const OnboardingPlan = () => {
 
         <div className="px-6 pb-4 text-center">
           <img src={revnetLogo} alt="RevNet" className="h-9 w-auto mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-foreground">Choose your plan</h1>
-          <p className="text-sm text-muted-foreground mt-1.5 max-w-[300px] mx-auto">
+          <h1 className="text-xl font-bold text-black">Choose your plan</h1>
+          <p className="text-sm text-black/50 mt-1.5 max-w-[300px] mx-auto">
             Start free — upgrade anytime
           </p>
         </div>
 
         {/* Billing toggle */}
         <div className="flex items-center justify-center gap-3 px-6 pb-5">
-          <span className={`text-sm transition-colors ${billing === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+          <span className={`text-sm transition-colors ${billing === 'monthly' ? 'font-semibold text-black' : 'text-black/50'}`}>Monthly</span>
           <Switch checked={billing === 'yearly'} onCheckedChange={(c) => setBilling(c ? 'yearly' : 'monthly')} />
-          <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+          <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-black' : 'text-black/50'}`}>
             Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-services-muted text-services">Save 20%</Badge>
+            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">Save 20%</Badge>
           </span>
         </div>
 
@@ -124,8 +124,8 @@ const OnboardingPlan = () => {
                 onClick={() => setSelected(plan.id)}
                 className={`w-full text-left rounded-2xl border-2 p-4 transition-all relative overflow-hidden ${
                   isSelected
-                    ? 'border-primary bg-primary/[0.03] shadow-md ring-1 ring-primary/20'
-                    : 'border-border/50 bg-card hover:border-border'
+                    ? 'border-primary bg-white shadow-md ring-1 ring-primary/20'
+                    : 'border-black/10 bg-white hover:border-black/20'
                 }`}
               >
                 {plan.popular && (
@@ -135,18 +135,18 @@ const OnboardingPlan = () => {
                 )}
 
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? 'bg-primary/10' : 'bg-muted'}`}>
-                    <Icon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? 'bg-primary/10' : 'bg-gray-100'}`}>
+                    <Icon className={`w-5 h-5 ${isSelected ? 'text-primary' : 'text-black/50'}`} />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-foreground text-[15px]">{plan.name}</h3>
-                    <p className="text-[11px] text-muted-foreground">{plan.tagline}</p>
+                    <h3 className="font-bold text-black text-[15px]">{plan.name}</h3>
+                    <p className="text-[11px] text-black/50">{plan.tagline}</p>
                   </div>
                   <div className="text-right">
-                    <span className="text-lg font-bold text-foreground">
+                    <span className="text-lg font-bold text-black">
                       {price === 0 ? 'Free' : `£${price.toFixed(2)}`}
                     </span>
-                    {price > 0 && <p className="text-[10px] text-muted-foreground">/ {billing === 'monthly' ? 'mo' : 'yr'}</p>}
+                    {price > 0 && <p className="text-[10px] text-black/50">/ {billing === 'monthly' ? 'mo' : 'yr'}</p>}
                   </div>
                 </div>
 
@@ -156,39 +156,39 @@ const OnboardingPlan = () => {
                       {f.included ? (
                         <Check className="w-3.5 h-3.5 text-primary shrink-0" />
                       ) : (
-                        <X className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
+                        <X className="w-3.5 h-3.5 text-black/20 shrink-0" />
                       )}
-                      <span className={f.included ? 'text-foreground' : 'text-muted-foreground/50'}>{f.label}</span>
+                      <span className={f.included ? 'text-black' : 'text-black/30'}>{f.label}</span>
                     </li>
                   ))}
                 </ul>
 
                 <div className={`absolute top-4 left-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                  isSelected ? 'border-primary bg-primary' : 'border-border'
+                  isSelected ? 'border-primary bg-primary' : 'border-black/20'
                 }`}>
-                  {isSelected && <Check className="w-3 h-3 text-primary-foreground" />}
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
                 </div>
               </button>
             );
           })}
         </div>
 
-        <div className="px-6 pt-5 flex items-center justify-center gap-4 text-[11px] text-muted-foreground">
+        <div className="px-6 pt-5 flex items-center justify-center gap-4 text-[11px] text-black/40">
           <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" /> Cancel anytime</span>
           <span className="flex items-center gap-1"><CreditCard className="w-3.5 h-3.5" /> Secure payments</span>
         </div>
       </div>
 
       {/* Sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 px-6 py-4 safe-bottom z-20">
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2">
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20 border-t border-black/5" style={{ backgroundColor: '#f3f3e8' }}>
+        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           {selected === 'free' ? 'Start Free' : `Continue with ${selectedPlan.name}`}
           <ChevronRight className="w-5 h-5" />
         </Button>
         {selected !== 'free' && (
           <button
             onClick={() => setSelected('free')}
-            className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors py-2 mt-1"
+            className="w-full text-center text-xs text-black/50 hover:text-black transition-colors py-2 mt-1"
           >
             Start free instead
           </button>
