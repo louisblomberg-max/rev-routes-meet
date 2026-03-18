@@ -14,6 +14,7 @@ export interface GarageVehicle {
   transmission?: 'manual' | 'auto' | 'dct' | 'cvt';
   drivetrain?: 'fwd' | 'rwd' | 'awd' | '4wd';
   colour?: string;
+  numberPlate?: string;
   mileage?: number;
   tags: string[];
   modsText?: string;
