@@ -146,6 +146,7 @@ const MyGarage = () => {
         transmission: (form.transmission || undefined) as GarageVehicle['transmission'],
         drivetrain: (form.drivetrain || undefined) as GarageVehicle['drivetrain'],
         colour: form.colour || undefined,
+        numberPlate: form.numberPlate || undefined,
         mileage: form.mileage ? parseInt(form.mileage) : undefined,
         tags: form.tags,
         modsText: form.modsText || undefined,
