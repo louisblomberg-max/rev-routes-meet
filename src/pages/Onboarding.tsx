@@ -61,8 +61,11 @@ const OnboardingContent = () => {
       await register(data.email, data.password, data.username || 'User');
       updateProfile({
         username: data.username,
+        displayName: data.username || 'User',
         bio: data.bio,
         avatar: data.avatarUrl,
+        location: data.location,
+        membershipPlan: data.plan,
         interests: {
           events: data.interests.filter(i => ['Events', 'Drive-outs', 'Track days', 'Car shows'].includes(i)),
           routes: data.interests.filter(i => ['Scenic routes', 'Twisty roads', 'Off-road routes'].includes(i)),
@@ -77,6 +80,7 @@ const OnboardingContent = () => {
           marketplaceMessages: data.notifications.marketplaceMessages,
           sosAlerts: data.notifications.sosAlerts,
         },
+        vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle') ? ['car', 'motorcycle'] : data.vehicles.length > 0 ? ['car'] : [],
       });
 
       // ── Sync interests into GarageContext preferences ──
