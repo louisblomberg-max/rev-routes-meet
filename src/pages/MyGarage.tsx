@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
   Car, Bike, Plus, ChevronDown, ChevronUp, Eye, Users, Lock,
-  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check, ImagePlus } from
+  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check, ImagePlus, Pencil } from
 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
