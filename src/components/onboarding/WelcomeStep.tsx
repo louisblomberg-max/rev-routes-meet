@@ -11,8 +11,8 @@ const WelcomeStep = () => {
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <div className="animate-fade-up" />
+      <div className="flex-1 flex flex-col items-center justify-center px-6">
+        <img src={revnetLogo} alt="RevNet" className="w-full h-auto" />
       </div>
 
       {/* Actions */}
