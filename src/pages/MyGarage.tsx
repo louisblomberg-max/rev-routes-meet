@@ -312,117 +312,12 @@ const MyGarage = () => {
       {/* Add Vehicle Sheet */}
       <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
         <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl">
-          <SheetHeader className="pb-4 border-b border-border/30">
+          <SheetHeader className="px-2 pb-4 border-b border-border/30">
             <SheetTitle className="text-lg font-bold">Add Vehicle</SheetTitle>
           </SheetHeader>
-          <div className="py-5 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
-            {/* Type */}
-            <div className="grid grid-cols-2 gap-3">
-              {(['car', 'motorcycle'] as const).map((t) => (null)
-
-
-
-
-
-              )}
-            </div>
-
-            {/* Photos */}
-            <div>
-              <Label className="text-xs font-medium mb-2 block">Photos</Label>
-              <input
-                ref={photoInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-              <div className="flex gap-2 overflow-x-auto pb-1">
-                {form.photos.map((img, idx) => (
-                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
-                    <img src={img} alt="" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => removePhoto(idx)}
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
-                    >
-                      <X className="w-3 h-3 text-white" />
-                    </button>
-                  </div>
-                ))}
-                {form.photos.length < 6 && (
-                  <button
-                    onClick={() => photoInputRef.current?.click()}
-                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0"
-                  >
-                    <ImagePlus className="w-5 h-5" />
-                    <span className="text-[9px] font-medium">Add</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Required */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Make *</Label><Input placeholder="e.g. Porsche" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="rounded-xl" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Model</Label><Input placeholder="e.g. 993 Turbo" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="rounded-xl" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Year</Label><Input type="number" placeholder="1995" value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="rounded-xl" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Engine</Label><Input placeholder="3.6L" value={form.engine} onChange={(e) => setForm((f) => ({ ...f, engine: e.target.value }))} className="rounded-xl" /></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Transmission</Label>
-                <select value={form.transmission} onChange={(e) => setForm((f) => ({ ...f, transmission: e.target.value }))} className="w-full rounded-xl h-10 text-sm bg-card border border-input px-3 text-foreground">
-                  <option value="">Select</option>
-                  {TRANSMISSION_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs font-medium">Drivetrain</Label>
-                <select value={form.drivetrain} onChange={(e) => setForm((f) => ({ ...f, drivetrain: e.target.value }))} className="w-full rounded-xl h-10 text-sm bg-card border border-input px-3 text-foreground">
-                  <option value="">Select</option>
-                  {DRIVETRAIN_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Colour</Label><Input placeholder="Black" value={form.colour} onChange={(e) => setForm((f) => ({ ...f, colour: e.target.value }))} className="rounded-xl" /></div>
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Number Plate</Label><Input placeholder="AB12 CDE" value={form.numberPlate} onChange={(e) => setForm((f) => ({ ...f, numberPlate: e.target.value }))} className="rounded-xl" /></div>
-            </div>
-
-
-            {/* Mods */}
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Details</Label>
-              <Textarea placeholder="Add further details..." value={form.modsText} onChange={(e) => setForm((f) => ({ ...f, modsText: e.target.value }))} className="rounded-xl min-h-[60px]" />
-            </div>
-
-            {/* Visibility */}
-            <div>
-              <Label className="text-xs font-medium mb-2 block">Visibility</Label>
-              <div className="flex gap-2 px-5">
-                {(['public', 'friends', 'private'] as const).map((vis) =>
-                <button key={vis} onClick={() => setForm((f) => ({ ...f, visibility: vis }))}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-all capitalize bg-white ${form.visibility === vis ? 'border-2 border-primary text-primary' : 'border-border/50 text-muted-foreground'}`}>
-                    {vis}
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Primary toggle */}
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input type="checkbox" checked={form.isPrimary} onChange={(e) => setForm((f) => ({ ...f, isPrimary: e.target.checked }))} className="sr-only" />
-              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${form.isPrimary ? 'border-primary bg-primary' : 'border-border'}`}>
-                {form.isPrimary && <Check className="w-3 h-3 text-primary-foreground" />}
-              </div>
-              <span className="text-sm font-medium text-foreground">Set as primary vehicle</span>
-            </label>
-          </div>
-
-          <div className="absolute bottom-0 left-0 right-0 p-4 bg-background border-t border-border/30 safe-bottom">
+          <div className="py-5 px-2 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+...
+          <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-background border-t border-border/30 safe-bottom">
             <Button onClick={handleAdd} className="w-full h-12 text-base font-semibold">Add to Garage</Button>
           </div>
         </SheetContent>
