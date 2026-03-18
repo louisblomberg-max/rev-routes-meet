@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
   Car, Bike, Plus, ChevronDown, ChevronUp, Eye, Users, Lock,
-  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check, ImagePlus } from
+  Wrench, Settings, Star, Trash2, X, Sparkles, Tag, Check, ImagePlus, Pencil } from
 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -35,6 +35,7 @@ const MyGarage = () => {
   const { preferences, updatePreferences } = useUserPreferences();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [editingVehicle, setEditingVehicle] = useState<GarageVehicle | null>(null);
   const [showPrefs, setShowPrefs] = useState(false);
 
   // Add vehicle form state
@@ -108,6 +109,57 @@ const MyGarage = () => {
   const handleDelete = (id: string) => {
     deleteVehicle(id);
     toast.success('Vehicle removed');
+  };
+
+  const handleEdit = (vehicle: GarageVehicle) => {
+    setEditingVehicle(vehicle);
+    setForm({
+      vehicleType: vehicle.vehicleType,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year?.toString() ?? '',
+      trim: vehicle.trim ?? '',
+      engine: vehicle.engine ?? '',
+      transmission: vehicle.transmission ?? '',
+      drivetrain: vehicle.drivetrain ?? '',
+      colour: vehicle.colour ?? '',
+      numberPlate: (vehicle as any).numberPlate ?? '',
+      mileage: vehicle.mileage?.toString() ?? '',
+      tags: [...vehicle.tags],
+      modsText: vehicle.modsText ?? '',
+      visibility: vehicle.visibility,
+      isPrimary: vehicle.isPrimary,
+      photos: [...vehicle.photos],
+    });
+    setIsAddOpen(true);
+  };
+
+  const handleSave = () => {
+    if (!form.make.trim()) { toast.error('Make is required'); return; }
+    if (editingVehicle) {
+      updateVehicle(editingVehicle.id, {
+        vehicleType: form.vehicleType,
+        make: form.make, model: form.model,
+        year: form.year ? parseInt(form.year) : undefined,
+        trim: form.trim || undefined,
+        engine: form.engine || undefined,
+        transmission: (form.transmission || undefined) as GarageVehicle['transmission'],
+        drivetrain: (form.drivetrain || undefined) as GarageVehicle['drivetrain'],
+        colour: form.colour || undefined,
+        mileage: form.mileage ? parseInt(form.mileage) : undefined,
+        tags: form.tags,
+        modsText: form.modsText || undefined,
+        photos: form.photos,
+        visibility: form.visibility,
+        isPrimary: form.isPrimary,
+      });
+      setEditingVehicle(null);
+      setIsAddOpen(false);
+      resetForm();
+      toast.success('Vehicle updated!');
+    } else {
+      handleAdd();
+    }
   };
 
   const recBullets = getRecommendationBullets(vehicles, preferences.styleTags, preferences.vehicleTypes);
@@ -201,6 +253,16 @@ const MyGarage = () => {
 
                   {isExpanded &&
                 <div className="px-4 pb-4 pt-1 bg-muted/20 border-t border-border/20 space-y-3">
+                      {/* Photos */}
+                      {vehicle.photos.length > 0 &&
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                          {vehicle.photos.map((img, idx) => (
+                            <div key={idx} className="w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
+                              <img src={img} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                  }
                       {/* Details */}
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                         {vehicle.engine && <div><span className="text-muted-foreground">Engine:</span> <span className="text-foreground font-medium">{vehicle.engine}</span></div>}
@@ -228,6 +290,9 @@ const MyGarage = () => {
 
                       {/* Actions */}
                       <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => handleEdit(vehicle)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Edit
+                        </Button>
                         {!vehicle.isPrimary &&
                     <Button variant="outline" size="sm" className="text-xs flex-1" onClick={() => {setPrimaryVehicle(vehicle.id);toast.success('Set as primary');}}>
                             <Star className="w-3 h-3 mr-1" /> Set Primary
@@ -310,10 +375,10 @@ const MyGarage = () => {
       </div>
 
       {/* Add Vehicle Sheet */}
-      <Sheet open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Sheet open={isAddOpen} onOpenChange={(open) => { setIsAddOpen(open); if (!open) { setEditingVehicle(null); resetForm(); } }}>
         <SheetContent side="bottom" className="h-[90vh] rounded-t-2xl">
           <SheetHeader className="px-2 pb-4 border-b border-border/30">
-            <SheetTitle className="text-lg font-bold">Add Vehicle</SheetTitle>
+            <SheetTitle className="text-lg font-bold">{editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}</SheetTitle>
           </SheetHeader>
           <div className="py-5 px-2 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Type */}
@@ -423,7 +488,7 @@ const MyGarage = () => {
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 px-5 py-4 bg-background border-t border-border/30 safe-bottom">
-            <Button onClick={handleAdd} className="w-full h-12 text-base font-semibold">Add to Garage</Button>
+            <Button onClick={handleSave} className="w-full h-12 text-base font-semibold">{editingVehicle ? 'Save Changes' : 'Add to Garage'}</Button>
           </div>
         </SheetContent>
       </Sheet>
