@@ -46,41 +46,6 @@ const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
 
   return (
     <div className="flex-1 flex flex-col px-5 py-6 gap-7 animate-in fade-in slide-in-from-right-4 duration-300">
-      {/* Vehicle Type */}
-      <div>
-        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
-          Vehicle Type
-        </Label>
-        <div className="grid grid-cols-2 gap-3">
-          {([
-            { value: 'car' as const, label: 'Car', Icon: Car },
-            { value: 'motorcycle' as const, label: 'Motorcycle', Icon: Bike },
-          ]).map(({ value, label, Icon }) => (
-            <button
-              key={value}
-              onClick={() => {
-                onChange({ vehicle_type: value, brand: '', category: [] });
-                setBrandSearch('');
-              }}
-              className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 transition-all duration-200 ${
-                data.vehicle_type === value
-                  ? 'border-primary bg-primary/10 shadow-md'
-                  : 'border-border bg-card hover:border-muted-foreground/30'
-              }`}
-            >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                data.vehicle_type === value ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-              }`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <span className={`font-semibold text-sm ${
-                data.vehicle_type === value ? 'text-foreground' : 'text-muted-foreground'
-              }`}>{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Photos */}
       <div>
         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
