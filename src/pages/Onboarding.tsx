@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { OnboardingProvider, useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGarage } from '@/contexts/GarageContext';
+import { usePlan } from '@/contexts/PlanContext';
+import { useGarage } from '@/contexts/GarageContext';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import FeatureSlide from '@/components/onboarding/FeatureSlide';
 import ProfileStep from '@/components/onboarding/ProfileStep';
