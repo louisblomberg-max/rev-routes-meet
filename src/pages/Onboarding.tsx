@@ -103,14 +103,17 @@ const OnboardingContent = () => {
           make: v.make,
           model: v.model,
           year: v.year ? parseInt(v.year) : undefined,
+          trim: v.trim || undefined,
           engine: v.engine || undefined,
+          transmission: (v.transmission as any) || undefined,
           drivetrain: (v.drivetrain as any) || undefined,
           colour: v.colour || undefined,
-          tags: [], // user can add later
-          modsText: v.modifications || undefined,
-          photos: v.imageUrl ? [v.imageUrl] : [],
-          visibility: 'public',
-          isPrimary: data.vehicles.indexOf(v) === 0,
+          mileage: v.mileage ? parseInt(v.mileage) : undefined,
+          tags: v.tags || [],
+          modsText: v.modsText || undefined,
+          photos: [],
+          visibility: v.visibility || 'public',
+          isPrimary: v.isPrimary || data.vehicles.indexOf(v) === 0,
         });
       }
 
