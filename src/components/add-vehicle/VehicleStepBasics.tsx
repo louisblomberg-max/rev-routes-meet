@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Car, Bike, Search, ChevronRight, Calendar } from 'lucide-react';
+import { useState, useMemo, useRef } from 'react';
+import { Car, Bike, Search, ChevronRight, Calendar, ImagePlus, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { VehicleFormData } from '@/models/vehicle';
@@ -14,6 +14,7 @@ interface Props {
 const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
   const [brandSearch, setBrandSearch] = useState('');
   const [showBrands, setShowBrands] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const brands = data.vehicle_type === 'motorcycle' ? MOTORCYCLE_BRANDS : CAR_BRANDS;
   const filteredBrands = useMemo(
@@ -22,8 +23,26 @@ const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
   );
 
   const canContinue = data.brand.length > 0;
-
   const currentYear = new Date().getFullYear();
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          onChange({ images: [...data.images, reader.result as string] });
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+  };
+
+  const removeImage = (idx: number) => {
+    onChange({ images: data.images.filter((_, i) => i !== idx) });
+  };
 
   return (
     <div className="flex-1 flex flex-col px-5 py-6 gap-7 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -59,6 +78,43 @@ const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
               }`}>{label}</span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Photos */}
+      <div>
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
+          Photos
+        </Label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleImageUpload}
+        />
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {data.images.map((img, idx) => (
+            <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
+              <img src={img} alt="" className="w-full h-full object-cover" />
+              <button
+                onClick={() => removeImage(idx)}
+                className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
+              >
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ))}
+          {data.images.length < 6 && (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0"
+            >
+              <ImagePlus className="w-5 h-5" />
+              <span className="text-[9px] font-medium">Add</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -128,13 +184,16 @@ const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
         <div className="relative">
           <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder={String(currentYear)}
-            min={1900}
-            max={currentYear + 1}
             value={data.year ?? ''}
-            onChange={(e) => onChange({ year: e.target.value ? Number(e.target.value) : null })}
-            className="pl-10 h-12 rounded-xl bg-card border-border text-foreground"
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '');
+              onChange({ year: val ? Number(val) : null });
+            }}
+            className="pl-10 h-12 rounded-xl bg-card border-border text-foreground [appearance:textfield]"
           />
         </div>
       </div>
