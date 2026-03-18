@@ -18,6 +18,7 @@ export interface OnboardingData {
   // Profile (step 7)
   avatarUrl: string | null;
   bio: string;
+  location: string;
   // Username (step 8)
   username: string;
   // Garage (step 9)
@@ -32,7 +33,9 @@ export interface OnboardingData {
   };
   // Interests (step 11)
   interests: string[];
-  // Account (step 12)
+  // Plan (step 12)
+  plan: 'free' | 'pro' | 'club';
+  // Account (step 13)
   email: string;
   password: string;
 }
