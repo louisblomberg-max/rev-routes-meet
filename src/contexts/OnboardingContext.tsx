@@ -6,12 +6,16 @@ export interface OnboardingVehicle {
   make: string;
   model: string;
   year: string;
+  trim: string;
   engine: string;
-  modifications: string;
-  horsepower: string;
+  transmission: string;
   drivetrain: string;
   colour: string;
-  imageUrl: string | null;
+  mileage: string;
+  tags: string[];
+  modsText: string;
+  visibility: 'public' | 'friends' | 'private';
+  isPrimary: boolean;
 }
 
 export interface OnboardingData {
