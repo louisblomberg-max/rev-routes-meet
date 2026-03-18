@@ -56,18 +56,31 @@ const MyGarage = () => {
     tags: [], modsText: '', visibility: 'public', isPrimary: false, photos: []
   });
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File, maxSize = 400): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
+      };
+      img.src = url;
+    });
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          setForm(prev => ({ ...prev, photos: [...prev.photos, reader.result as string] }));
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+    for (const file of Array.from(files)) {
+      const compressed = await compressImage(file);
+      setForm(prev => ({ ...prev, photos: [...prev.photos, compressed] }));
+    }
     e.target.value = '';
   };
 
@@ -137,30 +150,38 @@ const MyGarage = () => {
 
   const handleSave = () => {
     if (!form.make.trim()) { toast.error('Make is required'); return; }
-    if (editingVehicle) {
-      updateVehicle(editingVehicle.id, {
-        vehicleType: form.vehicleType,
-        make: form.make, model: form.model,
-        year: form.year ? parseInt(form.year) : undefined,
-        trim: form.trim || undefined,
-        engine: form.engine || undefined,
-        transmission: (form.transmission || undefined) as GarageVehicle['transmission'],
-        drivetrain: (form.drivetrain || undefined) as GarageVehicle['drivetrain'],
-        colour: form.colour || undefined,
-        numberPlate: form.numberPlate || undefined,
-        mileage: form.mileage ? parseInt(form.mileage) : undefined,
-        tags: form.tags,
-        modsText: form.modsText || undefined,
-        photos: form.photos,
-        visibility: form.visibility,
-        isPrimary: form.isPrimary,
-      });
-      setEditingVehicle(null);
-      setIsAddOpen(false);
-      resetForm();
-      toast.success('Vehicle updated!');
-    } else {
-      handleAdd();
+    try {
+      if (editingVehicle) {
+        updateVehicle(editingVehicle.id, {
+          vehicleType: form.vehicleType,
+          make: form.make, model: form.model,
+          year: form.year ? parseInt(form.year) : undefined,
+          trim: form.trim || undefined,
+          engine: form.engine || undefined,
+          transmission: (form.transmission || undefined) as GarageVehicle['transmission'],
+          drivetrain: (form.drivetrain || undefined) as GarageVehicle['drivetrain'],
+          colour: form.colour || undefined,
+          numberPlate: form.numberPlate || undefined,
+          mileage: form.mileage ? parseInt(form.mileage) : undefined,
+          tags: form.tags,
+          modsText: form.modsText || undefined,
+          photos: form.photos,
+          visibility: form.visibility,
+          isPrimary: form.isPrimary,
+        });
+        setEditingVehicle(null);
+        setIsAddOpen(false);
+        resetForm();
+        toast.success('Vehicle updated!');
+      } else {
+        handleAdd();
+      }
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'QuotaExceededError') {
+        toast.error('Storage full — try removing some photos');
+      } else {
+        toast.error('Failed to save vehicle');
+      }
     }
   };
 
