@@ -170,7 +170,7 @@ const Home = () => {
           <div className="backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
             <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
               <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
-                <img src={revnetLogoNew} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[1px]" />
+                <img src={revnetLogoNew} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
               </div>
               <div className="h-10 flex-1 min-w-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-black/20 shadow-sm">
                 <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
