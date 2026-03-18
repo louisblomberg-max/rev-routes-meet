@@ -54,6 +54,7 @@ const OnboardingContent = () => {
   const { step, next, back, data, updateData } = useOnboarding();
   const { register, updateProfile, completeOnboarding } = useAuth();
   const { addVehicle, updatePreferences } = useGarage();
+  const { setPlan } = usePlan();
 
   const handleComplete = async () => {
     try {
