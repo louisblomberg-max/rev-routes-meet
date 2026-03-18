@@ -1,25 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import revnetLogo from '@/assets/revnet-logo-new.png';
+import revnetLogo from '@/assets/revnet-logo-entry.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-        <img src={revnetLogo} alt="RevNet" className="h-16 w-auto mb-12" />
-
-        <h1 className="text-3xl font-black text-foreground leading-tight mb-3 tracking-tight">
-          Welcome to RevNet
-        </h1>
-        <p className="text-base font-medium text-foreground/80 mb-2">
-          The platform built for car and motorcycle culture.
-        </p>
-        <p className="text-sm text-muted-foreground max-w-[320px] leading-relaxed">
-          Discover events, explore driving routes, connect with communities, and find trusted automotive services.
-        </p>
+    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+      <div className="flex-1 flex flex-col items-center justify-center px-8">
+        <img src={revnetLogo} alt="RevNet" className="h-24 w-auto" />
       </div>
 
       <div className="px-6 pb-8 safe-bottom space-y-3">
