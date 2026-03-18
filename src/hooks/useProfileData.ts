@@ -8,6 +8,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGarage } from '@/contexts/GarageContext';
 import type { Vehicle, Friend, ClubMembership, Club, RevEvent, RevRoute, UserActivity, ForumPost } from '@/models';
 
 // ---- Simulated loading (remove when real API is connected) ----
