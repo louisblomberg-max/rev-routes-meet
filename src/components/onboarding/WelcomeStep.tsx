@@ -11,7 +11,7 @@ const WelcomeStep = () => {
   return (
     <div className="flex-1 flex flex-col">
       {/* Hero */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 text-center bg-[#f3f3e8]">
         <div className="animate-fade-up">
           <img src={revnetLogo} alt="RevNet" className="h-14 w-auto mb-10 mx-auto brightness-0 invert" />
         </div>
@@ -28,7 +28,7 @@ const WelcomeStep = () => {
       </div>
 
       {/* Actions */}
-      <div className="px-6 pb-8 safe-bottom space-y-3">
+      <div className="px-6 pb-8 safe-bottom space-y-3 bg-[#f3f3e8]">
         <Button
           onClick={next}
           className="w-full h-14 text-base font-semibold rounded-full gap-2">
