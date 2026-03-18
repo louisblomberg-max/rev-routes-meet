@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import revnetLogo from '@/assets/revnet-logo-new.png';
+import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const WelcomeStep = () => {
   const { next } = useOnboarding();
