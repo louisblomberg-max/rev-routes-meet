@@ -114,6 +114,9 @@ const OnboardingContent = () => {
         });
       }
 
+      // ── Sync selected plan to PlanContext ──
+      setPlan(data.plan);
+
       completeOnboarding();
       navigate('/');
     } catch {
