@@ -253,6 +253,16 @@ const MyGarage = () => {
 
                   {isExpanded &&
                 <div className="px-4 pb-4 pt-1 bg-muted/20 border-t border-border/20 space-y-3">
+                      {/* Photos */}
+                      {vehicle.photos.length > 0 &&
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                          {vehicle.photos.map((img, idx) => (
+                            <div key={idx} className="w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
+                              <img src={img} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                  }
                       {/* Details */}
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                         {vehicle.engine && <div><span className="text-muted-foreground">Engine:</span> <span className="text-foreground font-medium">{vehicle.engine}</span></div>}
