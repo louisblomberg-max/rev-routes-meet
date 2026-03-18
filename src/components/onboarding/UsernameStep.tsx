@@ -42,17 +42,17 @@ const UsernameStep = () => {
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 1 ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
-          ))}
+          {Array.from({ length: 8 }).map((_, i) =>
+          <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 1 ? 'bg-primary' : 'bg-muted-foreground/20'}`} />
+          )}
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-10 flex flex-col items-center">
-        <h1 className="text-3xl font-black text-foreground tracking-tight text-center mb-2 animate-fade-up">
+      <div className="flex-1 px-6 py-10 flex flex-col items-center bg-[#f3f3e8]">
+        <h1 className="text-3xl font-black tracking-tight text-center mb-2 animate-fade-up text-black">
           Choose a Username
         </h1>
-        <p className="text-sm text-muted-foreground text-center mb-10 animate-fade-up">
+        <p className="text-sm text-center mb-10 animate-fade-up text-black">
           This will be your public name in the RevNet community.
         </p>
 
@@ -63,9 +63,9 @@ const UsernameStep = () => {
               placeholder="username"
               className="pl-12 pr-12 rounded-2xl h-14 bg-card border-border/50 text-base font-medium"
               value={username}
-              onChange={e => updateData({ username: e.target.value.replace(/\s/g, '') })}
-              maxLength={20}
-            />
+              onChange={(e) => updateData({ username: e.target.value.replace(/\s/g, '') })}
+              maxLength={20} />
+            
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {checking && <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />}
               {!checking && available === true && <Check className="w-5 h-5 text-green-500" />}
@@ -74,15 +74,15 @@ const UsernameStep = () => {
           </div>
 
           {error && <p className="text-xs text-destructive mt-2 pl-1">{error}</p>}
-          {!checking && available === false && (
-            <p className="text-xs text-destructive mt-2 pl-1">This username is taken</p>
-          )}
-          {!checking && available === true && (
-            <p className="text-xs text-green-500 mt-2 pl-1">Username available!</p>
-          )}
-          {!error && available === null && username.length > 0 && username.length < 3 && (
-            <p className="text-xs text-muted-foreground mt-2 pl-1">Minimum 3 characters</p>
-          )}
+          {!checking && available === false &&
+          <p className="text-xs text-destructive mt-2 pl-1">This username is taken</p>
+          }
+          {!checking && available === true &&
+          <p className="text-xs text-green-500 mt-2 pl-1">Username available!</p>
+          }
+          {!error && available === null && username.length > 0 && username.length < 3 &&
+          <p className="text-xs text-muted-foreground mt-2 pl-1">Minimum 3 characters</p>
+          }
         </div>
       </div>
 
@@ -91,14 +91,14 @@ const UsernameStep = () => {
         <Button
           onClick={next}
           disabled={!canContinue}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2"
-        >
+          className="w-full h-14 text-base font-semibold rounded-full gap-2">
+          
           Next <ChevronRight className="w-5 h-5" />
         </Button>
         <button onClick={back} className="w-full text-sm text-muted-foreground py-2">Back</button>
       </div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default UsernameStep;
