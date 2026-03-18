@@ -31,7 +31,7 @@ const AuthEntry = () => {
 
         <div className="flex items-center gap-3 pt-1">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground">or</span>
+          
           <div className="flex-1 h-px bg-border" />
         </div>
 
@@ -53,9 +53,6 @@ const AuthEntry = () => {
           Continue with Google
         </Button>
 
-        <p className="text-[11px] text-muted-foreground/60 text-center pt-1">
-          By continuing, you agree to our <button className="underline">Terms</button> & <button className="underline">Privacy Policy</button>.
-        </p>
       </div>
     </div>
   );
