@@ -7,9 +7,9 @@ const AuthEntry = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="mobile-container min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#000' }}>
       <div className="flex-1 flex flex-col items-center justify-center px-8">
-        <img src={revnetLogo} alt="RevNet" className="h-24 w-auto" />
+        <img src={revnetLogo} alt="RevNet" className="h-32 w-auto" />
       </div>
 
       <div className="px-6 pb-8 safe-bottom space-y-3">
