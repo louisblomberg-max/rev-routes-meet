@@ -29,7 +29,7 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
               className={`flex flex-col items-center gap-0.5 py-1.5 rounded-xl border transition-all duration-200 bg-white shadow-sm ${
                 isActive 
                   ? 'border-primary/30 text-primary' 
-                  : 'border-black/10 text-black/40 hover:text-black/70'
+                  : 'border-black/10 text-foreground hover:text-foreground'
               }`}
             >
               <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
