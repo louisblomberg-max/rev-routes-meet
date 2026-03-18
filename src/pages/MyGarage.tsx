@@ -229,9 +229,15 @@ const MyGarage = () => {
                   onClick={() => setExpandedId(isExpanded ? null : vehicle.id)}
                   className="w-full flex items-center gap-4 px-4 py-4 hover:bg-muted/30 transition-colors">
                   
-                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${vehicle.isPrimary ? 'bg-primary/10' : 'bg-muted/80'}`}>
-                      <VIcon className={`w-7 h-7 ${vehicle.isPrimary ? 'text-primary' : 'text-foreground/70'}`} />
-                    </div>
+                    {vehicle.photos.length > 0 ? (
+                      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
+                        <img src={vehicle.photos[0]} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className={`w-14 h-14 rounded-xl flex items-center justify-center ${vehicle.isPrimary ? 'bg-primary/10' : 'bg-muted/80'}`}>
+                        <VIcon className={`w-7 h-7 ${vehicle.isPrimary ? 'text-primary' : 'text-foreground/70'}`} />
+                      </div>
+                    )}
                     <div className="flex-1 text-left min-w-0">
                       <span className="font-bold text-foreground truncate block">
                         {vehicle.year ? `${vehicle.year} ` : ''}{vehicle.make} {vehicle.model}
