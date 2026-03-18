@@ -53,9 +53,6 @@ const AuthEntry = () => {
           Continue with Google
         </Button>
 
-        <p className="text-[11px] text-muted-foreground/60 text-center pt-1">
-          By continuing, you agree to our <button className="underline">Terms</button> & <button className="underline">Privacy Policy</button>.
-        </p>
       </div>
     </div>
   );
