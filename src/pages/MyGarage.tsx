@@ -327,6 +327,41 @@ const MyGarage = () => {
               )}
             </div>
 
+            {/* Photos */}
+            <div>
+              <Label className="text-xs font-medium mb-2 block">Photos</Label>
+              <input
+                ref={photoInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handlePhotoUpload}
+              />
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {form.photos.map((img, idx) => (
+                  <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border flex-shrink-0">
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => removePhoto(idx)}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+                {form.photos.length < 6 && (
+                  <button
+                    onClick={() => photoInputRef.current?.click()}
+                    className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-0.5 text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0"
+                  >
+                    <ImagePlus className="w-5 h-5" />
+                    <span className="text-[9px] font-medium">Add</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Required */}
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5"><Label className="text-xs font-medium">Make *</Label><Input placeholder="e.g. BMW" value={form.make} onChange={(e) => setForm((f) => ({ ...f, make: e.target.value }))} className="rounded-xl" /></div>
