@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { Camera, ChevronRight, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 
