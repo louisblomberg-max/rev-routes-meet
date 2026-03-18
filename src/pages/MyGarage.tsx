@@ -96,7 +96,7 @@ const MyGarage = () => {
       mileage: form.mileage ? parseInt(form.mileage) : undefined,
       tags: form.tags,
       modsText: form.modsText || undefined,
-      photos: [],
+      photos: form.photos,
       visibility: form.visibility,
       isPrimary: form.isPrimary || vehicles.length === 0
     });
