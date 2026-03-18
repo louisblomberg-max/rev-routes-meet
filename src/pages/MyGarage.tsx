@@ -368,7 +368,7 @@ const MyGarage = () => {
               <div className="space-y-1.5"><Label className="text-xs font-medium">Model</Label><Input placeholder="e.g. 993 Turbo" value={form.model} onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))} className="rounded-xl" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5"><Label className="text-xs font-medium">Year</Label><Input type="number" placeholder="2024" value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="rounded-xl" /></div>
+              <div className="space-y-1.5"><Label className="text-xs font-medium">Year</Label><Input type="number" placeholder="1995" value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} className="rounded-xl" /></div>
               <div className="space-y-1.5"><Label className="text-xs font-medium">Engine</Label><Input placeholder="3.0L" value={form.engine} onChange={(e) => setForm((f) => ({ ...f, engine: e.target.value }))} className="rounded-xl" /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
