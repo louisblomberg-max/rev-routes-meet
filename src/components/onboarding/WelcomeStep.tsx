@@ -13,7 +13,7 @@ const WelcomeStep = () => {
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-center px-8 text-center bg-[#f3f3e8]">
         <div className="animate-fade-up">
-          <img src={revnetLogo} alt="RevNet" className="h-14 w-auto mb-10 mx-auto brightness-0 invert" />
+          
         </div>
 
         <h1 className="text-4xl font-black text-foreground tracking-tight leading-[1.1] mb-3 animate-fade-up">
