@@ -38,13 +38,15 @@ const MyGarage = () => {
   const [showPrefs, setShowPrefs] = useState(false);
 
   // Add vehicle form state
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     vehicleType: 'car' as 'car' | 'motorcycle',
     make: '', model: '', year: '', trim: '', engine: '',
     transmission: '', drivetrain: '', colour: '', mileage: '',
     tags: [] as string[], modsText: '',
     visibility: 'public' as 'public' | 'friends' | 'private',
-    isPrimary: false
+    isPrimary: false,
+    photos: [] as string[]
   });
 
   const resetForm = () => setForm({
