@@ -51,7 +51,7 @@ const MyGarage = () => {
 
   const resetForm = () => setForm({
     vehicleType: 'car', make: '', model: '', year: '', trim: '', engine: '',
-    transmission: '', drivetrain: '', colour: '', mileage: '',
+    transmission: '', drivetrain: '', colour: '', numberPlate: '', mileage: '',
     tags: [], modsText: '', visibility: 'public', isPrimary: false, photos: []
   });
 
