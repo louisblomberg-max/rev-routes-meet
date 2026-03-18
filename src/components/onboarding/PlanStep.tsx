@@ -59,7 +59,7 @@ const PLANS = [
 ];
 
 const PlanStep = () => {
-  const { next, back } = useOnboarding();
+  const { next, back, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [selected, setSelected] = useState<PlanId>('pro');
 
@@ -185,13 +185,13 @@ const PlanStep = () => {
 
       {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
-        <Button onClick={next} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
+        <Button onClick={() => { updateData({ plan: selected }); next(); }} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           {selected === 'free' ? 'Continue with Free' : `Start ${selectedPlan.name}`}
           <ChevronRight className="w-5 h-5" />
         </Button>
         {selected !== 'free' && (
           <button
-            onClick={() => { setSelected('free'); next(); }}
+            onClick={() => { setSelected('free'); updateData({ plan: 'free' }); next(); }}
             className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors"
           >
             Continue with Free instead
