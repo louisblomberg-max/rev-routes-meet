@@ -155,10 +155,11 @@ const OnboardingContent = () => {
     if (step === 6) return <ProfileStep />;
     if (step === 7) return <UsernameStep />;
     if (step === 8) return <GarageStep />;
-    if (step === 9) return <NotificationsStep />;
-    if (step === 10) return <InterestsStep />;
-    if (step === 11) return <PlanStep />;
-    if (step === 12) return <AccountStep onComplete={handleComplete} />;
+    if (step === 9) return <EnableNotificationsStep />;
+    if (step === 10) return <EnableLocationStep />;
+    if (step === 11) return <InterestsStep />;
+    if (step === 12) return <PlanStep />;
+    if (step === 13) return <AccountStep onComplete={handleComplete} />;
     return null;
   };
 
