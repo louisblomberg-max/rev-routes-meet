@@ -628,7 +628,7 @@ const MarketplaceTab = () => {
         <div className="px-4 pt-3">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             {filters.priceMax < 100000 && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap">
                 Under £{filters.priceMax.toLocaleString()}
               </span>
             )}
