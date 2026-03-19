@@ -5,17 +5,13 @@ import { useGarage } from '@/contexts/GarageContext';
 import { usePlan } from '@/contexts/PlanContext';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import FeatureSlide from '@/components/onboarding/FeatureSlide';
-import AccountStep from '@/components/onboarding/AccountStep';
-import UsernameStep from '@/components/onboarding/UsernameStep';
 import ProfileStep from '@/components/onboarding/ProfileStep';
+import UsernameStep from '@/components/onboarding/UsernameStep';
 import GarageStep from '@/components/onboarding/GarageStep';
-import DrivingStyleStep from '@/components/onboarding/DrivingStyleStep';
-import VehicleInterestsStep from '@/components/onboarding/VehicleInterestsStep';
-import InterestsStep from '@/components/onboarding/InterestsStep';
-import GoalsStep from '@/components/onboarding/GoalsStep';
-import ClubDiscoveryStep from '@/components/onboarding/ClubDiscoveryStep';
 import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
+import InterestsStep from '@/components/onboarding/InterestsStep';
+import AccountStep from '@/components/onboarding/AccountStep';
 import PlanStep from '@/components/onboarding/PlanStep';
 
 const FEATURE_SLIDES = [
@@ -51,24 +47,6 @@ const FEATURE_SLIDES = [
   },
 ];
 
-/*
-  STEP MAP (18 steps total):
-  0: Welcome
-  1-5: Feature slides
-  6: Create Account
-  7: Username
-  8: Profile Setup
-  9: Add Vehicles
-  10: Driving Style
-  11: Vehicle Interests
-  12: Personalise Feed
-  13: Goals / Intent
-  14: Club Discovery
-  15: Enable Notifications
-  16: Enable Location
-  17: Choose Plan (final — triggers completion)
-*/
-
 const OnboardingContent = () => {
   const navigate = useNavigate();
   const { step, next, back, data, clearOnboarding } = useOnboarding();
@@ -78,10 +56,10 @@ const OnboardingContent = () => {
 
   const handleComplete = async () => {
     try {
-      // 1. Create auth account
+      // 1. Create the auth account
       await register(data.email, data.password, data.username || 'User');
 
-      // 2. Sync profile to AuthContext
+      // 2. Sync ALL profile data to AuthContext (master user object)
       updateProfile({
         username: data.username,
         displayName: data.username || 'User',
@@ -90,11 +68,11 @@ const OnboardingContent = () => {
         location: data.location,
         membershipPlan: data.plan,
         interests: {
-          events: data.eventTypes,
-          routes: data.routeTypes,
-          services: data.serviceTypes,
-          clubs: data.communityTypes.length > 0,
-          marketplace: data.goals.includes('buy_sell'),
+          events: data.interests.filter(i => ['Events', 'Drive-outs', 'Track days', 'Car shows'].includes(i)),
+          routes: data.interests.filter(i => ['Scenic routes', 'Twisty roads', 'Off-road routes'].includes(i)),
+          services: data.interests.filter(i => ['Mechanics', 'Detailing', 'Tuning', 'Parts suppliers'].includes(i)),
+          clubs: data.interests.includes('Car clubs'),
+          marketplace: data.interests.includes('Motorcycle groups'),
         },
         notificationPrefs: {
           newEventsNearby: data.notifications.newEventsNearby,
@@ -111,12 +89,11 @@ const OnboardingContent = () => {
         vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle')
           ? ['car', 'motorcycle']
           : data.vehicles.length > 0 ? ['car'] : [],
-        vehicleTags: data.vehicleInterests,
       });
 
-      // 3. Sync to GarageContext
+      // 3. Sync interests + notifications into GarageContext preferences
       updatePreferences({
-        interests: [...data.eventTypes, ...data.routeTypes, ...data.serviceTypes, ...data.communityTypes],
+        interests: data.interests,
         vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle') ? ['car', 'motorcycle'] : ['car'],
         notifications: {
           newEventsNearby: data.notifications.newEventsNearby,
@@ -127,7 +104,7 @@ const OnboardingContent = () => {
         },
       });
 
-      // 4. Save vehicles
+      // 4. Save onboarding vehicles into GarageContext
       for (const v of data.vehicles.filter(v => v.make.trim())) {
         addVehicle({
           userId: '',
@@ -150,17 +127,17 @@ const OnboardingContent = () => {
         });
       }
 
-      // 5. Sync plan
+      // 5. Sync plan + billing cycle + status to PlanContext
       setPlan(data.plan);
       setBillingCycle(data.billingCycle);
       setSubscriptionStatus(data.plan === 'free' ? 'active' : 'selected');
 
-      // 6. Complete
+      // 6. Mark onboarding complete & clean up
       completeOnboarding();
       clearOnboarding();
       navigate('/');
     } catch {
-      // Error handled in step UI
+      // Error handled in AccountStep
     }
   };
 
@@ -180,18 +157,14 @@ const OnboardingContent = () => {
         />
       );
     }
-    if (step === 6) return <AccountStep isFirstStep />;
+    if (step === 6) return <ProfileStep />;
     if (step === 7) return <UsernameStep />;
-    if (step === 8) return <ProfileStep />;
-    if (step === 9) return <GarageStep />;
-    if (step === 10) return <DrivingStyleStep />;
-    if (step === 11) return <VehicleInterestsStep />;
-    if (step === 12) return <InterestsStep />;
-    if (step === 13) return <GoalsStep />;
-    if (step === 14) return <ClubDiscoveryStep />;
-    if (step === 15) return <EnableNotificationsStep />;
-    if (step === 16) return <EnableLocationStep />;
-    if (step === 17) return <PlanStep onComplete={handleComplete} />;
+    if (step === 8) return <GarageStep />;
+    if (step === 9) return <EnableNotificationsStep />;
+    if (step === 10) return <EnableLocationStep />;
+    if (step === 11) return <InterestsStep />;
+    if (step === 12) return <PlanStep />;
+    if (step === 13) return <AccountStep onComplete={handleComplete} />;
     return null;
   };
 

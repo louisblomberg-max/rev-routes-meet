@@ -2,16 +2,15 @@ import { useState, useEffect } from 'react';
 import { AtSign, Check, X, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useOnboarding, SETUP_STEPS } from '@/contexts/OnboardingContext';
+import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const TAKEN_USERNAMES = ['admin', 'revnet', 'driver', 'test'];
 
 const UsernameStep = () => {
-  const { data, updateData, next, back, step } = useOnboarding();
+  const { data, updateData, next, back } = useOnboarding();
   const [checking, setChecking] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState('');
-  const setupIdx = step - 6;
 
   const username = data.username;
 
@@ -40,10 +39,11 @@ const UsernameStep = () => {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+      {/* Progress */}
       <div className="px-6 pt-10 safe-top">
-        <div className="flex gap-1">
-          {Array.from({ length: SETUP_STEPS }).map((_, i) =>
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= setupIdx ? 'bg-primary' : 'bg-black/10'}`} />
+        <div className="flex gap-1.5">
+          {Array.from({ length: 8 }).map((_, i) =>
+            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 1 ? 'bg-primary' : 'bg-black/10'}`} />
           )}
         </div>
       </div>
@@ -86,6 +86,7 @@ const UsernameStep = () => {
         </div>
       </div>
 
+      {/* Bottom */}
       <div className="px-6 pb-8 safe-bottom space-y-3">
         <Button
           onClick={next}

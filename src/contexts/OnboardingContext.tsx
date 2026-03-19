@@ -21,43 +21,20 @@ export interface OnboardingVehicle {
 }
 
 export interface OnboardingData {
-  // Account
-  email: string;
-  password: string;
-  authProvider: 'email' | 'apple' | 'google';
-
   // Profile
   avatarUrl: string | null;
-  username: string;
   bio: string;
   location: string;
-  drivingStyle: string;
-
+  // Username
+  username: string;
   // Garage
   vehicles: OnboardingVehicle[];
-
-  // Vehicle Interests
-  vehicleInterests: string[];
-
-  // Preferences (grouped)
-  eventTypes: string[];
-  routeTypes: string[];
-  serviceTypes: string[];
-  communityTypes: string[];
-
-  // Goals
-  goals: string[];
-
-  // Social
-  joinedClubs: string[];
-
-  // Permissions
+  // Permissions (backend-ready: user_permissions table)
   permissions: {
     notificationsEnabled: boolean;
     locationEnabled: boolean;
   };
   locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
-
   // Notifications
   notifications: {
     newEventsNearby: boolean;
@@ -66,32 +43,22 @@ export interface OnboardingData {
     nearbyDrivers: boolean;
     sosAlerts: boolean;
   };
-
-  // Subscription
+  // Interests
+  interests: string[];
+  // Plan & billing
   plan: 'free' | 'pro' | 'club';
   billingCycle: 'monthly' | 'yearly';
-
-  // Legacy compat
-  interests: string[];
+  // Account
+  email: string;
+  password: string;
 }
 
 const DEFAULT_DATA: OnboardingData = {
-  email: '',
-  password: '',
-  authProvider: 'email',
   avatarUrl: null,
-  username: '',
   bio: '',
   location: '',
-  drivingStyle: '',
+  username: '',
   vehicles: [],
-  vehicleInterests: [],
-  eventTypes: [],
-  routeTypes: [],
-  serviceTypes: [],
-  communityTypes: [],
-  goals: [],
-  joinedClubs: [],
   permissions: {
     notificationsEnabled: false,
     locationEnabled: false,
@@ -104,9 +71,11 @@ const DEFAULT_DATA: OnboardingData = {
     nearbyDrivers: false,
     sosAlerts: false,
   },
+  interests: [],
   plan: 'free',
   billingCycle: 'yearly',
-  interests: [],
+  email: '',
+  password: '',
 };
 
 const STORAGE_KEY = 'revnet_onboarding_state';
@@ -124,6 +93,7 @@ function loadPersistedState(): { step: number; data: OnboardingData } | null {
 
 function persistState(step: number, data: OnboardingData) {
   try {
+    // Don't persist password to localStorage
     const { password, ...safeData } = data;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
   } catch {
@@ -135,7 +105,6 @@ interface OnboardingContextType {
   step: number;
   data: OnboardingData;
   totalSteps: number;
-  setupSteps: number;
   setStep: (s: number) => void;
   next: () => void;
   back: () => void;
@@ -145,9 +114,7 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-// Steps 0-5: Welcome + Feature slides, Steps 6-17: Setup steps (12 setup steps)
-export const TOTAL_ONBOARDING_STEPS = 18;
-export const SETUP_STEPS = 12; // Account through Plan
+export const TOTAL_ONBOARDING_STEPS = 14;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const persisted = loadPersistedState();
@@ -157,6 +124,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     ...(persisted?.data ?? {}),
   }));
 
+  // Persist on every change
   useEffect(() => {
     persistState(step, data);
   }, [step, data]);
@@ -175,7 +143,7 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <OnboardingContext.Provider value={{ step, data, totalSteps: TOTAL_ONBOARDING_STEPS, setupSteps: SETUP_STEPS, setStep, next, back, updateData, clearOnboarding }}>
+    <OnboardingContext.Provider value={{ step, data, totalSteps: TOTAL_ONBOARDING_STEPS, setStep, next, back, updateData, clearOnboarding }}>
       {children}
     </OnboardingContext.Provider>
   );
