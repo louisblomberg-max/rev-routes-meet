@@ -589,7 +589,7 @@ const MarketplaceTab = () => {
             {/* Apply Button */}
             <button
               onClick={() => setIsFiltersOpen(false)}
-              className="w-full py-3 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-md"
+              className="w-full py-3 rounded-xl text-sm font-semibold bg-marketplace text-white hover:bg-marketplace/90 transition-colors shadow-md"
             >
               Apply Filters
             </button>
