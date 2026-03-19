@@ -633,7 +633,7 @@ const MarketplaceTab = () => {
               </span>
             )}
             {filters.distance < 50 && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap">
                 Within {filters.distance} miles
               </span>
             )}
