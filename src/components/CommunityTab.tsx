@@ -11,7 +11,7 @@ const CommunityTab = () => {
     id: 'clubs',
     icon: Users,
     title: 'Clubs',
-    description: 'Join car & bike clubs and meet like-minded enthusiasts',
+    description: 'Discover and join automotive clubs',
     color: 'bg-community',
     route: '/clubs'
   },
