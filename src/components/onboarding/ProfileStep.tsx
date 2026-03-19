@@ -3,11 +3,12 @@ import { Camera, ChevronRight, User, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, SETUP_STEPS } from '@/contexts/OnboardingContext';
 
 const ProfileStep = () => {
-  const { data, updateData, next, back } = useOnboarding();
+  const { data, updateData, next, back, step } = useOnboarding();
   const fileRef = useRef<HTMLInputElement>(null);
+  const setupIdx = step - 6;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -19,11 +20,10 @@ const ProfileStep = () => {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
-      {/* Progress */}
       <div className="px-6 pt-10 safe-top">
-        <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) =>
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i === 0 ? 'bg-primary' : 'bg-black/10'}`} />
+        <div className="flex gap-1">
+          {Array.from({ length: SETUP_STEPS }).map((_, i) =>
+            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= setupIdx ? 'bg-primary' : 'bg-black/10'}`} />
           )}
         </div>
       </div>
@@ -36,7 +36,6 @@ const ProfileStep = () => {
           Tell the community a little about you.
         </p>
 
-        {/* Avatar Upload */}
         <button
           onClick={() => fileRef.current?.click()}
           className="w-28 h-28 rounded-full border-2 border-dashed border-black/20 flex items-center justify-center mb-8 relative group transition-all hover:border-primary/50 animate-scale-up bg-white">
@@ -50,7 +49,6 @@ const ProfileStep = () => {
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
 
-        {/* Bio */}
         <div className="w-full max-w-sm">
           <label className="text-xs font-semibold uppercase tracking-wider mb-2 block text-black/60">
             Short bio <span className="text-black/40">(optional)</span>
@@ -65,7 +63,6 @@ const ProfileStep = () => {
           <p className="text-xs text-black/40 text-right mt-1">{data.bio.length}/160</p>
         </div>
 
-        {/* Location */}
         <div className="w-full max-w-sm">
           <label className="text-xs font-semibold uppercase tracking-wider mb-2 block text-black/60">
             Location <span className="text-black/40">(optional)</span>
@@ -82,7 +79,6 @@ const ProfileStep = () => {
         </div>
       </div>
 
-      {/* Bottom */}
       <div className="px-6 pb-8 safe-bottom space-y-3">
         <Button onClick={next} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Next <ChevronRight className="w-5 h-5" />

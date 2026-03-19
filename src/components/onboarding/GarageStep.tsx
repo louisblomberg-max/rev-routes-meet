@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useOnboarding, type OnboardingVehicle } from '@/contexts/OnboardingContext';
+import { useOnboarding, SETUP_STEPS, type OnboardingVehicle } from '@/contexts/OnboardingContext';
 import { TRANSMISSION_OPTIONS, DRIVETRAIN_OPTIONS } from '@/models/garage';
 
 const emptyVehicle = (): OnboardingVehicle => ({
@@ -19,9 +19,10 @@ const emptyVehicle = (): OnboardingVehicle => ({
 });
 
 const GarageStep = () => {
-  const { data, updateData, next, back } = useOnboarding();
+  const { data, updateData, next, back, step } = useOnboarding();
   const [vehicles, setVehicles] = useState<OnboardingVehicle[]>(data.vehicles.length ? data.vehicles : []);
   const photoRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const setupIdx = step - 6;
 
   const addVehicle = () => {
     if (vehicles.length >= 5) return;
@@ -89,11 +90,10 @@ const GarageStep = () => {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
-      {/* Progress */}
       <div className="px-6 pt-10 safe-top">
-        <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) =>
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 2 ? 'bg-primary' : 'bg-black/10'}`} />
+        <div className="flex gap-1">
+          {Array.from({ length: SETUP_STEPS }).map((_, i) =>
+            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= setupIdx ? 'bg-primary' : 'bg-black/10'}`} />
           )}
         </div>
       </div>
@@ -109,46 +109,28 @@ const GarageStep = () => {
         <div className="space-y-3">
           {vehicles.map((vehicle, idx) => (
             <div key={vehicle.id} className="bg-white rounded-2xl border border-black/10 overflow-hidden animate-fade-up">
-              {/* Header */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-black/10">
-                <span className="text-xs font-semibold text-black/50">
-                  Vehicle {idx + 1}
-                </span>
+                <span className="text-xs font-semibold text-black/50">Vehicle {idx + 1}</span>
                 <button onClick={() => removeVehicle(vehicle.id)} className="text-red-500 hover:text-red-400">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
 
               <div className="p-4 space-y-4">
-
-                {/* Photos */}
                 <div>
                   <Label className="text-xs font-medium text-black/70 mb-2 block">Photos</Label>
-                  <input
-                    ref={(el) => { photoRefs.current[vehicle.id] = el; }}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={(e) => handlePhotoUpload(vehicle.id, e)}
-                  />
+                  <input ref={(el) => { photoRefs.current[vehicle.id] = el; }} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handlePhotoUpload(vehicle.id, e)} />
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {vehicle.photos.map((img, pidx) => (
                       <div key={pidx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-black/10 flex-shrink-0">
                         <img src={img} alt="" className="w-full h-full object-cover" />
-                        <button
-                          onClick={() => removePhoto(vehicle.id, pidx)}
-                          className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
-                        >
+                        <button onClick={() => removePhoto(vehicle.id, pidx)} className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center">
                           <X className="w-3 h-3 text-white" />
                         </button>
                       </div>
                     ))}
                     {vehicle.photos.length < 6 && (
-                      <button
-                        onClick={() => photoRefs.current[vehicle.id]?.click()}
-                        className="w-20 h-20 rounded-xl border-2 border-dashed border-black/20 flex flex-col items-center justify-center gap-0.5 text-black/40 hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0"
-                      >
+                      <button onClick={() => photoRefs.current[vehicle.id]?.click()} className="w-20 h-20 rounded-xl border-2 border-dashed border-black/20 flex flex-col items-center justify-center gap-0.5 text-black/40 hover:border-primary/50 hover:text-primary transition-colors flex-shrink-0">
                         <ImagePlus className="w-5 h-5" />
                         <span className="text-[9px] font-medium">Add</span>
                       </button>
@@ -156,7 +138,6 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Make & Model */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Make *</Label>
@@ -168,7 +149,6 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Year & Engine */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Year</Label>
@@ -180,7 +160,6 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Transmission & Drivetrain */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Transmission</Label>
@@ -198,7 +177,6 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Colour & Number Plate */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Colour</Label>
@@ -210,13 +188,11 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Details */}
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-black/70">Details</Label>
                   <Textarea placeholder="Add further details..." value={vehicle.modsText} onChange={(e) => updateVehicle(vehicle.id, 'modsText', e.target.value)} className="rounded-xl min-h-[60px] text-sm bg-white text-black border-black/10" />
                 </div>
 
-                {/* Visibility */}
                 <div>
                   <Label className="text-xs font-medium text-black/70 mb-2 block">Visibility</Label>
                   <div className="flex gap-2 px-1">
@@ -229,7 +205,6 @@ const GarageStep = () => {
                   </div>
                 </div>
 
-                {/* Primary toggle */}
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={vehicle.isPrimary} onChange={(e) => {
                     if (e.target.checked) {
@@ -258,7 +233,6 @@ const GarageStep = () => {
         </div>
       </div>
 
-      {/* Bottom */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button onClick={handleNext} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
           Next <ChevronRight className="w-5 h-5" />

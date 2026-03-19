@@ -1,9 +1,10 @@
 import { MapPin, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, SETUP_STEPS } from '@/contexts/OnboardingContext';
 
 const EnableLocationStep = () => {
-  const { data, next, back, updateData } = useOnboarding();
+  const { data, next, back, updateData, step } = useOnboarding();
+  const setupIdx = step - 6;
 
   const handleEnable = () => {
     updateData({
@@ -23,20 +24,15 @@ const EnableLocationStep = () => {
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
-      {/* Progress */}
       <div className="px-6 pt-10 safe-top">
-        <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className={`flex-1 h-1 rounded-full transition-all ${i <= 4 ? 'bg-primary' : 'bg-black/10'}`}
-            />
+        <div className="flex gap-1">
+          {Array.from({ length: SETUP_STEPS }).map((_, i) => (
+            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= setupIdx ? 'bg-primary' : 'bg-black/10'}`} />
           ))}
         </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
-        {/* Icon */}
         <div className="w-28 h-28 rounded-3xl bg-white border border-black/10 flex items-center justify-center mb-8 shadow-sm">
           <MapPin className="w-14 h-14 text-black/80" strokeWidth={1.5} />
         </div>
@@ -49,7 +45,6 @@ const EnableLocationStep = () => {
         </p>
       </div>
 
-      {/* Bottom CTAs */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button
           onClick={handleEnable}

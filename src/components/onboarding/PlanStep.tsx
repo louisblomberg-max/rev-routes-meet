@@ -3,7 +3,7 @@ import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, 
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, SETUP_STEPS } from '@/contexts/OnboardingContext';
 
 type PlanId = 'free' | 'pro' | 'club';
 
@@ -58,30 +58,45 @@ const PLANS = [
   },
 ];
 
-const PlanStep = () => {
-  const { next, back, data, updateData } = useOnboarding();
+interface Props {
+  onComplete: () => Promise<void>;
+}
+
+const PlanStep = ({ onComplete }: Props) => {
+  const { back, data, updateData, step } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>(data.billingCycle || 'yearly');
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
+  const [loading, setLoading] = useState(false);
+  const setupIdx = step - 6;
 
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     updateData({ plan: selected, billingCycle: billing });
-    next();
+    setLoading(true);
+    try {
+      await onComplete();
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleFree = () => {
+  const handleFree = async () => {
     updateData({ plan: 'free', billingCycle: billing });
-    next();
+    setLoading(true);
+    try {
+      await onComplete();
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
-      {/* Progress */}
       <div className="px-6 pt-10 safe-top">
-        <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 5 ? 'bg-primary' : 'bg-black/10'}`} />
+        <div className="flex gap-1">
+          {Array.from({ length: SETUP_STEPS }).map((_, i) => (
+            <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= setupIdx ? 'bg-primary' : 'bg-black/10'}`} />
           ))}
         </div>
       </div>
@@ -99,7 +114,6 @@ const PlanStep = () => {
           </p>
         </div>
 
-        {/* Billing toggle */}
         <div className="flex items-center justify-center gap-3 mb-5 animate-fade-up">
           <span className={`text-sm transition-colors ${billing === 'monthly' ? 'font-semibold text-black' : 'text-black/50'}`}>
             Monthly
@@ -116,7 +130,6 @@ const PlanStep = () => {
           </span>
         </div>
 
-        {/* Plan cards */}
         <div className="space-y-3 animate-fade-up">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
@@ -193,17 +206,17 @@ const PlanStep = () => {
         </div>
       </div>
 
-      {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
+        <Button
+          onClick={handleContinue}
+          disabled={loading}
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10"
+        >
           {selected === 'free' ? 'Continue with Free' : `Start ${selectedPlan.name}`}
           <ChevronRight className="w-5 h-5" />
         </Button>
         {selected !== 'free' && (
-          <button
-            onClick={handleFree}
-            className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors"
-          >
+          <button onClick={handleFree} disabled={loading} className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors">
             Continue with Free instead
           </button>
         )}
