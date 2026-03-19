@@ -44,6 +44,9 @@ export interface AuthUser {
   };
   vehicleTypes: string[]; // 'cars' | 'motorcycles' | 'both'
   vehicleTags: string[]; // 'classic', 'supercars', 'jdm', etc.
+  drivingStyle?: string;
+  goals?: string[];
+  joinedClubs?: string[];
   vehicles: AuthVehicle[];
   discoveryRadiusMiles: number;
   discoveryScope: 'local' | 'national' | 'continental' | 'global';
