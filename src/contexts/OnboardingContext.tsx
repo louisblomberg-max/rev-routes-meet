@@ -29,6 +29,12 @@ export interface OnboardingData {
   username: string;
   // Garage
   vehicles: OnboardingVehicle[];
+  // Permissions (backend-ready: user_permissions table)
+  permissions: {
+    notificationsEnabled: boolean;
+    locationEnabled: boolean;
+  };
+  locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
   // Notifications
   notifications: {
     newEventsNearby: boolean;
