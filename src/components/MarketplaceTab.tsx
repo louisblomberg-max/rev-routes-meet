@@ -265,7 +265,7 @@ const MarketplaceTab = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all font-medium"
+              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-marketplace/30 focus:border-marketplace/50 transition-all font-medium"
             />
             {searchQuery && (
               <button 
