@@ -63,11 +63,9 @@ const FeatureSlide = ({ title, description, highlights, slideIndex, totalSlides 
           Next
           <ChevronRight className="w-5 h-5" />
         </Button>
-        {step > 1 &&
-          <button onClick={back} className="w-full text-sm text-black/50 py-2">
-            Back
-          </button>
-        }
+        <button onClick={back} className="w-full text-sm text-black/50 py-2">
+          Back
+        </button>
       </div>
     </div>
   );
