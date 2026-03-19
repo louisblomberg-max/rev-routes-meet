@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 
 const EnableNotificationsStep = () => {
-  const { next, back, updateData } = useOnboarding();
+  const { data, next, back, updateData } = useOnboarding();
 
   const handleEnable = () => {
     updateData({
