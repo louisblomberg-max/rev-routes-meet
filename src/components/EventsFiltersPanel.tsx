@@ -351,6 +351,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
             </div>
             <Slider
+              variant="events"
               value={[isDistanceNumeric ? distanceValue : 25]}
               onValueChange={handleDistanceChange}
               min={1}
