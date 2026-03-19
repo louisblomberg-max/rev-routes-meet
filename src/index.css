@@ -122,6 +122,10 @@
     --clubs: 220 70% 45%;
     --clubs-muted: 220 50% 15%;
 
+    --community: 212 51% 41%;
+    --community-foreground: 0 0% 100%;
+    --community-muted: 212 30% 15%;
+
     /* Surface Layers */
     --surface: 0 0% 7%;
     --surface-elevated: 0 0% 10%;
