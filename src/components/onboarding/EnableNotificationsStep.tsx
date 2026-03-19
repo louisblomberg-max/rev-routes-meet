@@ -7,12 +7,10 @@ const EnableNotificationsStep = () => {
 
   const handleEnable = () => {
     updateData({
-      permissions: { notificationsEnabled: true, locationEnabled: false },
+      permissions: { ...data.permissions, notificationsEnabled: true },
       notifications: {
+        ...data.notifications,
         newEventsNearby: true,
-        clubActivity: false,
-        marketplaceMessages: false,
-        nearbyDrivers: false,
         sosAlerts: true,
       },
     });
@@ -21,7 +19,7 @@ const EnableNotificationsStep = () => {
 
   const handleSkip = () => {
     updateData({
-      permissions: { notificationsEnabled: false, locationEnabled: false },
+      permissions: { ...data.permissions, notificationsEnabled: false },
     });
     next();
   };
