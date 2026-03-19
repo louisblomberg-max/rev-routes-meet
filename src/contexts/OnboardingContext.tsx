@@ -29,6 +29,12 @@ export interface OnboardingData {
   username: string;
   // Garage
   vehicles: OnboardingVehicle[];
+  // Permissions (backend-ready: user_permissions table)
+  permissions: {
+    notificationsEnabled: boolean;
+    locationEnabled: boolean;
+  };
+  locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
   // Notifications
   notifications: {
     newEventsNearby: boolean;
@@ -53,12 +59,17 @@ const DEFAULT_DATA: OnboardingData = {
   location: '',
   username: '',
   vehicles: [],
+  permissions: {
+    notificationsEnabled: false,
+    locationEnabled: false,
+  },
+  locationPermissionStatus: 'not_requested',
   notifications: {
-    newEventsNearby: true,
+    newEventsNearby: false,
     clubActivity: false,
     marketplaceMessages: false,
     nearbyDrivers: false,
-    sosAlerts: true,
+    sosAlerts: false,
   },
   interests: [],
   plan: 'free',
@@ -103,7 +114,7 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const TOTAL_ONBOARDING_STEPS = 13;
+export const TOTAL_ONBOARDING_STEPS = 14;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const persisted = loadPersistedState();

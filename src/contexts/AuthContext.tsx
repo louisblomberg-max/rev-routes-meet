@@ -48,6 +48,11 @@ export interface AuthUser {
   discoveryRadiusMiles: number;
   discoveryScope: 'local' | 'national' | 'continental' | 'global';
   notificationPrefs: NotificationPrefs;
+  permissions?: {
+    notificationsEnabled: boolean;
+    locationEnabled: boolean;
+  };
+  locationPermissionStatus?: 'not_requested' | 'allowed' | 'denied' | 'skipped';
   createdAt: string;
 }
 

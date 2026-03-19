@@ -8,7 +8,8 @@ import FeatureSlide from '@/components/onboarding/FeatureSlide';
 import ProfileStep from '@/components/onboarding/ProfileStep';
 import UsernameStep from '@/components/onboarding/UsernameStep';
 import GarageStep from '@/components/onboarding/GarageStep';
-import NotificationsStep from '@/components/onboarding/NotificationsStep';
+import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
+import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
 import InterestsStep from '@/components/onboarding/InterestsStep';
 import AccountStep from '@/components/onboarding/AccountStep';
 import PlanStep from '@/components/onboarding/PlanStep';
@@ -80,6 +81,11 @@ const OnboardingContent = () => {
           marketplaceMessages: data.notifications.marketplaceMessages,
           sosAlerts: data.notifications.sosAlerts,
         },
+        permissions: {
+          notificationsEnabled: data.permissions.notificationsEnabled,
+          locationEnabled: data.permissions.locationEnabled,
+        },
+        locationPermissionStatus: data.locationPermissionStatus,
         vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle')
           ? ['car', 'motorcycle']
           : data.vehicles.length > 0 ? ['car'] : [],
@@ -154,10 +160,11 @@ const OnboardingContent = () => {
     if (step === 6) return <ProfileStep />;
     if (step === 7) return <UsernameStep />;
     if (step === 8) return <GarageStep />;
-    if (step === 9) return <NotificationsStep />;
-    if (step === 10) return <InterestsStep />;
-    if (step === 11) return <PlanStep />;
-    if (step === 12) return <AccountStep onComplete={handleComplete} />;
+    if (step === 9) return <EnableNotificationsStep />;
+    if (step === 10) return <EnableLocationStep />;
+    if (step === 11) return <InterestsStep />;
+    if (step === 12) return <PlanStep />;
+    if (step === 13) return <AccountStep onComplete={handleComplete} />;
     return null;
   };
 
