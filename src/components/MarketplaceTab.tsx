@@ -413,10 +413,10 @@ const MarketplaceTab = () => {
       {/* Active Search Indicator */}
       {searchQuery && !isSearchFocused && (
         <div className="px-4 pt-3">
-          <div className="flex items-center justify-between bg-primary/10 rounded-xl px-4 py-2.5">
+          <div className="flex items-center justify-between bg-marketplace/10 rounded-xl px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">
+              <Search className="w-4 h-4 text-marketplace" />
+              <span className="text-sm text-marketplace font-medium">
                 Searching: "{searchQuery}"
               </span>
             </div>
