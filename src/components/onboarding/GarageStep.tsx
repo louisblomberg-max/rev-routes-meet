@@ -120,23 +120,6 @@ const GarageStep = () => {
               </div>
 
               <div className="p-4 space-y-4">
-                {/* Vehicle Type */}
-                <div className="grid grid-cols-2 gap-3">
-                  {(['car', 'motorcycle'] as const).map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => updateVehicle(vehicle.id, 'vehicleType', t)}
-                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold border transition-all ${
-                        vehicle.vehicleType === t
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-black/10 text-black/50'
-                      }`}
-                    >
-                      {t === 'car' ? <Car className="w-3.5 h-3.5" /> : <Bike className="w-3.5 h-3.5" />}
-                      {t === 'car' ? 'Car' : 'Motorcycle'}
-                    </button>
-                  ))}
-                </div>
 
                 {/* Photos */}
                 <div>
