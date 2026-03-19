@@ -643,7 +643,7 @@ const MarketplaceTab = () => {
               </span>
             )}
             {filters.sellerType && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap capitalize">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap capitalize">
                 {filters.sellerType}
               </span>
             )}
