@@ -62,9 +62,9 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
   return (
     <button 
       onClick={handleClick}
-      className={`relative w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
+      className={`relative w-11 h-11 rounded-xl bg-marketplace flex items-center justify-center shadow-sm hover:bg-marketplace/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
     >
-      <Plus className="w-5 h-5 text-primary-foreground" />
+      <Plus className="w-5 h-5 text-marketplace-foreground" />
       {!allowed && (
         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-background flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 text-muted-foreground" />
@@ -247,7 +247,7 @@ const MarketplaceTab = () => {
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-label mb-1">Buy & Sell</p>
+            <p className="text-label mb-1 text-marketplace">Buy & Sell</p>
             <h1 className="heading-display text-foreground">Marketplace</h1>
           </div>
           <MarketplaceCreateButton navigate={navigate} />
@@ -265,7 +265,7 @@ const MarketplaceTab = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all font-medium"
+              className="w-full h-11 pl-11 pr-10 bg-card border border-border/50 rounded-lg shadow-card text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-marketplace/30 focus:border-marketplace/50 transition-all font-medium"
             />
             {searchQuery && (
               <button 
@@ -283,13 +283,13 @@ const MarketplaceTab = () => {
             }}
             className={`relative w-11 h-11 rounded-lg border shadow-card flex items-center justify-center transition-all ${
               isFiltersOpen || activeFiltersCount > 0
-                ? 'bg-primary text-primary-foreground border-primary'
+                ? 'bg-marketplace text-marketplace-foreground border-marketplace'
                 : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             {activeFiltersCount > 0 && !isFiltersOpen && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-2xs font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-marketplace text-marketplace-foreground text-2xs font-bold flex items-center justify-center">
                 {activeFiltersCount}
               </span>
             )}
@@ -363,7 +363,7 @@ const MarketplaceTab = () => {
                     <button
                       key={i}
                       onClick={() => handleSearch(search)}
-                      className="px-3 py-1.5 rounded-lg bg-muted/60 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-muted/60 text-xs text-muted-foreground hover:bg-marketplace/10 hover:text-marketplace transition-all"
                     >
                       {search}
                     </button>
@@ -413,16 +413,16 @@ const MarketplaceTab = () => {
       {/* Active Search Indicator */}
       {searchQuery && !isSearchFocused && (
         <div className="px-4 pt-3">
-          <div className="flex items-center justify-between bg-primary/10 rounded-xl px-4 py-2.5">
+          <div className="flex items-center justify-between bg-marketplace/10 rounded-xl px-4 py-2.5">
             <div className="flex items-center gap-2">
-              <Search className="w-4 h-4 text-primary" />
-              <span className="text-sm text-primary font-medium">
+              <Search className="w-4 h-4 text-marketplace" />
+              <span className="text-sm text-marketplace font-medium">
                 Searching: "{searchQuery}"
               </span>
             </div>
             <button 
               onClick={clearSearch}
-              className="text-xs text-primary hover:text-primary/80 font-medium"
+              className="text-xs text-marketplace hover:text-marketplace/80 font-medium"
             >
               Clear
             </button>
@@ -518,7 +518,7 @@ const MarketplaceTab = () => {
                     onClick={() => toggleCondition(option.id)}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                       filters.condition.includes(option.id)
-                        ? 'bg-primary text-white'
+                        ? 'bg-marketplace text-white'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
@@ -541,7 +541,7 @@ const MarketplaceTab = () => {
                     onClick={() => setFilters(prev => ({ ...prev, sortBy: option.id }))}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                       filters.sortBy === option.id
-                        ? 'bg-primary text-white'
+                        ? 'bg-marketplace text-white'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
@@ -567,7 +567,7 @@ const MarketplaceTab = () => {
                     }))}
                     className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                       filters.sellerType === option.id
-                        ? 'bg-primary text-white'
+                        ? 'bg-marketplace text-white'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
@@ -589,7 +589,7 @@ const MarketplaceTab = () => {
             {/* Apply Button */}
             <button
               onClick={() => setIsFiltersOpen(false)}
-              className="w-full py-3 rounded-xl text-sm font-semibold bg-primary text-white hover:bg-primary/90 transition-colors shadow-md"
+              className="w-full py-3 rounded-xl text-sm font-semibold bg-marketplace text-white hover:bg-marketplace/90 transition-colors shadow-md"
             >
               Apply Filters
             </button>
@@ -610,7 +610,7 @@ const MarketplaceTab = () => {
                   onClick={() => setActiveCategory(isActive ? null : cat.id)}
                   className={`flex items-center gap-2 px-4 h-10 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap border ${
                     isActive
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      ? 'bg-marketplace text-marketplace-foreground border-marketplace shadow-sm'
                       : 'bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground'
                   }`}
                 >
@@ -628,22 +628,22 @@ const MarketplaceTab = () => {
         <div className="px-4 pt-3">
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
             {filters.priceMax < 100000 && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap">
                 Under £{filters.priceMax.toLocaleString()}
               </span>
             )}
             {filters.distance < 50 && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap">
                 Within {filters.distance} miles
               </span>
             )}
             {filters.condition.length > 0 && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap">
                 {filters.condition.length} condition{filters.condition.length > 1 ? 's' : ''}
               </span>
             )}
             {filters.sellerType && (
-              <span className="px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[10px] font-medium whitespace-nowrap capitalize">
+              <span className="px-3 py-1.5 rounded-lg bg-marketplace/10 text-marketplace text-[10px] font-medium whitespace-nowrap capitalize">
                 {filters.sellerType}
               </span>
             )}
@@ -665,7 +665,7 @@ const MarketplaceTab = () => {
               <TrendingUp className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-semibold text-foreground">Featured</span>
             </div>
-            <button className="text-xs text-primary font-medium flex items-center gap-1">
+            <button className="text-xs text-marketplace font-medium flex items-center gap-1">
               View all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
@@ -777,7 +777,7 @@ const MarketplaceTab = () => {
                   setActiveCategory(null);
                   resetFilters();
                 }}
-                className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+                className="mt-4 px-4 py-2 rounded-xl bg-marketplace text-white text-sm font-medium hover:bg-marketplace/90 transition-colors"
               >
                 Clear all filters
               </button>
@@ -791,8 +791,8 @@ const MarketplaceTab = () => {
         <div className="fixed bottom-24 left-4 right-4 z-10">
           <div className="bg-card border border-border/50 rounded-xl p-4 shadow-elevated flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
-                <Heart className="w-5 h-5 text-primary-foreground fill-current" />
+              <div className="w-10 h-10 rounded-lg bg-marketplace flex items-center justify-center">
+                <Heart className="w-5 h-5 text-marketplace-foreground fill-current" />
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">{savedListings.length} saved items</p>
