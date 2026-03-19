@@ -35,6 +35,9 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
               <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'font-bold' : ''}`}>
                 {tab.label}
               </span>
+              {isActive && (
+                <div className="w-6 h-[2px] rounded-full mt-0.5" style={{ backgroundColor: tab.activeColor }} />
+              )}
             </button>
           );
         })}
