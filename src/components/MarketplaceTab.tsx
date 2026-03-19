@@ -283,13 +283,13 @@ const MarketplaceTab = () => {
             }}
             className={`relative w-11 h-11 rounded-lg border shadow-card flex items-center justify-center transition-all ${
               isFiltersOpen || activeFiltersCount > 0
-                ? 'bg-primary text-primary-foreground border-primary'
+                ? 'bg-marketplace text-marketplace-foreground border-marketplace'
                 : 'bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
             {activeFiltersCount > 0 && !isFiltersOpen && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary text-primary-foreground text-2xs font-bold flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-marketplace text-marketplace-foreground text-2xs font-bold flex items-center justify-center">
                 {activeFiltersCount}
               </span>
             )}
