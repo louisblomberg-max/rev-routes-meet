@@ -52,9 +52,9 @@
     --services-foreground: 0 0% 100%;
     --services-muted: 30 60% 95%;
     
-    --clubs: 260 60% 55%;
+    --clubs: 220 70% 35%;
     --clubs-foreground: 0 0% 100%;
-    --clubs-muted: 260 50% 95%;
+    --clubs-muted: 220 50% 95%;
 
     /* Surface Layers */
     --surface: 0 0% 100%;
