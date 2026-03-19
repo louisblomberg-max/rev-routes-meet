@@ -60,6 +60,10 @@
     --community-foreground: 0 0% 100%;
     --community-muted: 212 30% 93%;
 
+    --marketplace: 130 22% 29%;
+    --marketplace-foreground: 0 0% 100%;
+    --marketplace-muted: 130 15% 93%;
+
     /* Surface Layers */
     --surface: 0 0% 100%;
     --surface-elevated: 0 0% 100%;
