@@ -8,11 +8,11 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
-  const tabs = [
-    { id: 'discovery' as Tab, label: 'Discovery', icon: Compass },
-    { id: 'community' as Tab, label: 'Community', icon: Users },
-    { id: 'marketplace' as Tab, label: 'Marketplace', icon: ShoppingBag },
-    { id: 'you' as Tab, label: 'You', icon: User },
+  const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
+    { id: 'discovery', label: 'Discovery', icon: Compass, activeColor: '#d30d37' },
+    { id: 'community', label: 'Community', icon: Users, activeColor: '#274C77' },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, activeColor: '#3A5A40' },
+    { id: 'you', label: 'You', icon: User, activeColor: '#161616' },
   ];
 
   return (
@@ -27,10 +27,9 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
               className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all duration-200 bg-white shadow-sm ${
-                isActive 
-                  ? 'border-primary/30 text-primary' 
-                  : 'border-black/10 text-foreground hover:text-foreground'
+                isActive ? 'border-black/20' : 'border-black/10 text-foreground hover:text-foreground'
               }`}
+              style={isActive ? { color: tab.activeColor, borderColor: `${tab.activeColor}33` } : undefined}
             >
               <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
               <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'font-bold' : ''}`}>
