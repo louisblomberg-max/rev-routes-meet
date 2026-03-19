@@ -12,8 +12,10 @@ export interface OnboardingVehicle {
   drivetrain: string;
   colour: string;
   mileage: string;
+  numberPlate: string;
   tags: string[];
   modsText: string;
+  photos: string[];
   visibility: 'public' | 'friends' | 'private';
   isPrimary: boolean;
 }
