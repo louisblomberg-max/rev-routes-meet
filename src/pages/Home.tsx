@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
 import MapView from '@/components/MapView';
 
