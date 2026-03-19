@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
 import MapView from '@/components/MapView';
 
@@ -33,7 +33,18 @@ const Home = () => {
   const location = useLocation();
   const { status: navStatus } = useNavigation();
   const { state } = useData();
-  const [activeTab, setActiveTab] = useState<Tab>('discovery');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as Tab | null;
+  const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
+
+  const setActiveTab = (tab: Tab) => {
+    setActiveTabState(tab);
+    if (tab === 'discovery') {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ tab }, { replace: true });
+    }
+  };
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
