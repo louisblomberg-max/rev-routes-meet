@@ -363,7 +363,7 @@ const MarketplaceTab = () => {
                     <button
                       key={i}
                       onClick={() => handleSearch(search)}
-                      className="px-3 py-1.5 rounded-lg bg-muted/60 text-xs text-muted-foreground hover:bg-primary/10 hover:text-primary transition-all"
+                      className="px-3 py-1.5 rounded-lg bg-muted/60 text-xs text-muted-foreground hover:bg-marketplace/10 hover:text-marketplace transition-all"
                     >
                       {search}
                     </button>
