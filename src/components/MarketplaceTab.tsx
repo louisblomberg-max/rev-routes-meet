@@ -665,7 +665,7 @@ const MarketplaceTab = () => {
               <TrendingUp className="w-4 h-4 text-amber-500" />
               <span className="text-sm font-semibold text-foreground">Featured</span>
             </div>
-            <button className="text-xs text-primary font-medium flex items-center gap-1">
+            <button className="text-xs text-marketplace font-medium flex items-center gap-1">
               View all <ChevronRight className="w-3 h-3" />
             </button>
           </div>
