@@ -59,7 +59,7 @@ const CommunityTab = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="heading-sm text-foreground">{section.title}</h3>
-                <p className="text-caption mt-0.5 leading-relaxed line-clamp-2">{section.description}</p>
+                <p className="text-caption mt-0.5 leading-relaxed line-clamp-2 text-left">{section.description}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             </button>);
