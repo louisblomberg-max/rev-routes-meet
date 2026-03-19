@@ -422,7 +422,7 @@ const MarketplaceTab = () => {
             </div>
             <button 
               onClick={clearSearch}
-              className="text-xs text-primary hover:text-primary/80 font-medium"
+              className="text-xs text-marketplace hover:text-marketplace/80 font-medium"
             >
               Clear
             </button>
