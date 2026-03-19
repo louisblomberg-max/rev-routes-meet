@@ -567,7 +567,7 @@ const MarketplaceTab = () => {
                     }))}
                     className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
                       filters.sellerType === option.id
-                        ? 'bg-primary text-white'
+                        ? 'bg-marketplace text-white'
                         : 'bg-muted text-muted-foreground hover:bg-muted/80'
                     }`}
                   >
