@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
 export type PlanId = 'free' | 'pro' | 'club';
+export type BillingCycle = 'monthly' | 'yearly';
+export type SubscriptionStatus = 'active' | 'inactive' | 'selected';
 
 export interface FeatureAccess {
   id: string;
@@ -23,12 +25,11 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'my_discussions': 'free',
   'post_questions': 'free',
   'post_replies': 'free',
-  // Events & Routes: free users can open the form (paywall at publish if no credits)
   'create_events': 'free',
   'create_routes': 'free',
   'garage_showcase': 'free',
   
-  // Pro features (require active Pro subscription)
+  // Pro features
   'live_location': 'pro',
   'breakdown_help': 'pro',
   'advanced_filters': 'pro',
@@ -55,9 +56,11 @@ const PLAN_HIERARCHY: Record<PlanId, number> = {
 
 interface PlanContextType {
   currentPlan: PlanId;
-  subscriptionStatus: 'active' | 'inactive';
+  billingCycle: BillingCycle;
+  subscriptionStatus: SubscriptionStatus;
   setPlan: (plan: PlanId) => void;
-  setSubscriptionStatus: (status: 'active' | 'inactive') => void;
+  setBillingCycle: (cycle: BillingCycle) => void;
+  setSubscriptionStatus: (status: SubscriptionStatus) => void;
   hasAccess: (featureId: string) => boolean;
   getRequiredPlan: (featureId: string) => PlanId;
   getPlanLabel: (plan: PlanId) => string;
@@ -71,19 +74,28 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     return (localStorage.getItem('revnet_plan') as PlanId) || 'free';
   });
 
-  const [subscriptionStatus, setSubscriptionStatusState] = useState<'active' | 'inactive'>(() => {
-    return (localStorage.getItem('revnet_subscription_status') as 'active' | 'inactive') || 'active';
+  const [billingCycle, setBillingCycleState] = useState<BillingCycle>(() => {
+    return (localStorage.getItem('revnet_billing_cycle') as BillingCycle) || 'yearly';
+  });
+
+  const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>(() => {
+    return (localStorage.getItem('revnet_subscription_status') as SubscriptionStatus) || 'active';
   });
 
   // If subscription is inactive, treat as free
-  const effectivePlan: PlanId = subscriptionStatus === 'active' ? currentPlan : 'free';
+  const effectivePlan: PlanId = subscriptionStatus === 'inactive' ? 'free' : currentPlan;
 
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
     localStorage.setItem('revnet_plan', plan);
   };
 
-  const setSubscriptionStatus = (status: 'active' | 'inactive') => {
+  const setBillingCycle = (cycle: BillingCycle) => {
+    setBillingCycleState(cycle);
+    localStorage.setItem('revnet_billing_cycle', cycle);
+  };
+
+  const setSubscriptionStatus = (status: SubscriptionStatus) => {
     setSubscriptionStatusState(status);
     localStorage.setItem('revnet_subscription_status', status);
   };
@@ -110,8 +122,10 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   return (
     <PlanContext.Provider value={{ 
       currentPlan, 
+      billingCycle,
       subscriptionStatus, 
       setPlan, 
+      setBillingCycle,
       setSubscriptionStatus, 
       hasAccess, 
       getRequiredPlan, 

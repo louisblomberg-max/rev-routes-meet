@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 
 export interface OnboardingVehicle {
   id: string;
@@ -21,15 +21,15 @@ export interface OnboardingVehicle {
 }
 
 export interface OnboardingData {
-  // Profile (step 7)
+  // Profile
   avatarUrl: string | null;
   bio: string;
   location: string;
-  // Username (step 8)
+  // Username
   username: string;
-  // Garage (step 9)
+  // Garage
   vehicles: OnboardingVehicle[];
-  // Notifications (step 10)
+  // Notifications
   notifications: {
     newEventsNearby: boolean;
     clubActivity: boolean;
@@ -37,11 +37,12 @@ export interface OnboardingData {
     nearbyDrivers: boolean;
     sosAlerts: boolean;
   };
-  // Interests (step 11)
+  // Interests
   interests: string[];
-  // Plan (step 12)
+  // Plan & billing
   plan: 'free' | 'pro' | 'club';
-  // Account (step 13)
+  billingCycle: 'monthly' | 'yearly';
+  // Account
   email: string;
   password: string;
 }
@@ -61,9 +62,33 @@ const DEFAULT_DATA: OnboardingData = {
   },
   interests: [],
   plan: 'free',
+  billingCycle: 'yearly',
   email: '',
   password: '',
 };
+
+const STORAGE_KEY = 'revnet_onboarding_state';
+
+function loadPersistedState(): { step: number; data: OnboardingData } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return { step: parsed.step ?? 0, data: { ...DEFAULT_DATA, ...parsed.data } };
+  } catch {
+    return null;
+  }
+}
+
+function persistState(step: number, data: OnboardingData) {
+  try {
+    // Don't persist password to localStorage
+    const { password, ...safeData } = data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
+  } catch {
+    // Storage full or unavailable
+  }
+}
 
 interface OnboardingContextType {
   step: number;
@@ -73,6 +98,7 @@ interface OnboardingContextType {
   next: () => void;
   back: () => void;
   updateData: (updates: Partial<OnboardingData>) => void;
+  clearOnboarding: () => void;
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -80,17 +106,33 @@ const OnboardingContext = createContext<OnboardingContextType | undefined>(undef
 export const TOTAL_ONBOARDING_STEPS = 13;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
-  const [step, setStep] = useState(0);
-  const [data, setData] = useState<OnboardingData>(DEFAULT_DATA);
+  const persisted = loadPersistedState();
+  const [step, setStepState] = useState(persisted?.step ?? 0);
+  const [data, setData] = useState<OnboardingData>(() => ({
+    ...DEFAULT_DATA,
+    ...(persisted?.data ?? {}),
+  }));
 
-  const next = useCallback(() => setStep(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);
-  const back = useCallback(() => setStep(s => Math.max(s - 1, 0)), []);
+  // Persist on every change
+  useEffect(() => {
+    persistState(step, data);
+  }, [step, data]);
+
+  const setStep = useCallback((s: number) => setStepState(s), []);
+  const next = useCallback(() => setStepState(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);
+  const back = useCallback(() => setStepState(s => Math.max(s - 1, 0)), []);
   const updateData = useCallback((updates: Partial<OnboardingData>) => {
     setData(prev => ({ ...prev, ...updates }));
   }, []);
 
+  const clearOnboarding = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setStepState(0);
+    setData({ ...DEFAULT_DATA });
+  }, []);
+
   return (
-    <OnboardingContext.Provider value={{ step, data, totalSteps: TOTAL_ONBOARDING_STEPS, setStep, next, back, updateData }}>
+    <OnboardingContext.Provider value={{ step, data, totalSteps: TOTAL_ONBOARDING_STEPS, setStep, next, back, updateData, clearOnboarding }}>
       {children}
     </OnboardingContext.Provider>
   );
