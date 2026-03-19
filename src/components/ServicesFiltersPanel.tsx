@@ -125,6 +125,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
               <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
             </div>
             <Slider
+              variant="services"
               value={[isDistanceNumeric ? distanceValue : 25]}
               onValueChange={handleDistanceChange}
               min={1}

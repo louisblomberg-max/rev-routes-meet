@@ -182,6 +182,7 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
               <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
             </div>
             <Slider
+              variant="routes"
               value={[isDistanceNumeric ? distanceValue : 25]}
               onValueChange={handleDistanceChange}
               min={1}
