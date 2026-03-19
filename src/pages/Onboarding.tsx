@@ -108,10 +108,11 @@ const OnboardingContent = () => {
           transmission: (v.transmission as any) || undefined,
           drivetrain: (v.drivetrain as any) || undefined,
           colour: v.colour || undefined,
+          numberPlate: v.numberPlate || undefined,
           mileage: v.mileage ? parseInt(v.mileage) : undefined,
           tags: v.tags || [],
           modsText: v.modsText || undefined,
-          photos: [],
+          photos: v.photos || [],
           visibility: v.visibility || 'public',
           isPrimary: v.isPrimary || data.vehicles.indexOf(v) === 0,
         });
