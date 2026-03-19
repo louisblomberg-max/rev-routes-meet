@@ -19,7 +19,7 @@ const CommunityTab = () => {
     id: 'forums',
     icon: MessageSquare,
     title: 'Advice & Forums',
-    description: 'Ask questions, share knowledge, and discuss all things automotive',
+    description: 'Ask questions, share insights, and discuss all things automotive',
     color: 'bg-community',
     route: '/forums'
   },
