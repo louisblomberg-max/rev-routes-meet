@@ -114,7 +114,7 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const TOTAL_ONBOARDING_STEPS = 13;
+export const TOTAL_ONBOARDING_STEPS = 14;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const persisted = loadPersistedState();
