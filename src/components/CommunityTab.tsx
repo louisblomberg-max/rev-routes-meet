@@ -27,7 +27,7 @@ const CommunityTab = () => {
     id: 'messages',
     icon: Mail,
     title: 'Messages',
-    description: 'Private conversations with your friends and connections',
+    description: 'Message friends and stay connected with your network',
     color: 'bg-community',
     route: '/messages'
   }];
