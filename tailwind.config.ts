@@ -77,6 +77,11 @@ export default {
           foreground: "hsl(var(--clubs-foreground))",
           muted: "hsl(var(--clubs-muted))",
         },
+        community: {
+          DEFAULT: "hsl(var(--community))",
+          foreground: "hsl(var(--community-foreground))",
+          muted: "hsl(var(--community-muted))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
