@@ -610,7 +610,7 @@ const MarketplaceTab = () => {
                   onClick={() => setActiveCategory(isActive ? null : cat.id)}
                   className={`flex items-center gap-2 px-4 h-10 rounded-lg text-xs font-semibold transition-all duration-200 whitespace-nowrap border ${
                     isActive
-                      ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                      ? 'bg-marketplace text-marketplace-foreground border-marketplace shadow-sm'
                       : 'bg-card text-muted-foreground border-border/50 hover:border-border hover:text-foreground'
                   }`}
                 >
