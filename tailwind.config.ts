@@ -82,6 +82,11 @@ export default {
           foreground: "hsl(var(--community-foreground))",
           muted: "hsl(var(--community-muted))",
         },
+        marketplace: {
+          DEFAULT: "hsl(var(--marketplace))",
+          foreground: "hsl(var(--marketplace-foreground))",
+          muted: "hsl(var(--marketplace-muted))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
