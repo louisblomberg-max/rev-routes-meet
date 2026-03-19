@@ -62,9 +62,9 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
   return (
     <button 
       onClick={handleClick}
-      className={`relative w-11 h-11 rounded-xl bg-primary flex items-center justify-center shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
+      className={`relative w-11 h-11 rounded-xl bg-marketplace flex items-center justify-center shadow-sm hover:bg-marketplace/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
     >
-      <Plus className="w-5 h-5 text-primary-foreground" />
+      <Plus className="w-5 h-5 text-marketplace-foreground" />
       {!allowed && (
         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-background flex items-center justify-center">
           <Lock className="w-2.5 h-2.5 text-muted-foreground" />
