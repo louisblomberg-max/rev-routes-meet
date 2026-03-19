@@ -7,40 +7,40 @@ const CommunityTab = () => {
   const stats = useUserStats();
 
   const sections = [
-    {
-      id: 'clubs',
-      icon: Users,
-      title: 'Clubs',
-      description: 'Join car & bike clubs and meet like-minded enthusiasts',
-      color: 'bg-community',
-      route: '/clubs'
-    },
-    {
-      id: 'forums',
-      icon: MessageSquare,
-      title: 'Advice & Forums',
-      description: 'Ask questions, share knowledge, and discuss all things automotive',
-      color: 'bg-community',
-      route: '/forums'
-    },
-    {
-      id: 'messages',
-      icon: Mail,
-      title: 'Messages',
-      description: 'Private conversations with your friends and connections',
-      color: 'bg-community',
-      route: '/messages'
-    }
-  ];
+  {
+    id: 'clubs',
+    icon: Users,
+    title: 'Clubs',
+    description: 'Join car & bike clubs and meet like-minded enthusiasts',
+    color: 'bg-community',
+    route: '/clubs'
+  },
+  {
+    id: 'forums',
+    icon: MessageSquare,
+    title: 'Advice & Forums',
+    description: 'Ask questions, share knowledge, and discuss all things automotive',
+    color: 'bg-community',
+    route: '/forums'
+  },
+  {
+    id: 'messages',
+    icon: Mail,
+    title: 'Messages',
+    description: 'Private conversations with your friends and connections',
+    color: 'bg-community',
+    route: '/messages'
+  }];
+
 
   return (
     <div className="h-full overflow-y-auto pb-24" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       {/* Header */}
       <div className="px-5 pt-12 pb-6 safe-top">
-        <p className="text-label mb-1 text-community">Your Network</p>
-        <h1 className="heading-display text-foreground">Community</h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          Connect with fellow enthusiasts
+        <p className="text-label mb-1 text-community text-center">Your Network</p>
+        <h1 className="heading-display text-foreground text-center">Community</h1>
+        <p className="text-sm text-muted-foreground mt-2 text-center">
+          Connect with drivers, riders, and enthusiasts worldwide
         </p>
       </div>
 
@@ -52,8 +52,8 @@ const CommunityTab = () => {
             <button
               key={section.id}
               onClick={() => navigate(section.route)}
-              className="w-full bg-card rounded-xl p-4 flex items-center gap-4 text-left border border-border/50 shadow-card hover:shadow-elevated hover:border-community/30 active:scale-[0.99] transition-all duration-200"
-            >
+              className="w-full bg-card rounded-xl p-4 flex items-center gap-4 text-left border border-border/50 shadow-card hover:shadow-elevated hover:border-community/30 active:scale-[0.99] transition-all duration-200">
+              
               <div className={`w-12 h-12 rounded-xl ${section.color} flex items-center justify-center flex-shrink-0`}>
                 <Icon className="w-5 h-5 text-white" />
               </div>
@@ -62,8 +62,8 @@ const CommunityTab = () => {
                 <p className="text-caption mt-0.5 leading-relaxed line-clamp-2">{section.description}</p>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            </button>
-          );
+            </button>);
+
         })}
       </div>
 
@@ -89,8 +89,8 @@ const CommunityTab = () => {
       </div>
 
       <div className="px-4 mt-4" />
-    </div>
-  );
+    </div>);
+
 };
 
 export default CommunityTab;
