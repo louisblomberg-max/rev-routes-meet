@@ -81,6 +81,11 @@ const OnboardingContent = () => {
           marketplaceMessages: data.notifications.marketplaceMessages,
           sosAlerts: data.notifications.sosAlerts,
         },
+        permissions: {
+          notificationsEnabled: data.permissions.notificationsEnabled,
+          locationEnabled: data.permissions.locationEnabled,
+        },
+        locationPermissionStatus: data.locationPermissionStatus,
         vehicleTypes: data.vehicles.some(v => v.vehicleType === 'motorcycle')
           ? ['car', 'motorcycle']
           : data.vehicles.length > 0 ? ['car'] : [],
