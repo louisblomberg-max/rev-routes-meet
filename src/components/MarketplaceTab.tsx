@@ -777,7 +777,7 @@ const MarketplaceTab = () => {
                   setActiveCategory(null);
                   resetFilters();
                 }}
-                className="mt-4 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors"
+                className="mt-4 px-4 py-2 rounded-xl bg-marketplace text-white text-sm font-medium hover:bg-marketplace/90 transition-colors"
               >
                 Clear all filters
               </button>
