@@ -11,7 +11,7 @@ const CommunityTab = () => {
     id: 'clubs',
     icon: Users,
     title: 'Clubs',
-    description: 'Join car & bike clubs and meet like-minded enthusiasts',
+    description: 'Discover and join automotive clubs',
     color: 'bg-community',
     route: '/clubs'
   },
@@ -19,7 +19,7 @@ const CommunityTab = () => {
     id: 'forums',
     icon: MessageSquare,
     title: 'Advice & Forums',
-    description: 'Ask questions, share knowledge, and discuss all things automotive',
+    description: 'Ask questions, share insights, and discuss all things automotive',
     color: 'bg-community',
     route: '/forums'
   },
@@ -27,7 +27,7 @@ const CommunityTab = () => {
     id: 'messages',
     icon: Mail,
     title: 'Messages',
-    description: 'Private conversations with your friends and connections',
+    description: 'Message friends and stay connected with your network',
     color: 'bg-community',
     route: '/messages'
   }];
