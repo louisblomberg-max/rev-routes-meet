@@ -247,7 +247,7 @@ const MarketplaceTab = () => {
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-label mb-1">Buy & Sell</p>
+            <p className="text-label mb-1 text-marketplace">Buy & Sell</p>
             <h1 className="heading-display text-foreground">Marketplace</h1>
           </div>
           <MarketplaceCreateButton navigate={navigate} />
