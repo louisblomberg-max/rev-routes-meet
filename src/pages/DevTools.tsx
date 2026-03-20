@@ -403,8 +403,14 @@ const DevTools = () => {
     const events = generateRandomEvents(15);
     events.forEach(e => eventsRepo.create(e));
 
-    toast.success(`Generated 15 events!`, {
-      description: '15 random events added to the map.',
+    const routes = generateRandomRoutes(15);
+    routes.forEach(r => routesRepo.create(r));
+
+    const services = generateRandomServices(15);
+    services.forEach(s => servicesRepo.create(s));
+
+    toast.success(`Generated 45 items!`, {
+      description: '15 events, 15 routes, 15 services added.',
       action: { label: 'View Map', onClick: () => navigate('/') },
     });
   };
