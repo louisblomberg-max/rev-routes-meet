@@ -202,6 +202,110 @@ function generateRandomEvents(count: number) {
   return events;
 }
 
+// ── Random Route pools ──
+const ROUTE_NAMES = [
+  'Snake Pass Run', 'Cheddar Gorge Blast', 'Cat & Fiddle', 'Evo Triangle', 'Black Mountain Pass',
+  'Buttertubs Pass', 'Bealach na Bà', 'Hardknott Pass', 'Great Orme Loop', 'Cotswold Cruise',
+  'Peak District Peaks', 'Lake District Explorer', 'Scottish Highlands Run', 'Welsh Dragon Trail', 'Dartmoor Dash',
+  'North Coast 500 Taster', 'South Downs Sprint', 'Forest of Dean Loop', 'Yorkshire Moors Ride', 'Brecon Beacons Circuit',
+];
+const ROUTE_TYPES = ['Scenic', 'Twisty', 'Mixed', 'Mountain', 'Coastal', 'Forest'];
+const ROUTE_DESCRIPTIONS = [
+  'A stunning drive through winding countryside roads with incredible elevation changes and panoramic views at every turn.',
+  'Fast-flowing B-roads through rolling hills with well-sighted corners and minimal traffic. Perfect weekend blast.',
+  'Technical mountain pass with tight hairpins and dramatic scenery. Not for the faint-hearted but incredibly rewarding.',
+  'Relaxed coastal cruise with sea views, quaint villages, and great stopping points for photos and refreshments.',
+  'A mix of fast straights and technical sections through dense forest. Watch for loose gravel on corners after rain.',
+  'Classic enthusiast route with smooth tarmac, flowing bends, and a legendary pub at the halfway point.',
+];
+const SURFACE_TYPES: ('tarmac' | 'gravel' | 'mixed' | 'dirt')[] = ['tarmac', 'tarmac', 'tarmac', 'gravel', 'mixed'];
+const TRAFFIC_LEVELS: ('low' | 'moderate' | 'heavy')[] = ['low', 'low', 'moderate', 'heavy'];
+const DIFFICULTIES: ('easy' | 'moderate' | 'challenging' | 'expert')[] = ['easy', 'moderate', 'challenging', 'expert'];
+
+function generateRandomRoutes(count: number) {
+  const routes = [];
+  for (let i = 0; i < count; i++) {
+    const coords = randCoordUK();
+    const distance = randBetween(8, 120);
+    const duration = Math.round(distance * randBetween(1, 3));
+    routes.push({
+      name: pick(ROUTE_NAMES),
+      description: pick(ROUTE_DESCRIPTIONS),
+      distance: `${distance} mi`,
+      type: pick(ROUTE_TYPES),
+      vehicleType: pick(['car', 'bike', 'both'] as const),
+      rating: parseFloat((randBetween(30, 50) / 10).toFixed(1)),
+      createdBy: pick(USERNAMES),
+      lat: coords.lat,
+      lng: coords.lng,
+      saves: randBetween(0, 200),
+      drives: randBetween(5, 500),
+      visibility: 'public' as const,
+      tags: pickN(['scenic', 'technical', 'beginner-friendly', 'expert', 'weekend-favourite'], randBetween(1, 3)),
+      elevationGain: randBetween(50, 1200),
+      scenicRating: randBetween(1, 5),
+      trafficLevel: pick(TRAFFIC_LEVELS),
+      surfaceType: pick(SURFACE_TYPES),
+      difficulty: pick(DIFFICULTIES),
+      safetyTags: pickN(['Narrow roads', 'Avoid at night', 'Livestock crossing', 'Speed cameras', 'Flood risk'], randBetween(0, 2)),
+      durationMinutes: duration,
+    });
+  }
+  return routes;
+}
+
+// ── Random Service pools ──
+const SERVICE_CATEGORIES = [
+  'Garages & Mechanics', 'Vehicle Servicing', 'Tyres & Wheels', 'Bodywork & Paint',
+  'Detailing & Car Care', 'Tuning & Performance', 'Parts & Accessories',
+  'Recovery & Roadside Assistance', 'Storage & Parking', 'Shipping & Transportation',
+];
+const SERVICE_NAMES_MAP: Record<string, string[]> = {
+  'Garages & Mechanics': ['Apex Motors', 'Trackside Garage', 'Revline Auto', 'Precision Mechanicals', 'AllStar Autos'],
+  'Vehicle Servicing': ['ProServe Auto', 'QuickFit Express', 'ServiceFirst', 'MasterTech Servicing', 'DriveRight MOT'],
+  'Tyres & Wheels': ['RubberRoad Tyres', 'GripKing Wheels', 'AllSeason Tyres', 'RimTech Alloys', 'TyreVault'],
+  'Bodywork & Paint': ['Chrome Finish Body', 'Paintwerks', 'DentMaster Pro', 'AutoGlow Bodyshop', 'Prestige Paint'],
+  'Detailing & Car Care': ['Mirror Finish Detailing', 'Obsessed Detailing', 'ShowroomShine', 'Wax & Buff Co', 'CeramicCoat Pro'],
+  'Tuning & Performance': ['BoostWorks', 'Dyno Kings', 'TurboTech Tuning', 'Rev Limit Performance', 'PowerCurve Tuning'],
+  'Parts & Accessories': ['PartsFinder UK', 'AutoSpares Direct', 'BreakersYard Plus', 'ModParts Online', 'FastFit Accessories'],
+  'Recovery & Roadside Assistance': ['RapidRecovery 24/7', 'RoadRescue UK', 'NightOwl Recovery', 'SafeTow Services', 'AA Partner Recovery'],
+  'Storage & Parking': ['SecureStore Cars', 'VaultPark', 'DriveIn Storage', 'ClassicCar Barn', 'CoverGuard Storage'],
+  'Shipping & Transportation': ['AutoShip UK', 'CarCarrier Express', 'TransPort Pro', 'BikeMove Ltd', 'EnclosedTransit'],
+};
+
+function generateRandomServices(count: number) {
+  const services = [];
+  for (let i = 0; i < count; i++) {
+    const coords = randCoordUK();
+    const category = pick(SERVICE_CATEGORIES);
+    const names = SERVICE_NAMES_MAP[category] || ['Auto Service'];
+    const rating = parseFloat((randBetween(30, 50) / 10).toFixed(1));
+    const reviewCount = randBetween(3, 350);
+    const dist = (randBetween(1, 250) / 10).toFixed(1);
+    services.push({
+      name: `${pick(names)}, ${coords.city}`,
+      category,
+      serviceTypes: [category],
+      rating,
+      distance: `${dist} mi`,
+      reviewCount,
+      openingHours: pick(['Mon-Fri 8am-6pm', 'Mon-Sat 9am-5pm', '24/7', 'Mon-Fri 7am-7pm']),
+      phone: `07${randBetween(100, 999)} ${randBetween(100000, 999999)}`,
+      address: `${randBetween(1, 200)} ${pick(['High Street', 'Industrial Estate', 'Station Road', 'Mill Lane', 'Park Road'])}, ${coords.city}`,
+      isOpen: Math.random() > 0.3,
+      priceRange: pick(['£', '££', '£££']),
+      lat: coords.lat,
+      lng: coords.lng,
+      createdBy: pick(USERNAMES),
+      visibility: 'public' as const,
+      tags: pickN(['trusted', 'fast-turnaround', 'specialist', 'budget-friendly', 'premium'], randBetween(1, 3)),
+      yearsInBusiness: randBetween(1, 40),
+      isVerified: Math.random() > 0.5,
+      serviceMode: pick(['fixed', 'mobile'] as const),
+    });
+  }
+  return services;
+}
 
 
 const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
