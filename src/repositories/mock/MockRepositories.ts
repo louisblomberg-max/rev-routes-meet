@@ -40,7 +40,6 @@ export interface MockStoreConfig {
   forumPosts: { get: StateGetter<ForumPost[]>; set: StateSetter<ForumPost[]> };
   forumComments: { get: StateGetter<ForumComment[]>; set: StateSetter<ForumComment[]> };
   marketplace: { get: StateGetter<MarketplaceListing[]>; set: StateSetter<MarketplaceListing[]> };
-  vehicles: { get: StateGetter<Vehicle[]>; set: StateSetter<Vehicle[]> };
   friends: { get: StateGetter<Friend[]>; set: StateSetter<Friend[]> };
   activities: { get: StateGetter<UserActivity[]>; set: StateSetter<UserActivity[]> };
   conversations: { get: StateGetter<Conversation[]>; set: StateSetter<Conversation[]> };
@@ -52,7 +51,6 @@ export interface MockStoreConfig {
   userHostedEvents: { get: StateGetter<string[]>; set: StateSetter<string[]> };
   helpRequests: { get: StateGetter<HelpRequest[]>; set: StateSetter<HelpRequest[]> };
   stolenAlerts: { get: StateGetter<StolenVehicleAlert[]>; set: StateSetter<StolenVehicleAlert[]> };
-  currentUser: { get: StateGetter<User | null>; set: StateSetter<User | null> };
 }
 
 // ---- User Repository ----
