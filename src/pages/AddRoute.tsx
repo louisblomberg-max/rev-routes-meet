@@ -21,7 +21,7 @@ import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
 type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
 
