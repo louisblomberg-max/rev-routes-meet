@@ -16,6 +16,7 @@ const RouteDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { state, routes: routesRepo } = useData();
+  const { user: authUser } = useAuth();
 
   const route = state.routes.find(r => r.id === id);
   const isSavedInitial = state.savedRoutes.includes(id || '');
