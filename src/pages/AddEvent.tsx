@@ -105,6 +105,7 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 const AddEvent = () => {
   const navigate = useNavigate();
   const { events: eventsRepo, state } = useData();
+  const { user: authUser } = useAuth();
   const { canCreateEvent, deductEventCredit, upgradeToPlan } = usePaywall();
   const { setPlan, setSubscriptionStatus } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
