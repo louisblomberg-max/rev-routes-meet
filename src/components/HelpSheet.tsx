@@ -110,13 +110,10 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+      <div className="px-5 pt-5 pb-3">
         <h2 className="text-lg font-bold text-destructive flex items-center gap-2">
           <ShieldAlert className="w-5 h-5" /> Vehicle Stolen
         </h2>
-        <button onClick={onClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-          <X className="w-4 h-4 text-muted-foreground" />
-        </button>
       </div>
       <div className="flex-1 px-5 py-4 space-y-4">
         {step === 0 ? (
