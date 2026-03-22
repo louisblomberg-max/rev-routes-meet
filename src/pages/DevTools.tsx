@@ -438,7 +438,7 @@ const DevTools = () => {
             </div>
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Event Credits</span>
-              <p className="font-bold text-foreground">{state.currentUser?.eventCredits ?? 0}{state.currentUser?.eventCredits === -1 ? ' (∞)' : ''}</p>
+              <p className="font-bold text-foreground">{authUser?.eventCredits ?? 0}{authUser?.eventCredits === -1 ? ' (∞)' : ''}</p>
             </div>
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Events</span>

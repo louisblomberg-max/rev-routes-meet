@@ -391,7 +391,7 @@ const AddRoute = () => {
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
         reason={paywallReason}
-        creditsRemaining={state.currentUser?.routeCredits ?? 0}
+        creditsRemaining={authUser?.routeCredits ?? 0}
         onPaymentResult={handlePaywallResult}
       />
     </>

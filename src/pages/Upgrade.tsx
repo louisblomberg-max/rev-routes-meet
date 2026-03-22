@@ -88,13 +88,12 @@ const Upgrade = () => {
     setPlan(planId);
     setSubscriptionStatus('active');
     
-    // Sync DataContext user with new plan + credits
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      plan: planId,
-      eventCredits: planId === 'free' ? (prev.eventCredits ?? 0) : -1,
-      routeCredits: planId === 'free' ? (prev.routeCredits ?? 0) : -1,
-    } : prev);
+    // Sync AuthContext user with new plan + credits
+    updateProfile({
+      membershipPlan: planId,
+      eventCredits: planId === 'free' ? undefined : -1,
+      routeCredits: planId === 'free' ? undefined : -1,
+    } as any);
     
     const planName = plans.find(p => p.id === planId)?.name || planId;
     const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
