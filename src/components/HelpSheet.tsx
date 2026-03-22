@@ -151,11 +151,6 @@ const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
                 </div>
               );
             })}
-            {step === 3 && (
-              <div className="mt-4 p-3 rounded-xl bg-primary/5 border border-primary/20 text-center">
-                <p className="text-sm font-medium text-primary">Help is on the way. Stay safe.</p>
-              </div>
-            )}
           </div>
         )}
       </div>
