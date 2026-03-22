@@ -42,7 +42,7 @@ const EventDetail = () => {
   const isAttendingInitial = state.userAttendingEvents.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
   const [isAttending, setIsAttending] = useState(isAttendingInitial);
-  const isHost = event?.createdBy === state.currentUser?.id;
+  const isHost = event?.createdBy === authUser?.id;
 
   if (!event) {
     return (
