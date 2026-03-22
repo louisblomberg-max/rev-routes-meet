@@ -28,6 +28,7 @@ type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
 const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
+  const { user: authUser } = useAuth();
   const { canCreateRoute, deductRouteCredit, upgradeToPlan } = usePaywall();
   const { setPlan, setSubscriptionStatus } = usePlan();
 
