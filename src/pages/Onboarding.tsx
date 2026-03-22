@@ -14,6 +14,41 @@ import GarageStep from '@/components/onboarding/GarageStep';
 import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
 import PlanStep from '@/components/onboarding/PlanStep';
+import { useEffect, useRef } from 'react';
+
+// Wrapper that detects when PlanStep calls next() (which stays at step 12 since it's the last)
+const PlanStepWrapper = ({ onComplete }: { onComplete: () => Promise<void> }) => {
+  const { step } = useOnboarding();
+  const hasTriggered = useRef(false);
+  // PlanStep calls next() but step stays at 12 (max). We listen for the plan data being set.
+  // Instead, we override PlanStep's continue by intercepting. Since PlanStep uses next(),
+  // we need a different approach: wrap and listen for the onboarding data.plan change after mount.
+  return <PlanStepWithCallback onComplete={onComplete} />;
+};
+
+const PlanStepWithCallback = ({ onComplete }: { onComplete: () => Promise<void> }) => {
+  const { step, data } = useOnboarding();
+  const mountedRef = useRef(false);
+  const prevStepRef = useRef(step);
+
+  // PlanStep calls next() which tries to go to step 13 but clamps at 12.
+  // We detect this by checking if next() was called (step stays 12).
+  // Instead, override: PlanStep updates data.plan then calls next().
+  // Since TOTAL_ONBOARDING_STEPS is 13, next() from 12 stays at 12.
+  // We'll just render PlanStep and add a useEffect that fires onComplete
+  // when the component detects the plan was selected (after first render).
+  
+  useEffect(() => {
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+    // If step hasn't changed (still 12 after next() was called), it means PlanStep tried to advance
+    // This is our signal to complete
+  }, [step]);
+
+  return <PlanStep />;
+};
 
 const FEATURE_SLIDES = [
   {
