@@ -99,7 +99,14 @@ const YouTab = () => {
                 Edit Profile
               </button>
               <button
-                onClick={() => { toast.success('Profile link copied!'); }}
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: user?.displayName || 'My Profile', url: window.location.origin + '/profile' });
+                  } else {
+                    navigator.clipboard.writeText(window.location.origin + '/profile');
+                    toast.success('Profile link copied!');
+                  }
+                }}
                 className="h-9 w-9 rounded-lg border border-border/50 flex items-center justify-center hover:bg-muted/50 transition-colors active:scale-[0.98]"
               >
                 <Share2 className="w-4 h-4 text-muted-foreground" />
