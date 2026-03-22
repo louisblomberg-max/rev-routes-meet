@@ -1,17 +1,13 @@
 // ============================
-// Profile Data Hooks
+// Profile Data Hooks (Supabase-backed)
 // ============================
-// All user-specific data access goes through these hooks.
-// Currently backed by DataContext (mock). When Supabase is connected,
-// only these hook implementations change — UI stays the same.
-
 import { useMemo, useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGarage } from '@/contexts/GarageContext';
+import { supabase } from '@/integrations/supabase/client';
 import type { Friend, ClubMembership, Club, RevEvent, RevRoute, UserActivity, ForumPost } from '@/models';
 
-// ---- Simulated loading (remove when real API is connected) ----
 function useSimulatedLoading(duration = 350) {
   const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
@@ -27,7 +23,7 @@ export function useCurrentUser() {
   return { user, isLoading: false };
 }
 
-// ---- User Stats (aggregate counts) ----
+// ---- User Stats ----
 export function useUserStatsData() {
   const { state } = useData();
   const { user } = useAuth();
@@ -38,22 +34,21 @@ export function useUserStatsData() {
   return useMemo(() => {
     const createdEventIds = userId ? events.filter(e => e.createdBy === userId).map(e => e.id) : [];
     const allEventIds = new Set([...userAttendingEvents, ...userHostedEvents, ...savedEvents, ...createdEventIds]);
-    
     const createdRouteCount = userId ? routes.filter(r => r.createdBy === userId).length : 0;
-    
+
     return {
       garageCount: garageVehicles.length,
-      friendsCount: friends.filter(f => f.status === 'accepted').length,
+      friendsCount: friends.filter((f: any) => f.status === 'accepted').length,
       clubsCount: clubMemberships.length,
       eventsCount: allEventIds.size,
       routesCount: savedRoutes.length + createdRouteCount,
-      discussionsCount: activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
+      discussionsCount: activities.filter((a: any) => a.type === 'forum_post' || a.type === 'forum_reply').length,
       savedServicesCount: savedServices.length,
     };
   }, [garageVehicles, friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes, userId]);
 }
 
-// ---- Garage (Vehicles) ----
+// ---- Garage ----
 export function useUserGarage() {
   const { vehicles } = useGarage();
   const isLoading = useSimulatedLoading();
@@ -62,14 +57,39 @@ export function useUserGarage() {
 
 // ---- Friends ----
 export function useUserFriends() {
-  const { state } = useData();
-  const isLoading = useSimulatedLoading();
+  const { user } = useAuth();
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const accepted = useMemo(() => state.friends.filter(f => f.status === 'accepted'), [state.friends]);
-  const pendingReceived = useMemo(() => state.friends.filter(f => f.status === 'pending_received'), [state.friends]);
-  const pendingSent = useMemo(() => state.friends.filter(f => f.status === 'pending_sent'), [state.friends]);
+  useEffect(() => {
+    if (!user?.id) { setIsLoading(false); return; }
+    (async () => {
+      const { data } = await supabase
+        .from('friends')
+        .select('*, friend:profiles!friends_friend_id_fkey(id, username, display_name, avatar_url)')
+        .eq('user_id', user.id);
 
-  return { friends: state.friends, accepted, pendingReceived, pendingSent, isLoading, error: null };
+      if (data) {
+        setFriends(data.map((f: any) => ({
+          id: f.friend_id,
+          userId: f.user_id,
+          friendUserId: f.friend_id,
+          username: f.friend?.username || '',
+          displayName: f.friend?.display_name || '',
+          avatar: f.friend?.avatar_url || null,
+          mutualFriends: 0,
+          status: f.status === 'accepted' ? 'accepted' : f.status === 'pending' ? 'pending_sent' : 'pending_received',
+        })));
+      }
+      setIsLoading(false);
+    })();
+  }, [user?.id]);
+
+  const accepted = useMemo(() => friends.filter(f => f.status === 'accepted'), [friends]);
+  const pendingReceived = useMemo(() => friends.filter(f => f.status === 'pending_received'), [friends]);
+  const pendingSent = useMemo(() => friends.filter(f => f.status === 'pending_sent'), [friends]);
+
+  return { friends, accepted, pendingReceived, pendingSent, isLoading, error: null };
 }
 
 // ---- Clubs ----
@@ -114,10 +134,7 @@ export function useUserEvents() {
       }));
   }, [state.events, state.userAttendingEvents, state.userHostedEvents, userId]);
 
-  const saved = useMemo(() => {
-    return state.events.filter(e => state.savedEvents.includes(e.id));
-  }, [state.events, state.savedEvents]);
-
+  const saved = useMemo(() => state.events.filter(e => state.savedEvents.includes(e.id)), [state.events, state.savedEvents]);
   const past = useMemo(() => [] as any[], []);
 
   return { upcoming, past, saved, isLoading, error: null };
@@ -127,11 +144,7 @@ export function useUserEvents() {
 export function useUserSavedServices() {
   const { state } = useData();
   const isLoading = useSimulatedLoading();
-
-  const saved = useMemo(() => {
-    return state.services.filter(s => state.savedServices.includes(s.id));
-  }, [state.services, state.savedServices]);
-
+  const saved = useMemo(() => state.services.filter(s => state.savedServices.includes(s.id)), [state.services, state.savedServices]);
   return { saved, isLoading };
 }
 
@@ -142,14 +155,8 @@ export function useUserRoutes() {
   const isLoading = useSimulatedLoading();
   const userId = user?.id;
 
-  const saved = useMemo(() => {
-    return state.routes.filter(r => state.savedRoutes.includes(r.id));
-  }, [state.routes, state.savedRoutes]);
-
-  const created = useMemo(() => {
-    if (!userId) return [];
-    return state.routes.filter(r => r.createdBy === userId);
-  }, [state.routes, userId]);
+  const saved = useMemo(() => state.routes.filter(r => state.savedRoutes.includes(r.id)), [state.routes, state.savedRoutes]);
+  const created = useMemo(() => userId ? state.routes.filter(r => r.createdBy === userId) : [], [state.routes, userId]);
 
   return { saved, created, isLoading, error: null };
 }
@@ -167,7 +174,6 @@ export function useUserDiscussions() {
   }, [state.forumPosts, userId, user]);
 
   const myReplies = useMemo(() => [] as any[], []);
-
   const savedPosts = useMemo(() => [] as ForumPost[], []);
 
   return { posts: myPosts, replies: myReplies, savedPosts, isLoading, error: null };
