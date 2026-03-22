@@ -9,7 +9,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGarage } from '@/contexts/GarageContext';
-import type { Vehicle, Friend, ClubMembership, Club, RevEvent, RevRoute, UserActivity, ForumPost } from '@/models';
+import type { Friend, ClubMembership, Club, RevEvent, RevRoute, UserActivity, ForumPost } from '@/models';
 
 // ---- Simulated loading (remove when real API is connected) ----
 function useSimulatedLoading(duration = 350) {
@@ -23,34 +23,19 @@ function useSimulatedLoading(duration = 350) {
 
 // ---- Current User ----
 export function useCurrentUser() {
-  const { state } = useData();
-  const { user: authUser } = useAuth();
-  
-  // Merge auth user data with DataContext user for a complete picture
-  const user = useMemo(() => {
-    if (!state.currentUser && !authUser) return null;
-    return state.currentUser ? {
-      ...state.currentUser,
-      displayName: authUser?.displayName || state.currentUser.displayName,
-      username: authUser?.username || state.currentUser.username,
-      avatar: authUser?.avatar || state.currentUser.avatar,
-      bio: authUser?.bio || state.currentUser.bio,
-      location: authUser?.location || state.currentUser.location,
-    } : null;
-  }, [state.currentUser, authUser]);
-
+  const { user } = useAuth();
   return { user, isLoading: false };
 }
 
 // ---- User Stats (aggregate counts) ----
 export function useUserStatsData() {
   const { state } = useData();
+  const { user } = useAuth();
   const { vehicles: garageVehicles } = useGarage();
   const { friends, clubMemberships, userAttendingEvents, userHostedEvents, savedRoutes, savedEvents, savedServices, activities, events, routes } = state;
-  const userId = state.currentUser?.id;
+  const userId = user?.id;
 
   return useMemo(() => {
-    // Deduplicate events: attending + hosted + saved + created
     const createdEventIds = userId ? events.filter(e => e.createdBy === userId).map(e => e.id) : [];
     const allEventIds = new Set([...userAttendingEvents, ...userHostedEvents, ...savedEvents, ...createdEventIds]);
     
@@ -70,9 +55,9 @@ export function useUserStatsData() {
 
 // ---- Garage (Vehicles) ----
 export function useUserGarage() {
-  const { state } = useData();
+  const { vehicles } = useGarage();
   const isLoading = useSimulatedLoading();
-  return { vehicles: state.vehicles, isLoading, error: null };
+  return { vehicles, isLoading, error: null };
 }
 
 // ---- Friends ----
@@ -113,8 +98,9 @@ export function useUserClubs() {
 // ---- Events ----
 export function useUserEvents() {
   const { state } = useData();
+  const { user } = useAuth();
   const isLoading = useSimulatedLoading();
-  const userId = state.currentUser?.id;
+  const userId = user?.id;
 
   const upcoming = useMemo(() => {
     const attendingSet = new Set(state.userAttendingEvents);
@@ -132,7 +118,6 @@ export function useUserEvents() {
     return state.events.filter(e => state.savedEvents.includes(e.id));
   }, [state.events, state.savedEvents]);
 
-  // Past events — empty until we have real date logic
   const past = useMemo(() => [] as any[], []);
 
   return { upcoming, past, saved, isLoading, error: null };
@@ -153,8 +138,9 @@ export function useUserSavedServices() {
 // ---- Routes ----
 export function useUserRoutes() {
   const { state } = useData();
+  const { user } = useAuth();
   const isLoading = useSimulatedLoading();
-  const userId = state.currentUser?.id;
+  const userId = user?.id;
 
   const saved = useMemo(() => {
     return state.routes.filter(r => state.savedRoutes.includes(r.id));
@@ -171,13 +157,14 @@ export function useUserRoutes() {
 // ---- Discussions ----
 export function useUserDiscussions() {
   const { state } = useData();
+  const { user } = useAuth();
   const isLoading = useSimulatedLoading();
-  const userId = state.currentUser?.id;
+  const userId = user?.id;
 
   const myPosts = useMemo(() => {
     if (!userId) return [];
-    return state.forumPosts.filter(p => p.author === userId || p.author === state.currentUser?.displayName);
-  }, [state.forumPosts, userId, state.currentUser]);
+    return state.forumPosts.filter(p => p.author === userId || p.author === user?.displayName);
+  }, [state.forumPosts, userId, user]);
 
   const myReplies = useMemo(() => [] as any[], []);
 

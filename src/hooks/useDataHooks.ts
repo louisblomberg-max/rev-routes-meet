@@ -5,28 +5,32 @@
 
 import { useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useGarage } from '@/contexts/GarageContext';
 import type { UserStats } from '@/models';
 
 /** Get current user stats — reactive to state changes */
 export const useUserStats = (_userId?: string): UserStats => {
   const { state } = useData();
-  const userId = _userId || state.currentUser?.id || '';
+  const { user } = useAuth();
+  const { vehicles } = useGarage();
+  const userId = _userId || user?.id || '';
 
   return useMemo(() => ({
-    garageCount: state.vehicles.filter(v => v.userId === userId).length,
+    garageCount: vehicles.length,
     friendsCount: state.friends.filter(f => f.status === 'accepted').length,
     clubsCount: state.clubMemberships.filter(m => m.userId === userId).length,
     eventsCount: state.userAttendingEvents.length + state.userHostedEvents.length,
     routesCount: state.savedRoutes.length,
     discussionsCount: state.activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
-  }), [state.vehicles, state.friends, state.clubMemberships, state.userAttendingEvents, state.userHostedEvents, state.savedRoutes, state.activities, userId]);
+  }), [vehicles, state.friends, state.clubMemberships, state.userAttendingEvents, state.userHostedEvents, state.savedRoutes, state.activities, userId]);
 };
 
 /** Get community stats (total across all users — uses seed data counts) */
 export const useCommunityStats = () => {
   const { state } = useData();
   return useMemo(() => ({
-    totalMembers: 0, // Would come from DB
+    totalMembers: 0,
     activeClubs: state.clubs.length,
     forumPosts: state.forumPosts.length,
     totalEvents: state.events.length,

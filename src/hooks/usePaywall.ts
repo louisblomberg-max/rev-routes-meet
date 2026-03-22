@@ -4,7 +4,7 @@
 // Centralised check for whether the current user can perform a gated action.
 
 import { usePlan, type PlanId } from '@/contexts/PlanContext';
-import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { PaywallReason } from '@/components/PaywallModal';
 
 export interface PaywallCheck {
@@ -15,14 +15,13 @@ export interface PaywallCheck {
 
 export const usePaywall = () => {
   const { effectivePlan } = usePlan();
-  const { state } = useData();
+  const { user, updateProfile } = useAuth();
 
   const canCreateEvent = (): PaywallCheck => {
-    // Pro+ = unlimited
     if (effectivePlan === 'pro' || effectivePlan === 'club') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
-    const credits = state.currentUser?.eventCredits ?? 0;
+    const credits = user?.eventCredits ?? 0;
     if (credits > 0) {
       return { allowed: true, reason: null, creditsRemaining: credits };
     }
@@ -33,7 +32,7 @@ export const usePaywall = () => {
     if (effectivePlan === 'pro' || effectivePlan === 'club') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
-    const credits = state.currentUser?.routeCredits ?? 0;
+    const credits = user?.routeCredits ?? 0;
     if (credits > 0) {
       return { allowed: true, reason: null, creditsRemaining: credits };
     }
@@ -56,28 +55,20 @@ export const usePaywall = () => {
 
   /** Deduct 1 event credit (for free users paying per-item) */
   const deductEventCredit = () => {
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      eventCredits: Math.max(0, (prev.eventCredits ?? 0) - 1),
-    } : prev);
+    updateProfile({ eventCredits: Math.max(0, (user?.eventCredits ?? 0) - 1) });
   };
 
   const deductRouteCredit = () => {
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      routeCredits: Math.max(0, (prev.routeCredits ?? 0) - 1),
-    } : prev);
+    updateProfile({ routeCredits: Math.max(0, (user?.routeCredits ?? 0) - 1) });
   };
 
   /** Upgrade to a plan (mock) */
   const upgradeToPlan = (plan: PlanId) => {
-    // This is handled by PlanContext — we just update credits
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      plan,
+    updateProfile({
+      membershipPlan: plan,
       eventCredits: -1,
       routeCredits: -1,
-    } : prev);
+    });
   };
 
   return {
