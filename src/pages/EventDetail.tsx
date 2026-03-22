@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import NavigateButton from '@/components/NavigateButton';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
