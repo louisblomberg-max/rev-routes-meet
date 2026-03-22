@@ -34,7 +34,7 @@ const MyFriends = () => {
   );
 
   const handleAccept = (id: string) => { friendsRepo.acceptRequest(id); toast.success('Friend request accepted!'); };
-  const handleDecline = (id: string) => { friendsRepo.declineRequest(id); toast('Request declined'); };
+  const handleDecline = (id: string) => { friendsRepo.removeFriend(id); toast('Request declined'); };
   const handleRemove = (id: string) => { friendsRepo.removeFriend(id); toast('Friend removed'); };
 
   const filters = [
