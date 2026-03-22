@@ -326,19 +326,6 @@ const DevTools = () => {
     updateProfile({ ...preset.authUser });
     setPlan(preset.planId);
     setSubscriptionStatus('active');
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      id: preset.authUser.id,
-      email: preset.authUser.email || '',
-      displayName: preset.authUser.displayName || 'User',
-      username: preset.authUser.username || 'user',
-      avatar: preset.authUser.avatar || null,
-      bio: preset.authUser.bio || '',
-      location: preset.authUser.location || '',
-      plan: preset.planId,
-      eventCredits: preset.eventCredits,
-      routeCredits: preset.routeCredits,
-    } : prev);
     setActivePreset(preset.id);
     localStorage.setItem('revnet_dev_preset', preset.id);
     toast.success(`Switched to ${preset.label}`, { description: preset.description });
