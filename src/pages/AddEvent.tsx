@@ -132,7 +132,7 @@ const AddEvent = () => {
   const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
-  const currentUserId = state.currentUser?.id || 'current-user';
+  const currentUserId = authUser?.id || 'current-user';
   const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
   
   const [startDate, setStartDate] = useState<Date | undefined>();
