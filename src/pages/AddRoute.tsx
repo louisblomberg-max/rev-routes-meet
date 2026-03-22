@@ -237,7 +237,7 @@ const AddRoute = () => {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
       return;
     }
-    const userId = state.currentUser?.id || 'anon';
+    const userId = authUser?.id || 'anon';
     const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
     routesRepo.create({
       name: data.name,
