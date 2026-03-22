@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { AttendEventSheet, AttendeeListSheet } from '@/components/AttendEventSheet';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const REVNET_FEE_PENCE = 50;
 
