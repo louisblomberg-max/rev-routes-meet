@@ -1,47 +1,106 @@
 import { ChevronRight } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const PrivacySafetySettings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Profile Visibility
   const [profileVisibility, setProfileVisibility] = useState('public');
-
-  // Garage Privacy
   const [showGarageOnProfile, setShowGarageOnProfile] = useState(true);
   const [friendsViewVehicleDetails, setFriendsViewVehicleDetails] = useState(true);
   const [othersSeeMods, setOthersSeeMods] = useState(true);
-
-  // Location Sharing
   const [liveLocationEnabled, setLiveLocationEnabled] = useState(false);
   const [locationVisibility, setLocationVisibility] = useState('friends');
   const [autoShareGroupDrives, setAutoShareGroupDrives] = useState(true);
   const [autoShareBreakdown, setAutoShareBreakdown] = useState(true);
-
-  // Breakdown Privacy
   const [nearbyBreakdownVisible, setNearbyBreakdownVisible] = useState(true);
   const [shareVehicleBreakdown, setShareVehicleBreakdown] = useState(true);
   const [allowHelpersMessage, setAllowHelpersMessage] = useState(true);
-
-  // Messaging Privacy
   const [whoCanMessage, setWhoCanMessage] = useState('friends-clubs');
   const [allowMessageRequests, setAllowMessageRequests] = useState(true);
   const [muteUnknownSenders, setMuteUnknownSenders] = useState(false);
-
-  // Activity Controls
   const [showEventsAttend, setShowEventsAttend] = useState(true);
   const [showRoutesCreate, setShowRoutesCreate] = useState(true);
   const [showForumPosts, setShowForumPosts] = useState(true);
 
+  // Load from Supabase
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (data) {
+        setProfileVisibility(data.profile_visibility || 'public');
+        setShowGarageOnProfile(data.show_garage_on_profile ?? true);
+        setFriendsViewVehicleDetails(data.allow_friends_view_vehicles ?? true);
+        setOthersSeeMods(data.allow_others_see_mods ?? true);
+        setLiveLocationEnabled(data.live_location_sharing ?? false);
+        setWhoCanMessage(data.who_can_message === 'friends' ? 'friends' : data.who_can_message === 'anyone' ? 'anyone' : 'friends-clubs');
+        setAllowMessageRequests(data.allow_message_requests ?? true);
+        setShowEventsAttend(data.show_events_i_attend ?? true);
+        setShowRoutesCreate(data.show_routes_i_create ?? true);
+        setShowForumPosts(data.show_forum_posts ?? true);
+      }
+      setIsLoading(false);
+    })();
+  }, [user?.id]);
+
+  const updateField = async (field: string, value: any) => {
+    if (!user?.id) return;
+    const { error } = await supabase.from('profiles').update({ [field]: value }).eq('id', user.id);
+    if (error) toast.error('Failed to save setting');
+  };
+
+  const handleProfileVisibility = (v: string) => { setProfileVisibility(v); updateField('profile_visibility', v); };
+  const handleShowGarage = (v: boolean) => { setShowGarageOnProfile(v); updateField('show_garage_on_profile', v); };
+  const handleFriendsView = (v: boolean) => { setFriendsViewVehicleDetails(v); updateField('allow_friends_view_vehicles', v); };
+  const handleOthersMods = (v: boolean) => { setOthersSeeMods(v); updateField('allow_others_see_mods', v); };
+  const handleLiveLocation = (v: boolean) => { setLiveLocationEnabled(v); updateField('live_location_sharing', v); };
+  const handleWhoCanMessage = (v: string) => {
+    setWhoCanMessage(v);
+    const dbVal = v === 'friends' ? 'friends' : v === 'anyone' ? 'anyone' : 'friends_and_clubs';
+    updateField('who_can_message', dbVal);
+  };
+  const handleAllowRequests = (v: boolean) => { setAllowMessageRequests(v); updateField('allow_message_requests', v); };
+  const handleShowEvents = (v: boolean) => { setShowEventsAttend(v); updateField('show_events_i_attend', v); };
+  const handleShowRoutes = (v: boolean) => { setShowRoutesCreate(v); updateField('show_routes_i_create', v); };
+  const handleShowForum = (v: boolean) => { setShowForumPosts(v); updateField('show_forum_posts', v); };
+
+  if (isLoading) {
+    return (
+      <div className="mobile-container bg-background h-screen flex flex-col">
+        <div className="px-4 pt-4 pb-2 safe-top shrink-0">
+          <div className="flex items-center gap-3">
+            <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" />
+            <h1 className="text-lg font-bold text-foreground">Privacy & Safety</h1>
+          </div>
+        </div>
+        <div className="px-4 pt-4 space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-card rounded-xl border border-border/30 shadow-sm p-4 space-y-3">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mobile-container bg-background h-screen flex flex-col">
-      {/* Header */}
       <div className="px-4 pt-4 pb-2 safe-top shrink-0">
         <div className="flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" />
@@ -49,57 +108,45 @@ const PrivacySafetySettings = () => {
         </div>
       </div>
 
-      {/* Scrollable Content */}
       <ScrollArea className="flex-1">
         <div className="px-4 pb-6 space-y-4">
-          
           {/* 1. Profile Visibility */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Profile Visibility</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Control who can view your profile, garage, and activity</p>
-            
-            <RadioGroup value={profileVisibility} onValueChange={setProfileVisibility} className="space-y-2">
-              <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
-                <RadioGroupItem value="public" id="public" className="mt-0.5" />
-                <Label htmlFor="public" className="flex-1 cursor-pointer">
-                  <span className="text-sm font-medium text-foreground">Public</span>
-                  <p className="text-xs text-muted-foreground">Anyone can view your profile, vehicles, and activity</p>
-                </Label>
-              </div>
-              <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
-                <RadioGroupItem value="friends" id="friends" className="mt-0.5" />
-                <Label htmlFor="friends" className="flex-1 cursor-pointer">
-                  <span className="text-sm font-medium text-foreground">Friends only</span>
-                  <p className="text-xs text-muted-foreground">Only people you've added as friends can see your profile</p>
-                </Label>
-              </div>
-              <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
-                <RadioGroupItem value="private" id="private" className="mt-0.5" />
-                <Label htmlFor="private" className="flex-1 cursor-pointer">
-                  <span className="text-sm font-medium text-foreground">Private</span>
-                  <p className="text-xs text-muted-foreground">Your profile is hidden from everyone</p>
-                </Label>
-              </div>
+            <RadioGroup value={profileVisibility} onValueChange={handleProfileVisibility} className="space-y-2">
+              {[
+                { value: 'public', label: 'Public', desc: 'Anyone can view your profile, vehicles, and activity' },
+                { value: 'friends', label: 'Friends only', desc: 'Only people you\'ve added as friends can see your profile' },
+                { value: 'private', label: 'Private', desc: 'Your profile is hidden from everyone' },
+              ].map(o => (
+                <div key={o.value} className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
+                  <RadioGroupItem value={o.value} id={o.value} className="mt-0.5" />
+                  <Label htmlFor={o.value} className="flex-1 cursor-pointer">
+                    <span className="text-sm font-medium text-foreground">{o.label}</span>
+                    <p className="text-xs text-muted-foreground">{o.desc}</p>
+                  </Label>
+                </div>
+              ))}
             </RadioGroup>
           </div>
 
-          {/* 2. Garage & Vehicle Visibility */}
+          {/* 2. Garage Privacy */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Garage Privacy</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Manage who can see your vehicles and build details</p>
-            
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Show garage on profile</span>
-                <Switch checked={showGarageOnProfile} onCheckedChange={setShowGarageOnProfile} />
+                <Switch checked={showGarageOnProfile} onCheckedChange={handleShowGarage} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Allow friends to view vehicle details</span>
-                <Switch checked={friendsViewVehicleDetails} onCheckedChange={setFriendsViewVehicleDetails} />
+                <Switch checked={friendsViewVehicleDetails} onCheckedChange={handleFriendsView} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Allow others to see mods & notes</span>
-                <Switch checked={othersSeeMods} onCheckedChange={setOthersSeeMods} />
+                <Switch checked={othersSeeMods} onCheckedChange={handleOthersMods} />
               </div>
             </div>
           </div>
@@ -108,13 +155,11 @@ const PrivacySafetySettings = () => {
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Live Location Sharing</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Choose when and with whom your live location is shared</p>
-            
             <div className="space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-border/30">
                 <span className="text-sm font-medium text-foreground">Live location sharing</span>
-                <Switch checked={liveLocationEnabled} onCheckedChange={setLiveLocationEnabled} />
+                <Switch checked={liveLocationEnabled} onCheckedChange={handleLiveLocation} />
               </div>
-              
               {liveLocationEnabled && (
                 <>
                   <div className="pt-1">
@@ -134,7 +179,6 @@ const PrivacySafetySettings = () => {
                       ))}
                     </RadioGroup>
                   </div>
-                  
                   <div className="pt-2 space-y-3 border-t border-border/30">
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-foreground">Auto-share during group drives</span>
@@ -147,18 +191,14 @@ const PrivacySafetySettings = () => {
                   </div>
                 </>
               )}
-              
-              <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2">
-                🛡️ Your location is never shared without your permission
-              </p>
+              <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2">🛡️ Your location is never shared without your permission</p>
             </div>
           </div>
 
-          {/* 4. Breakdown & Help Privacy */}
+          {/* 4. Breakdown Privacy */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Breakdown & Help Requests</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Control how your information is shared when you need help</p>
-            
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Allow nearby users to see breakdown requests</span>
@@ -172,22 +212,18 @@ const PrivacySafetySettings = () => {
                 <span className="text-sm text-foreground">Allow helpers to message me</span>
                 <Switch checked={allowHelpersMessage} onCheckedChange={setAllowHelpersMessage} />
               </div>
-              
-              <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2">
-                Your exact location is only shared with people responding to your request
-              </p>
+              <p className="text-[11px] text-muted-foreground bg-muted/50 rounded-lg p-2">Your exact location is only shared with people responding to your request</p>
             </div>
           </div>
 
-          {/* 5. Messaging & Contact Controls */}
+          {/* 5. Messaging Privacy */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Messaging Privacy</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Decide who can contact you</p>
-            
             <div className="space-y-3">
               <div>
                 <span className="text-xs font-medium text-muted-foreground">Who can message me</span>
-                <RadioGroup value={whoCanMessage} onValueChange={setWhoCanMessage} className="mt-2 space-y-1">
+                <RadioGroup value={whoCanMessage} onValueChange={handleWhoCanMessage} className="mt-2 space-y-1">
                   {[
                     { value: 'friends', label: 'Friends only' },
                     { value: 'friends-clubs', label: 'Friends & club members' },
@@ -200,11 +236,10 @@ const PrivacySafetySettings = () => {
                   ))}
                 </RadioGroup>
               </div>
-              
               <div className="pt-2 space-y-3 border-t border-border/30">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-foreground">Allow message requests</span>
-                  <Switch checked={allowMessageRequests} onCheckedChange={setAllowMessageRequests} />
+                  <Switch checked={allowMessageRequests} onCheckedChange={handleAllowRequests} />
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-foreground">Mute unknown senders</span>
@@ -214,7 +249,7 @@ const PrivacySafetySettings = () => {
             </div>
           </div>
 
-          {/* 6. Blocking & Reporting */}
+          {/* 6. Blocked Users */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
             <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
               <div className="text-left">
@@ -225,27 +260,25 @@ const PrivacySafetySettings = () => {
             </button>
           </div>
 
-          {/* 7. Data & Activity Controls */}
+          {/* 7. Activity Controls */}
           <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4">
             <h2 className="text-sm font-semibold text-foreground">Activity & Data</h2>
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">Manage how your activity appears to others</p>
-            
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Show events I attend</span>
-                <Switch checked={showEventsAttend} onCheckedChange={setShowEventsAttend} />
+                <Switch checked={showEventsAttend} onCheckedChange={handleShowEvents} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Show routes I create</span>
-                <Switch checked={showRoutesCreate} onCheckedChange={setShowRoutesCreate} />
+                <Switch checked={showRoutesCreate} onCheckedChange={handleShowRoutes} />
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-foreground">Show forum posts on profile</span>
-                <Switch checked={showForumPosts} onCheckedChange={setShowForumPosts} />
+                <Switch checked={showForumPosts} onCheckedChange={handleShowForum} />
               </div>
             </div>
           </div>
-
         </div>
       </ScrollArea>
     </div>
