@@ -35,7 +35,7 @@ const baseUser = (overrides: Partial<AuthUser> & { id: string }): AuthUser => ({
   discoveryRadiusMiles: 25,
   discoveryScope: 'local' as const,
   notificationPrefs: { newEventsNearby: true, friendsNearby: false, clubAnnouncements: false, marketplaceMessages: false, sosAlerts: true },
-  vehicles: [] as any[],
+  vehicles: [],
   preferences: {
     mapStyle: 'standard',
     availableToHelp: false,

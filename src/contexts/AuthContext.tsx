@@ -70,8 +70,7 @@ export interface AuthUser {
   eventCredits: number;
   routeCredits: number;
   createdAt: string;
-  // keep vehicles as empty — GarageContext handles vehicles
-  vehicles: never[];
+  vehicles: any[];
 }
 
 interface AuthContextType {
