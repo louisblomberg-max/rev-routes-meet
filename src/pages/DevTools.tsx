@@ -370,7 +370,7 @@ const DevTools = () => {
       endTime: '14:00',
       date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
       visibility: 'public' as const,
-      createdBy: state.currentUser?.id || 'dev',
+      createdBy: authUser?.id || 'dev',
       maxAttendees: 50,
       attendees: 0,
       attendeesList: [],
