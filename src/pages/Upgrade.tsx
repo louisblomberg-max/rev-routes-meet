@@ -9,11 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
   const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
-  const { state } = useData();
+  const { updateProfile } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
