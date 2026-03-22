@@ -80,6 +80,7 @@ export const GarageProvider = ({ children }: { children: ReactNode }) => {
             marketplaceMessages: true,
             sosAlerts: true,
           },
+          updatedAt: p.updated_at || new Date().toISOString(),
         });
       }
     } catch (err) {

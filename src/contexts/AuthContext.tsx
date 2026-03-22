@@ -210,7 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const registerPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signUp({ phone });
+    const { error } = await supabase.auth.signInWithOtp({ phone });
     if (error) { setIsLoading(false); throw error; }
     setIsLoading(false);
   }, []);
