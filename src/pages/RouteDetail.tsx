@@ -21,7 +21,7 @@ const RouteDetail = () => {
   const route = state.routes.find(r => r.id === id);
   const isSavedInitial = state.savedRoutes.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
-  const isCreator = route?.createdBy === state.currentUser?.id;
+  const isCreator = route?.createdBy === authUser?.id;
   const miniMapContainer = useRef<HTMLDivElement>(null);
   const miniMapRef = useRef<mapboxgl.Map | null>(null);
 
