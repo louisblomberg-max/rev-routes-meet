@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ViewportBounds {
   north: number;
@@ -13,6 +14,7 @@ export interface MapPin {
   lat: number;
   lng: number;
   title: string;
+  data?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
@@ -36,15 +38,31 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
   const [pins, setPins] = useState<MapPin[]>([]);
   const [isLoadingPins, setIsLoadingPins] = useState(false);
 
-  const fetchPinsForViewport = useCallback((_bounds: ViewportBounds, _categories: string[]) => {
-    // Placeholder for backend geo-query
-    // Will be replaced with Supabase RPC call: 
-    // supabase.rpc('get_pins_in_bounds', { north, south, east, west, categories })
+  const fetchPinsForViewport = useCallback(async (bounds: ViewportBounds, categories: string[]) => {
     setIsLoadingPins(true);
-    setTimeout(() => {
-      setPins([]); // No mock data - user-generated content only
-      setIsLoadingPins(false);
-    }, 100);
+    try {
+      const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+        north: bounds.north,
+        south: bounds.south,
+        east: bounds.east,
+        west: bounds.west,
+        categories,
+      });
+      if (!error && data) {
+        setPins(data.map((pin: any) => ({
+          id: pin.id,
+          type: pin.type,
+          lat: Number(pin.lat),
+          lng: Number(pin.lng),
+          title: pin.title,
+          data: pin.data,
+          ...pin.data,
+        })));
+      }
+    } catch (err) {
+      console.error('Error fetching pins:', err);
+    }
+    setIsLoadingPins(false);
   }, []);
 
   return (
