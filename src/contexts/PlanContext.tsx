@@ -1,5 +1,6 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import type { PlanId } from '@/models';
 
 export type { PlanId } from '@/models';
@@ -12,9 +13,7 @@ export interface FeatureAccess {
   requiredPlan: PlanId;
 }
 
-// Define which plan level each feature requires
 export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
-  // Free features
   'browse_routes': 'free',
   'browse_events': 'free',
   'browse_services': 'free',
@@ -30,15 +29,11 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'create_events': 'free',
   'create_routes': 'free',
   'garage_showcase': 'free',
-  
-  // Pro features
   'live_location': 'pro',
   'breakdown_help': 'pro',
   'advanced_filters': 'pro',
   'priority_visibility': 'pro',
   'create_marketplace_listing': 'pro',
-  
-  // Club/Business features
   'create_clubs': 'club',
   'club_announcements': 'club',
   'event_ticketing': 'club',
@@ -74,34 +69,55 @@ const PlanContext = createContext<PlanContextType | undefined>(undefined);
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const { user, updateProfile } = useAuth();
 
-  const [currentPlan, setCurrentPlan] = useState<PlanId>(() => {
-    return user?.membershipPlan || 'free';
-  });
+  const [currentPlan, setCurrentPlan] = useState<PlanId>('free');
+  const [billingCycle, setBillingCycleState] = useState<BillingCycle>('yearly');
+  const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>('active');
 
-  const [billingCycle, setBillingCycleState] = useState<BillingCycle>(() => {
-    return user?.billingCycle || 'yearly';
-  });
+  // Load subscription from Supabase when user changes
+  useEffect(() => {
+    if (!user?.id) return;
 
-  const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>(() => {
-    return user?.subscriptionStatus || 'active';
-  });
+    const loadSub = async () => {
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-  // If subscription is inactive, treat as free
+      if (data) {
+        setCurrentPlan((data.plan as PlanId) || 'free');
+        setBillingCycleState((data.billing_cycle as BillingCycle) || 'monthly');
+        setSubscriptionStatusState((data.status as SubscriptionStatus) || 'active');
+      }
+    };
+
+    loadSub();
+  }, [user?.id]);
+
   const effectivePlan: PlanId = subscriptionStatus === 'inactive' ? 'free' : currentPlan;
 
-  const setPlan = (plan: PlanId) => {
+  const setPlan = async (plan: PlanId) => {
     setCurrentPlan(plan);
     updateProfile({ membershipPlan: plan });
+    if (user?.id) {
+      await supabase.from('subscriptions').update({ plan }).eq('user_id', user.id);
+    }
   };
 
-  const setBillingCycle = (cycle: BillingCycle) => {
+  const setBillingCycle = async (cycle: BillingCycle) => {
     setBillingCycleState(cycle);
     updateProfile({ billingCycle: cycle });
+    if (user?.id) {
+      await supabase.from('subscriptions').update({ billing_cycle: cycle }).eq('user_id', user.id);
+    }
   };
 
-  const setSubscriptionStatus = (status: SubscriptionStatus) => {
+  const setSubscriptionStatus = async (status: SubscriptionStatus) => {
     setSubscriptionStatusState(status);
     updateProfile({ subscriptionStatus: status });
+    if (user?.id) {
+      await supabase.from('subscriptions').update({ status }).eq('user_id', user.id);
+    }
   };
 
   const hasAccess = (featureId: string): boolean => {
@@ -125,16 +141,9 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <PlanContext.Provider value={{ 
-      currentPlan, 
-      billingCycle,
-      subscriptionStatus, 
-      setPlan, 
-      setBillingCycle,
-      setSubscriptionStatus, 
-      hasAccess, 
-      getRequiredPlan, 
-      getPlanLabel, 
-      effectivePlan 
+      currentPlan, billingCycle, subscriptionStatus, 
+      setPlan, setBillingCycle, setSubscriptionStatus, 
+      hasAccess, getRequiredPlan, getPlanLabel, effectivePlan 
     }}>
       {children}
     </PlanContext.Provider>

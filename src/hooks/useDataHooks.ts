@@ -1,8 +1,6 @@
 // ============================
 // Data convenience hooks
 // ============================
-// Thin wrappers around useData() for common patterns.
-
 import { useMemo } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,15 +16,15 @@ export const useUserStats = (_userId?: string): UserStats => {
 
   return useMemo(() => ({
     garageCount: vehicles.length,
-    friendsCount: state.friends.filter(f => f.status === 'accepted').length,
-    clubsCount: state.clubMemberships.filter(m => m.userId === userId).length,
+    friendsCount: state.friends.filter((f: any) => f.status === 'accepted').length,
+    clubsCount: state.clubMemberships.filter((m: any) => m.userId === userId).length,
     eventsCount: state.userAttendingEvents.length + state.userHostedEvents.length,
     routesCount: state.savedRoutes.length,
-    discussionsCount: state.activities.filter(a => a.type === 'forum_post' || a.type === 'forum_reply').length,
+    discussionsCount: state.activities.filter((a: any) => a.type === 'forum_post' || a.type === 'forum_reply').length,
   }), [vehicles, state.friends, state.clubMemberships, state.userAttendingEvents, state.userHostedEvents, state.savedRoutes, state.activities, userId]);
 };
 
-/** Get community stats (total across all users — uses seed data counts) */
+/** Get community stats */
 export const useCommunityStats = () => {
   const { state } = useData();
   return useMemo(() => ({

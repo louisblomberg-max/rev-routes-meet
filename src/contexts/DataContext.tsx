@@ -1,58 +1,71 @@
 // ============================
-// DataProvider — Single data layer for the entire app
+// DataProvider — Supabase-backed data layer
 // ============================
-// Currently backed by mock in-memory state. Set USE_SUPABASE = true to swap.
+// Provides repository methods for creating/saving/unsaving items.
+// All reads now come from Supabase queries in hooks/components.
 
 import { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import type {
-  Friend, UserActivity,
   RevEvent, RevRoute, RevService,
   Club, ClubMembership, ClubPost, ClubEvent,
   ForumPost, ForumComment,
   MarketplaceListing, Conversation, HelpRequest, StolenVehicleAlert,
+  Friend, UserActivity,
 } from '@/models';
 
-import {
-  MockUserRepository, MockFriendsRepository,
-  MockEventsRepository, MockRoutesRepository, MockServicesRepository,
-  MockClubsRepository, MockForumsRepository, MockMarketplaceRepository,
-  MockMessagesRepository, MockMapRepository, MockHelpRepository,
-  type MockStoreConfig,
-} from '@/repositories/mock/MockRepositories';
+interface EventsRepo {
+  create: (event: Omit<RevEvent, 'id' | 'createdAt'>) => RevEvent;
+  saveEvent: (userId: string, eventId: string) => void;
+  unsaveEvent: (userId: string, eventId: string) => void;
+  update: (id: string, updates: Partial<RevEvent>) => RevEvent;
+}
 
-import type {
-  IUserRepository, IFriendsRepository,
-  IEventsRepository, IRoutesRepository, IServicesRepository,
-  IClubsRepository, IForumsRepository, IMarketplaceRepository,
-  IMessagesRepository, IMapRepository, IHelpRepository,
-} from '@/repositories/interfaces';
+interface RoutesRepo {
+  create: (route: Omit<RevRoute, 'id' | 'createdAt'>) => RevRoute;
+  saveRoute: (userId: string, routeId: string) => void;
+  unsaveRoute: (userId: string, routeId: string) => void;
+}
 
-import {
-  seedEvents, seedRoutes, seedServices, seedClubs,
-  seedClubPosts, seedClubEvents,
-  seedForumPosts, seedForumComments,
-  seedMarketplaceListings,
-  seedUserFriends, seedUserActivities,
-  seedUserClubMemberships, seedUserSavedRoutes, seedUserAttendingEvents,
-} from '@/repositories/mock/seedData';
+interface ServicesRepo {
+  create: (service: Omit<RevService, 'id' | 'createdAt'>) => RevService;
+  saveService: (userId: string, serviceId: string) => void;
+  unsaveService: (userId: string, serviceId: string) => void;
+}
 
-// Toggle this to swap mock repos for Supabase repos
-const USE_SUPABASE = false;
+interface ClubsRepo {
+  create: (club: Omit<Club, 'id' | 'createdAt'>) => Club;
+  isHandleAvailable: (handle: string) => boolean;
+  join: (userId: string, clubId: string) => ClubMembership;
+  leave: (userId: string, clubId: string) => void;
+  createClubPost: (post: Omit<ClubPost, 'id'>) => ClubPost;
+}
 
-// ---- Context Type ----
+interface ForumsRepo {
+  createPost: (post: Omit<ForumPost, 'id' | 'createdAt' | 'upvotes' | 'downvotes' | 'comments'>) => ForumPost;
+  createComment: (comment: Omit<ForumComment, 'id' | 'createdAt' | 'upvotes' | 'downvotes'>) => ForumComment;
+}
+
+interface FriendsRepo {
+  sendRequest: (userId: string, targetUserId: string) => Friend;
+  acceptRequest: (friendId: string) => Friend;
+  removeFriend: (friendId: string) => void;
+}
+
+interface HelpRepo {
+  createHelpRequest: (request: Omit<HelpRequest, 'id' | 'createdAt'>) => HelpRequest;
+  createStolenAlert: (alert: Omit<StolenVehicleAlert, 'id' | 'createdAt'>) => StolenVehicleAlert;
+}
+
 interface DataContextType {
-  users: IUserRepository;
-  friends: IFriendsRepository;
-  events: IEventsRepository;
-  routes: IRoutesRepository;
-  services: IServicesRepository;
-  clubs: IClubsRepository;
-  forums: IForumsRepository;
-  marketplace: IMarketplaceRepository;
-  messages: IMessagesRepository;
-  map: IMapRepository;
-  help: IHelpRepository;
-  // Direct state access for components that need reactive rendering
+  events: EventsRepo;
+  routes: RoutesRepo;
+  services: ServicesRepo;
+  clubs: ClubsRepo;
+  forums: ForumsRepo;
+  friends: FriendsRepo;
+  help: HelpRepo;
   state: {
     events: RevEvent[];
     routes: RevRoute[];
@@ -81,95 +94,228 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider = ({ children }: { children: ReactNode }) => {
-  // ---- All reactive state ----
-  const [events, setEvents] = useState<RevEvent[]>(seedEvents);
-  const [routes, setRoutes] = useState<RevRoute[]>(seedRoutes);
-  const [services, setServices] = useState<RevService[]>(seedServices);
-  const [clubs, setClubs] = useState<Club[]>(seedClubs);
-  const [clubMemberships, setClubMemberships] = useState<ClubMembership[]>(seedUserClubMemberships);
-  const [clubPosts, setClubPosts] = useState<ClubPost[]>(seedClubPosts);
-  const [clubEvents, setClubEvents] = useState<ClubEvent[]>(seedClubEvents);
-  const [forumPosts, setForumPosts] = useState<ForumPost[]>(seedForumPosts);
-  const [forumComments, setForumComments] = useState<ForumComment[]>(seedForumComments);
-  const [marketplace, setMarketplace] = useState<MarketplaceListing[]>(seedMarketplaceListings);
-  const [friends, setFriends] = useState<Friend[]>(seedUserFriends);
-  const [activities, setActivities] = useState<UserActivity[]>(seedUserActivities);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [savedRoutes, setSavedRoutes] = useState<string[]>(seedUserSavedRoutes);
-  const [savedEvents, setSavedEvents] = useState<string[]>([]);
-  const [savedServices, setSavedServices] = useState<string[]>([]);
-  const [savedListings, setSavedListings] = useState<string[]>([]);
-  const [userAttendingEvents, setUserAttendingEvents] = useState<string[]>(seedUserAttendingEvents);
-  const [userHostedEvents, setUserHostedEvents] = useState<string[]>([]);
-  const [helpRequests, setHelpRequests] = useState<HelpRequest[]>([]);
-  const [stolenAlerts, setStolenAlerts] = useState<StolenVehicleAlert[]>([]);
+  const [localEvents, setLocalEvents] = useState<RevEvent[]>([]);
+  const [localRoutes, setLocalRoutes] = useState<RevRoute[]>([]);
+  const [localServices, setLocalServices] = useState<RevService[]>([]);
+  const [localClubs, setLocalClubs] = useState<Club[]>([]);
+  const [localForumPosts, setLocalForumPosts] = useState<ForumPost[]>([]);
+  const [localHelpRequests, setLocalHelpRequests] = useState<HelpRequest[]>([]);
+  const [localStolenAlerts, setLocalStolenAlerts] = useState<StolenVehicleAlert[]>([]);
+  const [localSavedRoutes, setLocalSavedRoutes] = useState<string[]>([]);
+  const [localSavedEvents, setLocalSavedEvents] = useState<string[]>([]);
+  const [localSavedServices, setLocalSavedServices] = useState<string[]>([]);
+  const [localAttendingEvents, setLocalAttendingEvents] = useState<string[]>([]);
 
-  // ---- Store config (bridges React state to repository classes) ----
-  const storeConfig: MockStoreConfig = useMemo(() => ({
-    events: { get: () => events, set: setEvents },
-    routes: { get: () => routes, set: setRoutes },
-    services: { get: () => services, set: setServices },
-    clubs: { get: () => clubs, set: setClubs },
-    clubMemberships: { get: () => clubMemberships, set: setClubMemberships },
-    clubPosts: { get: () => clubPosts, set: setClubPosts },
-    clubEvents: { get: () => clubEvents, set: setClubEvents },
-    forumPosts: { get: () => forumPosts, set: setForumPosts },
-    forumComments: { get: () => forumComments, set: setForumComments },
-    marketplace: { get: () => marketplace, set: setMarketplace },
-    friends: { get: () => friends, set: setFriends },
-    activities: { get: () => activities, set: setActivities },
-    conversations: { get: () => conversations, set: setConversations },
-    savedRoutes: { get: () => savedRoutes, set: setSavedRoutes },
-    savedEvents: { get: () => savedEvents, set: setSavedEvents },
-    savedServices: { get: () => savedServices, set: setSavedServices },
-    savedListings: { get: () => savedListings, set: setSavedListings },
-    userAttendingEvents: { get: () => userAttendingEvents, set: setUserAttendingEvents },
-    userHostedEvents: { get: () => userHostedEvents, set: setUserHostedEvents },
-    helpRequests: { get: () => helpRequests, set: setHelpRequests },
-    stolenAlerts: { get: () => stolenAlerts, set: setStolenAlerts },
-  }), [events, routes, services, clubs, clubMemberships, clubPosts, clubEvents, forumPosts, forumComments, marketplace, friends, activities, conversations, savedRoutes, savedEvents, savedServices, savedListings, userAttendingEvents, userHostedEvents, helpRequests, stolenAlerts]);
+  const eventsRepo: EventsRepo = useMemo(() => ({
+    create: (event) => {
+      const newEvent: RevEvent = { ...event, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalEvents(prev => [...prev, newEvent]);
+      (async () => {
+        const { error } = await supabase.from('events').insert({
+          created_by: event.createdBy, title: event.title, description: event.description,
+          banner_url: event.bannerImage, date_start: event.startDate, date_end: event.endDate || null,
+          location: event.locationName || event.location, lat: event.lat, lng: event.lng,
+          type: event.eventType, vehicle_types: event.vehicleTypes || [],
+          vehicle_brands: event.vehicleBrands || [], vehicle_categories: event.vehicleCategories || [],
+          vehicle_ages: event.vehicleAges || [], max_attendees: event.maxAttendees,
+          is_first_come_first_serve: event.firstComeFirstServe,
+          entry_fee: event.entryFeeAmount || 0, is_free: event.entryFeeType === 'free',
+          visibility: event.visibility === 'club' ? 'club' : event.visibility === 'friends' ? 'friends' : 'public',
+          club_id: event.clubId || null,
+        });
+        if (error) toast.error('Failed to save event');
+      })();
+      return newEvent;
+    },
+    saveEvent: (userId, eventId) => {
+      setLocalSavedEvents(prev => [...prev, eventId]);
+      (async () => { await supabase.from('event_attendees').insert({ user_id: userId, event_id: eventId, status: 'attending' }); })();
+    },
+    unsaveEvent: (userId, eventId) => {
+      setLocalSavedEvents(prev => prev.filter(id => id !== eventId));
+      (async () => { await supabase.from('event_attendees').delete().eq('user_id', userId).eq('event_id', eventId); })();
+    },
+    update: (id, updates) => {
+      setLocalEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+      const dbUpdates: Record<string, unknown> = {};
+      if (updates.attendees !== undefined) dbUpdates.max_attendees = updates.maxAttendees;
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      (async () => { if (Object.keys(dbUpdates).length > 0) await supabase.from('events').update(dbUpdates).eq('id', id); })();
+      return { id, ...updates } as RevEvent;
+    },
+  }), []);
 
-  // ---- Repository instances ----
-  // When USE_SUPABASE is true, swap these for Supabase implementations
-  const repos = useMemo(() => {
-    if (USE_SUPABASE) {
-      // TODO: Import and instantiate Supabase repositories here
-      // e.g. new SupabaseEventsRepository(supabase), etc.
-      throw new Error('Supabase repositories not yet connected. Set USE_SUPABASE = false.');
-    }
-    return {
-      users: new MockUserRepository(storeConfig),
-      friends: new MockFriendsRepository(storeConfig),
-      events: new MockEventsRepository(storeConfig),
-      routes: new MockRoutesRepository(storeConfig),
-      services: new MockServicesRepository(storeConfig),
-      clubs: new MockClubsRepository(storeConfig),
-      forums: new MockForumsRepository(storeConfig),
-      marketplace: new MockMarketplaceRepository(storeConfig),
-      messages: new MockMessagesRepository(storeConfig),
-      map: new MockMapRepository(storeConfig),
-      help: new MockHelpRepository(storeConfig),
-    };
-  }, [storeConfig]);
+  const routesRepo: RoutesRepo = useMemo(() => ({
+    create: (route) => {
+      const newRoute: RevRoute = { ...route, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalRoutes(prev => [...prev, newRoute]);
+      (async () => {
+        const { error } = await supabase.from('routes').insert({
+          created_by: route.createdBy, name: route.name, description: route.description,
+          distance_meters: route.distance ? parseFloat(route.distance) : null,
+          duration_minutes: route.durationMinutes, type: route.type, vehicle_type: route.vehicleType,
+          difficulty: route.difficulty || null, surface_type: route.surfaceType || null,
+          safety_tags: route.safetyTags || [], visibility: route.visibility === 'club' ? 'public' : route.visibility,
+          lat: route.lat, lng: route.lng, geometry: route.polyline ? JSON.parse(route.polyline) : null,
+          elevation_gain: route.elevationGain,
+        });
+        if (error) toast.error('Failed to save route');
+      })();
+      return newRoute;
+    },
+    saveRoute: (userId, routeId) => {
+      setLocalSavedRoutes(prev => [...prev, routeId]);
+      (async () => { await supabase.from('saved_routes').insert({ user_id: userId, route_id: routeId }); })();
+    },
+    unsaveRoute: (userId, routeId) => {
+      setLocalSavedRoutes(prev => prev.filter(id => id !== routeId));
+      (async () => { await supabase.from('saved_routes').delete().eq('user_id', userId).eq('route_id', routeId); })();
+    },
+  }), []);
+
+  const servicesRepo: ServicesRepo = useMemo(() => ({
+    create: (service) => {
+      const newService: RevService = { ...service, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalServices(prev => [...prev, newService]);
+      (async () => {
+        const { error } = await supabase.from('services').insert({
+          created_by: service.createdBy, name: service.name, tagline: service.tagline,
+          description: service.category, types: service.serviceTypes || [],
+          lat: service.lat, lng: service.lng, address: service.address,
+          service_type: service.serviceMode === 'mobile' ? 'mobile' : 'fixed',
+          phone: service.phone, website: service.website,
+        });
+        if (error) toast.error('Failed to save service');
+      })();
+      return newService;
+    },
+    saveService: (userId, serviceId) => {
+      setLocalSavedServices(prev => [...prev, serviceId]);
+      (async () => { await supabase.from('saved_services').insert({ user_id: userId, service_id: serviceId }); })();
+    },
+    unsaveService: (userId, serviceId) => {
+      setLocalSavedServices(prev => prev.filter(id => id !== serviceId));
+      (async () => { await supabase.from('saved_services').delete().eq('user_id', userId).eq('service_id', serviceId); })();
+    },
+  }), []);
+
+  const clubsRepo: ClubsRepo = useMemo(() => ({
+    create: (club) => {
+      const newClub: Club = { ...club, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalClubs(prev => [...prev, newClub]);
+      (async () => {
+        const { data, error } = await supabase.from('clubs').insert([{
+          created_by: club.createdBy, name: club.name, handle: club.handle,
+          description: club.description, club_type: club.clubType,
+          tags: club.tags || [], vehicle_focus: club.vehicleFocus || [],
+          visibility: club.visibility === 'private' ? 'members_only' : club.visibility === 'inviteOnly' ? 'invite_only' : 'public',
+          join_mode: club.joinApproval === 'adminApproval' ? 'admin_approval' : 'auto',
+          posting_permissions: club.postingPermissions === 'adminsOnly' ? 'admins_only' : 'any_member',
+          rules: club.rules || [], social_links: club.socialLinks || {},
+        }] as any).select().single();
+        if (!error && data) {
+          await supabase.from('club_memberships').insert({ user_id: club.createdBy, club_id: data.id, role: 'owner' });
+        }
+        if (error) toast.error('Failed to save club');
+      })();
+      return newClub;
+    },
+    isHandleAvailable: (_handle: string) => true,
+    join: (userId, clubId) => {
+      (async () => { await supabase.from('club_memberships').insert({ user_id: userId, club_id: clubId, role: 'member' }); })();
+      return { id: crypto.randomUUID(), userId, clubId, clubName: '', role: 'member' as const, joinedAt: new Date().toISOString() };
+    },
+    leave: (userId, clubId) => {
+      (async () => { await supabase.from('club_memberships').delete().eq('user_id', userId).eq('club_id', clubId); })();
+    },
+    createClubPost: (post) => {
+      const newPost: ClubPost = { ...post, id: crypto.randomUUID() };
+      (async () => {
+        await supabase.from('club_posts').insert({
+          club_id: post.clubId, user_id: post.author, body: post.content, photos: [],
+        });
+      })();
+      return newPost;
+    },
+  }), []);
+
+  const forumsRepo: ForumsRepo = useMemo(() => ({
+    createPost: (post) => {
+      const newPost: ForumPost = { ...post, id: crypto.randomUUID(), createdAt: new Date().toISOString(), upvotes: 0, downvotes: 0, comments: 0 };
+      setLocalForumPosts(prev => [...prev, newPost]);
+      (async () => {
+        await supabase.from('forum_posts').insert({
+          user_id: post.author, club_id: post.clubId || null, type: post.type,
+          title: post.title, body: post.body, category: post.category, photos: post.images || [],
+        });
+      })();
+      return newPost;
+    },
+    createComment: (comment) => {
+      const newComment: ForumComment = { ...comment, id: crypto.randomUUID(), createdAt: new Date().toISOString(), upvotes: 0, downvotes: 0 };
+      (async () => {
+        await supabase.from('forum_comments').insert({ post_id: comment.postId, user_id: comment.author, body: comment.content });
+      })();
+      return newComment;
+    },
+  }), []);
+
+  const friendsRepo: FriendsRepo = useMemo(() => ({
+    sendRequest: (userId, targetUserId) => {
+      (async () => { await supabase.from('friends').insert({ user_id: userId, friend_id: targetUserId, status: 'pending' }); })();
+      return { id: crypto.randomUUID(), userId, friendUserId: targetUserId, username: '', displayName: '', avatar: null, mutualFriends: 0, status: 'pending_sent' as const };
+    },
+    acceptRequest: (friendId) => {
+      (async () => { await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', friendId); })();
+      return { id: friendId, userId: '', friendUserId: '', username: '', displayName: '', avatar: null, mutualFriends: 0, status: 'accepted' as const };
+    },
+    removeFriend: (friendId) => {
+      (async () => { await supabase.from('friends').delete().eq('user_id', friendId); })();
+    },
+  }), []);
+
+  const helpRepo: HelpRepo = useMemo(() => ({
+    createHelpRequest: (request) => {
+      const newRequest: HelpRequest = { ...request, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalHelpRequests(prev => [...prev, newRequest]);
+      (async () => {
+        await supabase.from('help_requests').insert({
+          user_id: request.userId, issue_type: request.issueType.toLowerCase().replace(/ /g, '_'),
+          details: request.description, lat: request.lat, lng: request.lng,
+          help_source: request.helpSource, status: 'active',
+        });
+      })();
+      return newRequest;
+    },
+    createStolenAlert: (alert) => {
+      const newAlert: StolenVehicleAlert = { ...alert, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+      setLocalStolenAlerts(prev => [...prev, newAlert]);
+      (async () => {
+        await supabase.from('stolen_vehicle_alerts').insert({
+          user_id: alert.userId, vehicle_id: alert.vehicleId || null,
+          description: alert.vehicleDescription, last_seen_lat: alert.lat, last_seen_lng: alert.lng, status: 'active',
+        });
+      })();
+      return newAlert;
+    },
+  }), []);
 
   const value: DataContextType = {
-    ...repos,
+    events: eventsRepo, routes: routesRepo, services: servicesRepo,
+    clubs: clubsRepo, forums: forumsRepo, friends: friendsRepo, help: helpRepo,
     state: {
-      events, routes, services, clubs,
-      clubMemberships, clubPosts, clubEvents,
-      forumPosts, forumComments,
-      marketplace, friends, activities,
-      conversations, savedRoutes, savedEvents, savedServices, savedListings,
-      userAttendingEvents, userHostedEvents, helpRequests,
-      stolenAlerts,
+      events: localEvents, routes: localRoutes, services: localServices, clubs: localClubs,
+      clubMemberships: [], clubPosts: [], clubEvents: [],
+      forumPosts: localForumPosts, forumComments: [], marketplace: [],
+      friends: [], activities: [], conversations: [],
+      savedRoutes: localSavedRoutes, savedEvents: localSavedEvents,
+      savedServices: localSavedServices, savedListings: [],
+      userAttendingEvents: localAttendingEvents, userHostedEvents: [],
+      helpRequests: localHelpRequests, stolenAlerts: localStolenAlerts,
     },
   };
 
-  return (
-    <DataContext.Provider value={value}>
-      {children}
-    </DataContext.Provider>
-  );
+  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
 
 export const useData = () => {

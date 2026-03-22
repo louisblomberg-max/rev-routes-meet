@@ -1,16 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import type { PlanId } from '@/models';
-
-export interface AuthVehicle {
-  id: string;
-  type: 'car' | 'motorcycle';
-  make: string;
-  model: string;
-  year?: string;
-  trim?: string;
-  color?: string;
-  isPrimary: boolean;
-}
+import { toast } from 'sonner';
 
 export interface NotificationPrefs {
   newEventsNearby: boolean;
@@ -50,7 +41,6 @@ export interface AuthUser {
   };
   vehicleTypes: string[];
   vehicleTags: string[];
-  vehicles: AuthVehicle[];
   discoveryRadiusMiles: number;
   discoveryScope: 'local' | 'national' | 'continental' | 'global';
   notificationPrefs: NotificationPrefs;
@@ -59,7 +49,6 @@ export interface AuthUser {
     locationEnabled: boolean;
   };
   locationPermissionStatus?: 'not_requested' | 'allowed' | 'denied' | 'skipped';
-  // Fields from DataContext User model
   preferences: {
     mapStyle: 'standard' | 'night' | 'satellite';
     availableToHelp: boolean;
@@ -81,6 +70,7 @@ export interface AuthUser {
   eventCredits: number;
   routeCredits: number;
   createdAt: string;
+  vehicles: any[];
 }
 
 interface AuthContextType {
@@ -111,152 +101,196 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    const stored = localStorage.getItem('revnet_user');
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const initialized = useRef(false);
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem('revnet_user', JSON.stringify(user));
-    } else {
-      localStorage.removeItem('revnet_user');
+  const loadUserProfile = useCallback(async (userId: string, email?: string) => {
+    try {
+      const [profileRes, subRes] = await Promise.all([
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+        supabase.from('subscriptions').select('*').eq('user_id', userId).maybeSingle(),
+      ]);
+
+      const p = profileRes.data;
+      const s = subRes.data;
+
+      const authUser: AuthUser = {
+        id: userId,
+        email: email,
+        displayName: p?.display_name || email?.split('@')[0] || 'User',
+        username: p?.username || undefined,
+        avatar: p?.avatar_url || null,
+        bio: p?.bio || '',
+        location: p?.location || '',
+        country: p?.country || 'GB',
+        membershipPlan: (p?.plan as PlanId) || 'free',
+        billingCycle: (s?.billing_cycle as BillingCycle) || 'monthly',
+        subscriptionStatus: (s?.status as SubscriptionStatus) || 'active',
+        isProfileComplete: p?.onboarding_complete || false,
+        isVerified: true,
+        onboardingComplete: p?.onboarding_complete || false,
+        onboardingStep: p?.onboarding_step || 0,
+        interests: { events: [], routes: [], services: [], clubs: false, marketplace: false },
+        vehicleTypes: [],
+        vehicleTags: [],
+        vehicles: [],
+        discoveryRadiusMiles: p?.discovery_radius_miles || 25,
+        discoveryScope: 'local',
+        notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+        preferences: {
+          mapStyle: 'standard',
+          availableToHelp: p?.available_to_help || false,
+          helpDistanceMiles: p?.help_radius_miles || 10,
+          locationSharingEnabled: p?.live_location_sharing || false,
+          notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
+        },
+        liveFeatures: { locationSharingEnabled: p?.live_location_sharing || false, groupDrivesCount: 0, breakdownHelpCount: 0 },
+        eventCredits: p?.event_credits ?? 2,
+        routeCredits: p?.route_credits ?? 2,
+        createdAt: p?.created_at || new Date().toISOString(),
+      };
+
+      setUser(authUser);
+    } catch (err) {
+      console.error('Failed to load profile:', err);
     }
-  }, [user]);
+  }, []);
 
-  const createUser = (partial: Partial<AuthUser>): AuthUser => ({
-    id: crypto.randomUUID(),
-    email: undefined,
-    phone: undefined,
-    displayName: undefined,
-    username: undefined,
-    avatar: null,
-    bio: '',
-    country: 'GB',
-    membershipPlan: 'free',
-    billingCycle: 'yearly',
-    subscriptionStatus: 'active',
-    isProfileComplete: false,
-    isVerified: false,
-    onboardingComplete: false,
-    onboardingStep: 0,
-    interests: { events: [], routes: [], services: [], clubs: false, marketplace: false },
-    vehicleTypes: [],
-    vehicleTags: [],
-    vehicles: [],
-    discoveryRadiusMiles: 25,
-    discoveryScope: 'local',
-    notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
-    preferences: {
-      mapStyle: 'standard',
-      availableToHelp: false,
-      helpDistanceMiles: 10,
-      locationSharingEnabled: false,
-      notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
-    },
-    liveFeatures: { locationSharingEnabled: false, groupDrivesCount: 0, breakdownHelpCount: 0 },
-    eventCredits: 2,
-    routeCredits: 2,
-    createdAt: new Date().toISOString(),
-    ...partial,
-  });
+  // Auth state listener
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
 
-  const login = useCallback(async (email: string, _password: string) => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await loadUserProfile(session.user.id, session.user.email ?? undefined);
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await loadUserProfile(session.user.id, session.user.email ?? undefined);
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [loadUserProfile]);
+
+  const login = useCallback(async (email: string, password: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.signInWithPassword({ email, password })
-    setUser(prev => prev ?? createUser({
-      email,
-      displayName: email.split('@')[0],
-      isVerified: true,
-      isProfileComplete: true,
-      onboardingComplete: true,
-    }));
-    setIsLoading(false);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) { setIsLoading(false); throw error; }
   }, []);
 
   const loginPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.signInWithOtp({ phone })
-    setUser(createUser({ phone, isVerified: false }));
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) { setIsLoading(false); throw error; }
     setIsLoading(false);
   }, []);
 
-  const register = useCallback(async (email: string, _password: string, displayName: string) => {
+  const register = useCallback(async (email: string, password: string, displayName: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } })
-    setUser(createUser({
+    const { error } = await supabase.auth.signUp({
       email,
-      displayName,
-      isVerified: true,
-      onboardingComplete: false,
-      onboardingStep: 0,
-    }));
-    setIsLoading(false);
+      password,
+      options: { data: { display_name: displayName } }
+    });
+    if (error) { setIsLoading(false); throw error; }
   }, []);
 
   const registerPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.signUp({ phone })
-    setUser(createUser({ phone, isVerified: false }));
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) { setIsLoading(false); throw error; }
     setIsLoading(false);
   }, []);
 
-  const logout = useCallback(() => {
-    // TODO: Replace with supabase.auth.signOut()
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('revnet_user');
   }, []);
 
-  const resetPassword = useCallback(async (_email: string) => {
+  const resetPassword = useCallback(async (email: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.resetPasswordForEmail(email)
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) { setIsLoading(false); throw error; }
     setIsLoading(false);
   }, []);
 
-  const requestVerificationCode = useCallback(async (_destination: string) => {
+  const requestVerificationCode = useCallback(async (destination: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 600));
-    // TODO: Replace with supabase.auth.resend({ type: 'signup', email: destination })
+    const { error } = await supabase.auth.resend({ type: 'signup', email: destination });
+    if (error) { setIsLoading(false); throw error; }
     setIsLoading(false);
   }, []);
 
   const verifyCode = useCallback(async (code: string) => {
     setIsLoading(true);
-    // --- MOCK: fake delay ---
-    await new Promise(r => setTimeout(r, 800));
-    // TODO: Replace with supabase.auth.verifyOtp({ token: code, type: 'email' })
-    const valid = code.length === 6; // MOCK: any 6-digit code passes
-    if (valid) {
-      setUser(prev => prev ? { ...prev, isVerified: true } : null);
-    }
+    const { error } = await supabase.auth.verifyOtp({
+      token: code,
+      type: 'email',
+      email: user?.email || ''
+    });
     setIsLoading(false);
-    return valid;
-  }, []);
+    return !error;
+  }, [user?.email]);
 
-  const updateProfile = useCallback((updates: Partial<AuthUser>) => {
-    // TODO: Replace with supabase.from('profiles').update(updates).eq('id', user.id)
+  const updateProfile = useCallback(async (updates: Partial<AuthUser>) => {
     setUser(prev => prev ? { ...prev, ...updates } : null);
-  }, []);
 
-  const completeOnboarding = useCallback(() => {
+    if (!user?.id) return;
+
+    // Sync relevant fields to Supabase profiles table
+    const profileUpdates: Record<string, unknown> = {};
+    if (updates.username !== undefined) profileUpdates.username = updates.username;
+    if (updates.displayName !== undefined) profileUpdates.display_name = updates.displayName;
+    if (updates.avatar !== undefined) profileUpdates.avatar_url = updates.avatar;
+    if (updates.bio !== undefined) profileUpdates.bio = updates.bio;
+    if (updates.location !== undefined) profileUpdates.location = updates.location;
+    if (updates.country !== undefined) profileUpdates.country = updates.country;
+    if (updates.membershipPlan !== undefined) profileUpdates.plan = updates.membershipPlan;
+    if (updates.discoveryRadiusMiles !== undefined) profileUpdates.discovery_radius_miles = updates.discoveryRadiusMiles;
+    if (updates.eventCredits !== undefined) profileUpdates.event_credits = updates.eventCredits;
+    if (updates.routeCredits !== undefined) profileUpdates.route_credits = updates.routeCredits;
+    if (updates.preferences?.availableToHelp !== undefined) profileUpdates.available_to_help = updates.preferences.availableToHelp;
+    if (updates.preferences?.helpDistanceMiles !== undefined) profileUpdates.help_radius_miles = updates.preferences.helpDistanceMiles;
+    if (updates.preferences?.locationSharingEnabled !== undefined) profileUpdates.live_location_sharing = updates.preferences.locationSharingEnabled;
+
+    if (Object.keys(profileUpdates).length > 0) {
+      const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', user.id);
+      if (error) console.error('Profile update error:', error);
+    }
+  }, [user?.id]);
+
+  const completeOnboarding = useCallback(async () => {
     setUser(prev => prev ? { ...prev, onboardingComplete: true, isProfileComplete: true } : null);
-  }, []);
+    if (user?.id) {
+      const { error } = await supabase.from('profiles').update({
+        onboarding_complete: true,
+        onboarding_step: 14,
+      }).eq('id', user.id);
+      if (error) {
+        toast.error('Failed to save onboarding status');
+        console.error(error);
+      }
+    }
+  }, [user?.id]);
 
-  const setOnboardingStep = useCallback((step: number) => {
+  const setOnboardingStep = useCallback(async (step: number) => {
     setUser(prev => prev ? { ...prev, onboardingStep: step } : null);
-  }, []);
+    if (user?.id) {
+      await supabase.from('profiles').update({ onboarding_step: step }).eq('id', user.id);
+    }
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider value={{
