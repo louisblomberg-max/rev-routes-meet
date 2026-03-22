@@ -204,7 +204,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       const newClub: Club = { ...club, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
       setLocalClubs(prev => [...prev, newClub]);
       (async () => {
-        const { data, error } = await supabase.from('clubs').insert({
+        const { data, error } = await supabase.from('clubs').insert([{
           created_by: club.createdBy, name: club.name, handle: club.handle,
           description: club.description, club_type: club.clubType,
           tags: club.tags || [], vehicle_focus: club.vehicleFocus || [],
@@ -212,7 +212,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
           join_mode: club.joinApproval === 'adminApproval' ? 'admin_approval' : 'auto',
           posting_permissions: club.postingPermissions === 'adminsOnly' ? 'admins_only' : 'any_member',
           rules: club.rules || [], social_links: club.socialLinks || {},
-        }).select().single();
+        }] as any).select().single();
         if (!error && data) {
           await supabase.from('club_memberships').insert({ user_id: club.createdBy, club_id: data.id, role: 'owner' });
         }
