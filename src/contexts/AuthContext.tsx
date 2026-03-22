@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import type { PlanId } from '@/models';
 
 export interface AuthVehicle {
   id: string;
@@ -19,6 +20,9 @@ export interface NotificationPrefs {
   sosAlerts: boolean;
 }
 
+export type BillingCycle = 'monthly' | 'yearly';
+export type SubscriptionStatus = 'active' | 'inactive' | 'selected';
+
 export interface AuthUser {
   id: string;
   email?: string;
@@ -30,11 +34,13 @@ export interface AuthUser {
   locationCoords?: { lat: number; lng: number };
   bio?: string;
   country?: string;
-  membershipPlan: 'free' | 'pro' | 'club';
+  membershipPlan: PlanId;
+  billingCycle: BillingCycle;
+  subscriptionStatus: SubscriptionStatus;
   isProfileComplete: boolean;
   isVerified: boolean;
   onboardingComplete: boolean;
-  onboardingStep: number; // 0-5 (basics, interests, vehicle, location, notifications, plan)
+  onboardingStep: number;
   interests: {
     events: string[];
     routes: string[];
@@ -42,8 +48,8 @@ export interface AuthUser {
     clubs: boolean;
     marketplace: boolean;
   };
-  vehicleTypes: string[]; // 'cars' | 'motorcycles' | 'both'
-  vehicleTags: string[]; // 'classic', 'supercars', 'jdm', etc.
+  vehicleTypes: string[];
+  vehicleTags: string[];
   vehicles: AuthVehicle[];
   discoveryRadiusMiles: number;
   discoveryScope: 'local' | 'national' | 'continental' | 'global';
@@ -53,6 +59,27 @@ export interface AuthUser {
     locationEnabled: boolean;
   };
   locationPermissionStatus?: 'not_requested' | 'allowed' | 'denied' | 'skipped';
+  // Fields from DataContext User model
+  preferences: {
+    mapStyle: 'standard' | 'night' | 'satellite';
+    availableToHelp: boolean;
+    helpDistanceMiles: number;
+    locationSharingEnabled: boolean;
+    notifications: {
+      messages: boolean;
+      events: boolean;
+      clubs: boolean;
+      forums: boolean;
+      marketplace: boolean;
+    };
+  };
+  liveFeatures: {
+    locationSharingEnabled: boolean;
+    groupDrivesCount: number;
+    breakdownHelpCount: number;
+  };
+  eventCredits: number;
+  routeCredits: number;
   createdAt: string;
 }
 
@@ -108,6 +135,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     bio: '',
     country: 'GB',
     membershipPlan: 'free',
+    billingCycle: 'yearly',
+    subscriptionStatus: 'active',
     isProfileComplete: false,
     isVerified: false,
     onboardingComplete: false,
@@ -119,13 +148,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     discoveryRadiusMiles: 25,
     discoveryScope: 'local',
     notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+    preferences: {
+      mapStyle: 'standard',
+      availableToHelp: false,
+      helpDistanceMiles: 10,
+      locationSharingEnabled: false,
+      notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
+    },
+    liveFeatures: { locationSharingEnabled: false, groupDrivesCount: 0, breakdownHelpCount: 0 },
+    eventCredits: 2,
+    routeCredits: 2,
     createdAt: new Date().toISOString(),
     ...partial,
   });
 
   const login = useCallback(async (email: string, _password: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
+    // TODO: Replace with supabase.auth.signInWithPassword({ email, password })
     setUser(prev => prev ?? createUser({
       email,
       displayName: email.split('@')[0],
@@ -138,18 +179,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const loginPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
+    // TODO: Replace with supabase.auth.signInWithOtp({ phone })
     setUser(createUser({ phone, isVerified: false }));
     setIsLoading(false);
   }, []);
 
   const register = useCallback(async (email: string, _password: string, displayName: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
+    // TODO: Replace with supabase.auth.signUp({ email, password, options: { data: { display_name: displayName } } })
     setUser(createUser({
       email,
       displayName,
-      isVerified: true, // Skip verify for now to go straight to onboarding
+      isVerified: true,
       onboardingComplete: false,
       onboardingStep: 0,
     }));
@@ -158,32 +203,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const registerPhone = useCallback(async (phone: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
+    // TODO: Replace with supabase.auth.signUp({ phone })
     setUser(createUser({ phone, isVerified: false }));
     setIsLoading(false);
   }, []);
 
   const logout = useCallback(() => {
+    // TODO: Replace with supabase.auth.signOut()
     setUser(null);
     localStorage.removeItem('revnet_user');
   }, []);
 
   const resetPassword = useCallback(async (_email: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
+    // TODO: Replace with supabase.auth.resetPasswordForEmail(email)
     setIsLoading(false);
   }, []);
 
   const requestVerificationCode = useCallback(async (_destination: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 600));
+    // TODO: Replace with supabase.auth.resend({ type: 'signup', email: destination })
     setIsLoading(false);
   }, []);
 
   const verifyCode = useCallback(async (code: string) => {
     setIsLoading(true);
+    // --- MOCK: fake delay ---
     await new Promise(r => setTimeout(r, 800));
-    const valid = code.length === 6;
+    // TODO: Replace with supabase.auth.verifyOtp({ token: code, type: 'email' })
+    const valid = code.length === 6; // MOCK: any 6-digit code passes
     if (valid) {
       setUser(prev => prev ? { ...prev, isVerified: true } : null);
     }
@@ -192,6 +246,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const updateProfile = useCallback((updates: Partial<AuthUser>) => {
+    // TODO: Replace with supabase.from('profiles').update(updates).eq('id', user.id)
     setUser(prev => prev ? { ...prev, ...updates } : null);
   }, []);
 

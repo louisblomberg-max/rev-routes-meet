@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import type { PlanId } from '@/models';
 
-export type PlanId = 'free' | 'pro' | 'club';
+export type { PlanId } from '@/models';
 export type BillingCycle = 'monthly' | 'yearly';
 export type SubscriptionStatus = 'active' | 'inactive' | 'selected';
 
@@ -70,16 +72,18 @@ interface PlanContextType {
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
+  const { user, updateProfile } = useAuth();
+
   const [currentPlan, setCurrentPlan] = useState<PlanId>(() => {
-    return (localStorage.getItem('revnet_plan') as PlanId) || 'free';
+    return user?.membershipPlan || 'free';
   });
 
   const [billingCycle, setBillingCycleState] = useState<BillingCycle>(() => {
-    return (localStorage.getItem('revnet_billing_cycle') as BillingCycle) || 'yearly';
+    return user?.billingCycle || 'yearly';
   });
 
   const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>(() => {
-    return (localStorage.getItem('revnet_subscription_status') as SubscriptionStatus) || 'active';
+    return user?.subscriptionStatus || 'active';
   });
 
   // If subscription is inactive, treat as free
@@ -87,17 +91,17 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
-    localStorage.setItem('revnet_plan', plan);
+    updateProfile({ membershipPlan: plan });
   };
 
   const setBillingCycle = (cycle: BillingCycle) => {
     setBillingCycleState(cycle);
-    localStorage.setItem('revnet_billing_cycle', cycle);
+    updateProfile({ billingCycle: cycle });
   };
 
   const setSubscriptionStatus = (status: SubscriptionStatus) => {
     setSubscriptionStatusState(status);
-    localStorage.setItem('revnet_subscription_status', status);
+    updateProfile({ subscriptionStatus: status });
   };
 
   const hasAccess = (featureId: string): boolean => {
