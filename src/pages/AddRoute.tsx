@@ -16,17 +16,19 @@ import { buildRouteDraft, formatRouteDistance } from '@/services/routeService';
 import { Button } from '@/components/ui/button';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
 type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
 
 const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
+  const { user: authUser } = useAuth();
   const { canCreateRoute, deductRouteCredit, upgradeToPlan } = usePaywall();
   const { setPlan, setSubscriptionStatus } = usePlan();
 
@@ -235,7 +237,7 @@ const AddRoute = () => {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
       return;
     }
-    const userId = state.currentUser?.id || 'anon';
+    const userId = authUser?.id || 'anon';
     const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
     routesRepo.create({
       name: data.name,
@@ -389,7 +391,7 @@ const AddRoute = () => {
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
         reason={paywallReason}
-        creditsRemaining={state.currentUser?.routeCredits ?? 0}
+        creditsRemaining={authUser?.routeCredits ?? 0}
         onPaymentResult={handlePaywallResult}
       />
     </>

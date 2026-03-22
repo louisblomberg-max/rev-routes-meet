@@ -9,6 +9,7 @@ import { MapProvider } from "@/contexts/MapContext";
 import { DataProvider } from "@/contexts/DataContext";
 import { GarageProvider } from "@/contexts/GarageContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
+import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
@@ -83,9 +84,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-
-          {/* Auth */}
+          {/* Auth (not protected) */}
           <Route path="/auth" element={<Onboarding />} />
           <Route path="/auth/signup" element={<AuthSignup />} />
           <Route path="/auth/login" element={<AuthLogin />} />
@@ -93,60 +92,60 @@ const App = () => (
           <Route path="/auth/verify" element={<AuthVerify />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
-          {/* Onboarding (4-step flow) */}
+          {/* Onboarding (not protected) */}
           <Route path="/onboarding/features" element={<OnboardingFeatures />} />
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
           <Route path="/onboarding/notifications" element={<OnboardingNotifications />} />
 
-          {/* Legacy auth routes */}
+          {/* Legacy auth routes (not protected) */}
           <Route path="/login" element={<AuthLogin />} />
           <Route path="/register" element={<AuthSignup />} />
           <Route path="/forgot-password" element={<AuthForgot />} />
 
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/settings/privacy" element={<PrivacySafetySettings />} />
-          <Route path="/settings/notifications" element={<NotificationSettings />} />
-          <Route path="/settings/preferences" element={<AppPreferencesSettings />} />
-          <Route path="/settings/account" element={<AccountSettings />} />
-          <Route path="/settings/billing" element={<PlanBillingSettings />} />
-          <Route path="/settings/social" element={<SocialDiscoverySettings />} />
-          <Route path="/settings/faq" element={<FAQSettings />} />
-          <Route path="/settings/howto" element={<HowToUseSettings />} />
-          <Route path="/settings/support" element={<SupportLegalSettings />} />
-          <Route path="/upgrade" element={<Upgrade />} />
-          <Route path="/my-garage" element={<MyGarage />} />
-          <Route path="/my-friends" element={<MyFriends />} />
-          <Route path="/my-events" element={<MyEvents />} />
-          <Route path="/my-routes" element={<MyRoutes />} />
-          <Route path="/my-services" element={<MySavedServices />} />
-          <Route path="/my-discussions" element={<MyDiscussions />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/forums" element={<Forums />} />
-          <Route path="/forums/create" element={<CreateForumPost />} />
-          <Route path="/forums/thread/:id" element={<ForumThread />} />
-          <Route path="/clubs" element={<Clubs />} />
-          <Route path="/my-clubs" element={<MyClubs />} />
-          <Route path="/club/:id" element={<ClubProfile />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/messages" element={<Messages />} />
-          <Route path="/messages/:id" element={<Conversation />} />
-          <Route path="/add/event" element={<AddEvent />} />
-          <Route path="/add/route" element={<AddRoute />} />
-          <Route path="/add/service" element={<AddService />} />
-          <Route path="/add/club" element={<AddClub />} />
-          <Route path="/add/vehicle" element={<AddVehicle />} />
-          
-          <Route path="/route/:id" element={<RouteDetail />} />
-          
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/permissions" element={<Permissions />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/events" element={<EventsList />} />
-          <Route path="/routes" element={<RoutesList />} />
-          <Route path="/services" element={<ServicesList />} />
-          <Route path="/settings/devtools" element={<DevTools />} />
-          <Route path="/stolen-vehicles" element={<StolenVehicles />} />
+          {/* Protected routes */}
+          <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/settings/privacy" element={<ProtectedRoute><PrivacySafetySettings /></ProtectedRoute>} />
+          <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
+          <Route path="/settings/preferences" element={<ProtectedRoute><AppPreferencesSettings /></ProtectedRoute>} />
+          <Route path="/settings/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
+          <Route path="/settings/billing" element={<ProtectedRoute><PlanBillingSettings /></ProtectedRoute>} />
+          <Route path="/settings/social" element={<ProtectedRoute><SocialDiscoverySettings /></ProtectedRoute>} />
+          <Route path="/settings/faq" element={<ProtectedRoute><FAQSettings /></ProtectedRoute>} />
+          <Route path="/settings/howto" element={<ProtectedRoute><HowToUseSettings /></ProtectedRoute>} />
+          <Route path="/settings/support" element={<ProtectedRoute><SupportLegalSettings /></ProtectedRoute>} />
+          <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
+          <Route path="/my-garage" element={<ProtectedRoute><MyGarage /></ProtectedRoute>} />
+          <Route path="/my-friends" element={<ProtectedRoute><MyFriends /></ProtectedRoute>} />
+          <Route path="/my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
+          <Route path="/my-routes" element={<ProtectedRoute><MyRoutes /></ProtectedRoute>} />
+          <Route path="/my-services" element={<ProtectedRoute><MySavedServices /></ProtectedRoute>} />
+          <Route path="/my-discussions" element={<ProtectedRoute><MyDiscussions /></ProtectedRoute>} />
+          <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
+          <Route path="/forums" element={<ProtectedRoute><Forums /></ProtectedRoute>} />
+          <Route path="/forums/create" element={<ProtectedRoute><CreateForumPost /></ProtectedRoute>} />
+          <Route path="/forums/thread/:id" element={<ProtectedRoute><ForumThread /></ProtectedRoute>} />
+          <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
+          <Route path="/my-clubs" element={<ProtectedRoute><MyClubs /></ProtectedRoute>} />
+          <Route path="/club/:id" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
+          <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/messages/:id" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
+          <Route path="/add/event" element={<ProtectedRoute><AddEvent /></ProtectedRoute>} />
+          <Route path="/add/route" element={<ProtectedRoute><AddRoute /></ProtectedRoute>} />
+          <Route path="/add/service" element={<ProtectedRoute><AddService /></ProtectedRoute>} />
+          <Route path="/add/club" element={<ProtectedRoute><AddClub /></ProtectedRoute>} />
+          <Route path="/add/vehicle" element={<ProtectedRoute><AddVehicle /></ProtectedRoute>} />
+          <Route path="/route/:id" element={<ProtectedRoute><RouteDetail /></ProtectedRoute>} />
+          <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+          <Route path="/permissions" element={<ProtectedRoute><Permissions /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/events" element={<ProtectedRoute><EventsList /></ProtectedRoute>} />
+          <Route path="/routes" element={<ProtectedRoute><RoutesList /></ProtectedRoute>} />
+          <Route path="/services" element={<ProtectedRoute><ServicesList /></ProtectedRoute>} />
+          <Route path="/settings/devtools" element={<ProtectedRoute><DevTools /></ProtectedRoute>} />
+          <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 
@@ -60,7 +61,8 @@ const AddClub = () => {
   const navigate = useNavigate();
   const { clubs: clubsRepo, state } = useData();
   const { hasAccess, getPlanLabel } = usePlan();
-  const currentUser = state.currentUser;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser;
 
   // All hooks must be declared before early return
   const [formData, setFormData] = useState({

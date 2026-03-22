@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import NavigateButton from '@/components/NavigateButton';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -34,13 +35,14 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { state, events: eventsRepo } = useData();
+  const { user: authUser } = useAuth();
 
   const event = state.events.find(e => e.id === id);
   const isSavedInitial = state.savedEvents.includes(id || '');
   const isAttendingInitial = state.userAttendingEvents.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
   const [isAttending, setIsAttending] = useState(isAttendingInitial);
-  const isHost = event?.createdBy === state.currentUser?.id;
+  const isHost = event?.createdBy === authUser?.id;
 
   if (!event) {
     return (
@@ -55,9 +57,9 @@ const EventDetail = () => {
 
   const handleSave = () => {
     if (isSaved) {
-      eventsRepo.unsaveEvent(state.currentUser?.id || '', event.id);
+      eventsRepo.unsaveEvent(authUser?.id || '', event.id);
     } else {
-      eventsRepo.saveEvent(state.currentUser?.id || '', event.id);
+      eventsRepo.saveEvent(authUser?.id || '', event.id);
     }
     setIsSaved(!isSaved);
     toast.success(isSaved ? 'Event unsaved' : 'Event saved!');

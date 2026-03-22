@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import NavigateButton from '@/components/NavigateButton';
 import RouteRatingSection from '@/components/discovery/RouteRatingSection';
 
@@ -15,11 +16,12 @@ const RouteDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { state, routes: routesRepo } = useData();
+  const { user: authUser } = useAuth();
 
   const route = state.routes.find(r => r.id === id);
   const isSavedInitial = state.savedRoutes.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
-  const isCreator = route?.createdBy === state.currentUser?.id;
+  const isCreator = route?.createdBy === authUser?.id;
   const miniMapContainer = useRef<HTMLDivElement>(null);
   const miniMapRef = useRef<mapboxgl.Map | null>(null);
 
@@ -109,9 +111,9 @@ const RouteDetail = () => {
 
   const handleSave = () => {
     if (isSaved) {
-      routesRepo.unsaveRoute(state.currentUser?.id || '', route.id);
+      routesRepo.unsaveRoute(authUser?.id || '', route.id);
     } else {
-      routesRepo.saveRoute(state.currentUser?.id || '', route.id);
+      routesRepo.saveRoute(authUser?.id || '', route.id);
     }
     setIsSaved(!isSaved);
     toast.success(isSaved ? 'Route unsaved' : 'Route saved!');

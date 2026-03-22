@@ -326,19 +326,6 @@ const DevTools = () => {
     updateProfile({ ...preset.authUser });
     setPlan(preset.planId);
     setSubscriptionStatus('active');
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      id: preset.authUser.id,
-      email: preset.authUser.email || '',
-      displayName: preset.authUser.displayName || 'User',
-      username: preset.authUser.username || 'user',
-      avatar: preset.authUser.avatar || null,
-      bio: preset.authUser.bio || '',
-      location: preset.authUser.location || '',
-      plan: preset.planId,
-      eventCredits: preset.eventCredits,
-      routeCredits: preset.routeCredits,
-    } : prev);
     setActivePreset(preset.id);
     localStorage.setItem('revnet_dev_preset', preset.id);
     toast.success(`Switched to ${preset.label}`, { description: preset.description });
@@ -383,7 +370,7 @@ const DevTools = () => {
       endTime: '14:00',
       date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
       visibility: 'public' as const,
-      createdBy: state.currentUser?.id || 'dev',
+      createdBy: authUser?.id || 'dev',
       maxAttendees: 50,
       attendees: 0,
       attendeesList: [],
@@ -451,7 +438,7 @@ const DevTools = () => {
             </div>
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Event Credits</span>
-              <p className="font-bold text-foreground">{state.currentUser?.eventCredits ?? 0}{state.currentUser?.eventCredits === -1 ? ' (∞)' : ''}</p>
+              <p className="font-bold text-foreground">{authUser?.eventCredits ?? 0}{authUser?.eventCredits === -1 ? ' (∞)' : ''}</p>
             </div>
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Events</span>

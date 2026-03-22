@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const ClubProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { clubs: clubsRepo, state } = useData();
-  const currentUser = state.currentUser;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser;
 
   const [activeTab, setActiveTab] = useState('feed');
   const [newPost, setNewPost] = useState('');

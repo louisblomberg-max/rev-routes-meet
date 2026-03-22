@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { AttendEventSheet, AttendeeListSheet } from '@/components/AttendEventSheet';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const REVNET_FEE_PENCE = 50;
 
@@ -41,7 +42,8 @@ interface EventDetailContentProps {
 
 const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
   const { events: eventsRepo, state } = useData();
-  const currentUserId = state.currentUser?.id || '';
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id || '';
   const isHost = event.createdBy === currentUserId;
 
   const [showAttendSheet, setShowAttendSheet] = useState(false);
@@ -82,9 +84,9 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const handleConfirmAttendance = (registration: string, colour: string) => {
     const newAttendee = {
       userId: currentUserId,
-      username: state.currentUser?.username || 'user',
-      displayName: state.currentUser?.displayName || 'User',
-      profileImage: state.currentUser?.avatar || null,
+      username: authUser?.username || 'user',
+      displayName: authUser?.displayName || 'User',
+      profileImage: authUser?.avatar || null,
       vehicleRegistration: registration,
       vehicleColour: colour,
       joinedAt: new Date().toISOString(),

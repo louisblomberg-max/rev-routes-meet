@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
 import { mockClubs } from '@/data/mockData';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
@@ -104,6 +105,7 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 const AddEvent = () => {
   const navigate = useNavigate();
   const { events: eventsRepo, state } = useData();
+  const { user: authUser } = useAuth();
   const { canCreateEvent, deductEventCredit, upgradeToPlan } = usePaywall();
   const { setPlan, setSubscriptionStatus } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -130,7 +132,7 @@ const AddEvent = () => {
   const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
-  const currentUserId = state.currentUser?.id || 'current-user';
+  const currentUserId = authUser?.id || 'current-user';
   const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
   
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -269,7 +271,7 @@ const AddEvent = () => {
       bannerImage: bannerImage?.preview,
       photos: bannerImage ? [bannerImage.preview] : undefined,
 
-      createdBy: state.currentUser?.id || 'unknown',
+      createdBy: authUser?.id || 'unknown',
       tags: [],
     });
 
@@ -703,7 +705,7 @@ const AddEvent = () => {
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
         reason={paywallReason}
-        creditsRemaining={state.currentUser?.eventCredits ?? 0}
+        creditsRemaining={authUser?.eventCredits ?? 0}
         onPaymentResult={handlePaywallResult}
       />
     </div>

@@ -9,11 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Upgrade = () => {
   const navigate = useNavigate();
   const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
-  const { state } = useData();
+  const { updateProfile } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
 
@@ -87,13 +88,12 @@ const Upgrade = () => {
     setPlan(planId);
     setSubscriptionStatus('active');
     
-    // Sync DataContext user with new plan + credits
-    state.setCurrentUser(prev => prev ? {
-      ...prev,
-      plan: planId,
-      eventCredits: planId === 'free' ? (prev.eventCredits ?? 0) : -1,
-      routeCredits: planId === 'free' ? (prev.routeCredits ?? 0) : -1,
-    } : prev);
+    // Sync AuthContext user with new plan + credits
+    updateProfile({
+      membershipPlan: planId,
+      eventCredits: planId === 'free' ? undefined : -1,
+      routeCredits: planId === 'free' ? undefined : -1,
+    } as any);
     
     const planName = plans.find(p => p.id === planId)?.name || planId;
     const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);

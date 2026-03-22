@@ -9,7 +9,7 @@ import { MapStyle } from '@/components/MapStyleButton';
 import { useMap, MapPin } from '@/contexts/MapContext';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
-mapboxgl.accessToken = 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoicmV2bmV0LS1jbHViIiwiYSI6ImNtbTB0NXU4dDAyN3Qyb3BqaWVrOHE0cmEifQ.p7f7SJBFBuRK-lShWYjGpg';
 
 const MAP_STYLE_URLS: Record<MapStyle, string> = {
   standard: 'mapbox://styles/mapbox/streets-v12',

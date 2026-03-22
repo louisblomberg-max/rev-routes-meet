@@ -5,11 +5,13 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Clubs = () => {
   const navigate = useNavigate();
   const { state } = useData();
-  const currentUser = state.currentUser;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser;
   const [activeTab, setActiveTab] = useState<'my' | 'discover'>('my');
   const [searchQuery, setSearchQuery] = useState('');
 
