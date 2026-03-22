@@ -42,7 +42,8 @@ interface EventDetailContentProps {
 
 const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
   const { events: eventsRepo, state } = useData();
-  const currentUserId = state.currentUser?.id || '';
+  const { user: authUser } = useAuth();
+  const currentUserId = authUser?.id || '';
   const isHost = event.createdBy === currentUserId;
 
   const [showAttendSheet, setShowAttendSheet] = useState(false);
