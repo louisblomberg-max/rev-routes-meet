@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import NavigateButton from '@/components/NavigateButton';
 import RouteRatingSection from '@/components/discovery/RouteRatingSection';
 
