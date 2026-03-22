@@ -325,6 +325,13 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             </div>
             <ArrowRight className="w-4 h-4 text-destructive/60 shrink-0" />
           </button>
+
+          <button
+            onClick={() => { handleClose(false); navigate('/stolen-vehicles'); }}
+            className="w-full text-center py-2 text-xs font-semibold text-destructive/70 hover:text-destructive transition-colors"
+          >
+            View Stolen Vehicle Alerts
+          </button>
         </div>
 
         {/* ── Dynamic CTA ── */}
