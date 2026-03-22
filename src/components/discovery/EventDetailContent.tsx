@@ -84,9 +84,9 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const handleConfirmAttendance = (registration: string, colour: string) => {
     const newAttendee = {
       userId: currentUserId,
-      username: state.currentUser?.username || 'user',
-      displayName: state.currentUser?.displayName || 'User',
-      profileImage: state.currentUser?.avatar || null,
+      username: authUser?.username || 'user',
+      displayName: authUser?.displayName || 'User',
+      profileImage: authUser?.avatar || null,
       vehicleRegistration: registration,
       vehicleColour: colour,
       joinedAt: new Date().toISOString(),

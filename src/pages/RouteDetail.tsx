@@ -111,9 +111,9 @@ const RouteDetail = () => {
 
   const handleSave = () => {
     if (isSaved) {
-      routesRepo.unsaveRoute(state.currentUser?.id || '', route.id);
+      routesRepo.unsaveRoute(authUser?.id || '', route.id);
     } else {
-      routesRepo.saveRoute(state.currentUser?.id || '', route.id);
+      routesRepo.saveRoute(authUser?.id || '', route.id);
     }
     setIsSaved(!isSaved);
     toast.success(isSaved ? 'Route unsaved' : 'Route saved!');

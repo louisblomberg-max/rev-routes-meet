@@ -57,9 +57,9 @@ const EventDetail = () => {
 
   const handleSave = () => {
     if (isSaved) {
-      eventsRepo.unsaveEvent(state.currentUser?.id || '', event.id);
+      eventsRepo.unsaveEvent(authUser?.id || '', event.id);
     } else {
-      eventsRepo.saveEvent(state.currentUser?.id || '', event.id);
+      eventsRepo.saveEvent(authUser?.id || '', event.id);
     }
     setIsSaved(!isSaved);
     toast.success(isSaved ? 'Event unsaved' : 'Event saved!');

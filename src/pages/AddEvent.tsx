@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
 import { mockClubs } from '@/data/mockData';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';

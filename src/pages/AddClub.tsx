@@ -61,7 +61,8 @@ const AddClub = () => {
   const navigate = useNavigate();
   const { clubs: clubsRepo, state } = useData();
   const { hasAccess, getPlanLabel } = usePlan();
-  const currentUser = state.currentUser;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser;
 
   // All hooks must be declared before early return
   const [formData, setFormData] = useState({

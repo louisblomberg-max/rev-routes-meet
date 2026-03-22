@@ -83,7 +83,8 @@ const AddService = () => {
   const navigate = useNavigate();
   const { services: servicesRepo, state } = useData();
   const { hasAccess, getPlanLabel } = usePlan();
-  const currentUser = state.currentUser;
+  const { user: authUser } = useAuth();
+  const currentUser = authUser;
 
   const [formData, setFormData] = useState({
     name: '',
