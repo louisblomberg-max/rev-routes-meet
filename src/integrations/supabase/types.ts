@@ -14,13 +14,1341 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      club_events: {
+        Row: {
+          club_id: string | null
+          created_at: string | null
+          event_id: string | null
+          id: string
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_events_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_memberships: {
+        Row: {
+          club_id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_memberships_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_memberships_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_posts: {
+        Row: {
+          body: string
+          club_id: string | null
+          created_at: string | null
+          id: string
+          likes: number | null
+          photos: string[] | null
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          likes?: number | null
+          photos?: string[] | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          likes?: number | null
+          photos?: string[] | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_posts_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          club_type: string | null
+          cover_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          handle: string | null
+          id: string
+          join_mode: string | null
+          lat: number | null
+          lng: number | null
+          logo_url: string | null
+          member_count: number | null
+          name: string
+          posting_permissions: string | null
+          rules: Json | null
+          social_links: Json | null
+          tags: string[] | null
+          vehicle_focus: string[] | null
+          visibility: string | null
+        }
+        Insert: {
+          club_type?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          handle?: string | null
+          id?: string
+          join_mode?: string | null
+          lat?: number | null
+          lng?: number | null
+          logo_url?: string | null
+          member_count?: number | null
+          name: string
+          posting_permissions?: string | null
+          rules?: Json | null
+          social_links?: Json | null
+          tags?: string[] | null
+          vehicle_focus?: string[] | null
+          visibility?: string | null
+        }
+        Update: {
+          club_type?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          handle?: string | null
+          id?: string
+          join_mode?: string | null
+          lat?: number | null
+          lng?: number | null
+          logo_url?: string | null
+          member_count?: number | null
+          name?: string
+          posting_permissions?: string | null
+          rules?: Json | null
+          social_links?: Json | null
+          tags?: string[] | null
+          vehicle_focus?: string[] | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clubs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string | null
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name?: string | null
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string | null
+          type?: string | null
+        }
+        Relationships: []
+      }
+      event_attendees: {
+        Row: {
+          event_id: string
+          joined_at: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          joined_at?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          joined_at?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_attendees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          banner_url: string | null
+          club_id: string | null
+          created_at: string | null
+          created_by: string | null
+          date_end: string | null
+          date_start: string | null
+          description: string | null
+          entry_fee: number | null
+          id: string
+          is_first_come_first_serve: boolean | null
+          is_free: boolean | null
+          lat: number | null
+          lng: number | null
+          location: string | null
+          max_attendees: number | null
+          title: string
+          type: string | null
+          vehicle_ages: string[] | null
+          vehicle_brands: string[] | null
+          vehicle_categories: string[] | null
+          vehicle_types: string[] | null
+          visibility: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          club_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          entry_fee?: number | null
+          id?: string
+          is_first_come_first_serve?: boolean | null
+          is_free?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          location?: string | null
+          max_attendees?: number | null
+          title: string
+          type?: string | null
+          vehicle_ages?: string[] | null
+          vehicle_brands?: string[] | null
+          vehicle_categories?: string[] | null
+          vehicle_types?: string[] | null
+          visibility?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          club_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_end?: string | null
+          date_start?: string | null
+          description?: string | null
+          entry_fee?: number | null
+          id?: string
+          is_first_come_first_serve?: boolean | null
+          is_free?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          location?: string | null
+          max_attendees?: number | null
+          title?: string
+          type?: string | null
+          vehicle_ages?: string[] | null
+          vehicle_brands?: string[] | null
+          vehicle_categories?: string[] | null
+          vehicle_types?: string[] | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_comments: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          post_id: string | null
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "forum_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_posts: {
+        Row: {
+          body: string | null
+          category: string | null
+          club_id: string | null
+          created_at: string | null
+          id: string
+          photos: string[] | null
+          title: string
+          type: string | null
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          category?: string | null
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          photos?: string[] | null
+          title: string
+          type?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          category?: string | null
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          photos?: string[] | null
+          title?: string
+          type?: string | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_posts_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      friends: {
+        Row: {
+          created_at: string | null
+          friend_id: string
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          friend_id: string
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          friend_id?: string
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "friends_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "friends_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_requests: {
+        Row: {
+          created_at: string | null
+          details: string | null
+          help_source: string | null
+          id: string
+          issue_type: string | null
+          lat: number | null
+          lng: number | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          details?: string | null
+          help_source?: string | null
+          id?: string
+          issue_type?: string | null
+          lat?: number | null
+          lng?: number | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          details?: string | null
+          help_source?: string | null
+          id?: string
+          issue_type?: string | null
+          lat?: number | null
+          lng?: number | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketplace_listings: {
+        Row: {
+          category: string | null
+          condition: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          lat: number | null
+          lng: number | null
+          photos: string[] | null
+          price: number | null
+          status: string | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          photos?: string[] | null
+          price?: number | null
+          status?: string | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          condition?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          photos?: string[] | null
+          price?: number | null
+          status?: string | null
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketplace_listings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string | null
+          conversation_id: string | null
+          created_at: string | null
+          id: string
+          photo_url: string | null
+          read_at: string | null
+          sender_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          photo_url?: string | null
+          read_at?: string | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: string
+          photo_url?: string | null
+          read_at?: string | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      navigation_sessions: {
+        Row: {
+          completed: boolean | null
+          dest_lat: number | null
+          dest_lng: number | null
+          destination_title: string | null
+          distance_meters: number | null
+          ended_at: string | null
+          id: string
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
+          distance_meters?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
+          distance_meters?: number | null
+          ended_at?: string | null
+          id?: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "navigation_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          allow_friends_view_vehicles: boolean | null
+          allow_message_requests: boolean | null
+          allow_others_see_mods: boolean | null
+          available_to_help: boolean | null
+          avatar_url: string | null
+          bio: string | null
+          country: string | null
+          created_at: string | null
+          discovery_radius_miles: number | null
+          display_name: string | null
+          event_credits: number | null
+          help_radius_miles: number | null
+          id: string
+          live_location_sharing: boolean | null
+          location: string | null
+          onboarding_complete: boolean | null
+          onboarding_step: number | null
+          plan: string | null
+          profile_visibility: string | null
+          route_credits: number | null
+          show_events_i_attend: boolean | null
+          show_forum_posts: boolean | null
+          show_garage_on_profile: boolean | null
+          show_routes_i_create: boolean | null
+          username: string | null
+          who_can_message: string | null
+        }
+        Insert: {
+          allow_friends_view_vehicles?: boolean | null
+          allow_message_requests?: boolean | null
+          allow_others_see_mods?: boolean | null
+          available_to_help?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string | null
+          discovery_radius_miles?: number | null
+          display_name?: string | null
+          event_credits?: number | null
+          help_radius_miles?: number | null
+          id: string
+          live_location_sharing?: boolean | null
+          location?: string | null
+          onboarding_complete?: boolean | null
+          onboarding_step?: number | null
+          plan?: string | null
+          profile_visibility?: string | null
+          route_credits?: number | null
+          show_events_i_attend?: boolean | null
+          show_forum_posts?: boolean | null
+          show_garage_on_profile?: boolean | null
+          show_routes_i_create?: boolean | null
+          username?: string | null
+          who_can_message?: string | null
+        }
+        Update: {
+          allow_friends_view_vehicles?: boolean | null
+          allow_message_requests?: boolean | null
+          allow_others_see_mods?: boolean | null
+          available_to_help?: boolean | null
+          avatar_url?: string | null
+          bio?: string | null
+          country?: string | null
+          created_at?: string | null
+          discovery_radius_miles?: number | null
+          display_name?: string | null
+          event_credits?: number | null
+          help_radius_miles?: number | null
+          id?: string
+          live_location_sharing?: boolean | null
+          location?: string | null
+          onboarding_complete?: boolean | null
+          onboarding_step?: number | null
+          plan?: string | null
+          profile_visibility?: string | null
+          route_credits?: number | null
+          show_events_i_attend?: boolean | null
+          show_forum_posts?: boolean | null
+          show_garage_on_profile?: boolean | null
+          show_routes_i_create?: boolean | null
+          username?: string | null
+          who_can_message?: string | null
+        }
+        Relationships: []
+      }
+      route_ratings: {
+        Row: {
+          created_at: string | null
+          rating: number | null
+          route_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          rating?: number | null
+          route_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          rating?: number | null
+          route_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_ratings_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "route_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      routes: {
+        Row: {
+          avg_speed: number | null
+          best_time: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty: string | null
+          distance_meters: number | null
+          drives: number | null
+          duration_minutes: number | null
+          elevation_gain: number | null
+          geometry: Json | null
+          id: string
+          lat: number | null
+          lng: number | null
+          max_speed: number | null
+          name: string
+          photos: string[] | null
+          rating: number | null
+          safety_tags: string[] | null
+          saves: number | null
+          surface_type: string | null
+          tips: string | null
+          type: string | null
+          vehicle_type: string | null
+          visibility: string | null
+        }
+        Insert: {
+          avg_speed?: number | null
+          best_time?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string | null
+          distance_meters?: number | null
+          drives?: number | null
+          duration_minutes?: number | null
+          elevation_gain?: number | null
+          geometry?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          max_speed?: number | null
+          name: string
+          photos?: string[] | null
+          rating?: number | null
+          safety_tags?: string[] | null
+          saves?: number | null
+          surface_type?: string | null
+          tips?: string | null
+          type?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          avg_speed?: number | null
+          best_time?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty?: string | null
+          distance_meters?: number | null
+          drives?: number | null
+          duration_minutes?: number | null
+          elevation_gain?: number | null
+          geometry?: Json | null
+          id?: string
+          lat?: number | null
+          lng?: number | null
+          max_speed?: number | null
+          name?: string
+          photos?: string[] | null
+          rating?: number | null
+          safety_tags?: string[] | null
+          saves?: number | null
+          surface_type?: string | null
+          tips?: string | null
+          type?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "routes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_routes: {
+        Row: {
+          route_id: string
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          route_id: string
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          route_id?: string
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_routes_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "routes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_routes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_services: {
+        Row: {
+          saved_at: string | null
+          service_id: string
+          user_id: string
+        }
+        Insert: {
+          saved_at?: string | null
+          service_id: string
+          user_id: string
+        }
+        Update: {
+          saved_at?: string | null
+          service_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_services_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_reviews: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          rating: number | null
+          service_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          service_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          service_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_reviews_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          address: string | null
+          cover_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          hide_exact_address: boolean | null
+          hours: Json | null
+          id: string
+          is_24_7: boolean | null
+          is_emergency: boolean | null
+          lat: number | null
+          lng: number | null
+          name: string
+          phone: string | null
+          rating: number | null
+          service_type: string | null
+          tagline: string | null
+          types: string[] | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          hide_exact_address?: boolean | null
+          hours?: Json | null
+          id?: string
+          is_24_7?: boolean | null
+          is_emergency?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name: string
+          phone?: string | null
+          rating?: number | null
+          service_type?: string | null
+          tagline?: string | null
+          types?: string[] | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          cover_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          hide_exact_address?: boolean | null
+          hours?: Json | null
+          id?: string
+          is_24_7?: boolean | null
+          is_emergency?: boolean | null
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          phone?: string | null
+          rating?: number | null
+          service_type?: string | null
+          tagline?: string | null
+          types?: string[] | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "services_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stolen_vehicle_alerts: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          last_seen_lat: number | null
+          last_seen_lng: number | null
+          status: string | null
+          user_id: string | null
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_seen_lat?: number | null
+          last_seen_lng?: number | null
+          status?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          last_seen_lat?: number | null
+          last_seen_lng?: number | null
+          status?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stolen_vehicle_alerts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stolen_vehicle_alerts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          billing_cycle: string | null
+          created_at: string | null
+          current_period_end: string | null
+          id: string
+          plan: string | null
+          status: string | null
+          stripe_subscription_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          billing_cycle?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string
+          plan?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          billing_cycle?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          id?: string
+          plan?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          auto_refresh_map: boolean | null
+          data_saver_mode: boolean | null
+          default_discovery_view: string | null
+          distance_units: string | null
+          driving_mode: string | null
+          email_notifications: boolean | null
+          event_types_shown: string[] | null
+          map_style: string | null
+          notification_prefs: Json | null
+          push_notifications: boolean | null
+          route_recalculation: boolean | null
+          route_types_shown: string[] | null
+          show_only_selected_categories: boolean | null
+          show_traffic: boolean | null
+          theme: string | null
+          updated_at: string | null
+          user_id: string
+          vehicle_interests: string[] | null
+          voice_guidance: boolean | null
+        }
+        Insert: {
+          auto_refresh_map?: boolean | null
+          data_saver_mode?: boolean | null
+          default_discovery_view?: string | null
+          distance_units?: string | null
+          driving_mode?: string | null
+          email_notifications?: boolean | null
+          event_types_shown?: string[] | null
+          map_style?: string | null
+          notification_prefs?: Json | null
+          push_notifications?: boolean | null
+          route_recalculation?: boolean | null
+          route_types_shown?: string[] | null
+          show_only_selected_categories?: boolean | null
+          show_traffic?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id: string
+          vehicle_interests?: string[] | null
+          voice_guidance?: boolean | null
+        }
+        Update: {
+          auto_refresh_map?: boolean | null
+          data_saver_mode?: boolean | null
+          default_discovery_view?: string | null
+          distance_units?: string | null
+          driving_mode?: string | null
+          email_notifications?: boolean | null
+          event_types_shown?: string[] | null
+          map_style?: string | null
+          notification_prefs?: Json | null
+          push_notifications?: boolean | null
+          route_recalculation?: boolean | null
+          route_types_shown?: string[] | null
+          show_only_selected_categories?: boolean | null
+          show_traffic?: boolean | null
+          theme?: string | null
+          updated_at?: string | null
+          user_id?: string
+          vehicle_interests?: string[] | null
+          voice_guidance?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vehicles: {
+        Row: {
+          colour: string | null
+          created_at: string | null
+          details: string | null
+          drivetrain: string | null
+          engine: string | null
+          id: string
+          is_primary: boolean | null
+          make: string
+          model: string | null
+          mods_text: string | null
+          number_plate: string | null
+          photos: string[] | null
+          tags: string[] | null
+          transmission: string | null
+          user_id: string | null
+          vehicle_type: string | null
+          visibility: string | null
+          year: string | null
+        }
+        Insert: {
+          colour?: string | null
+          created_at?: string | null
+          details?: string | null
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string
+          is_primary?: boolean | null
+          make: string
+          model?: string | null
+          mods_text?: string | null
+          number_plate?: string | null
+          photos?: string[] | null
+          tags?: string[] | null
+          transmission?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+          year?: string | null
+        }
+        Update: {
+          colour?: string | null
+          created_at?: string | null
+          details?: string | null
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string
+          is_primary?: boolean | null
+          make?: string
+          model?: string | null
+          mods_text?: string | null
+          number_plate?: string | null
+          photos?: string[] | null
+          tags?: string[] | null
+          transmission?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_pins_in_bounds: {
+        Args: {
+          categories?: string[]
+          east: number
+          north: number
+          south: number
+          west: number
+        }
+        Returns: {
+          data: Json
+          id: string
+          lat: number
+          lng: number
+          title: string
+          type: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
