@@ -271,7 +271,7 @@ const AddEvent = () => {
       bannerImage: bannerImage?.preview,
       photos: bannerImage ? [bannerImage.preview] : undefined,
 
-      createdBy: state.currentUser?.id || 'unknown',
+      createdBy: authUser?.id || 'unknown',
       tags: [],
     });
 
