@@ -45,7 +45,7 @@ const Home = () => {
       setSearchParams({ tab }, { replace: true });
     }
   };
-  const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
+  const isNavigating = navStatus === 'navigating' || navStatus === 'previewing' || navStatus === 'arrived';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
