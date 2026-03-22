@@ -102,31 +102,25 @@ export class MockUserRepository implements IUserRepository {
   }
 }
 
-// ---- Garage Repository ----
+// ---- Garage Repository (in DataContext — kept for non-user vehicle queries) ----
+// NOTE: For the current user's vehicles, use GarageContext instead.
 export class MockGarageRepository implements IGarageRepository {
-  constructor(private store: MockStoreConfig) {}
+  constructor(private _store: MockStoreConfig) {}
 
-  getVehicles(userId: string): Vehicle[] {
-    return this.store.vehicles.get().filter(v => v.userId === userId);
+  getVehicles(_userId: string): Vehicle[] {
+    return []; // Vehicles now managed by GarageContext/LocalStorageGarageRepository
   }
 
   addVehicle(vehicle: Omit<Vehicle, 'id'>): Vehicle {
-    const newVehicle = { ...vehicle, id: uid() };
-    this.store.vehicles.set(prev => [...prev, newVehicle]);
-    return newVehicle;
+    return { ...vehicle, id: uid() };
   }
 
   updateVehicle(id: string, updates: Partial<Vehicle>): Vehicle {
-    let updated: Vehicle | undefined;
-    this.store.vehicles.set(prev => prev.map(v => {
-      if (v.id === id) { updated = { ...v, ...updates }; return updated; }
-      return v;
-    }));
-    return updated!;
+    return { id, userId: '', type: 'car', make: '', model: '', year: 0, photos: [], visibility: 'public', ...updates } as Vehicle;
   }
 
-  removeVehicle(id: string): void {
-    this.store.vehicles.set(prev => prev.filter(v => v.id !== id));
+  removeVehicle(_id: string): void {
+    // No-op — use GarageContext
   }
 }
 
