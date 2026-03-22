@@ -195,13 +195,14 @@ const OnboardingContent = () => {
     }
     // Step 6: Account creation FIRST
     if (step === 6) return <AccountStep onComplete={handleAccountCreated} />;
-    // Steps 7-12: Personalization (account already exists)
+    // Steps 7-11: Personalization (account already exists)
     if (step === 7) return <ProfileStep />;
     if (step === 8) return <UsernameStep />;
     if (step === 9) return <GarageStep />;
     if (step === 10) return <EnableNotificationsStep />;
     if (step === 11) return <EnableLocationStep />;
-    if (step === 12) return <PlanStep onComplete={handleComplete} />;
+    // Step 12: Plan — PlanStep calls next() which hits step 12 max, so we detect completion
+    if (step === 12) return <PlanStepWrapper onComplete={handleComplete} />;
     return null;
   };
 
