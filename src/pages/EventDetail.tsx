@@ -35,6 +35,7 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { state, events: eventsRepo } = useData();
+  const { user: authUser } = useAuth();
 
   const event = state.events.find(e => e.id === id);
   const isSavedInitial = state.savedEvents.includes(id || '');
