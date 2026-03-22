@@ -16,6 +16,7 @@ import { buildRouteDraft, formatRouteDistance } from '@/services/routeService';
 import { Button } from '@/components/ui/button';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
