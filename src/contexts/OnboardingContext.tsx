@@ -21,21 +21,16 @@ export interface OnboardingVehicle {
 }
 
 export interface OnboardingData {
-  // Profile
   avatarUrl: string | null;
   bio: string;
   location: string;
-  // Username
   username: string;
-  // Garage
   vehicles: OnboardingVehicle[];
-  // Permissions (backend-ready: user_permissions table)
   permissions: {
     notificationsEnabled: boolean;
     locationEnabled: boolean;
   };
   locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
-  // Notifications
   notifications: {
     newEventsNearby: boolean;
     clubActivity: boolean;
@@ -43,12 +38,9 @@ export interface OnboardingData {
     nearbyDrivers: boolean;
     sosAlerts: boolean;
   };
-  // Interests
   interests: string[];
-  // Plan & billing
   plan: 'free' | 'pro' | 'club';
   billingCycle: 'monthly' | 'yearly';
-  // Account
   email: string;
   password: string;
 }
@@ -93,12 +85,9 @@ function loadPersistedState(): { step: number; data: OnboardingData } | null {
 
 function persistState(step: number, data: OnboardingData) {
   try {
-    // Don't persist password to localStorage
     const { password, ...safeData } = data;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
-  } catch {
-    // Storage full or unavailable
-  }
+  } catch {}
 }
 
 interface OnboardingContextType {
@@ -114,7 +103,9 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-export const TOTAL_ONBOARDING_STEPS = 14;
+// Updated: 13 steps (0-12)
+// 0: Welcome, 1-5: Features, 6: Account, 7: Profile, 8: Username, 9: Garage, 10: Notifications, 11: Location, 12: Plan
+export const TOTAL_ONBOARDING_STEPS = 13;
 
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const persisted = loadPersistedState();
@@ -124,7 +115,6 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     ...(persisted?.data ?? {}),
   }));
 
-  // Persist on every change
   useEffect(() => {
     persistState(step, data);
   }, [step, data]);
