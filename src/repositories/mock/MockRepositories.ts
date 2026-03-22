@@ -54,24 +54,22 @@ export interface MockStoreConfig {
 }
 
 // ---- User Repository ----
+// NOTE: With currentUser now in AuthContext, these methods are stubs.
+// They will be replaced with Supabase queries.
 export class MockUserRepository implements IUserRepository {
   constructor(private store: MockStoreConfig) {}
 
   getCurrentUser(): User | null {
-    return this.store.currentUser.get();
+    return null; // User is now managed by AuthContext
   }
 
-  updateUser(updates: Partial<User>): User {
-    const user = this.store.currentUser.get();
-    if (!user) throw new Error('No user');
-    const updated = { ...user, ...updates };
-    this.store.currentUser.set(updated);
-    return updated;
+  updateUser(_updates: Partial<User>): User {
+    throw new Error('Use AuthContext.updateProfile() instead');
   }
 
   getUserStats(userId: string): UserStats {
     return {
-      garageCount: this.store.vehicles.get().filter(v => v.userId === userId).length,
+      garageCount: 0, // Vehicles now in GarageContext
       friendsCount: this.store.friends.get().filter(f => f.status === 'accepted').length,
       clubsCount: this.store.clubMemberships.get().filter(m => m.userId === userId).length,
       eventsCount: this.store.userAttendingEvents.get().length + this.store.userHostedEvents.get().length,
@@ -93,21 +91,13 @@ export class MockUserRepository implements IUserRepository {
     return this.store.activities.get().filter(a => a.userId === userId);
   }
 
-  useEventCredit(userId: string): boolean {
-    const user = this.store.currentUser.get();
-    if (!user || user.id !== userId) return false;
-    if (user.plan === 'pro' || user.plan === 'club') return true; // unlimited
-    if (user.eventCredits <= 0) return false;
-    this.store.currentUser.set({ ...user, eventCredits: user.eventCredits - 1 });
+  useEventCredit(_userId: string): boolean {
+    // Credits now managed via AuthContext
     return true;
   }
 
-  useRouteCredit(userId: string): boolean {
-    const user = this.store.currentUser.get();
-    if (!user || user.id !== userId) return false;
-    if (user.plan === 'pro' || user.plan === 'club') return true;
-    if (user.routeCredits <= 0) return false;
-    this.store.currentUser.set({ ...user, routeCredits: user.routeCredits - 1 });
+  useRouteCredit(_userId: string): boolean {
+    // Credits now managed via AuthContext
     return true;
   }
 }
