@@ -3,7 +3,7 @@ import { Search, MapPin, Car, Bike, Package, Wrench } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { mockMarketplaceListings } from '@/data/mockData';
+const mockMarketplaceListings: any[] = []; // TODO: wire to Supabase marketplace_listings
 
 const Marketplace = () => {
   const navigate = useNavigate();
