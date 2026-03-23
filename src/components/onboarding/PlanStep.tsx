@@ -134,7 +134,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: 'free', billingCycle: billing });
 
       if (onComplete) {
-        await onComplete();
+        await onComplete({ plan: 'free', billingCycle: billing });
       }
     } catch (err) {
       console.error('[PlanStep] Error during free continue:', err);
