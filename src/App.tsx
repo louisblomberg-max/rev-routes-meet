@@ -70,6 +70,7 @@ import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
