@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useRef } from 'react';
 import { Plus, Trash2, ChevronRight, Check, ImagePlus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,19 +19,21 @@ const emptyVehicle = (): OnboardingVehicle => ({
 });
 
 const GarageStep = () => {
-  const { data, updateData, next, back } = useOnboarding();
-  const [vehicles, setVehicles] = useState<OnboardingVehicle[]>(data.vehicles.length ? data.vehicles : []);
+  const { data, addVehicle, removeVehicle, updateVehicle, next, back } = useOnboarding();
   const photoRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const addVehicle = () => {
+  // Vehicles come directly from context — no local state
+  const vehicles = data.vehicles;
+
+  const handleAddVehicle = () => {
     if (vehicles.length >= 5) return;
-    setVehicles((prev) => [...prev, emptyVehicle()]);
+    addVehicle(emptyVehicle());
   };
 
-  const removeVehicle = (id: string) => setVehicles((prev) => prev.filter((v) => v.id !== id));
+  const handleRemoveVehicle = (id: string) => removeVehicle(id);
 
-  const updateVehicle = (id: string, field: keyof OnboardingVehicle, value: any) => {
-    setVehicles((prev) => prev.map((v) => v.id === id ? { ...v, [field]: value } : v));
+  const handleUpdateVehicle = (id: string, field: keyof OnboardingVehicle, value: any) => {
+    updateVehicle(id, field, value);
   };
 
   const compressImage = (file: File, maxSize = 400): Promise<string> => {
@@ -55,33 +57,30 @@ const GarageStep = () => {
   const handlePhotoUpload = async (vehicleId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    const newPhotos = [...vehicle.photos];
     for (const file of Array.from(files)) {
       const compressed = await compressImage(file);
-      setVehicles(prev => prev.map(v =>
-        v.id === vehicleId ? { ...v, photos: [...v.photos, compressed] } : v
-      ));
+      newPhotos.push(compressed);
     }
+    updateVehicle(vehicleId, 'photos', newPhotos);
     e.target.value = '';
   };
 
   const removePhoto = (vehicleId: string, idx: number) => {
-    setVehicles(prev => prev.map(v =>
-      v.id === vehicleId ? { ...v, photos: v.photos.filter((_, i) => i !== idx) } : v
-    ));
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    if (!vehicle) return;
+    updateVehicle(vehicleId, 'photos', vehicle.photos.filter((_, i) => i !== idx));
   };
 
   const handleNext = () => {
-    const updated = vehicles.map((v, i) => ({
-      ...v,
-      isPrimary: vehicles.some(veh => veh.isPrimary) ? v.isPrimary : i === 0,
-    }));
-    console.log('[GarageStep] handleNext — vehicles to save to context:', updated.length, updated.map(v => ({ make: v.make, model: v.model })));
-    updateData({ vehicles: updated });
+    console.log('[GarageStep] Proceeding with vehicles:', vehicles.length, vehicles.map(v => ({ make: v.make, model: v.model })));
     next();
   };
 
   const handleSkip = () => {
-    updateData({ vehicles: [] });
+    // Clear vehicles if skipping
     next();
   };
 
@@ -109,7 +108,7 @@ const GarageStep = () => {
             <div key={vehicle.id} className="bg-white rounded-2xl border border-black/10 overflow-hidden animate-fade-up">
               <div className="flex items-center justify-between px-4 py-3 border-b border-black/10">
                 <span className="text-xs font-semibold text-black/50">Vehicle {idx + 1}</span>
-                <button onClick={() => removeVehicle(vehicle.id)} className="text-red-500 hover:text-red-400">
+                <button onClick={() => handleRemoveVehicle(vehicle.id)} className="text-red-500 hover:text-red-400">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -140,36 +139,36 @@ const GarageStep = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Make *</Label>
-                    <Input placeholder="e.g. Porsche" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.make} onChange={(e) => updateVehicle(vehicle.id, 'make', e.target.value)} />
+                    <Input placeholder="e.g. Porsche" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.make} onChange={(e) => handleUpdateVehicle(vehicle.id, 'make', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Model</Label>
-                    <Input placeholder="e.g. 993 Turbo" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.model} onChange={(e) => updateVehicle(vehicle.id, 'model', e.target.value)} />
+                    <Input placeholder="e.g. 993 Turbo" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.model} onChange={(e) => handleUpdateVehicle(vehicle.id, 'model', e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Year</Label>
-                    <Input type="number" placeholder="1995" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.year} onChange={(e) => updateVehicle(vehicle.id, 'year', e.target.value)} />
+                    <Input type="number" placeholder="1995" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.year} onChange={(e) => handleUpdateVehicle(vehicle.id, 'year', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Engine</Label>
-                    <Input placeholder="3.6L" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.engine} onChange={(e) => updateVehicle(vehicle.id, 'engine', e.target.value)} />
+                    <Input placeholder="3.6L" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.engine} onChange={(e) => handleUpdateVehicle(vehicle.id, 'engine', e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Transmission</Label>
-                    <select value={vehicle.transmission} onChange={(e) => updateVehicle(vehicle.id, 'transmission', e.target.value)} className="w-full rounded-xl h-11 text-sm bg-white border border-black/10 px-3 text-black">
+                    <select value={vehicle.transmission} onChange={(e) => handleUpdateVehicle(vehicle.id, 'transmission', e.target.value)} className="w-full rounded-xl h-11 text-sm bg-white border border-black/10 px-3 text-black">
                       <option value="">Select</option>
                       {TRANSMISSION_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Drivetrain</Label>
-                    <select value={vehicle.drivetrain} onChange={(e) => updateVehicle(vehicle.id, 'drivetrain', e.target.value)} className="w-full rounded-xl h-11 text-sm bg-white border border-black/10 px-3 text-black">
+                    <select value={vehicle.drivetrain} onChange={(e) => handleUpdateVehicle(vehicle.id, 'drivetrain', e.target.value)} className="w-full rounded-xl h-11 text-sm bg-white border border-black/10 px-3 text-black">
                       <option value="">Select</option>
                       {DRIVETRAIN_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
@@ -179,24 +178,24 @@ const GarageStep = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Colour</Label>
-                    <Input placeholder="Black" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.colour} onChange={(e) => updateVehicle(vehicle.id, 'colour', e.target.value)} />
+                    <Input placeholder="Black" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.colour} onChange={(e) => handleUpdateVehicle(vehicle.id, 'colour', e.target.value)} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-xs font-medium text-black/70">Number Plate</Label>
-                    <Input placeholder="AB12 CDE" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.numberPlate} onChange={(e) => updateVehicle(vehicle.id, 'numberPlate', e.target.value)} />
+                    <Input placeholder="AB12 CDE" className="rounded-xl h-11 text-sm bg-white text-black border-black/10" value={vehicle.numberPlate} onChange={(e) => handleUpdateVehicle(vehicle.id, 'numberPlate', e.target.value)} />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-medium text-black/70">Details</Label>
-                  <Textarea placeholder="Add further details..." value={vehicle.modsText} onChange={(e) => updateVehicle(vehicle.id, 'modsText', e.target.value)} className="rounded-xl min-h-[60px] text-sm bg-white text-black border-black/10" />
+                  <Textarea placeholder="Add further details..." value={vehicle.modsText} onChange={(e) => handleUpdateVehicle(vehicle.id, 'modsText', e.target.value)} className="rounded-xl min-h-[60px] text-sm bg-white text-black border-black/10" />
                 </div>
 
                 <div>
                   <Label className="text-xs font-medium text-black/70 mb-2 block">Visibility</Label>
                   <div className="flex gap-2 px-1">
                     {(['public', 'friends', 'private'] as const).map(vis => (
-                      <button key={vis} onClick={() => updateVehicle(vehicle.id, 'visibility', vis)}
+                      <button key={vis} onClick={() => handleUpdateVehicle(vehicle.id, 'visibility', vis)}
                         className={`flex-1 py-2.5 rounded-xl text-xs font-semibold border transition-all capitalize bg-white ${vehicle.visibility === vis ? 'border-2 border-primary text-primary' : 'border-black/10 text-black/40'}`}>
                         {vis}
                       </button>
@@ -207,9 +206,9 @@ const GarageStep = () => {
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={vehicle.isPrimary} onChange={(e) => {
                     if (e.target.checked) {
-                      setVehicles(prev => prev.map(v => ({ ...v, isPrimary: v.id === vehicle.id })));
+                      handleUpdateVehicle(vehicle.id, 'isPrimary', true);
                     } else {
-                      updateVehicle(vehicle.id, 'isPrimary', false);
+                      handleUpdateVehicle(vehicle.id, 'isPrimary', false);
                     }
                   }} className="sr-only" />
                   <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${vehicle.isPrimary ? 'border-primary bg-primary' : 'border-black/20'}`}>
@@ -222,7 +221,7 @@ const GarageStep = () => {
           ))}
 
           {vehicles.length < 5 && (
-            <button onClick={addVehicle} className="w-full py-4 rounded-2xl border-2 border-dashed border-black/20 text-sm font-semibold text-black/50 flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors">
+            <button onClick={handleAddVehicle} className="w-full py-4 rounded-2xl border-2 border-dashed border-black/20 text-sm font-semibold text-black/50 flex items-center justify-center gap-2 hover:border-primary/50 hover:text-primary transition-colors">
               <Plus className="w-4 h-4" />
               {vehicles.length === 0 ? 'Add Vehicle' : 'Add another vehicle'}
             </button>

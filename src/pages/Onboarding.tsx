@@ -24,7 +24,6 @@ const OnboardingContent = () => {
   const navigate = useNavigate();
   const { step, data, clearOnboarding } = useOnboarding();
   const { updateProfile, completeOnboarding, user } = useAuth();
-  const { addVehicle } = useGarage();
   const { setPlan, setBillingCycle, setSubscriptionStatus } = usePlan();
 
   useEffect(() => {
@@ -40,6 +39,7 @@ const OnboardingContent = () => {
     console.log('Vehicles length:', data.vehicles?.length);
 
     try {
+      // Step 1: Get fresh session
       const { data: { session: currentSession } } = await withTimeout(
         supabase.auth.getSession(), 10000, 'Session check timed out.'
       );
@@ -64,48 +64,54 @@ const OnboardingContent = () => {
       }
 
       const userId = activeSession.user.id;
+      console.log('[Onboarding] User ID:', userId);
 
-      // 1. Save profile
+      // Step 2: Save profile
       const profileUpdates: Record<string, unknown> = {
         onboarding_complete: true,
         onboarding_step: 6,
       };
       if (data.username) profileUpdates.username = data.username.toLowerCase();
       if (data.bio) profileUpdates.bio = data.bio;
-      if (data.avatarUrl) profileUpdates.avatar_url = data.avatarUrl;
+      if (data.avatarUrl?.startsWith('http')) profileUpdates.avatar_url = data.avatarUrl;
       if (data.location) profileUpdates.location = data.location;
       if (!profileUpdates.display_name && data.username) {
         profileUpdates.display_name = data.username;
       }
 
+      console.log('[Onboarding] Saving profile:', profileUpdates);
       const { error: profileError } = await supabase.from('profiles').update(profileUpdates).eq('id', userId);
       if (profileError) {
         console.error('[Onboarding] Profile error:', profileError);
         toast.error('Failed to save profile: ' + profileError.message);
         return;
       }
+      console.log('[Onboarding] Profile saved');
 
-      // 2. Save vehicles
-      const vehiclesToSave = (data.vehicles || []).filter((v: any) => v.make && String(v.make).trim());
-      console.log('[Onboarding] Vehicles to save:', vehiclesToSave.length, JSON.stringify(vehiclesToSave.map((v: any) => ({ make: v.make, model: v.model }))));
+      // Step 3: Save vehicles
+      const vehiclesToSave = Array.isArray(data.vehicles)
+        ? data.vehicles.filter(v => v.make && String(v.make).trim())
+        : [];
+      console.log('[Onboarding] Vehicles to save:', vehiclesToSave.length);
 
       if (vehiclesToSave.length > 0) {
-        const vehicleRows = vehiclesToSave.map((v: any, index: number) => ({
+        const vehicleRows = vehiclesToSave.map((v, index) => ({
           user_id: userId,
-          vehicle_type: v.vehicleType || v.vehicle_type || 'car',
+          vehicle_type: v.vehicleType || 'car',
           make: String(v.make).trim(),
           model: v.model ? String(v.model).trim() : null,
-          year: v.year ? String(v.year) : null,
+          year: v.year ? String(v.year).trim() : null,
           engine: v.engine ? String(v.engine).trim() : null,
           transmission: v.transmission || null,
           drivetrain: v.drivetrain || null,
           colour: v.colour ? String(v.colour).trim() : null,
-          number_plate: v.numberPlate || v.number_plate || null,
+          number_plate: v.numberPlate ? String(v.numberPlate).trim() : null,
           tags: v.tags || [],
-          mods_text: v.modsText || v.mods_text || null,
-          photos: [],
+          mods_text: v.modsText || null,
+          details: v.trim || null,
+          photos: [], // Photos handled separately via storage
           visibility: v.visibility || 'public',
-          is_primary: v.isPrimary || v.is_primary || index === 0,
+          is_primary: v.isPrimary || index === 0,
         }));
 
         console.log('[Onboarding] Vehicle rows to insert:', JSON.stringify(vehicleRows));
@@ -119,28 +125,28 @@ const OnboardingContent = () => {
           console.error('[Onboarding] Vehicle insert error:', vehicleError);
           toast.error('Could not save vehicles — you can add them later in My Garage');
         } else {
-          console.log('[Onboarding] Vehicles saved successfully:', insertedVehicles);
+          console.log('[Onboarding] Vehicles saved successfully:', insertedVehicles?.length);
         }
       } else {
         console.log('[Onboarding] No vehicles to save — user skipped garage step');
       }
 
-      // 3. Save notification preference
+      // Step 4: Save notification preference
       await supabase.from('user_preferences').update({
         push_notifications: data.notificationsEnabled,
       }).eq('user_id', userId);
 
-      // 4. Save plan via edge function
+      // Step 5: Save plan via edge function
       await supabase.functions.invoke('complete-onboarding', {
         body: { plan: selection.plan, billingCycle: selection.billingCycle },
       });
 
-      // 5. Update local state
+      // Step 6: Update local state
       updateProfile({
         username: data.username,
         displayName: data.username || user?.displayName || 'User',
         bio: data.bio,
-        avatar: data.avatarUrl,
+        avatar: data.avatarUrl?.startsWith('http') ? data.avatarUrl : undefined,
         location: data.location,
         onboardingComplete: true,
         isProfileComplete: true,
@@ -149,28 +155,6 @@ const OnboardingContent = () => {
       setPlan('free');
       setBillingCycle(selection.billingCycle);
       setSubscriptionStatus('active');
-
-      for (const v of data.vehicles.filter(v => v.make.trim())) {
-        addVehicle({
-          userId,
-          vehicleType: v.vehicleType,
-          make: v.make,
-          model: v.model,
-          year: v.year ? parseInt(v.year) : undefined,
-          trim: v.trim || undefined,
-          engine: v.engine || undefined,
-          transmission: (v.transmission as any) || undefined,
-          drivetrain: (v.drivetrain as any) || undefined,
-          colour: v.colour || undefined,
-          numberPlate: v.numberPlate || undefined,
-          mileage: v.mileage ? parseInt(v.mileage) : undefined,
-          tags: v.tags || [],
-          modsText: v.modsText || undefined,
-          photos: v.photos || [],
-          visibility: v.visibility || 'public',
-          isPrimary: v.isPrimary || data.vehicles.indexOf(v) === 0,
-        });
-      }
 
       completeOnboarding();
       clearOnboarding();
