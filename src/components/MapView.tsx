@@ -161,22 +161,18 @@ const MapView = ({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const { pins, setPins, setViewport, setZoom: setMapZoom } = useMap();
 
-  // Subscribe to realtime pin changes (Supabase-ready)
+  // Realtime pin updates via events/routes/services tables
   useRealtimeSubscription({
-    channel: 'pins',
+    table: 'events',
     enabled: true,
-    onInsert: (payload: unknown) => {
-      const newPin = payload as MapPin;
-      setPins([...pins, newPin]);
-    },
-    onUpdate: (payload: unknown) => {
-      const updated = payload as MapPin;
-      setPins(pins.map(p => p.id === updated.id ? updated : p));
-    },
-    onDelete: (payload: unknown) => {
-      const deleted = payload as { id: string };
-      setPins(pins.filter(p => p.id !== deleted.id));
-    },
+  });
+  useRealtimeSubscription({
+    table: 'routes',
+    enabled: true,
+  });
+  useRealtimeSubscription({
+    table: 'services',
+    enabled: true,
   });
 
   // Track viewport bounds on map move

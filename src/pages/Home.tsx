@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
@@ -120,17 +121,66 @@ const Home = () => {
     );
   };
 
-  const handlePinClick = (pin: MapPin) => {
+  const handlePinClick = async (pin: MapPin) => {
     if (isNavigating) return;
 
     if (pin.type === 'events') {
-      const event = state.events.find(e => e.id === pin.id);
+      // Try DataContext first, then fetch from Supabase
+      let event = state.events.find(e => e.id === pin.id);
+      if (!event) {
+        const { data } = await supabase.from('events').select('*').eq('id', pin.id).maybeSingle();
+        if (data) {
+          event = {
+            id: data.id, title: data.title, description: data.description || '',
+            eventType: data.type || '', date: data.date_start || '', startDate: data.date_start || '',
+            location: data.location || '', locationName: data.location || '',
+            lat: data.lat, lng: data.lng, createdBy: data.created_by || '',
+            bannerImage: data.banner_url || '', vehicleTypes: data.vehicle_types || [],
+            vehicleBrands: data.vehicle_brands || [], vehicleCategories: data.vehicle_categories || [],
+            vehicleAges: data.vehicle_ages || [], maxAttendees: data.max_attendees,
+            entryFee: data.is_free ? 'Free' : `£${data.entry_fee}`,
+            entryFeeType: data.is_free ? 'free' : 'paid', entryFeeAmount: data.entry_fee,
+            visibility: data.visibility || 'public', createdAt: data.created_at || '',
+            is_ticketed: data.is_ticketed, ticket_price: data.ticket_price,
+          } as any;
+        }
+      }
       if (event) setSelectedDetail({ type: 'event', data: event });
     } else if (pin.type === 'routes') {
-      const route = state.routes.find(r => r.id === pin.id);
+      let route = state.routes.find(r => r.id === pin.id);
+      if (!route) {
+        const { data } = await supabase.from('routes').select('*').eq('id', pin.id).maybeSingle();
+        if (data) {
+          route = {
+            id: data.id, name: data.name, description: data.description || '',
+            type: data.type || '', difficulty: data.difficulty || '',
+            distance: data.distance_meters ? `${(data.distance_meters / 1000).toFixed(1)} km` : '',
+            durationMinutes: data.duration_minutes, vehicleType: data.vehicle_type || '',
+            surfaceType: data.surface_type || '', safetyTags: data.safety_tags || [],
+            lat: data.lat, lng: data.lng, createdBy: data.created_by || '',
+            rating: data.rating, polyline: data.geometry ? JSON.stringify(data.geometry) : null,
+            visibility: data.visibility || 'public', createdAt: data.created_at || '',
+            elevationGain: data.elevation_gain,
+          } as any;
+        }
+      }
       if (route) setSelectedDetail({ type: 'route', data: route });
     } else if (pin.type === 'services') {
-      const service = state.services.find(s => s.id === pin.id);
+      let service = state.services.find(s => s.id === pin.id);
+      if (!service) {
+        const { data } = await supabase.from('services').select('*').eq('id', pin.id).maybeSingle();
+        if (data) {
+          service = {
+            id: data.id, name: data.name, description: data.description || '',
+            category: data.service_type || '', serviceTypes: data.types || [],
+            address: data.address || '', phone: data.phone || '', website: data.website || '',
+            rating: data.rating, lat: data.lat, lng: data.lng,
+            createdBy: data.created_by || '', createdAt: data.created_at || '',
+            is_24_7: data.is_24_7, is_emergency: data.is_emergency,
+            cover_url: data.cover_url, tagline: data.tagline,
+          } as any;
+        }
+      }
       if (service) setSelectedDetail({ type: 'service', data: service });
     }
   };

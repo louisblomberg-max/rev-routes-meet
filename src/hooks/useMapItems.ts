@@ -1,110 +1,79 @@
 /**
- * useMapItems — Bridges DataContext (events/routes/services/clubs) → MapContext pins.
- * Now includes tags for filtering and preference-based scoring.
- * Supabase-ready: replace this hook's data source with RPC calls later.
+ * useMapItems — Fetches map pins directly from Supabase via get_pins_in_bounds RPC.
+ * Syncs pins into MapContext whenever viewport or categories change.
  */
 
-import { useEffect, useMemo } from 'react';
-import { useData } from '@/contexts/DataContext';
+import { useEffect, useRef, useCallback } from 'react';
 import { useMap, type MapPin } from '@/contexts/MapContext';
+import { supabase } from '@/integrations/supabase/client';
+
+// Normalize RPC type names ('event'→'events', 'route'→'routes', 'service'→'services')
+const normalizeType = (t: string): string => {
+  if (t === 'event') return 'events';
+  if (t === 'route') return 'routes';
+  if (t === 'service') return 'services';
+  return t;
+};
 
 export function useMapItems() {
-  const { state } = useData();
-  const { setPins } = useMap();
+  const { viewport, setPins, setIsLoadingPins } = useMap();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const lastFetchRef = useRef<string>('');
 
-  const pins = useMemo<MapPin[]>(() => {
-    const result: MapPin[] = [];
+  const fetchPins = useCallback(async (bounds: NonNullable<typeof viewport>) => {
+    // Deduplicate identical fetches
+    const key = `${bounds.north.toFixed(4)},${bounds.south.toFixed(4)},${bounds.east.toFixed(4)},${bounds.west.toFixed(4)}`;
+    if (key === lastFetchRef.current) return;
+    lastFetchRef.current = key;
 
-    // Events with valid lat/lng
-    for (const ev of state.events) {
-      if (ev.lat != null && ev.lng != null) {
-        result.push({
-          id: ev.id,
-          type: 'events',
-          lat: ev.lat,
-          lng: ev.lng,
-          title: ev.title,
-          // Structured fields for filtering
-          eventType: ev.eventType,
-          vehicleType: ev.vehicleType,
-          vehicleBrands: ev.vehicleBrands || [],
-          vehicleCategories: ev.vehicleCategories || [],
-          vehicleAge: ev.vehicleAge || 'all',
-          vehicleAges: ev.vehicleAges || [],
-          startDate: ev.startDate,
-          startTime: ev.startTime,
-          endDate: ev.endDate,
-          endTime: ev.endTime,
-          maxAttendees: ev.maxAttendees,
-          entryFeeType: ev.entryFeeType || (ev.entryFee === 'Free' || ev.entryFee === '£0' ? 'free' : 'paid'),
-          entryFeeAmount: ev.entryFeeAmount,
-          // Legacy fields
-          date: ev.date,
-          location: ev.locationName || ev.location,
-          attendees: ev.attendees,
-          createdBy: ev.createdBy,
-          visibility: ev.visibility,
-          entryFee: ev.entryFee,
-          clubId: ev.clubId,
-          tags: ev.tags || [],
-        });
+    setIsLoadingPins(true);
+    try {
+      const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+        north: bounds.north,
+        south: bounds.south,
+        east: bounds.east,
+        west: bounds.west,
+        categories: ['events', 'routes', 'services'],
+      });
+
+      if (error) {
+        console.error('[useMapItems] RPC error:', error);
+        return;
       }
-    }
 
-    // Routes with valid lat/lng (start point)
-    for (const rt of state.routes) {
-      if (rt.lat != null && rt.lng != null) {
-        result.push({
-          id: rt.id,
-          type: 'routes',
-          lat: rt.lat,
-          lng: rt.lng,
-          title: rt.name,
-          routeType: rt.type,
-          rating: rt.rating,
-          distance: rt.distance,
-          vehicleType: rt.vehicleType,
-          createdBy: rt.createdBy,
-          visibility: rt.visibility,
-          tags: rt.tags || [],
-          difficulty: rt.difficulty,
-          surfaceType: rt.surfaceType,
-          durationMinutes: rt.durationMinutes,
+      if (data) {
+        const pins: MapPin[] = data.map((pin: any) => {
+          const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
+          return {
+            id: pin.id,
+            type: normalizeType(pin.type),
+            lat: Number(pin.lat),
+            lng: Number(pin.lng),
+            title: pin.title,
+            // Spread RPC data fields for filtering
+            ...pinData,
+          };
         });
+        setPins(pins);
       }
+    } catch (err) {
+      console.error('[useMapItems] Fetch error:', err);
+    } finally {
+      setIsLoadingPins(false);
     }
+  }, [setPins, setIsLoadingPins]);
 
-    // Services with valid lat/lng
-    for (const svc of state.services) {
-      if (svc.lat != null && svc.lng != null) {
-        result.push({
-          id: svc.id,
-          type: 'services',
-          lat: svc.lat,
-          lng: svc.lng,
-          title: svc.name,
-          category: svc.category,
-          rating: svc.rating,
-          isOpen: svc.isOpen,
-          address: svc.address,
-          distance: svc.distance,
-          createdBy: svc.createdBy,
-          visibility: svc.visibility,
-          tags: svc.tags || [],
-        });
-      }
-    }
-
-    // Clubs — excluded from map pins (no category chip on discovery)
-    // Club locations are accessible via the Clubs tab instead.
-
-    return result;
-  }, [state.events, state.routes, state.services, state.clubs]);
-
-  // Sync to MapContext
+  // Fetch pins when viewport changes (debounced)
   useEffect(() => {
-    setPins(pins);
-  }, [pins, setPins]);
+    if (!viewport) return;
 
-  return pins;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchPins(viewport);
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [viewport, fetchPins]);
 }
