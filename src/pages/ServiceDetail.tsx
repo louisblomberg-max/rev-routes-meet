@@ -149,9 +149,7 @@ const ServiceDetail = () => {
           </Button>
           {service.lat && service.lng && (
             <NavigateButton
-              lat={service.lat}
-              lng={service.lng}
-              title={service.name}
+              destination={{ lat: Number(service.lat), lng: Number(service.lng), title: service.name }}
               className="flex-1"
             />
           )}
