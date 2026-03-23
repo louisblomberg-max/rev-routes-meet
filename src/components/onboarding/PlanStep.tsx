@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -91,47 +91,58 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
   const [loading, setLoading] = useState(false);
 
-  // Refresh session when plan step mounts
-  useEffect(() => {
-    const refreshSession = async () => {
-      const { data: { session }, error } = await supabase.auth.refreshSession();
-      if (error || !session) {
-        toast.error('Session expired. Please sign in again.');
-        navigate('/auth/login');
-      }
-    };
-    refreshSession();
-  }, [navigate]);
-
   const selectedPlan = PLANS.find(p => p.id === selected)!;
+
+  const getActiveUserId = async () => {
+    const { data: sessionData } = await withTimeout(
+      supabase.auth.getSession(),
+      8000,
+      'Session check timed out. Please try again.'
+    );
+
+    if (sessionData.session?.user?.id) {
+      return sessionData.session.user.id;
+    }
+
+    const { data: refreshData, error: refreshError } = await withTimeout(
+      supabase.auth.refreshSession(),
+      10000,
+      'Session refresh timed out. Please sign in again.'
+    );
+
+    if (refreshError || !refreshData.session?.user?.id) {
+      throw new Error('Session expired. Please sign in again.');
+    }
+
+    return refreshData.session.user.id;
+  };
 
   const handleContinue = async () => {
     setLoading(true);
     try {
       console.log('[PlanStep] Continue tapped. Selected plan:', selected, 'Billing:', billing);
 
-      // Verify session is still valid
-      const { data: sessionData } = await supabase.auth.getSession();
-      console.log('[PlanStep] Session user ID:', sessionData.session?.user?.id);
-
-      if (!sessionData.session?.user?.id) {
-        toast.error('Session expired. Please sign in again.');
-        navigate('/auth/login');
-        return;
-      }
+      const userId = await getActiveUserId();
+      console.log('[PlanStep] Session user ID:', userId);
 
       updateData({ plan: selected, billingCycle: billing });
 
       if (onComplete) {
         await withTimeout(
           Promise.resolve(onComplete({ plan: selected, billingCycle: billing })),
-          20000,
+          30000,
           'Saving timed out. Please try again.'
         );
+      } else {
+        throw new Error('Unable to continue onboarding. Please try again.');
       }
     } catch (err) {
       console.error('[PlanStep] Error during continue:', err);
-      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      toast.error(message);
+      if (message.toLowerCase().includes('session')) {
+        navigate('/auth/login');
+      }
     } finally {
       setLoading(false);
     }
@@ -142,25 +153,27 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
     try {
       console.log('[PlanStep] Continue with Free tapped');
 
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session?.user?.id) {
-        toast.error('Session expired. Please sign in again.');
-        navigate('/auth/login');
-        return;
-      }
+      const userId = await getActiveUserId();
+      console.log('[PlanStep] Free flow session user ID:', userId);
 
       updateData({ plan: 'free', billingCycle: billing });
 
       if (onComplete) {
         await withTimeout(
           Promise.resolve(onComplete({ plan: 'free', billingCycle: billing })),
-          20000,
+          30000,
           'Saving timed out. Please try again.'
         );
+      } else {
+        throw new Error('Unable to continue onboarding. Please try again.');
       }
     } catch (err) {
       console.error('[PlanStep] Error during free continue:', err);
-      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
+      toast.error(message);
+      if (message.toLowerCase().includes('session')) {
+        navigate('/auth/login');
+      }
     } finally {
       setLoading(false);
     }

@@ -122,9 +122,31 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
 
   // Fix 5: Session heartbeat — keep session alive during onboarding
   useEffect(() => {
-    const interval = setInterval(async () => {
-      await supabase.auth.getSession();
+    let heartbeatInFlight = false;
+
+    const keepSessionAlive = async () => {
+      if (heartbeatInFlight) return;
+      heartbeatInFlight = true;
+
+      try {
+        await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('heartbeat-timeout')), 8000)),
+        ]);
+      } catch (error) {
+        console.warn(
+          '[Onboarding] Session heartbeat skipped:',
+          error instanceof Error ? error.message : error
+        );
+      } finally {
+        heartbeatInFlight = false;
+      }
+    };
+
+    const interval = setInterval(() => {
+      void keepSessionAlive();
     }, 3 * 60 * 1000);
+
     return () => clearInterval(interval);
   }, []);
 
