@@ -83,9 +83,13 @@ const AuthSignup = () => {
     try {
       await register(form.email, form.password, form.displayName);
       toast.success('Account created!');
-      navigate('/onboarding/features');
-    } catch {
-      toast.error('Registration failed');
+      navigate('/onboarding', { replace: true });
+    } catch (error: any) {
+      if (error.message?.includes('already registered')) {
+        toast.error('An account with this email already exists');
+      } else {
+        toast.error('Could not create account. Please try again.');
+      }
     }
   };
 

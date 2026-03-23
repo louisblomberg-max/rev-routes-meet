@@ -93,6 +93,7 @@ const App = () => (
           <Route path="/auth/login" element={<AuthLogin />} />
           <Route path="/auth/forgot" element={<AuthForgot />} />
           <Route path="/auth/verify" element={<AuthVerify />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding (not protected) */}
