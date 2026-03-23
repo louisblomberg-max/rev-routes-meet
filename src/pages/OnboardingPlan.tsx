@@ -53,9 +53,10 @@ const PLANS = [
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },
-      { label: 'Business/service listings', included: true },
+      { label: 'Event ticketing with Stripe payouts', included: true },
+      { label: 'Business & service listings', included: true },
       { label: 'Analytics & insights', included: true },
-      { label: 'Featured map placement', included: true },
+      { label: 'Featured placement', included: true },
       { label: 'Verified badge', included: true },
     ],
   },
