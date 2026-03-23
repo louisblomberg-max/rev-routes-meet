@@ -1,48 +1,48 @@
-import { useEffect, useRef, useCallback } from 'react';
-
-type SubscriptionChannel = 'pins' | 'feed' | 'notifications' | 'help-alerts' | 'messages';
+import { useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionConfig {
-  channel: SubscriptionChannel;
+  table: string;
   enabled: boolean;
-  onInsert?: (payload: unknown) => void;
-  onUpdate?: (payload: unknown) => void;
-  onDelete?: (payload: unknown) => void;
+  filter?: string;
+  onInsert?: (payload: any) => void;
+  onUpdate?: (payload: any) => void;
+  onDelete?: (payload: any) => void;
 }
 
 /**
- * Skeleton hook for real-time subscriptions.
- * Will be connected to Supabase Realtime once Cloud is enabled.
+ * Real-time subscription hook using Supabase Realtime.
  */
-export const useRealtimeSubscription = ({ channel, enabled, onInsert, onUpdate, onDelete }: SubscriptionConfig) => {
+export const useRealtimeSubscription = ({ table, enabled, filter, onInsert, onUpdate, onDelete }: SubscriptionConfig) => {
   const callbacksRef = useRef({ onInsert, onUpdate, onDelete });
   callbacksRef.current = { onInsert, onUpdate, onDelete };
 
   useEffect(() => {
     if (!enabled) return;
-    
-    // Placeholder: When Supabase is connected, this will:
-    // const sub = supabase.channel(channel)
-    //   .on('postgres_changes', { event: 'INSERT', ... }, payload => callbacksRef.current.onInsert?.(payload))
-    //   .on('postgres_changes', { event: 'UPDATE', ... }, payload => callbacksRef.current.onUpdate?.(payload))
-    //   .on('postgres_changes', { event: 'DELETE', ... }, payload => callbacksRef.current.onDelete?.(payload))
-    //   .subscribe();
-    
-    console.log(`[Realtime] Subscribed to: ${channel}`);
-    
+
+    const channelName = `realtime-${table}-${filter || 'all'}`;
+    const filterObj: any = { event: '*', schema: 'public', table };
+    if (filter) filterObj.filter = filter;
+
+    const channel = supabase
+      .channel(channelName)
+      .on('postgres_changes', filterObj, (payload) => {
+        if (payload.eventType === 'INSERT') callbacksRef.current.onInsert?.(payload.new);
+        if (payload.eventType === 'UPDATE') callbacksRef.current.onUpdate?.(payload.new);
+        if (payload.eventType === 'DELETE') callbacksRef.current.onDelete?.(payload.old);
+      })
+      .subscribe();
+
     return () => {
-      console.log(`[Realtime] Unsubscribed from: ${channel}`);
-      // sub?.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, [channel, enabled]);
+  }, [table, enabled, filter]);
 };
 
 /**
  * Hook for notification badge counts.
- * Will be connected to real-time notification system.
  */
 export const useNotificationBadge = () => {
-  // Placeholder state - will be driven by real-time updates
   return {
     unreadMessages: 0,
     unreadNotifications: 0,
