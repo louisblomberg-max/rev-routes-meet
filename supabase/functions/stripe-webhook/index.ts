@@ -120,6 +120,24 @@ serve(async (req) => {
         await supabaseAdmin.from("event_purchases").update({
           status: "confirmed",
         }).eq("stripe_payment_intent_id", pi.id);
+
+        // Update event_tickets for ticket purchases
+        const { data: ticketRows } = await supabaseAdmin.from("event_tickets").update({
+          status: "confirmed",
+        }).eq("stripe_payment_intent_id", pi.id).eq("status", "pending").select("event_id, user_id");
+
+        // Auto-add confirmed ticket holders as event attendees
+        if (ticketRows && ticketRows.length > 0) {
+          for (const ticket of ticketRows) {
+            if (ticket.event_id && ticket.user_id) {
+              await supabaseAdmin.from("event_attendees").upsert({
+                event_id: ticket.event_id,
+                user_id: ticket.user_id,
+                status: "attending",
+              }, { onConflict: "event_id,user_id" });
+            }
+          }
+        }
         break;
       }
 
