@@ -6,7 +6,9 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getPriceId } from '@/config/stripe';
 import revnetLogo from '@/assets/revnet-logo-new.png';
 import BackButton from '@/components/BackButton';
 
@@ -17,6 +19,7 @@ const PLANS = [
     tagline: 'Get started for free',
     icon: Sparkles,
     price: { monthly: 0, yearly: 0 },
+    savingsBadge: null,
     features: [
       { label: 'Browse routes, events & services', included: true },
       { label: '1 free event post included', included: true },
@@ -33,7 +36,8 @@ const PLANS = [
     tagline: 'For active drivers',
     icon: Star,
     popular: true,
-    price: { monthly: 3.99, yearly: 43.07 },
+    price: { monthly: 3.99, yearly: 43.99 },
+    savingsBadge: 'Save 8%',
     features: [
       { label: 'Everything in Explorer', included: true },
       { label: 'Unlimited event posts', included: true },
@@ -46,10 +50,11 @@ const PLANS = [
   },
   {
     id: 'club' as PlanId,
-    name: 'Clubs & Services',
+    name: 'Club / Business',
     tagline: 'Organise & grow',
     icon: Building2,
-    price: { monthly: 6.99, yearly: 75.49 },
+    price: { monthly: 5.99, yearly: 63.99 },
+    savingsBadge: 'Save 11%',
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },
@@ -65,17 +70,44 @@ const PLANS = [
 const OnboardingPlan = () => {
   const navigate = useNavigate();
   const { setPlan } = usePlan();
-  const { completeOnboarding } = useAuth();
+  const { completeOnboarding, user } = useAuth();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [selected, setSelected] = useState<PlanId>('free');
+  const [loading, setLoading] = useState(false);
 
-  const handleContinue = () => {
-    setPlan(selected);
-    completeOnboarding();
-    if (selected !== 'free') {
-      toast.success(`${PLANS.find(p => p.id === selected)?.name} activated!`);
+  const handleContinue = async () => {
+    if (selected === 'free') {
+      setPlan('free');
+      completeOnboarding();
+      navigate('/');
+      return;
     }
-    navigate('/');
+
+    // Check for native platform
+    try {
+      const { Capacitor } = await import('@capacitor/core');
+      if (Capacitor.isNativePlatform()) {
+        toast.info('Payment available on web at revnet.app');
+        return;
+      }
+    } catch { /* not native */ }
+
+    setLoading(true);
+    try {
+      const priceId = getPriceId(selected as 'pro' | 'club', billing);
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { price_id: priceId, plan: selected },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      toast.error('Failed to start checkout');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const selectedPlan = PLANS.find(p => p.id === selected)!;
@@ -110,7 +142,6 @@ const OnboardingPlan = () => {
           <Switch checked={billing === 'yearly'} onCheckedChange={(c) => setBilling(c ? 'yearly' : 'monthly')} />
           <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-black' : 'text-black/50'}`}>
             Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">Save 20%</Badge>
           </span>
         </div>
 
@@ -150,6 +181,11 @@ const OnboardingPlan = () => {
                       {price === 0 ? 'Free' : `£${price.toFixed(2)}`}
                     </span>
                     {price > 0 && <p className="text-[10px] text-black/50">/ {billing === 'monthly' ? 'mo' : 'yr'}</p>}
+                    {billing === 'yearly' && plan.savingsBadge && (
+                      <Badge variant="secondary" className="mt-0.5 text-[9px] px-1.5 py-0 bg-primary/10 text-primary border-0">
+                        {plan.savingsBadge}
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -184,8 +220,12 @@ const OnboardingPlan = () => {
 
       {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20 border-t border-black/5" style={{ backgroundColor: '#f3f3e8' }}>
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
-          {selected === 'free' ? 'Start Free' : `Continue with ${selectedPlan.name}`}
+        <Button
+          onClick={handleContinue}
+          disabled={loading}
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10"
+        >
+          {loading ? 'Redirecting…' : selected === 'free' ? 'Start Free' : `Continue with ${selectedPlan.name}`}
           <ChevronRight className="w-5 h-5" />
         </Button>
         {selected !== 'free' && (

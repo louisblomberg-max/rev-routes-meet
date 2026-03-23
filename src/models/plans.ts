@@ -17,7 +17,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
       'Additional events £2.99 each',
       'Join clubs & forums',
       'Basic messaging',
-      'Save routes & events',
+      'Save & bookmark content',
     ],
   },
   {
@@ -27,7 +27,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     eventCreditsPerMonth: -1, // unlimited
     routeCreditsPerMonth: -1,
     features: [
-      'Everything in Free',
+      'Everything in Explorer',
       'Unlimited event posts',
       'Create & publish routes',
       'Host unlimited events',
@@ -40,7 +40,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   {
     id: 'club',
     name: 'Club / Business',
-    price: 6.99,
+    price: 5.99,
     eventCreditsPerMonth: -1,
     routeCreditsPerMonth: -1,
     features: [
