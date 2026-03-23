@@ -46,10 +46,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     features: [
       'Everything in Pro',
       'Create & manage clubs',
-      'Club announcements',
-      'Event ticketing',
-      'Business / service listings',
-      'Analytics dashboard',
+      'Event ticketing with Stripe payouts',
+      'Business & service listings',
+      'Analytics & insights',
       'Featured placement',
       'Verified badge',
     ],
