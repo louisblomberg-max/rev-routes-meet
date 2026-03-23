@@ -20,10 +20,10 @@ const AuthLogin = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && user && user.onboardingComplete) {
+    if (!authLoading && user && user.onboardingComplete) {
       navigate('/', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
