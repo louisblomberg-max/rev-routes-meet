@@ -250,7 +250,7 @@ const MarketplaceTab = () => {
     setRecentSearches(prev => prev.filter(s => s !== search));
   };
 
-  const featuredListing = mockMarketplaceListings[0];
+  const featuredListing = marketplaceListings[0];
 
   return (
     <div className="h-full bg-background overflow-y-auto pb-24">
