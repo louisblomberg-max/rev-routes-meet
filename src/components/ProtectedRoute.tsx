@@ -1,6 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -8,8 +8,16 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, isAuthenticated, isLoading } = useAuth();
+  const [forceReady, setForceReady] = useState(false);
 
-  if (isLoading) {
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setForceReady(true);
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  if (isLoading && !forceReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />

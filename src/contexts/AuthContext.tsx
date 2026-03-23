@@ -77,7 +77,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ onboardingComplete: boolean }>;
   loginPhone: (phone: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   registerPhone: (phone: string) => Promise<void>;
