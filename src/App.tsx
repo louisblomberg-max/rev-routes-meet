@@ -68,6 +68,7 @@ import Onboarding from "./pages/Onboarding";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
+import UserProfile from "./pages/UserProfile";
 
 const queryClient = new QueryClient();
 
