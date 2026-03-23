@@ -74,12 +74,16 @@ const OnboardingContent = () => {
 
   const handleComplete = async () => {
     try {
-      const userId = user?.id;
-      if (!userId) {
+      // Refresh session to prevent "session expired" errors
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError || !sessionData.session) {
+        console.error('Session refresh failed:', sessionError);
         toast.error('Session expired. Please sign in again.');
-        navigate('/auth');
+        navigate('/auth/login');
         return;
       }
+      const userId = sessionData.session.user.id;
+      console.log('[Onboarding] Batch save starting for user:', userId);
 
       const profileUpdates: Record<string, unknown> = {};
       if (data.username) profileUpdates.username = data.username;
