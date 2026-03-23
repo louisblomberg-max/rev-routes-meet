@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error("create-stripe-connect-account error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: "An internal error occurred. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

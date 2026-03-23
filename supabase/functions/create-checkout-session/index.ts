@@ -99,7 +99,7 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = (error as Error).message;
     logStep("ERROR", { message: errorMessage });
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "An internal error occurred. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

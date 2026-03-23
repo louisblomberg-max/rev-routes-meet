@@ -72,16 +72,36 @@ const UserProfile = () => {
 
   const handleMessage = async () => {
     if (!authUser?.id || !profile?.id) return;
-    // Check if a conversation already exists
-    const { data: existing } = await supabase.rpc('get_pins_in_bounds', { north: 0, south: 0, east: 0, west: 0 }); // placeholder
 
     // Create new conversation
-    const { data: conv, error: convErr } = await supabase.from('conversations').insert({ name: profile.display_name || profile.username, type: 'direct' }).select('id').single();
+    const { data: conv, error: convErr } = await supabase
+      .from('conversations')
+      .insert({ name: profile.display_name || profile.username, type: 'direct' })
+      .select('id')
+      .single();
     if (convErr || !conv) { toast.error('Failed to create conversation'); return; }
-    await supabase.from('conversation_participants').insert([
-      { conversation_id: conv.id, user_id: authUser.id },
-      { conversation_id: conv.id, user_id: profile.id },
-    ]);
+
+    // Add self as participant (allowed by RLS)
+    await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: authUser.id });
+
+    // Add recipient via edge function (checks who_can_message privacy)
+    const { data: fnData, error: fnError } = await supabase.functions.invoke('add-conversation-participant', {
+      body: { conversation_id: conv.id, participant_user_id: profile.id },
+    });
+
+    if (fnError || (fnData && fnData.error)) {
+      // Privacy restriction or other failure — clean up the conversation
+      await supabase.from('conversation_participants').delete().eq('conversation_id', conv.id).eq('user_id', authUser.id);
+      await supabase.from('conversations').delete().eq('id', conv.id);
+      const errorMsg = fnData?.error;
+      if (errorMsg?.includes('privacy') || errorMsg?.includes('cannot message')) {
+        toast.error('This user has restricted who can message them');
+      } else {
+        toast.error('Failed to start conversation');
+      }
+      return;
+    }
+
     navigate(`/messages/${conv.id}`);
   };
 
