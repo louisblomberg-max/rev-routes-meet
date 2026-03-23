@@ -1500,6 +1500,10 @@ export type Database = {
         Args: { _club_id: string; _roles: string[]; _user_id: string }
         Returns: boolean
       }
+      update_user_plan: {
+        Args: { new_plan: string; user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
