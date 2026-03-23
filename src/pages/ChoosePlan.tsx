@@ -18,10 +18,10 @@ const PLANS = [
     price: { monthly: 0, yearly: 0 },
     features: [
       { label: 'Browse routes, events & services', included: true },
+      { label: '1 free event post included', included: true },
+      { label: 'Additional events £2.99 each', included: true },
       { label: 'Join clubs & forums', included: true },
       { label: 'Basic messaging', included: true },
-      { label: 'Save & bookmark content', included: true },
-      { label: 'Post questions & replies', included: true },
       { label: 'Create & publish routes', included: false },
       { label: 'Live location & safety', included: false },
     ],
