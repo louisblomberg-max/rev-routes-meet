@@ -13,6 +13,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     routeCreditsPerMonth: 0,
     features: [
       'Browse events, routes & services',
+      '1 free event post included',
+      'Additional events £2.99 each',
       'Join clubs & forums',
       'Basic messaging',
       'Save routes & events',
