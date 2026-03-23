@@ -76,9 +76,17 @@ const Messages = () => {
     await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
     // Add other participants via Edge Function (service role bypasses RLS)
     for (const u of selectedUsers) {
-      await supabase.functions.invoke('add-conversation-participant', {
+      const { data: fnData, error: fnError } = await supabase.functions.invoke('add-conversation-participant', {
         body: { conversation_id: conv.id, participant_user_id: u.id },
       });
+      // Check for privacy restriction (403)
+      if (fnError || (fnData && fnData.error)) {
+        const errorMsg = fnData?.error || fnError?.message || '';
+        if (errorMsg.includes('privacy') || errorMsg.includes('cannot message')) {
+          toast.error('This user has restricted who can message them.');
+          return;
+        }
+      }
     }
     navigate(`/messages/${conv.id}`);
   };
