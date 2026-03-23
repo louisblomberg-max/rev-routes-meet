@@ -9,20 +9,21 @@ import BackButton from '@/components/BackButton';
 
 const AuthLogin = () => {
   const navigate = useNavigate();
-  const { login, isLoading, user } = useAuth();
+  const { login, user, isLoading: authLoading } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shakeField, setShakeField] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && user && user.onboardingComplete) {
+    if (!authLoading && user && user.onboardingComplete) {
       navigate('/', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, authLoading, navigate]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -37,19 +38,24 @@ const AuthLogin = () => {
     return Object.keys(errs).length === 0;
   };
 
+  const isFormValid = email.length > 0 && password.length > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setIsSubmitting(true);
     try {
       const result = await login(email, password);
       toast.success('Welcome back!');
       if (result.onboardingComplete) {
         navigate('/', { replace: true });
       } else {
-        navigate('/auth', { replace: true });
+        navigate('/onboarding', { replace: true });
       }
     } catch {
       toast.error('Invalid email or password');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -99,8 +105,8 @@ const AuthLogin = () => {
           </div>
 
           <div className="pt-2">
-            <Button type="submit" className="w-full h-14 text-base font-semibold rounded-full" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full h-14 text-base font-semibold rounded-full" disabled={!isFormValid || isSubmitting}>
+              {isSubmitting ? (
                 <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</span>
               ) : 'Sign In'}
             </Button>

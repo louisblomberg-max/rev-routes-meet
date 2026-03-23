@@ -10,11 +10,12 @@ import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading, user } = useAuth();
+  const { login, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -33,19 +34,24 @@ const Login = () => {
     return Object.keys(errs).length === 0;
   };
 
+  const isFormValid = email.length > 0 && password.length > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setIsSubmitting(true);
     try {
       const result = await login(email, password);
       toast.success('Welcome back!');
       if (result.onboardingComplete) {
         navigate('/', { replace: true });
       } else {
-        navigate('/auth', { replace: true });
+        navigate('/onboarding', { replace: true });
       }
     } catch {
       toast.error('Login failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -103,8 +109,8 @@ const Login = () => {
             {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={!isFormValid || isSubmitting}>
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
 
