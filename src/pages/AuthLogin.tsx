@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,20 @@ import BackButton from '@/components/BackButton';
 
 const AuthLogin = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, user } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shakeField, setShakeField] = useState<string | null>(null);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -34,11 +41,13 @@ const AuthLogin = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
-      await login(email, password);
+      const result = await login(email, password);
       toast.success('Welcome back!');
-      // AuthContext will load user profile; ProtectedRoute or Onboarding
-      // will redirect based on onboardingComplete status
-      navigate('/', { replace: true });
+      if (result.onboardingComplete) {
+        navigate('/', { replace: true });
+      } else {
+        navigate('/auth', { replace: true });
+      }
     } catch {
       toast.error('Invalid email or password');
     }
