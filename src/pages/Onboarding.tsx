@@ -16,6 +16,20 @@ import EnableNotificationsStep from '@/components/onboarding/EnableNotifications
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
 import PlanStep, { type PlanSelection } from '@/components/onboarding/PlanStep';
 
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 const FEATURE_SLIDES = [
   {
     title: 'Discover Meets & Events',
@@ -65,15 +79,42 @@ const OnboardingContent = () => {
       const selectedPlan = selection.plan;
       const selectedBilling = selection.billingCycle;
 
-      // Refresh session to prevent "session expired" errors
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      if (sessionError || !sessionData.session) {
-        console.error('[Onboarding] Session refresh failed:', sessionError);
+      const {
+        data: { session: currentSession },
+        error: getSessionError,
+      } = await withTimeout(
+        supabase.auth.getSession(),
+        10000,
+        'Session check timed out. Please try again.'
+      );
+
+      let activeSession = currentSession;
+
+      if (!activeSession) {
+        const { data: refreshData, error: refreshError } = await withTimeout(
+          supabase.auth.refreshSession(),
+          10000,
+          'Session refresh timed out. Please sign in again.'
+        );
+
+        if (refreshError || !refreshData.session) {
+          console.error('[Onboarding] Session refresh failed:', refreshError ?? getSessionError);
+          toast.error('Session expired. Please sign in again.');
+          navigate('/auth/login');
+          return;
+        }
+
+        activeSession = refreshData.session;
+      }
+
+      if (!activeSession?.user?.id) {
+        console.error('[Onboarding] Missing active session user.', getSessionError);
         toast.error('Session expired. Please sign in again.');
         navigate('/auth/login');
         return;
       }
-      const userId = sessionData.session.user.id;
+
+      const userId = activeSession.user.id;
       console.log('[Onboarding] Batch save starting for user:', userId, 'Plan:', selectedPlan, 'Billing:', selectedBilling);
 
       const profileUpdates: Record<string, unknown> = {};
@@ -160,22 +201,32 @@ const OnboardingContent = () => {
           const priceId = getPriceId(selectedPlan as 'pro' | 'club', selectedBilling);
           console.log('[Onboarding] Creating checkout session. Price ID:', priceId, 'Plan:', selectedPlan);
 
-          const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout-session', {
-            body: { price_id: priceId, plan: selectedPlan },
-          });
+          const { data: checkoutData, error: checkoutError } = await withTimeout(
+            supabase.functions.invoke('create-checkout-session', {
+              body: {
+                price_id: priceId,
+                plan: selectedPlan,
+                user_id: userId,
+                success_url: `${window.location.origin}/payment-success`,
+                cancel_url: `${window.location.origin}/auth`,
+              },
+            }),
+            15000,
+            'Payment setup timed out. Please try again.'
+          );
 
           console.log('[Onboarding] Checkout response:', checkoutData, 'Error:', checkoutError);
 
           if (checkoutError) {
             console.error('[Onboarding] Checkout error:', checkoutError);
-            toast.error('Payment setup failed: ' + (checkoutError.message || 'Unknown error'));
+            toast.error('Payment error: ' + (checkoutError.message || 'Unknown error'));
             navigate('/');
             return;
           }
 
           if (!checkoutData?.url) {
             console.error('[Onboarding] No checkout URL returned');
-            toast.error('Payment setup error — please try again from Settings');
+            toast.error('Payment setup error — please try again');
             navigate('/');
             return;
           }
