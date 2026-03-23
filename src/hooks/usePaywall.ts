@@ -6,6 +6,7 @@
 import { usePlan, type PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PaywallReason } from '@/components/PaywallModal';
+import { toast } from 'sonner';
 
 export interface PaywallCheck {
   allowed: boolean;
