@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingVehicle {
   id: string;
@@ -118,6 +119,14 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     persistState(step, data);
   }, [step, data]);
+
+  // Fix 5: Session heartbeat — keep session alive during onboarding
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await supabase.auth.getSession();
+    }, 3 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const setStep = useCallback((s: number) => setStepState(s), []);
   const next = useCallback(() => setStepState(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);

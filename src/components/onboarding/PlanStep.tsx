@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type PlanId = 'free' | 'pro' | 'club';
 
@@ -63,10 +66,22 @@ interface PlanStepProps {
 }
 
 const PlanStep = ({ onComplete }: PlanStepProps) => {
+  const navigate = useNavigate();
   const { back, data, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>(data.billingCycle || 'yearly');
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
 
+  // Fix 2: Refresh session when plan step mounts
+  useEffect(() => {
+    const refreshSession = async () => {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error || !session) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth/login');
+      }
+    };
+    refreshSession();
+  }, [navigate]);
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
   const handleContinue = () => {
