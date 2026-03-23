@@ -1614,6 +1614,7 @@ export type Database = {
         Args: { recipient_id: string; sender_id: string }
         Returns: boolean
       }
+      get_event_ticket_price: { Args: { event_id: string }; Returns: number }
       get_pins_in_bounds: {
         Args: {
           categories?: string[]
