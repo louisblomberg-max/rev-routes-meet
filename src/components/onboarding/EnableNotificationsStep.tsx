@@ -5,15 +5,24 @@ import { useOnboarding } from '@/contexts/OnboardingContext';
 const EnableNotificationsStep = () => {
   const { data, next, back, updateData } = useOnboarding();
 
-  const handleEnable = () => {
-    updateData({
-      permissions: { ...data.permissions, notificationsEnabled: true },
-      notifications: {
-        ...data.notifications,
-        newEventsNearby: true,
-        sosAlerts: true,
-      },
-    });
+  const handleEnable = async () => {
+    if (typeof Notification === 'undefined') {
+      updateData({ permissions: { ...data.permissions, notificationsEnabled: false } });
+      next();
+      return;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      const granted = permission === 'granted';
+      updateData({
+        permissions: { ...data.permissions, notificationsEnabled: granted },
+        notifications: granted
+          ? { ...data.notifications, newEventsNearby: true, sosAlerts: true }
+          : data.notifications,
+      });
+    } catch {
+      updateData({ permissions: { ...data.permissions, notificationsEnabled: false } });
+    }
     next();
   };
 

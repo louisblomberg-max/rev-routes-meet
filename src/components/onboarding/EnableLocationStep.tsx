@@ -6,11 +6,30 @@ const EnableLocationStep = () => {
   const { data, next, back, updateData } = useOnboarding();
 
   const handleEnable = () => {
-    updateData({
-      permissions: { ...data.permissions, locationEnabled: true },
-      locationPermissionStatus: 'allowed',
-    });
-    next();
+    if (!navigator.geolocation) {
+      updateData({
+        permissions: { ...data.permissions, locationEnabled: false },
+        locationPermissionStatus: 'skipped',
+      });
+      next();
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      () => {
+        updateData({
+          permissions: { ...data.permissions, locationEnabled: true },
+          locationPermissionStatus: 'allowed',
+        });
+        next();
+      },
+      () => {
+        updateData({
+          permissions: { ...data.permissions, locationEnabled: false },
+          locationPermissionStatus: 'denied',
+        });
+        next();
+      }
+    );
   };
 
   const handleSkip = () => {
