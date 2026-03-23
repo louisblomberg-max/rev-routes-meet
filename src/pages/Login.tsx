@@ -109,8 +109,8 @@ const Login = () => {
             {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={!isFormValid || isSubmitting}>
+            {isSubmitting ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
 

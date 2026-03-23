@@ -212,9 +212,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [loadUserProfile]);
 
   const login = useCallback(async (email: string, password: string): Promise<{ onboardingComplete: boolean }> => {
-    setIsLoading(true);
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) { setIsLoading(false); throw error; }
+    if (error) throw error;
 
     // Check onboarding status from profile
     if (data.user) {

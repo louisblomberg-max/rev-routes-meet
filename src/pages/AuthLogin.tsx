@@ -105,8 +105,8 @@ const AuthLogin = () => {
           </div>
 
           <div className="pt-2">
-            <Button type="submit" className="w-full h-14 text-base font-semibold rounded-full" disabled={isLoading}>
-              {isLoading ? (
+            <Button type="submit" className="w-full h-14 text-base font-semibold rounded-full" disabled={!isFormValid || isSubmitting}>
+              {isSubmitting ? (
                 <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Signing in...</span>
               ) : 'Sign In'}
             </Button>
