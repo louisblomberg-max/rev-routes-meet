@@ -77,7 +77,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ onboardingComplete: boolean }>;
   loginPhone: (phone: string) => Promise<void>;
   register: (email: string, password: string, displayName: string) => Promise<void>;
   registerPhone: (phone: string) => Promise<void>;
@@ -162,17 +162,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (initialized.current) return;
     initialized.current = true;
 
+    let mounted = true;
+
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await loadUserProfile(session.user.id, session.user.email ?? undefined);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (session?.user) {
+          await loadUserProfile(session.user.id, session.user.email ?? undefined);
+        }
+      } catch (error) {
+        console.error('Auth init error:', error);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     };
 
-    initAuth();
-
+    // Set up listener BEFORE getSession (per Supabase docs)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
       if (session?.user) {
         await loadUserProfile(session.user.id, session.user.email ?? undefined);
       } else {
@@ -181,13 +191,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [loadUserProfile]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<{ onboardingComplete: boolean }> => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setIsLoading(false); throw error; }
+
+    // Check onboarding status from profile
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('id', data.user.id)
+        .single();
+      return { onboardingComplete: profile?.onboarding_complete ?? false };
+    }
+    return { onboardingComplete: false };
   }, []);
 
   const loginPhone = useCallback(async (phone: string) => {

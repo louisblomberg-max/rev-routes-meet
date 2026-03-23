@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Check, X, Loader2, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,14 @@ const COUNTRIES = [
 
 const AuthSignup = () => {
   const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, user } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const [form, setForm] = useState({
     displayName: '',

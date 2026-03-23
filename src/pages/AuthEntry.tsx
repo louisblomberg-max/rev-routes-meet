@@ -1,10 +1,22 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
+  const { user, isLoading } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (!isLoading && user) {
+      if (user.onboardingComplete) {
+        navigate('/', { replace: true });
+      }
+    }
+  }, [user, isLoading, navigate]);
 
   return (
     <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#171717' }}>

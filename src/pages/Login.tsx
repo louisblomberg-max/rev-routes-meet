@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,18 @@ import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { login, isLoading } = useAuth();
+  const { login, isLoading, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const validate = () => {
     const errs: typeof errors = {};
@@ -30,9 +37,13 @@ const Login = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
-      await login(email, password);
+      const result = await login(email, password);
       toast.success('Welcome back!');
-      navigate('/');
+      if (result.onboardingComplete) {
+        navigate('/', { replace: true });
+      } else {
+        navigate('/auth', { replace: true });
+      }
     } catch {
       toast.error('Login failed');
     }
