@@ -125,11 +125,7 @@ const OnboardingContent = () => {
       profileUpdates.onboarding_complete = true;
       profileUpdates.onboarding_step = 13;
 
-      const { error: profileError } = await withTimeout(
-        supabase.from('profiles').update(profileUpdates).eq('id', userId),
-        12000,
-        'Profile save timed out. Please try again.'
-      );
+      const { error: profileError } = await supabase.from('profiles').update(profileUpdates).eq('id', userId);
       if (profileError) {
         console.error('[Onboarding] Profile update error:', profileError);
         toast.error('Failed to save profile: ' + profileError.message);
