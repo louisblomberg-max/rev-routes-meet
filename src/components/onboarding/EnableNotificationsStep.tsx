@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Bell, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
@@ -5,33 +6,42 @@ import { supabase } from '@/integrations/supabase/client';
 
 const EnableNotificationsStep = () => {
   const { next, back, updateData } = useOnboarding();
+  const [loading, setLoading] = useState(false);
 
   const handleEnable = async () => {
+    if (loading) return;
+    setLoading(true);
+
+    let enabled = false;
     try {
-      if (!('Notification' in window)) {
-        updateData({ notificationsEnabled: false });
-        next();
-        return;
+      if ('Notification' in window && Notification.requestPermission) {
+        const permission = await Notification.requestPermission();
+        enabled = permission === 'granted';
+        console.log('[Notifications] Permission result:', permission);
+      } else {
+        console.log('[Notifications] API not available');
       }
+    } catch (err) {
+      console.error('[Notifications] Error:', err);
+    }
 
-      const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      updateData({ notificationsEnabled: granted });
+    updateData({ notificationsEnabled: enabled });
 
-      // Save to user_preferences immediately
+    // Save to user_preferences immediately (non-blocking)
+    try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
+      if (session?.user?.id) {
         await supabase
           .from('user_preferences')
-          .update({ push_notifications: granted })
+          .update({ push_notifications: enabled })
           .eq('user_id', session.user.id);
       }
     } catch (err) {
-      console.error('Notification permission error:', err);
-      updateData({ notificationsEnabled: false });
-    } finally {
-      next();
+      console.error('[Notifications] Failed to save preference:', err);
     }
+
+    setLoading(false);
+    next();
   };
 
   const handleSkip = () => {
@@ -70,9 +80,10 @@ const EnableNotificationsStep = () => {
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button
           onClick={handleEnable}
+          disabled={loading}
           className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-black text-white hover:bg-black/90"
         >
-          Enable Notifications <ChevronRight className="w-5 h-5" />
+          {loading ? 'Requesting...' : 'Enable Notifications'} <ChevronRight className="w-5 h-5" />
         </Button>
         <button onClick={handleSkip} className="w-full text-sm text-black/50 mt-2 py-2">
           Skip for now

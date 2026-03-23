@@ -1,26 +1,47 @@
+import { useState } from 'react';
 import { MapPin, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 
 const EnableLocationStep = () => {
   const { next, back, updateData } = useOnboarding();
+  const [loading, setLoading] = useState(false);
 
   const handleEnable = () => {
+    if (loading) return;
+    setLoading(true);
+
     if (!navigator.geolocation) {
       updateData({ locationPermissionStatus: 'skipped' });
+      setLoading(false);
       next();
       return;
     }
+
+    // Failsafe timeout — always proceed after 12 seconds
+    const failsafe = setTimeout(() => {
+      console.log('[Location] Timeout — proceeding anyway');
+      updateData({ locationPermissionStatus: 'denied' });
+      setLoading(false);
+      next();
+    }, 12000);
+
     navigator.geolocation.getCurrentPosition(
       () => {
+        clearTimeout(failsafe);
+        console.log('[Location] Permission granted');
         updateData({ locationPermissionStatus: 'allowed' });
+        setLoading(false);
         next();
       },
-      () => {
+      (error) => {
+        clearTimeout(failsafe);
+        console.log('[Location] Permission denied:', error.message);
         updateData({ locationPermissionStatus: 'denied' });
+        setLoading(false);
         next();
       },
-      { timeout: 10000 }
+      { timeout: 10000, maximumAge: 0, enableHighAccuracy: false }
     );
   };
 
@@ -60,9 +81,10 @@ const EnableLocationStep = () => {
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button
           onClick={handleEnable}
+          disabled={loading}
           className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-black text-white hover:bg-black/90"
         >
-          Enable Location <ChevronRight className="w-5 h-5" />
+          {loading ? 'Requesting...' : 'Enable Location'} <ChevronRight className="w-5 h-5" />
         </Button>
         <button onClick={handleSkip} className="w-full text-sm text-black/50 mt-2 py-2">
           Skip for now
