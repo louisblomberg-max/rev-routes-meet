@@ -211,20 +211,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [loadUserProfile]);
 
-  const login = useCallback(async (email: string, password: string): Promise<{ onboardingComplete: boolean }> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const login = useCallback(async (email: string, password: string): Promise<void> => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
     if (error) throw error;
-
-    // Check onboarding status from profile
-    if (data.user) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_complete')
-        .eq('id', data.user.id)
-        .single();
-      return { onboardingComplete: profile?.onboarding_complete ?? false };
-    }
-    return { onboardingComplete: false };
+    // Profile loading is handled by onAuthStateChange listener
   }, []);
 
   const loginPhone = useCallback(async (phone: string) => {
