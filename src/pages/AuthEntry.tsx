@@ -7,16 +7,9 @@ import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (user) {
-      navigate('/', { replace: true });
-    }
-  }, [user, navigate]);
-
-  // Immediate redirect if user already in context
+  // Immediate redirect if already authenticated
   if (user) {
     return <Navigate to="/" replace />;
   }
