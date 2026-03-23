@@ -113,7 +113,11 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const next = useCallback(() => setStepState(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);
   const back = useCallback(() => setStepState(s => Math.max(s - 1, 0)), []);
   const updateData = useCallback((updates: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...updates }));
+    setData(prev => {
+      const merged = { ...prev, ...updates };
+      console.log('[OnboardingContext] updateData called. Vehicles count:', merged.vehicles?.length, 'Keys updated:', Object.keys(updates));
+      return merged;
+    });
   }, []);
   const clearOnboarding = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);

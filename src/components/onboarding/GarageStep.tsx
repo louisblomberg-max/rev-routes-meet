@@ -75,6 +75,7 @@ const GarageStep = () => {
       ...v,
       isPrimary: vehicles.some(veh => veh.isPrimary) ? v.isPrimary : i === 0,
     }));
+    console.log('[GarageStep] handleNext — vehicles to save to context:', updated.length, updated.map(v => ({ make: v.make, model: v.model })));
     updateData({ vehicles: updated });
     next();
   };
