@@ -141,7 +141,7 @@ const MarketplaceTab = () => {
   const filteredListings = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     
-    let results = mockMarketplaceListings
+    let results = marketplaceListings
       .filter(l => !activeCategory || l.category === activeCategory)
       .filter(l => {
         if (!query) return true;
