@@ -26,7 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-const mockMarketplaceListings: any[] = []; // TODO: wire to Supabase marketplace_listings
+import { supabase } from '@/integrations/supabase/client';
 import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
 
