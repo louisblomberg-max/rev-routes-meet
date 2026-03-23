@@ -10,6 +10,20 @@ import { toast } from 'sonner';
 
 type PlanId = 'free' | 'pro' | 'club';
 
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> => {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+};
+
 const PLANS = [
   {
     id: 'free' as PlanId,
@@ -109,11 +123,15 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: selected, billingCycle: billing });
 
       if (onComplete) {
-        await onComplete({ plan: selected, billingCycle: billing });
+        await withTimeout(
+          Promise.resolve(onComplete({ plan: selected, billingCycle: billing })),
+          20000,
+          'Saving timed out. Please try again.'
+        );
       }
     } catch (err) {
       console.error('[PlanStep] Error during continue:', err);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -134,11 +152,15 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: 'free', billingCycle: billing });
 
       if (onComplete) {
-        await onComplete({ plan: 'free', billingCycle: billing });
+        await withTimeout(
+          Promise.resolve(onComplete({ plan: 'free', billingCycle: billing })),
+          20000,
+          'Saving timed out. Please try again.'
+        );
       }
     } catch (err) {
       console.error('[PlanStep] Error during free continue:', err);
-      toast.error('Something went wrong. Please try again.');
+      toast.error(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
