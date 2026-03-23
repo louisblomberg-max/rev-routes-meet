@@ -36,9 +36,13 @@ const Login = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
-      await login(email, password);
+      const result = await login(email, password);
       toast.success('Welcome back!');
-      navigate('/');
+      if (result.onboardingComplete) {
+        navigate('/', { replace: true });
+      } else {
+        navigate('/auth', { replace: true });
+      }
     } catch {
       toast.error('Login failed');
     }
