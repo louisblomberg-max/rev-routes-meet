@@ -92,15 +92,35 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     if (!authUser?.id) return;
+    if (!editForm.username?.trim()) {
+      toast.error('Username is required');
+      return;
+    }
+
+    // Check username uniqueness if changed
+    if (editForm.username !== profile?.username) {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', editForm.username.toLowerCase())
+        .neq('id', authUser.id)
+        .maybeSingle();
+
+      if (existing) {
+        toast.error('This username is already taken');
+        return;
+      }
+    }
+
     const { error } = await supabase.from('profiles').update({
       display_name: editForm.displayName,
-      username: editForm.username,
+      username: editForm.username.toLowerCase(),
       bio: editForm.bio,
       location: editForm.location,
     }).eq('id', authUser.id);
     if (error) { toast.error('Failed to save'); return; }
-    updateProfile({ displayName: editForm.displayName, username: editForm.username, bio: editForm.bio, location: editForm.location });
-    setProfile((p: any) => ({ ...p, display_name: editForm.displayName, username: editForm.username, bio: editForm.bio, location: editForm.location }));
+    updateProfile({ displayName: editForm.displayName, username: editForm.username.toLowerCase(), bio: editForm.bio, location: editForm.location });
+    setProfile((p: any) => ({ ...p, display_name: editForm.displayName, username: editForm.username.toLowerCase(), bio: editForm.bio, location: editForm.location }));
     toast.success('Profile updated!');
     setIsEditOpen(false);
   };

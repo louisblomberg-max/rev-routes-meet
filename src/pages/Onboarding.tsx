@@ -81,10 +81,13 @@ const OnboardingContent = () => {
       }
 
       // 2. Save vehicles
-      for (const v of data.vehicles.filter(v => v.make.trim())) {
-        const { error: vehicleError } = await supabase.from('vehicles').insert({
+      const vehiclesToSave = (data.vehicles || []).filter(v => v.make && v.make.trim());
+      console.log('[Onboarding] Vehicles to save:', vehiclesToSave.length, JSON.stringify(vehiclesToSave.map(v => ({ make: v.make, model: v.model }))));
+
+      if (vehiclesToSave.length > 0) {
+        const vehicleRows = vehiclesToSave.map((v, index) => ({
           user_id: userId,
-          vehicle_type: v.vehicleType,
+          vehicle_type: v.vehicleType || 'car',
           make: v.make,
           model: v.model || null,
           year: v.year || null,
@@ -97,9 +100,19 @@ const OnboardingContent = () => {
           mods_text: v.modsText || null,
           photos: v.photos || [],
           visibility: v.visibility || 'public',
-          is_primary: v.isPrimary || data.vehicles.indexOf(v) === 0,
-        });
-        if (vehicleError) console.error('[Onboarding] Vehicle error:', vehicleError);
+          is_primary: v.isPrimary || index === 0,
+        }));
+
+        const { error: vehicleError } = await supabase
+          .from('vehicles')
+          .insert(vehicleRows);
+
+        if (vehicleError) {
+          console.error('[Onboarding] Vehicle save error:', vehicleError);
+          toast.error('Could not save vehicles — you can add them later in My Garage');
+        } else {
+          console.log('[Onboarding] Vehicles saved successfully');
+        }
       }
 
       // 3. Save notification preference
