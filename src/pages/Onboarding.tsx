@@ -96,12 +96,12 @@ const OnboardingContent = () => {
 
       await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
+      // Use edge function for subscription updates (users cannot write to subscriptions directly)
       if (data.plan !== 'free') {
-        await supabase.from('subscriptions').update({
-          plan: data.plan,
-          billing_cycle: data.billingCycle,
-          status: 'active',
-        }).eq('user_id', userId);
+        const { error: fnError } = await supabase.functions.invoke('complete-onboarding', {
+          body: { plan: data.plan, billingCycle: data.billingCycle },
+        });
+        if (fnError) console.error('Edge function error:', fnError);
       }
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {

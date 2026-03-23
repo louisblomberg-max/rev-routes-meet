@@ -35,7 +35,7 @@ const Profile = () => {
     try {
       const [profileRes, vehiclesRes, clubsRes, eventsRes, routesRes, clubCountRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', authUser.id).single(),
-        supabase.from('vehicles').select('*').eq('user_id', authUser.id).eq('visibility', 'public'),
+        supabase.from('vehicles').select('*').eq('user_id', authUser.id),
         supabase.from('club_memberships').select('*, clubs(*)').eq('user_id', authUser.id),
         supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', authUser.id),
         supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', authUser.id),

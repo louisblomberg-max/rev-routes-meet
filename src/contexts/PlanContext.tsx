@@ -96,28 +96,23 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const effectivePlan: PlanId = subscriptionStatus === 'inactive' ? 'free' : currentPlan;
 
-  const setPlan = async (plan: PlanId) => {
+  const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
     updateProfile({ membershipPlan: plan });
-    if (user?.id) {
-      await supabase.from('subscriptions').update({ plan }).eq('user_id', user.id);
-    }
+    // Subscription row is read-only from the client; changes happen server-side
+    toast.info('Plan change is being processed.');
   };
 
-  const setBillingCycle = async (cycle: BillingCycle) => {
+  const setBillingCycle = (cycle: BillingCycle) => {
     setBillingCycleState(cycle);
     updateProfile({ billingCycle: cycle });
-    if (user?.id) {
-      await supabase.from('subscriptions').update({ billing_cycle: cycle }).eq('user_id', user.id);
-    }
+    // Subscription row is read-only from the client
   };
 
-  const setSubscriptionStatus = async (status: SubscriptionStatus) => {
+  const setSubscriptionStatus = (status: SubscriptionStatus) => {
     setSubscriptionStatusState(status);
     updateProfile({ subscriptionStatus: status });
-    if (user?.id) {
-      await supabase.from('subscriptions').update({ status }).eq('user_id', user.id);
-    }
+    // Subscription row is read-only from the client
   };
 
   const hasAccess = (featureId: string): boolean => {
