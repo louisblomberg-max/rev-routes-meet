@@ -34,6 +34,11 @@ const OnboardingContent = () => {
   }, [user, navigate]);
 
   const handleComplete = async (selection: PlanSelection) => {
+    console.log('=== ONBOARDING COMPLETE CALLED ===');
+    console.log('Full onboardingData:', JSON.stringify(data, null, 2));
+    console.log('Vehicles in context:', data.vehicles);
+    console.log('Vehicles length:', data.vehicles?.length);
+
     try {
       const { data: { session: currentSession } } = await withTimeout(
         supabase.auth.getSession(), 10000, 'Session check timed out.'
@@ -81,38 +86,43 @@ const OnboardingContent = () => {
       }
 
       // 2. Save vehicles
-      const vehiclesToSave = (data.vehicles || []).filter(v => v.make && v.make.trim());
-      console.log('[Onboarding] Vehicles to save:', vehiclesToSave.length, JSON.stringify(vehiclesToSave.map(v => ({ make: v.make, model: v.model }))));
+      const vehiclesToSave = (data.vehicles || []).filter((v: any) => v.make && String(v.make).trim());
+      console.log('[Onboarding] Vehicles to save:', vehiclesToSave.length, JSON.stringify(vehiclesToSave.map((v: any) => ({ make: v.make, model: v.model }))));
 
       if (vehiclesToSave.length > 0) {
-        const vehicleRows = vehiclesToSave.map((v, index) => ({
+        const vehicleRows = vehiclesToSave.map((v: any, index: number) => ({
           user_id: userId,
-          vehicle_type: v.vehicleType || 'car',
-          make: v.make,
-          model: v.model || null,
-          year: v.year || null,
-          engine: v.engine || null,
+          vehicle_type: v.vehicleType || v.vehicle_type || 'car',
+          make: String(v.make).trim(),
+          model: v.model ? String(v.model).trim() : null,
+          year: v.year ? String(v.year) : null,
+          engine: v.engine ? String(v.engine).trim() : null,
           transmission: v.transmission || null,
           drivetrain: v.drivetrain || null,
-          colour: v.colour || null,
-          number_plate: v.numberPlate || null,
+          colour: v.colour ? String(v.colour).trim() : null,
+          number_plate: v.numberPlate || v.number_plate || null,
           tags: v.tags || [],
-          mods_text: v.modsText || null,
-          photos: v.photos || [],
+          mods_text: v.modsText || v.mods_text || null,
+          photos: [],
           visibility: v.visibility || 'public',
-          is_primary: v.isPrimary || index === 0,
+          is_primary: v.isPrimary || v.is_primary || index === 0,
         }));
 
-        const { error: vehicleError } = await supabase
+        console.log('[Onboarding] Vehicle rows to insert:', JSON.stringify(vehicleRows));
+
+        const { data: insertedVehicles, error: vehicleError } = await supabase
           .from('vehicles')
-          .insert(vehicleRows);
+          .insert(vehicleRows)
+          .select();
 
         if (vehicleError) {
-          console.error('[Onboarding] Vehicle save error:', vehicleError);
+          console.error('[Onboarding] Vehicle insert error:', vehicleError);
           toast.error('Could not save vehicles — you can add them later in My Garage');
         } else {
-          console.log('[Onboarding] Vehicles saved successfully');
+          console.log('[Onboarding] Vehicles saved successfully:', insertedVehicles);
         }
+      } else {
+        console.log('[Onboarding] No vehicles to save — user skipped garage step');
       }
 
       // 3. Save notification preference

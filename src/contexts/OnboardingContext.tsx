@@ -63,8 +63,15 @@ function loadPersistedState(): { step: number; data: OnboardingData } | null {
 
 function persistState(step: number, data: OnboardingData) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data }));
-  } catch {}
+    // Strip base64 photos to avoid localStorage quota issues
+    const safeData = {
+      ...data,
+      vehicles: data.vehicles.map(v => ({ ...v, photos: [] })),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
+  } catch (e) {
+    console.warn('[OnboardingContext] persist failed:', e);
+  }
 }
 
 interface OnboardingContextType {
@@ -106,7 +113,11 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const next = useCallback(() => setStepState(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);
   const back = useCallback(() => setStepState(s => Math.max(s - 1, 0)), []);
   const updateData = useCallback((updates: Partial<OnboardingData>) => {
-    setData(prev => ({ ...prev, ...updates }));
+    setData(prev => {
+      const merged = { ...prev, ...updates };
+      console.log('[OnboardingContext] updateData called. Vehicles count:', merged.vehicles?.length, 'Keys updated:', Object.keys(updates));
+      return merged;
+    });
   }, []);
   const clearOnboarding = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
