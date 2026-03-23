@@ -109,7 +109,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: selected, billingCycle: billing });
 
       if (onComplete) {
-        await onComplete();
+        await onComplete({ plan: selected, billingCycle: billing });
       }
     } catch (err) {
       console.error('[PlanStep] Error during continue:', err);
