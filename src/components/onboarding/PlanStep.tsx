@@ -61,6 +61,11 @@ const PLANS = [
   },
 ];
 
+export interface PlanSelection {
+  plan: 'free' | 'pro' | 'club';
+  billingCycle: 'monthly' | 'yearly';
+}
+
 interface PlanStepProps {
   onComplete?: () => Promise<void> | void;
 }
