@@ -14,7 +14,7 @@ import UsernameStep from '@/components/onboarding/UsernameStep';
 import GarageStep from '@/components/onboarding/GarageStep';
 import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
-import PlanStep from '@/components/onboarding/PlanStep';
+import PlanStep, { type PlanSelection } from '@/components/onboarding/PlanStep';
 
 const FEATURE_SLIDES = [
   {
