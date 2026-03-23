@@ -1139,6 +1139,13 @@ export type Database = {
             referencedRelation: "vehicles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "stolen_vehicle_alerts_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       subscriptions: {
@@ -1329,7 +1336,74 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vehicles_public: {
+        Row: {
+          colour: string | null
+          created_at: string | null
+          details: string | null
+          drivetrain: string | null
+          engine: string | null
+          id: string | null
+          is_primary: boolean | null
+          make: string | null
+          model: string | null
+          mods_text: string | null
+          photos: string[] | null
+          tags: string[] | null
+          transmission: string | null
+          user_id: string | null
+          vehicle_type: string | null
+          visibility: string | null
+          year: string | null
+        }
+        Insert: {
+          colour?: string | null
+          created_at?: string | null
+          details?: string | null
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string | null
+          is_primary?: boolean | null
+          make?: string | null
+          model?: string | null
+          mods_text?: string | null
+          photos?: string[] | null
+          tags?: string[] | null
+          transmission?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+          year?: string | null
+        }
+        Update: {
+          colour?: string | null
+          created_at?: string | null
+          details?: string | null
+          drivetrain?: string | null
+          engine?: string | null
+          id?: string | null
+          is_primary?: boolean | null
+          make?: string | null
+          model?: string | null
+          mods_text?: string | null
+          photos?: string[] | null
+          tags?: string[] | null
+          transmission?: string | null
+          user_id?: string | null
+          vehicle_type?: string | null
+          visibility?: string | null
+          year?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_pins_in_bounds: {
