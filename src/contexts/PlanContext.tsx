@@ -68,7 +68,7 @@ interface PlanContextType {
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
 
   const [currentPlan, setCurrentPlan] = useState<PlanId>('free');
   const [billingCycle, setBillingCycleState] = useState<BillingCycle>('yearly');
