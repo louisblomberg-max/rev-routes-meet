@@ -76,6 +76,17 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
 
 const MarketplaceTab = () => {
   const navigate = useNavigate();
+  const [marketplaceListings, setMarketplaceListings] = useState<any[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('marketplace_listings')
+        .select('*, profiles(username, avatar_url, display_name)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setMarketplaceListings(data || []);
+    })();
+  }, []);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
