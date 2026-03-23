@@ -34,6 +34,11 @@ const OnboardingContent = () => {
   }, [user, navigate]);
 
   const handleComplete = async (selection: PlanSelection) => {
+    console.log('=== ONBOARDING COMPLETE CALLED ===');
+    console.log('Full onboardingData:', JSON.stringify(data, null, 2));
+    console.log('Vehicles in context:', data.vehicles);
+    console.log('Vehicles length:', data.vehicles?.length);
+
     try {
       const { data: { session: currentSession } } = await withTimeout(
         supabase.auth.getSession(), 10000, 'Session check timed out.'
