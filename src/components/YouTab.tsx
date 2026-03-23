@@ -106,8 +106,16 @@ const YouTab = () => {
                     <span>{user.location}</span>
                   </div>
                 )}
-                {user?.bio && (
-                  <p className="text-xs text-foreground/70 mt-1.5 line-clamp-2">{user.bio}</p>
+            {user?.bio && (
+                <p className="text-xs text-foreground/70 mt-1.5 line-clamp-2">{user.bio}</p>
+                )}
+                {/* Free event credits display — hidden for Pro/Club */}
+                {effectivePlan === 'free' && freeEventCredits !== null && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {freeEventCredits > 0
+                      ? `${freeEventCredits} free event post remaining`
+                      : '0 free posts — £2.99 per event'}
+                  </p>
                 )}
               </div>
             </div>
