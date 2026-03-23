@@ -8,12 +8,27 @@ import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
 
-  // Immediate redirect if already authenticated
   if (user) {
     return <Navigate to="/" replace />;
   }
+
+  const handleAppleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: window.location.origin + '/auth/callback' }
+    });
+    if (error) toast.error('Apple sign in failed. Please try again.');
+  };
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/auth/callback' }
+    });
+    if (error) toast.error('Google sign in failed. Please try again.');
+  };
 
   return (
     <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#171717' }}>
