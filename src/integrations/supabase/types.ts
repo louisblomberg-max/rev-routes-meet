@@ -327,10 +327,105 @@ export type Database = {
           },
         ]
       }
+      event_purchases: {
+        Row: {
+          amount_paid: number
+          event_id: string | null
+          id: string
+          purchased_at: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_paid?: number
+          event_id?: string | null
+          id?: string
+          purchased_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          event_id?: string | null
+          id?: string
+          purchased_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_purchases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_purchases_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_tickets: {
+        Row: {
+          commission_amount: number
+          event_id: string | null
+          id: string
+          purchased_at: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          ticket_price: number
+          user_id: string | null
+        }
+        Insert: {
+          commission_amount?: number
+          event_id?: string | null
+          id?: string
+          purchased_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          ticket_price?: number
+          user_id?: string | null
+        }
+        Update: {
+          commission_amount?: number
+          event_id?: string | null
+          id?: string
+          purchased_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          ticket_price?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_tickets_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           banner_url: string | null
           club_id: string | null
+          commission_paid: boolean | null
+          commission_rate: number | null
           created_at: string | null
           created_by: string | null
           date_end: string | null
@@ -340,11 +435,16 @@ export type Database = {
           id: string
           is_first_come_first_serve: boolean | null
           is_free: boolean | null
+          is_ticketed: boolean | null
           lat: number | null
           lng: number | null
           location: string | null
           max_attendees: number | null
+          payment_status: string | null
+          revnet_commission: number | null
+          ticket_price: number | null
           title: string
+          total_revenue: number | null
           type: string | null
           vehicle_ages: string[] | null
           vehicle_brands: string[] | null
@@ -355,6 +455,8 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           club_id?: string | null
+          commission_paid?: boolean | null
+          commission_rate?: number | null
           created_at?: string | null
           created_by?: string | null
           date_end?: string | null
@@ -364,11 +466,16 @@ export type Database = {
           id?: string
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
+          is_ticketed?: boolean | null
           lat?: number | null
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
+          payment_status?: string | null
+          revnet_commission?: number | null
+          ticket_price?: number | null
           title: string
+          total_revenue?: number | null
           type?: string | null
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
@@ -379,6 +486,8 @@ export type Database = {
         Update: {
           banner_url?: string | null
           club_id?: string | null
+          commission_paid?: boolean | null
+          commission_rate?: number | null
           created_at?: string | null
           created_by?: string | null
           date_end?: string | null
@@ -388,11 +497,16 @@ export type Database = {
           id?: string
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
+          is_ticketed?: boolean | null
           lat?: number | null
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
+          payment_status?: string | null
+          revnet_commission?: number | null
+          ticket_price?: number | null
           title?: string
+          total_revenue?: number | null
           type?: string | null
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
@@ -782,6 +896,7 @@ export type Database = {
           discovery_radius_miles: number | null
           display_name: string | null
           event_credits: number | null
+          free_event_credits: number | null
           help_radius_miles: number | null
           id: string
           live_location_sharing: boolean | null
@@ -810,6 +925,7 @@ export type Database = {
           discovery_radius_miles?: number | null
           display_name?: string | null
           event_credits?: number | null
+          free_event_credits?: number | null
           help_radius_miles?: number | null
           id: string
           live_location_sharing?: boolean | null
@@ -838,6 +954,7 @@ export type Database = {
           discovery_radius_miles?: number | null
           display_name?: string | null
           event_credits?: number | null
+          free_event_credits?: number | null
           help_radius_miles?: number | null
           id?: string
           live_location_sharing?: boolean | null
@@ -1482,6 +1599,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_event_commission: {
+        Args: { attendee_count: number; ticket_price: number }
+        Returns: number
+      }
       can_message_user: {
         Args: { recipient_id: string; sender_id: string }
         Returns: boolean
@@ -1515,6 +1636,7 @@ export type Database = {
         Args: { new_plan: string; user_id: string }
         Returns: undefined
       }
+      use_event_credit: { Args: { user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
