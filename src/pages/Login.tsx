@@ -19,7 +19,7 @@ const Login = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (user && user.onboardingComplete) {
+    if (user) {
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
