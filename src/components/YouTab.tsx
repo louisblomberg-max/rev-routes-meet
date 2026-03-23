@@ -23,10 +23,11 @@ const YouTab = () => {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles').eq('id', user.id).single();
+      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single();
       if (data) {
         setIsAvailableToHelp(data.available_to_help || false);
         setHelpDistance(data.help_radius_miles || 10);
+        setFreeEventCredits(data.free_event_credits ?? 0);
       }
     })();
   }, [user?.id]);
