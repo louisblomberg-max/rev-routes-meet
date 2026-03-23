@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown, Search, Tag } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +14,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
-// Clubs now fetched from Supabase in component
 import { useData } from '@/contexts/DataContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
 import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
@@ -132,8 +132,21 @@ const AddEvent = () => {
   const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
   const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
   const [clubId, setClubId] = useState('');
+  const [myOwnedClubs, setMyOwnedClubs] = useState<{ id: string; name: string }[]>([]);
   const currentUserId = authUser?.id || 'current-user';
-  const myOwnedClubs = mockClubs.filter(c => c.ownerId === currentUserId);
+
+  useEffect(() => {
+    if (!authUser?.id) return;
+    (async () => {
+      const { data } = await supabase
+        .from('club_memberships')
+        .select('club_id, clubs(id, name)')
+        .eq('user_id', authUser.id);
+      if (data) {
+        setMyOwnedClubs(data.map((d: any) => ({ id: d.clubs?.id || d.club_id, name: d.clubs?.name || 'Unknown Club' })));
+      }
+    })();
+  }, [authUser?.id]);
   
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');

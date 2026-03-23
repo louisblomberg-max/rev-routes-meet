@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   Search, 
   MapPin, 
@@ -26,7 +26,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-const mockMarketplaceListings: any[] = []; // TODO: wire to Supabase marketplace_listings
+import { supabase } from '@/integrations/supabase/client';
 import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
 
@@ -76,6 +76,17 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
 
 const MarketplaceTab = () => {
   const navigate = useNavigate();
+  const [marketplaceListings, setMarketplaceListings] = useState<any[]>([]);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('marketplace_listings')
+        .select('*, profiles(username, avatar_url, display_name)')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      setMarketplaceListings(data || []);
+    })();
+  }, []);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -130,7 +141,7 @@ const MarketplaceTab = () => {
   const filteredListings = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     
-    let results = mockMarketplaceListings
+    let results = marketplaceListings
       .filter(l => !activeCategory || l.category === activeCategory)
       .filter(l => {
         if (!query) return true;
@@ -168,7 +179,7 @@ const MarketplaceTab = () => {
     const suggestions: string[] = [];
     
     // Get matching titles
-    mockMarketplaceListings.forEach(l => {
+    marketplaceListings.forEach(l => {
       if (l.title.toLowerCase().includes(query) && !suggestions.includes(l.title)) {
         suggestions.push(l.title);
       }
@@ -239,7 +250,7 @@ const MarketplaceTab = () => {
     setRecentSearches(prev => prev.filter(s => s !== search));
   };
 
-  const featuredListing = mockMarketplaceListings[0];
+  const featuredListing = marketplaceListings[0];
 
   return (
     <div className="h-full bg-background overflow-y-auto pb-24">

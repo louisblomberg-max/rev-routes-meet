@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X, Search, Users, Check } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface User {
   id: string;
   name: string;
   username: string;
+  avatar_url?: string | null;
 }
 
 interface NewConversationSheetProps {
@@ -17,27 +21,71 @@ interface NewConversationSheetProps {
   onCreateConversation: (selectedUsers: User[], groupName?: string) => void;
 }
 
-const mockUsers: User[] = [
-  { id: 'u1', name: 'Alex Turner', username: 'alexturner' },
-  { id: 'u2', name: 'Sarah Mitchell', username: 'sarahm' },
-  { id: 'u3', name: 'Marcus Chen', username: 'mchen92' },
-  { id: 'u4', name: 'Emma Wilson', username: 'emmaw' },
-  { id: 'u5', name: 'Jake Roberts', username: 'jakeroberts' },
-  { id: 'u6', name: 'Lisa Park', username: 'lisapark' },
-  { id: 'u7', name: 'David Kim', username: 'dkim' },
-  { id: 'u8', name: 'Rachel Green', username: 'rachelg' },
-];
-
 const NewConversationSheet = ({ open, onOpenChange, onCreateConversation }: NewConversationSheetProps) => {
+  const { user: authUser } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [groupName, setGroupName] = useState('');
   const [isGroupMode, setIsGroupMode] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
 
-  const filteredUsers = mockUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.username.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Fetch suggested users on mount
+  useEffect(() => {
+    if (!open || !authUser?.id) return;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, avatar_url')
+        .neq('id', authUser.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+      if (data) {
+        setUsers(data.map(p => ({ id: p.id, name: p.display_name || p.username || 'User', username: p.username || '', avatar_url: p.avatar_url })));
+      }
+      setLoading(false);
+    })();
+  }, [open, authUser?.id]);
+
+  // Debounced search
+  useEffect(() => {
+    if (!authUser?.id) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    
+    if (!searchQuery.trim()) {
+      // Reset to suggested
+      (async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url')
+          .neq('id', authUser.id)
+          .order('created_at', { ascending: false })
+          .limit(10);
+        if (data) {
+          setUsers(data.map(p => ({ id: p.id, name: p.display_name || p.username || 'User', username: p.username || '', avatar_url: p.avatar_url })));
+        }
+      })();
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, avatar_url')
+        .ilike('username', `%${searchQuery.trim()}%`)
+        .neq('id', authUser.id)
+        .limit(10);
+      if (data) {
+        setUsers(data.map(p => ({ id: p.id, name: p.display_name || p.username || 'User', username: p.username || '', avatar_url: p.avatar_url })));
+      }
+      setLoading(false);
+    }, 300);
+
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchQuery, authUser?.id]);
 
   const toggleUserSelection = (user: User) => {
     setSelectedUsers(prev => {
@@ -56,7 +104,6 @@ const NewConversationSheet = ({ open, onOpenChange, onCreateConversation }: NewC
   const handleCreate = () => {
     if (selectedUsers.length === 0) return;
     onCreateConversation(selectedUsers, isGroupMode && groupName ? groupName : undefined);
-    // Reset state
     setSearchQuery('');
     setSelectedUsers([]);
     setGroupName('');
@@ -103,7 +150,7 @@ const NewConversationSheet = ({ open, onOpenChange, onCreateConversation }: NewC
             </div>
           )}
 
-          {/* Group Name Input (shown when multiple users selected) */}
+          {/* Group Name Input */}
           {isGroupMode && (
             <div className="px-4 py-3 border-b border-border/50 bg-muted/30">
               <div className="flex items-center gap-3">
@@ -139,35 +186,50 @@ const NewConversationSheet = ({ open, onOpenChange, onCreateConversation }: NewC
                 {searchQuery ? 'Search Results' : 'Suggested'}
               </p>
             </div>
-            <div className="divide-y divide-border/30">
-              {filteredUsers.map(user => {
-                const isSelected = selectedUsers.some(u => u.id === user.id);
-                return (
-                  <button
-                    key={user.id}
-                    onClick={() => toggleUserSelection(user)}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-left"
-                  >
-                    <Avatar className="w-11 h-11">
-                      <AvatarFallback className="bg-muted text-foreground font-semibold">
-                        {user.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">@{user.username}</p>
+            {loading ? (
+              <div className="px-4 space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="w-11 h-11 rounded-full" />
+                    <div className="flex-1 space-y-1.5">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-3 w-20" />
                     </div>
-                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
-                      isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'
-                    }`}>
-                      {isSelected && <Check className="w-4 h-4 text-primary-foreground" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="divide-y divide-border/30">
+                {users.map(user => {
+                  const isSelected = selectedUsers.some(u => u.id === user.id);
+                  return (
+                    <button
+                      key={user.id}
+                      onClick={() => toggleUserSelection(user)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/30 transition-colors text-left"
+                    >
+                      <Avatar className="w-11 h-11">
+                        {user.avatar_url && <AvatarImage src={user.avatar_url} />}
+                        <AvatarFallback className="bg-muted text-foreground font-semibold">
+                          {user.name.slice(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">@{user.username}</p>
+                      </div>
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${
+                        isSelected ? 'bg-primary border-primary' : 'border-muted-foreground/30'
+                      }`}>
+                        {isSelected && <Check className="w-4 h-4 text-primary-foreground" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
-            {filteredUsers.length === 0 && (
+            {!loading && users.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
                 <p className="text-sm text-muted-foreground">No users found</p>
               </div>

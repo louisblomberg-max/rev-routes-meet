@@ -1,17 +1,18 @@
 // ============================
 // Dev Tools — Switch Users, Reset Data, QA Checklist, Random Content Generator
 // ============================
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle, MapPin, Shuffle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { useData } from '@/contexts/DataContext';
-import { MOCK_USER_PRESETS, type MockUserPreset } from '@/data/mockUsers';
+import { supabase } from '@/integrations/supabase/client';
 
 // ── Random content pools ──
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -20,7 +21,6 @@ const pickN = <T,>(arr: T[], n: number): T[] => {
   return shuffled.slice(0, n);
 };
 const randBetween = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-// Pre-defined UK land coordinates (cities/towns) to guarantee on-land placement
 const UK_LAND_POINTS: { lat: number; lng: number; city: string }[] = [
   { lat: 51.5074, lng: -0.1278, city: 'London' },
   { lat: 52.4862, lng: -1.8904, city: 'Birmingham' },
@@ -37,276 +37,106 @@ const UK_LAND_POINTS: { lat: number; lng: number; city: string }[] = [
   { lat: 52.2053, lng: 0.1218, city: 'Cambridge' },
   { lat: 51.3811, lng: -2.3590, city: 'Bath' },
   { lat: 50.7184, lng: -1.8795, city: 'Bournemouth' },
-  { lat: 52.6309, lng: -1.1398, city: 'Leicester' },
-  { lat: 51.2802, lng: -0.7500, city: 'Guildford' },
-  { lat: 52.1936, lng: -2.2216, city: 'Worcester' },
-  { lat: 51.0543, lng: -1.3100, city: 'Winchester' },
-  { lat: 53.2307, lng: -0.5406, city: 'Lincoln' },
-  { lat: 52.0406, lng: -0.7594, city: 'Milton Keynes' },
-  { lat: 51.8860, lng: -2.0880, city: 'Cheltenham' },
-  { lat: 54.5260, lng: -1.5526, city: 'Darlington' },
-  { lat: 53.7632, lng: -2.7044, city: 'Preston' },
-  { lat: 52.5162, lng: -2.0816, city: 'Wolverhampton' },
-  { lat: 51.5820, lng: -0.3360, city: 'Watford' },
-  { lat: 51.2684, lng: 1.0780, city: 'Canterbury' },
-  { lat: 50.3755, lng: -4.1427, city: 'Plymouth' },
-  { lat: 50.2660, lng: -5.0527, city: 'Truro' },
-  { lat: 54.7753, lng: -1.5849, city: 'Durham' },
 ];
-// Jitter around a known land point (±0.05° ≈ 3 mi)
 const randCoordUK = (): { lat: number; lng: number; city: string } => {
   const base = pick(UK_LAND_POINTS);
-  return {
-    lat: base.lat + (Math.random() - 0.5) * 0.1,
-    lng: base.lng + (Math.random() - 0.5) * 0.1,
-    city: base.city,
-  };
+  return { lat: base.lat + (Math.random() - 0.5) * 0.1, lng: base.lng + (Math.random() - 0.5) * 0.1, city: base.city };
 };
 
 const EVENT_NAMES = [
-  'Sunset Car Meet', 'Dawn Patrol Cars & Coffee', 'Nürburgring Night', 'JDM All Stars', 'Euro Stance Show',
-  'Supercar Saturday', 'Classic Concours', 'Track Attack Day', 'Coastal Cruise Meet', 'Modified Nationals',
-  'Drift Nights', 'Muscle Car Mania', 'Italian Stallions Meet', 'Bikes & Burgers', 'Sunday Showdown',
-  'Retro Rides Gathering', 'Rev Harder Track Day', 'EV Owners Social', 'Rally Stage Experience', 'Midnight Run',
-  'Chrome & Coffee', 'Petrolhead Picnic', 'Alpine Run Convoy', 'Detailing Demo Day', 'Dyno Day',
+  'Sunset Car Meet', 'Dawn Patrol Cars & Coffee', 'JDM All Stars', 'Euro Stance Show',
+  'Supercar Saturday', 'Classic Concours', 'Track Attack Day', 'Coastal Cruise Meet',
 ];
-const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport', 'autojumble', 'off_road'] as const;
-const VEHICLE_TYPE_IDS = ['all', 'cars', 'bikes', 'big_stuff', 'military'] as const;
-const VEHICLE_CATEGORY_OPTIONS_GEN = ['jdm', 'supercars', 'muscle-car', 'american', 'european', '4x4', 'row'];
-const VEHICLE_AGE_OPTIONS_GEN = ['all', 'classics', 'modern', 'vintage', 'pre_2000', 'pre_1990', 'pre_1980', 'pre_1970', 'pre_1960', 'pre_1950'];
-
-const CAR_BRANDS_GEN = [
-  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
-  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
-  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
-  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
-  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
-  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
-  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
-];
-const BIKE_BRANDS_GEN = [
-  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
-  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
-  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
-];
-
-const EVENT_LOCATIONS_GEN = [
-  'Ace Cafe', 'Caffeine & Machine', 'Goodwood Motor Circuit', 'Silverstone Circuit',
-  'Brands Hatch', 'Castle Combe Circuit', 'Donnington Park', 'Beaulieu Motor Museum',
-  'Brooklands Museum', 'Blenheim Palace', 'Santa Pod Raceway', 'Bicester Heritage',
-  'Shelsley Walsh Hill Climb', 'Oulton Park', 'Box Hill Viewpoint',
-  'The Paddock', 'Main Car Park', 'Exhibition Hall', 'South Field', 'Circuit Entrance',
-];
-
-const USERNAMES = [
-  'BimmerFan92', 'TurboTom', 'DriftKingUK', 'CleanFreak', 'TrackDayAddict', 'V8Thunder',
-  'JDMLover', 'PorschePete', 'ClassicCarl', 'EVDave', 'ModifiedMike', 'BikerBen',
-  'GarageQueen', 'BoostJunkie', 'ApexHunter',
-];
-
+const EVENT_TYPE_IDS = ['meets', 'shows', 'drive', 'track_day', 'motorsport'] as const;
+const VEHICLE_TYPE_IDS = ['all', 'cars', 'bikes'] as const;
+const EVENT_LOCATIONS_GEN = ['Ace Cafe', 'Caffeine & Machine', 'Goodwood Motor Circuit', 'Silverstone Circuit', 'Brands Hatch'];
 const EVENT_DESCRIPTIONS = [
-  'Join fellow enthusiasts for an incredible day of automotive passion. Food trucks, live DJ, and prizes for best in show. All skill levels and marques are welcome to attend.',
-  'A relaxed morning meet with specialty coffee, freshly baked pastries, and some of the finest machines in the region. Bring your pride and joy for a chilled Sunday morning.',
-  'High-octane track action with professional marshalling, timed sessions, and on-board photography available. Helmets required. All experience levels welcome with instructor support.',
-  'Cruise through stunning scenery with a group of like-minded petrolheads. Route cards and walkie-talkies provided. Approximately 60 miles of B-roads finishing at a pub lunch.',
-  'Annual charity car show raising money for local causes. Trophy categories include Best Paint, Best Engine Bay, and People\'s Choice. Family-friendly with food and entertainment.',
-  'Late-night meet under the lights for the modified car community. Bring your best spec and cleanest build. Sound-off competition at 10pm followed by a short cruise.',
-  'Family-friendly automotive festival with go-karts for kids, a detailing masterclass, and vendor village. Over 200 cars expected across all categories and decades of motoring.',
-  'Exclusive gathering for supercars and hypercars only. Champagne reception, professional photography included, and scenic group drive through the countryside to finish the day off.',
-  'Monthly recurring meet at a legendary venue that brings together the community rain or shine. Great atmosphere, good people, and some seriously impressive machinery on display.',
-  'A spirited group drive through the countryside finishing with a fantastic pub lunch. Expect around 60 miles of flowing B-roads with some truly stunning views along the way.',
-  'Celebrating Japanese automotive culture with a curated display of JDM icons. From classic Skylines to modern GR Yaris builds, this meet showcases the best of Japan.',
-  'American muscle and classic car showcase with live music, BBQ, and drag racing demonstrations. Bring your V8 and join the rumble for a truly unforgettable weekend event.',
-  'Track day exclusively for motorcycle riders with marshalled sessions and professional coaching available. All bike types welcome from sports to adventure. Full leathers mandatory for safety.',
-  'A dedicated EV and hybrid owners social with charging available on site. Tech talks, range challenges, and a chance to compare the latest electric vehicles up close.',
-  'Classic and vintage car rally through picturesque villages with timed checkpoints. Open to pre-1990 vehicles only. Period dress encouraged but not required for participants.',
+  'Join fellow enthusiasts for an incredible day of automotive passion.',
+  'A relaxed morning meet with specialty coffee and some of the finest machines.',
+  'High-octane track action with professional marshalling and timed sessions.',
 ];
+const ROUTE_NAMES = ['Snake Pass Run', 'Cheddar Gorge Blast', 'Cat & Fiddle', 'Evo Triangle', 'Black Mountain Pass'];
+const ROUTE_TYPES = ['Scenic', 'Twisty', 'Mixed', 'Mountain', 'Coastal'];
+const ROUTE_DESCRIPTIONS = [
+  'A stunning drive through winding countryside roads with incredible elevation changes.',
+  'Fast-flowing B-roads through rolling hills with well-sighted corners.',
+];
+const SERVICE_CATEGORIES = ['Garages & Mechanics', 'Vehicle Servicing', 'Tyres & Wheels', 'Detailing & Car Care'];
+const SERVICE_NAMES = ['Apex Motors', 'Trackside Garage', 'ProServe Auto', 'Mirror Finish Detailing'];
+const USERNAMES = ['BimmerFan92', 'TurboTom', 'DriftKingUK', 'CleanFreak', 'TrackDayAddict'];
 
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day', motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
-};
+interface ProfilePreset {
+  id: string;
+  display_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  plan: string | null;
+}
 
 function generateRandomEvents(count: number) {
   const events = [];
   for (let i = 0; i < count; i++) {
     const coords = randCoordUK();
-    const eventType = pick([...EVENT_TYPE_IDS]);
-    const vehicleType = pick([...VEHICLE_TYPE_IDS]);
-    const vehicleCategories = Math.random() > 0.3 ? pickN(VEHICLE_CATEGORY_OPTIONS_GEN, randBetween(1, 2)) : [];
-    const vehicleAges = Math.random() > 0.5 ? pickN(VEHICLE_AGE_OPTIONS_GEN.filter(a => a !== 'all'), randBetween(1, 3)) : ['all'];
-
-    // Pick brands based on vehicle type
-    let vehicleBrands: string[] = [];
-    if (vehicleType === 'cars') {
-      vehicleBrands = pickN(CAR_BRANDS_GEN, randBetween(1, 3));
-    } else if (vehicleType === 'bikes') {
-      vehicleBrands = pickN(BIKE_BRANDS_GEN, randBetween(1, 2));
-    } else {
-      vehicleBrands = pickN([...CAR_BRANDS_GEN, ...BIKE_BRANDS_GEN], randBetween(1, 3));
-    }
-
-    // Generate a future date
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + randBetween(1, 90));
-    const hours = randBetween(7, 20);
-    const mins = pick(['00', '30']);
-    const startTime = `${String(hours).padStart(2, '0')}:${mins}`;
-    const endHours = Math.min(hours + randBetween(2, 5), 23);
-    const endTime = `${String(endHours).padStart(2, '0')}:${mins}`;
-
-    const hasFee = Math.random() > 0.5;
-    const maxAttendees = randBetween(10, 500);
-    const locationName = `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`;
-
     events.push({
       title: pick(EVENT_NAMES),
       description: pick(EVENT_DESCRIPTIONS),
-      locationName,
-      location: locationName,
-      lat: coords.lat,
-      lng: coords.lng,
-
-      // Structured fields
-      eventType,
-      vehicleType,
-      vehicleBrands,
-      vehicleCategories,
-      vehicleAge: vehicleAges.includes('all') ? 'all' : vehicleAges[0],
-      vehicleAges: vehicleAges.filter(a => a !== 'all'),
-
-      // Dates
-      startDate: futureDate.toISOString(),
-      startTime,
-      endTime,
-
-      // Legacy date for display
-      date: futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) + ` • ${startTime}`,
-
-      visibility: pick(['public', 'public', 'public', 'club', 'friends'] as const),
+      locationName: `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`,
+      location: `${pick(EVENT_LOCATIONS_GEN)}, ${coords.city}`,
+      lat: coords.lat, lng: coords.lng,
+      eventType: pick([...EVENT_TYPE_IDS]),
+      vehicleType: pick([...VEHICLE_TYPE_IDS]),
+      vehicleBrands: [], vehicleCategories: [], vehicleAge: 'all',
+      startDate: futureDate.toISOString(), startTime: '12:00', endTime: '14:00',
+      date: futureDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
+      visibility: 'public' as const,
       createdBy: pick(USERNAMES),
-      maxAttendees,
-      attendees: randBetween(0, Math.floor(maxAttendees * 0.6)),
-      attendeesList: [],
-      firstComeFirstServe: Math.random() > 0.5,
-      entryFeeType: hasFee ? 'paid' as const : 'free' as const,
-      entryFeeAmount: hasFee ? randBetween(3, 45) : undefined,
-      currency: 'GBP',
-
-      // Legacy
-      entryFee: hasFee ? `£${randBetween(3, 45)}` : 'Free',
-      vehicleTypes: vehicleType === 'all' ? ['All Welcome'] : [vehicleType === 'cars' ? 'Cars' : 'Bikes'],
-      ticketLimit: maxAttendees,
-      tags: [],
+      maxAttendees: randBetween(10, 500), attendees: 0, attendeesList: [],
+      firstComeFirstServe: false, entryFeeType: 'free' as const, currency: 'GBP',
+      vehicleTypes: ['All Welcome'], tags: [], vehicleAges: [],
     });
   }
   return events;
 }
-
-// ── Random Route pools ──
-const ROUTE_NAMES = [
-  'Snake Pass Run', 'Cheddar Gorge Blast', 'Cat & Fiddle', 'Evo Triangle', 'Black Mountain Pass',
-  'Buttertubs Pass', 'Bealach na Bà', 'Hardknott Pass', 'Great Orme Loop', 'Cotswold Cruise',
-  'Peak District Peaks', 'Lake District Explorer', 'Scottish Highlands Run', 'Welsh Dragon Trail', 'Dartmoor Dash',
-  'North Coast 500 Taster', 'South Downs Sprint', 'Forest of Dean Loop', 'Yorkshire Moors Ride', 'Brecon Beacons Circuit',
-];
-const ROUTE_TYPES = ['Scenic', 'Twisty', 'Mixed', 'Mountain', 'Coastal', 'Forest'];
-const ROUTE_DESCRIPTIONS = [
-  'A stunning drive through winding countryside roads with incredible elevation changes and panoramic views at every turn.',
-  'Fast-flowing B-roads through rolling hills with well-sighted corners and minimal traffic. Perfect weekend blast.',
-  'Technical mountain pass with tight hairpins and dramatic scenery. Not for the faint-hearted but incredibly rewarding.',
-  'Relaxed coastal cruise with sea views, quaint villages, and great stopping points for photos and refreshments.',
-  'A mix of fast straights and technical sections through dense forest. Watch for loose gravel on corners after rain.',
-  'Classic enthusiast route with smooth tarmac, flowing bends, and a legendary pub at the halfway point.',
-];
-const SURFACE_TYPES: ('tarmac' | 'gravel' | 'mixed' | 'dirt')[] = ['tarmac', 'tarmac', 'tarmac', 'gravel', 'mixed'];
-const TRAFFIC_LEVELS: ('low' | 'moderate' | 'heavy')[] = ['low', 'low', 'moderate', 'heavy'];
-const DIFFICULTIES: ('easy' | 'moderate' | 'challenging' | 'expert')[] = ['easy', 'moderate', 'challenging', 'expert'];
 
 function generateRandomRoutes(count: number) {
   const routes = [];
   for (let i = 0; i < count; i++) {
     const coords = randCoordUK();
     const distance = randBetween(8, 120);
-    const duration = Math.round(distance * randBetween(1, 3));
     routes.push({
-      name: pick(ROUTE_NAMES),
-      description: pick(ROUTE_DESCRIPTIONS),
-      distance: `${distance} mi`,
-      type: pick(ROUTE_TYPES),
+      name: pick(ROUTE_NAMES), description: pick(ROUTE_DESCRIPTIONS),
+      distance: `${distance} mi`, type: pick(ROUTE_TYPES),
       vehicleType: pick(['car', 'bike', 'both'] as const),
       rating: parseFloat((randBetween(30, 50) / 10).toFixed(1)),
-      createdBy: pick(USERNAMES),
-      lat: coords.lat,
-      lng: coords.lng,
-      saves: randBetween(0, 200),
-      drives: randBetween(5, 500),
-      visibility: 'public' as const,
-      tags: pickN(['scenic', 'technical', 'beginner-friendly', 'expert', 'weekend-favourite'], randBetween(1, 3)),
-      elevationGain: randBetween(50, 1200),
-      scenicRating: randBetween(1, 5),
-      trafficLevel: pick(TRAFFIC_LEVELS),
-      surfaceType: pick(SURFACE_TYPES),
-      difficulty: pick(DIFFICULTIES),
-      safetyTags: pickN(['Narrow roads', 'Avoid at night', 'Livestock crossing', 'Speed cameras', 'Flood risk'], randBetween(0, 2)),
-      durationMinutes: duration,
+      createdBy: pick(USERNAMES), lat: coords.lat, lng: coords.lng,
+      saves: 0, drives: 0, visibility: 'public' as const,
+      tags: [], elevationGain: randBetween(50, 1200),
+      durationMinutes: Math.round(distance * 2),
     });
   }
   return routes;
 }
 
-// ── Random Service pools ──
-const SERVICE_CATEGORIES = [
-  'Garages & Mechanics', 'Vehicle Servicing', 'Tyres & Wheels', 'Bodywork & Paint',
-  'Detailing & Car Care', 'Tuning & Performance', 'Parts & Accessories',
-  'Recovery & Roadside Assistance', 'Storage & Parking', 'Shipping & Transportation',
-];
-const SERVICE_NAMES_MAP: Record<string, string[]> = {
-  'Garages & Mechanics': ['Apex Motors', 'Trackside Garage', 'Revline Auto', 'Precision Mechanicals', 'AllStar Autos'],
-  'Vehicle Servicing': ['ProServe Auto', 'QuickFit Express', 'ServiceFirst', 'MasterTech Servicing', 'DriveRight MOT'],
-  'Tyres & Wheels': ['RubberRoad Tyres', 'GripKing Wheels', 'AllSeason Tyres', 'RimTech Alloys', 'TyreVault'],
-  'Bodywork & Paint': ['Chrome Finish Body', 'Paintwerks', 'DentMaster Pro', 'AutoGlow Bodyshop', 'Prestige Paint'],
-  'Detailing & Car Care': ['Mirror Finish Detailing', 'Obsessed Detailing', 'ShowroomShine', 'Wax & Buff Co', 'CeramicCoat Pro'],
-  'Tuning & Performance': ['BoostWorks', 'Dyno Kings', 'TurboTech Tuning', 'Rev Limit Performance', 'PowerCurve Tuning'],
-  'Parts & Accessories': ['PartsFinder UK', 'AutoSpares Direct', 'BreakersYard Plus', 'ModParts Online', 'FastFit Accessories'],
-  'Recovery & Roadside Assistance': ['RapidRecovery 24/7', 'RoadRescue UK', 'NightOwl Recovery', 'SafeTow Services', 'AA Partner Recovery'],
-  'Storage & Parking': ['SecureStore Cars', 'VaultPark', 'DriveIn Storage', 'ClassicCar Barn', 'CoverGuard Storage'],
-  'Shipping & Transportation': ['AutoShip UK', 'CarCarrier Express', 'TransPort Pro', 'BikeMove Ltd', 'EnclosedTransit'],
-};
-
 function generateRandomServices(count: number) {
   const services = [];
   for (let i = 0; i < count; i++) {
     const coords = randCoordUK();
-    const category = pick(SERVICE_CATEGORIES);
-    const names = SERVICE_NAMES_MAP[category] || ['Auto Service'];
-    const rating = parseFloat((randBetween(30, 50) / 10).toFixed(1));
-    const reviewCount = randBetween(3, 350);
-    const dist = (randBetween(1, 250) / 10).toFixed(1);
     services.push({
-      name: `${pick(names)}, ${coords.city}`,
-      category,
-      serviceTypes: [category],
-      rating,
-      distance: `${dist} mi`,
-      reviewCount,
-      openingHours: pick(['Mon-Fri 8am-6pm', 'Mon-Sat 9am-5pm', '24/7', 'Mon-Fri 7am-7pm']),
-      phone: `07${randBetween(100, 999)} ${randBetween(100000, 999999)}`,
-      address: `${randBetween(1, 200)} ${pick(['High Street', 'Industrial Estate', 'Station Road', 'Mill Lane', 'Park Road'])}, ${coords.city}`,
-      isOpen: Math.random() > 0.3,
-      priceRange: pick(['£', '££', '£££']),
-      lat: coords.lat,
-      lng: coords.lng,
-      createdBy: pick(USERNAMES),
-      visibility: 'public' as const,
-      tags: pickN(['trusted', 'fast-turnaround', 'specialist', 'budget-friendly', 'premium'], randBetween(1, 3)),
-      yearsInBusiness: randBetween(1, 40),
-      isVerified: Math.random() > 0.5,
-      serviceMode: pick(['fixed', 'mobile'] as const),
+      name: `${pick(SERVICE_NAMES)}, ${coords.city}`,
+      category: pick(SERVICE_CATEGORIES), serviceTypes: [pick(SERVICE_CATEGORIES)],
+      rating: parseFloat((randBetween(30, 50) / 10).toFixed(1)),
+      distance: `${(randBetween(1, 250) / 10).toFixed(1)} mi`,
+      reviewCount: randBetween(3, 350), phone: `07${randBetween(100, 999)} ${randBetween(100000, 999999)}`,
+      address: `${randBetween(1, 200)} High Street, ${coords.city}`,
+      lat: coords.lat, lng: coords.lng,
+      createdBy: pick(USERNAMES), visibility: 'public' as const,
+      tags: [],
     });
   }
   return services;
 }
-
 
 const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
   <div className={`bg-card rounded-2xl border border-border/50 shadow-sm p-4 ${className}`}>{children}</div>
@@ -318,23 +148,38 @@ const DevTools = () => {
   const { setPlan, setSubscriptionStatus, currentPlan, effectivePlan, getPlanLabel } = usePlan();
   const { state, events: eventsRepo, routes: routesRepo, services: servicesRepo } = useData();
 
+  const [profiles, setProfiles] = useState<ProfilePreset[]>([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     return localStorage.getItem('revnet_dev_preset') || null;
   });
 
-  const switchUser = (preset: MockUserPreset) => {
-    updateProfile({ ...preset.authUser });
-    setPlan(preset.planId);
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from('profiles').select('id, username, display_name, avatar_url, plan').limit(20);
+      setProfiles(data || []);
+      setLoadingProfiles(false);
+    })();
+  }, []);
+
+  const switchUser = (profile: ProfilePreset) => {
+    updateProfile({
+      displayName: profile.display_name || 'User',
+      username: profile.username || '',
+      avatar: profile.avatar_url,
+      membershipPlan: (profile.plan as any) || 'free',
+    });
+    setPlan((profile.plan as any) || 'free');
     setSubscriptionStatus('active');
-    setActivePreset(preset.id);
-    localStorage.setItem('revnet_dev_preset', preset.id);
-    toast.success(`Switched to ${preset.label}`, { description: preset.description });
+    setActivePreset(profile.id);
+    localStorage.setItem('revnet_dev_preset', profile.id);
+    toast.success(`Switched to ${profile.display_name || profile.username}`, { description: `Plan: ${profile.plan || 'free'}` });
   };
 
-  const resetMockData = () => {
+  const resetData = () => {
     localStorage.removeItem('revnet_dev_preset');
     setActivePreset(null);
-    toast.success('Mock data reset! Reload to take full effect.', {
+    toast.success('Dev data reset! Reload to take full effect.', {
       action: { label: 'Reload', onClick: () => window.location.reload() },
     });
   };
@@ -356,47 +201,27 @@ const DevTools = () => {
   const createTestEvent = (lat: number, lng: number) => {
     eventsRepo.create({
       title: `Test Event ${Date.now().toString(36)}`,
-      description: 'Auto-generated test event from Dev Tools for quick testing and verification of the event system.',
-      locationName: 'Current Location',
-      location: 'Current Location',
-      lat, lng,
-      eventType: 'meets',
-      vehicleType: 'all',
-      vehicleBrands: [],
-      vehicleCategories: [],
-      vehicleAge: 'all',
-      startDate: new Date().toISOString(),
-      startTime: '12:00',
-      endTime: '14:00',
+      description: 'Auto-generated test event from Dev Tools.',
+      locationName: 'Current Location', location: 'Current Location',
+      lat, lng, eventType: 'meets', vehicleType: 'all',
+      vehicleBrands: [], vehicleCategories: [], vehicleAge: 'all',
+      startDate: new Date().toISOString(), startTime: '12:00', endTime: '14:00',
       date: new Date().toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' }),
-      visibility: 'public' as const,
-      createdBy: authUser?.id || 'dev',
-      maxAttendees: 50,
-      attendees: 0,
-      attendeesList: [],
-      firstComeFirstServe: false,
-      entryFeeType: 'free',
-      currency: 'GBP',
-      vehicleTypes: ['All Welcome'],
-      tags: [],
+      visibility: 'public' as const, createdBy: authUser?.id || 'dev',
+      maxAttendees: 50, attendees: 0, attendeesList: [],
+      firstComeFirstServe: false, entryFeeType: 'free', currency: 'GBP',
+      vehicleTypes: ['All Welcome'], tags: [],
     });
     toast.success('Test event created at your location!', {
-      description: 'Switch to Discovery → Events to see the pin.',
       action: { label: 'View Map', onClick: () => navigate('/', { state: { centerOn: { lat, lng }, category: 'events' } }) },
     });
   };
 
   const generateRandomContent = () => {
-    const events = generateRandomEvents(15);
-    events.forEach(e => eventsRepo.create(e));
-
-    const routes = generateRandomRoutes(15);
-    routes.forEach(r => routesRepo.create(r));
-
-    const services = generateRandomServices(15);
-    services.forEach(s => servicesRepo.create(s));
-
-    toast.success(`Generated 45 items!`, {
+    generateRandomEvents(15).forEach(e => eventsRepo.create(e));
+    generateRandomRoutes(15).forEach(r => routesRepo.create(r));
+    generateRandomServices(15).forEach(s => servicesRepo.create(s));
+    toast.success('Generated 45 items!', {
       description: '15 events, 15 routes, 15 services added.',
       action: { label: 'View Map', onClick: () => navigate('/') },
     });
@@ -468,10 +293,7 @@ const DevTools = () => {
           <p className="text-xs text-muted-foreground mb-3">
             Generate 15 random events, 15 routes and 15 services with realistic data, scattered across the UK.
           </p>
-          <Button
-            onClick={generateRandomContent}
-            className="w-full h-11 rounded-xl gap-2"
-          >
+          <Button onClick={generateRandomContent} className="w-full h-11 rounded-xl gap-2">
             <Shuffle className="w-4 h-4" />
             Generate 45 Random Items
           </Button>
@@ -484,30 +306,38 @@ const DevTools = () => {
             <h2 className="text-sm font-bold text-foreground">Switch User</h2>
           </div>
           <div className="space-y-2">
-            {MOCK_USER_PRESETS.map(preset => (
-              <button
-                key={preset.id}
-                onClick={() => switchUser(preset)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                  activePreset === preset.id
-                    ? 'border-primary bg-primary/5 shadow-sm'
-                    : 'border-border/50 bg-muted/20 hover:bg-muted/40'
-                }`}
-              >
-                <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${planColor[preset.planId]}`}>
-                  {preset.planId === 'free' ? <User className="w-4 h-4" /> :
-                   preset.planId === 'pro' ? <Crown className="w-4 h-4" /> :
-                   <CreditCard className="w-4 h-4" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">{preset.label}</p>
-                  <p className="text-[11px] text-muted-foreground truncate">{preset.description}</p>
-                </div>
-                {activePreset === preset.id && (
-                  <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5">Active</Badge>
-                )}
-              </button>
-            ))}
+            {loadingProfiles ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-16 rounded-xl" />
+              ))
+            ) : profiles.length === 0 ? (
+              <p className="text-xs text-muted-foreground">No profiles found in database.</p>
+            ) : (
+              profiles.map(profile => (
+                <button
+                  key={profile.id}
+                  onClick={() => switchUser(profile)}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                    activePreset === profile.id
+                      ? 'border-primary bg-primary/5 shadow-sm'
+                      : 'border-border/50 bg-muted/20 hover:bg-muted/40'
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${planColor[profile.plan || 'free'] || planColor.free}`}>
+                    {profile.plan === 'pro' ? <Crown className="w-4 h-4" /> :
+                     profile.plan === 'club' ? <CreditCard className="w-4 h-4" /> :
+                     <User className="w-4 h-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-foreground">{profile.display_name || profile.username || 'Unknown'}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">@{profile.username || 'no-username'} • {profile.plan || 'free'}</p>
+                  </div>
+                  {activePreset === profile.id && (
+                    <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5">Active</Badge>
+                  )}
+                </button>
+              ))
+            )}
           </div>
         </SectionCard>
 
@@ -546,11 +376,11 @@ const DevTools = () => {
           </div>
           <Button
             variant="outline"
-            onClick={resetMockData}
+            onClick={resetData}
             className="w-full h-11 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/5"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
-            Reset All Mock Data
+            Reset Dev Data
           </Button>
           <Button
             variant="outline"
