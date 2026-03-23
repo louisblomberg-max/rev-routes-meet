@@ -71,6 +71,14 @@ Deno.serve(async (req) => {
       });
     }
 
+    const ticket_price = event.ticket_price;
+    if (!ticket_price || ticket_price < 1) {
+      return new Response(JSON.stringify({ error: "Event has no valid ticket price configured" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Check attendee count
     const { count: attendeeCount } = await serviceClient
       .from("event_attendees")
