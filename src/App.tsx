@@ -95,6 +95,7 @@ const App = () => (
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding (not protected) */}
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/onboarding/features" element={<OnboardingFeatures />} />
           <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
           <Route path="/onboarding/notifications" element={<OnboardingNotifications />} />
