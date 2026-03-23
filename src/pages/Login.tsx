@@ -16,6 +16,13 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
+
   const validate = () => {
     const errs: typeof errors = {};
     if (!email.trim()) errs.email = 'Email is required';
