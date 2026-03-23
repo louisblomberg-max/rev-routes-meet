@@ -1,9 +1,3 @@
-// ============================
-// User Stats Hook
-// ============================
-// Single source of truth for user counts.
-// Backed by DataContext (mock) — swap internals for Supabase later.
-
 import { useUserStatsData } from './useProfileData';
 
 export interface UserStats {

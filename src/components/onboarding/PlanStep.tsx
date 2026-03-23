@@ -58,8 +58,12 @@ const PLANS = [
   },
 ];
 
-const PlanStep = () => {
-  const { next, back, data, updateData } = useOnboarding();
+interface PlanStepProps {
+  onComplete?: () => void;
+}
+
+const PlanStep = ({ onComplete }: PlanStepProps) => {
+  const { back, data, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>(data.billingCycle || 'yearly');
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
 
@@ -67,12 +71,16 @@ const PlanStep = () => {
 
   const handleContinue = () => {
     updateData({ plan: selected, billingCycle: billing });
-    next();
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   const handleFree = () => {
     updateData({ plan: 'free', billingCycle: billing });
-    next();
+    if (onComplete) {
+      onComplete();
+    }
   };
 
   return (
