@@ -85,7 +85,7 @@ const OnboardingPlan = () => {
 
     // Check for native platform
     try {
-      const { Capacitor } = await import('@capacitor/core');
+      const Capacitor = (window as any).Capacitor;
       if (Capacitor.isNativePlatform()) {
         toast.info('Payment available on web at revnet.app');
         return;
