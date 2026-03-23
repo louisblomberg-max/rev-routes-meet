@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import LocationPicker from '@/components/LocationPicker';
-import { mockClubs } from '@/data/mockData';
+// Clubs now fetched from Supabase in component
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePaywall } from '@/hooks/usePaywall';
