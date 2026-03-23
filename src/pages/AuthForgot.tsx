@@ -21,8 +21,15 @@ const AuthForgot = () => {
       setError('Enter a valid email');
       return;
     }
-    await resetPassword(email);
-    setSent(true);
+    setIsSubmitting(true);
+    try {
+      await resetPassword(email);
+      setSent(true);
+    } catch {
+      setError('Could not send reset link. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (sent) {
