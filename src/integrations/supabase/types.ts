@@ -1496,6 +1496,10 @@ export type Database = {
           type: string
         }[]
       }
+      has_club_role: {
+        Args: { _club_id: string; _roles: string[]; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
