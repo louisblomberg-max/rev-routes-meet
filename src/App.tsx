@@ -70,6 +70,7 @@ import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -92,6 +93,7 @@ const App = () => (
           <Route path="/auth/login" element={<AuthLogin />} />
           <Route path="/auth/forgot" element={<AuthForgot />} />
           <Route path="/auth/verify" element={<AuthVerify />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding (not protected) */}
