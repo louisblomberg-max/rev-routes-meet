@@ -34,19 +34,24 @@ const Login = () => {
     return Object.keys(errs).length === 0;
   };
 
+  const isFormValid = email.length > 0 && password.length > 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setIsSubmitting(true);
     try {
       const result = await login(email, password);
       toast.success('Welcome back!');
       if (result.onboardingComplete) {
         navigate('/', { replace: true });
       } else {
-        navigate('/auth', { replace: true });
+        navigate('/onboarding', { replace: true });
       }
     } catch {
       toast.error('Login failed');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
