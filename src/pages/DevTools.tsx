@@ -167,7 +167,7 @@ const DevTools = () => {
       displayName: profile.display_name || 'User',
       username: profile.username || '',
       avatar: profile.avatar_url,
-      membershipPlan: (profile.plan as any) || 'free',
+      // membershipPlan intentionally not written to profiles — read-only from subscriptions
     });
     setPlan((profile.plan as any) || 'free');
     setSubscriptionStatus('active');
