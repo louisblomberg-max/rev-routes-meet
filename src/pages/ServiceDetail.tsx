@@ -148,10 +148,11 @@ const ServiceDetail = () => {
             {isSaved ? 'Saved' : 'Save'}
           </Button>
           {service.lat && service.lng && (
-            <NavigateButton
-              destination={{ lat: Number(service.lat), lng: Number(service.lng), title: service.name }}
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <NavigateButton
+                destination={{ lat: Number(service.lat), lng: Number(service.lng), title: service.name }}
+              />
+            </div>
           )}
         </div>
 
