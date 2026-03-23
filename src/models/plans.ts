@@ -13,6 +13,8 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     routeCreditsPerMonth: 0,
     features: [
       'Browse events, routes & services',
+      '1 free event post included',
+      'Additional events £2.99 each',
       'Join clubs & forums',
       'Basic messaging',
       'Save routes & events',
@@ -26,13 +28,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     routeCreditsPerMonth: -1,
     features: [
       'Everything in Free',
+      'Unlimited event posts',
       'Create & publish routes',
-      'Host events (unlimited)',
+      'Host unlimited events',
       'Live location sharing',
-      'Breakdown help (SOS)',
+      'SOS breakdown help',
       'Garage showcase',
       'Priority visibility',
-      'Marketplace listings',
     ],
   },
   {
@@ -44,10 +46,9 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     features: [
       'Everything in Pro',
       'Create & manage clubs',
-      'Club announcements',
-      'Event ticketing',
-      'Business / service listings',
-      'Analytics dashboard',
+      'Event ticketing with Stripe payouts',
+      'Business & service listings',
+      'Analytics & insights',
       'Featured placement',
       'Verified badge',
     ],
@@ -55,7 +56,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ];
 
 /** Cost to publish a single event for non-Pro users */
-export const EVENT_PUBLISH_COST_GBP = 2.49;
+export const EVENT_PUBLISH_COST_GBP = 2.99;
 
 /** Cost to publish a single route for non-Pro users */
 export const ROUTE_PUBLISH_COST_GBP = 1.99;

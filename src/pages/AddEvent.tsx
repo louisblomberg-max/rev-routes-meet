@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown, Search, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown, Search, Tag, Ticket, Info, CreditCard, Banknote } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -17,9 +17,8 @@ import LocationPicker from '@/components/LocationPicker';
 import { useData } from '@/contexts/DataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePaywall } from '@/hooks/usePaywall';
-import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
 import { usePlan } from '@/contexts/PlanContext';
+import EventPostingPaywall from '@/components/EventPostingPaywall';
 import type { EventType, VehicleType, EntryFeeType } from '@/models';
 
 const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
@@ -106,11 +105,9 @@ const AddEvent = () => {
   const navigate = useNavigate();
   const { events: eventsRepo, state } = useData();
   const { user: authUser } = useAuth();
-  const { canCreateEvent, deductEventCredit, upgradeToPlan } = usePaywall();
-  const { setPlan, setSubscriptionStatus } = usePlan();
+  const { effectivePlan } = usePlan();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallReason, setPaywallReason] = useState<PaywallReason>('event_credits');
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -135,6 +132,13 @@ const AddEvent = () => {
   const [myOwnedClubs, setMyOwnedClubs] = useState<{ id: string; name: string }[]>([]);
   const currentUserId = authUser?.id || 'current-user';
 
+  // Ticketing state
+  const [ticketingEnabled, setTicketingEnabled] = useState(false);
+  const [ticketPrice, setTicketPrice] = useState('');
+  const [maxTickets, setMaxTickets] = useState('');
+  const [hasStripeConnect, setHasStripeConnect] = useState(false);
+  const [connectingStripe, setConnectingStripe] = useState(false);
+
   useEffect(() => {
     if (!authUser?.id) return;
     (async () => {
@@ -146,8 +150,19 @@ const AddEvent = () => {
         setMyOwnedClubs(data.map((d: any) => ({ id: d.clubs?.id || d.club_id, name: d.clubs?.name || 'Unknown Club' })));
       }
     })();
+    // Check Stripe Connect status
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('stripe_connect_account_id')
+        .eq('id', authUser.id)
+        .single();
+      if (data?.stripe_connect_account_id) {
+        setHasStripeConnect(true);
+      }
+    })();
   }, [authUser?.id]);
-  
+
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState('12:00');
   const [endDate, setEndDate] = useState<Date | undefined>();
@@ -155,6 +170,13 @@ const AddEvent = () => {
   const [bannerImage, setBannerImage] = useState<{ file: File; preview: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Sync maxTickets with maxAttendees
+  useEffect(() => {
+    if (!maxTickets && formData.maxAttendees) {
+      setMaxTickets(formData.maxAttendees);
+    }
+  }, [formData.maxAttendees]);
 
   // Close brand dropdown on outside click
   useEffect(() => {
@@ -200,6 +222,13 @@ const AddEvent = () => {
       .slice(0, 8);
   }, [brandSearch, availableBrands, popularBrands, vehicleBrands]);
 
+  // Ticketing calculations
+  const ticketPriceNum = parseFloat(ticketPrice) || 0;
+  const maxTicketsNum = parseInt(maxTickets) || parseInt(formData.maxAttendees) || 0;
+  const estimatedRevenue = ticketPriceNum * maxTicketsNum;
+  const revnetCommission = estimatedRevenue * 0.05;
+  const organiserPayout = estimatedRevenue * 0.95;
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Event name is required';
@@ -210,6 +239,7 @@ const AddEvent = () => {
     if (!formData.locationName.trim()) errs.locationName = 'Location is required';
     if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
     if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
+    if (ticketingEnabled && ticketPriceNum < 1) errs.ticketPrice = 'Minimum ticket price is £1.00';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -231,7 +261,7 @@ const AddEvent = () => {
     }
   };
 
-  const doPublish = () => {
+  const doPublish = (paymentStatus: string = 'free') => {
     setIsSubmitting(true);
 
     const entryFeeType: EntryFeeType = formData.entryFee ? 'paid' : 'free';
@@ -245,7 +275,6 @@ const AddEvent = () => {
       lat: formData.locationCoords?.lat ?? 51.5074,
       lng: formData.locationCoords?.lng ?? -0.1278,
 
-      // Structured fields
       eventType: eventType as EventType,
       vehicleType: selectedVehicleTypes.includes('all') ? 'all' : (selectedVehicleTypes[0] || 'all'),
       vehicleBrands,
@@ -253,20 +282,16 @@ const AddEvent = () => {
       vehicleAge: vehicleAges.includes('all') ? 'all' : (vehicleAges[0] || 'all'),
       vehicleAges: vehicleAges.filter(a => a !== 'all'),
 
-      // Dates
       startDate: startDate ? startDate.toISOString() : new Date().toISOString(),
       endDate: endDate?.toISOString(),
       startTime,
       endTime,
 
-      // Legacy date field for display
       date: startDate ? format(startDate, "EEE, MMM d • ") + startTime : 'TBD',
 
-      // Visibility
       visibility,
       clubId: visibility === 'club' ? clubId : undefined,
 
-      // Capacity & fees
       maxAttendees: parseInt(formData.maxAttendees) || 50,
       attendees: 0,
       attendeesList: [],
@@ -275,12 +300,10 @@ const AddEvent = () => {
       entryFeeAmount,
       currency: 'GBP',
 
-      // Legacy fields
       entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
       vehicleTypes: selectedVehicleTypes.includes('all') ? ['All Welcome'] : selectedVehicleTypes.map(vt => VEHICLE_TYPE_OPTIONS.find(o => o.id === vt)?.label || vt),
       ticketLimit: parseInt(formData.maxAttendees) || undefined,
 
-      // Banner
       bannerImage: bannerImage?.preview,
       photos: bannerImage ? [bannerImage.preview] : undefined,
 
@@ -288,37 +311,64 @@ const AddEvent = () => {
       tags: [],
     });
 
-    // Deduct credit if free user
-    const check = canCreateEvent();
-    if (check.creditsRemaining > 0) {
-      deductEventCredit();
-    }
-
     toast.success('Event published — shown on map', { description: formData.name });
     setIsSubmitting(false);
     navigate('/', { state: { centerOn: { lat: newEvent.lat, lng: newEvent.lng }, category: 'events' } });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
-    const check = canCreateEvent();
-    if (!check.allowed) {
-      setPaywallReason(check.reason!);
-      setShowPaywall(true);
+
+    // Step 1: Pro/Club users — unlimited events
+    if (effectivePlan === 'pro' || effectivePlan === 'club') {
+      doPublish('free');
       return;
     }
-    doPublish();
+
+    // Step 2: Free user — check free credits
+    if (authUser?.id) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('free_event_credits')
+        .eq('id', authUser.id)
+        .single();
+
+      if (profile && (profile.free_event_credits ?? 0) > 0) {
+        // Use the free credit via RPC
+        const { data: creditUsed } = await supabase.rpc('use_event_credit', { user_id: authUser.id });
+        if (creditUsed) {
+          toast.success('Your free event post has been used.', {
+            description: 'Future events cost £2.99 each or upgrade to Pro.',
+          });
+          doPublish('credit_used');
+          return;
+        }
+      }
+    }
+
+    // Step 3: No credits — show paywall
+    setShowPaywall(true);
   };
 
-  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
-    setShowPaywall(false);
-    if (!success) return;
-    if (method === 'subscribe') {
-      setPlan('pro');
-      setSubscriptionStatus('active');
-      upgradeToPlan('pro');
+  const handlePaywallPayment = async () => {
+    // Redirect to Stripe Checkout for £2.99 event post
+    const { data, error } = await supabase.functions.invoke('charge-event-post');
+    if (error || !data?.url) {
+      toast.error('Payment failed — please try again.');
+      return;
     }
-    doPublish();
+    window.open(data.url, '_blank');
+  };
+
+  const handleConnectStripe = async () => {
+    setConnectingStripe(true);
+    const { data, error } = await supabase.functions.invoke('create-stripe-connect-account');
+    setConnectingStripe(false);
+    if (error || !data?.url) {
+      toast.error('Failed to start bank account setup.');
+      return;
+    }
+    window.open(data.url, '_blank');
   };
 
   const update = (field: string, value: string | boolean | { lat: number; lng: number } | undefined) => {
@@ -442,7 +492,6 @@ const AddEvent = () => {
           </SectionTitle>
 
           <div ref={brandRef} className="relative">
-            {/* Selected brand chips */}
             {vehicleBrands.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-3">
                 {vehicleBrands.map((brand) => (
@@ -462,7 +511,6 @@ const AddEvent = () => {
               </div>
             )}
 
-            {/* Search input */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
@@ -478,7 +526,6 @@ const AddEvent = () => {
               />
             </div>
 
-            {/* Dropdown results */}
             {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
               <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
                 {!brandSearch.trim() && (
@@ -671,7 +718,6 @@ const AddEvent = () => {
           </div>
           {errors.maxAttendees && <p className="text-xs text-destructive mt-1">{errors.maxAttendees}</p>}
 
-          {/* First Come First Serve */}
           <div className="flex items-start gap-3 mt-4 p-3 rounded-xl bg-muted/40 border border-border/30">
             <input
               type="checkbox"
@@ -702,6 +748,96 @@ const AddEvent = () => {
             </div>
           )}
         </SectionCard>
+
+        {/* ── TICKETING & REVENUE ── */}
+        <SectionCard>
+          <SectionTitle icon={Ticket}>Ticketing & Revenue</SectionTitle>
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
+            <p className="text-xs font-medium text-foreground">Enable ticket sales for this event</p>
+            <Switch checked={ticketingEnabled} onCheckedChange={setTicketingEnabled} />
+          </div>
+
+          {ticketingEnabled && (
+            <div className="mt-4 space-y-4">
+              {/* Info box */}
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
+                <div className="flex gap-2">
+                  <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    RevNet charges a 5% commission on ticket sales. You keep 95% of all revenue.
+                    Payments are processed securely via Stripe and paid out to your connected bank account.
+                  </p>
+                </div>
+              </div>
+
+              {/* Stripe Connect banner */}
+              {!hasStripeConnect && (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Banknote className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">Connect bank account to receive ticket payments</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleConnectStripe}
+                    disabled={connectingStripe}
+                    className="h-8 text-xs border-amber-300 dark:border-amber-700"
+                  >
+                    <CreditCard className="w-3.5 h-3.5 mr-1.5" />
+                    {connectingStripe ? 'Setting up…' : 'Connect Bank Account'}
+                  </Button>
+                </div>
+              )}
+
+              {/* Ticket price */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Ticket Price (£) *</Label>
+                <Input
+                  type="number"
+                  placeholder="e.g. 10.00"
+                  min="1"
+                  step="0.01"
+                  value={ticketPrice}
+                  onChange={e => { setTicketPrice(e.target.value); setErrors(prev => ({ ...prev, ticketPrice: '' })); }}
+                  className="rounded-xl h-11"
+                />
+                {errors.ticketPrice && <p className="text-xs text-destructive">{errors.ticketPrice}</p>}
+              </div>
+
+              {/* Max tickets */}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Maximum Tickets</Label>
+                <Input
+                  type="number"
+                  placeholder="Same as max attendees"
+                  value={maxTickets}
+                  onChange={e => setMaxTickets(e.target.value)}
+                  className="rounded-xl h-11"
+                />
+              </div>
+
+              {/* Revenue calculator */}
+              {ticketPriceNum > 0 && maxTicketsNum > 0 && (
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/30 space-y-1.5">
+                  <p className="text-xs font-semibold text-foreground">Revenue Estimate</p>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Estimated revenue</span>
+                    <span className="font-medium text-foreground">£{estimatedRevenue.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>RevNet commission (5%)</span>
+                    <span className="text-destructive">−£{revnetCommission.toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-border/30 pt-1.5 flex justify-between text-xs">
+                    <span className="font-semibold text-foreground">You receive</span>
+                    <span className="font-bold text-primary">£{organiserPayout.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </SectionCard>
       </div>
 
       {/* ── STICKY SUBMIT ── */}
@@ -713,13 +849,12 @@ const AddEvent = () => {
         </div>
       </div>
 
-      {/* Paywall Modal */}
-      <PaywallModal
+      {/* Event Posting Paywall */}
+      <EventPostingPaywall
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
-        reason={paywallReason}
-        creditsRemaining={authUser?.eventCredits ?? 0}
-        onPaymentResult={handlePaywallResult}
+        onPayPerEvent={handlePaywallPayment}
+        onUpgrade={() => navigate('/upgrade')}
       />
     </div>
   );

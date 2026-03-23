@@ -910,6 +910,7 @@ export type Database = {
           show_forum_posts: boolean | null
           show_garage_on_profile: boolean | null
           show_routes_i_create: boolean | null
+          stripe_connect_account_id: string | null
           username: string | null
           who_can_message: string | null
         }
@@ -939,6 +940,7 @@ export type Database = {
           show_forum_posts?: boolean | null
           show_garage_on_profile?: boolean | null
           show_routes_i_create?: boolean | null
+          stripe_connect_account_id?: string | null
           username?: string | null
           who_can_message?: string | null
         }
@@ -968,6 +970,7 @@ export type Database = {
           show_forum_posts?: boolean | null
           show_garage_on_profile?: boolean | null
           show_routes_i_create?: boolean | null
+          stripe_connect_account_id?: string | null
           username?: string | null
           who_can_message?: string | null
         }

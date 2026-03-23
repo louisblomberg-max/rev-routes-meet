@@ -27,7 +27,7 @@ const CONFIG: Record<PaywallReason, {
 }> = {
   event_credits: {
     title: 'Publish This Event',
-    perItemPrice: '£2.49',
+    perItemPrice: '£2.99',
     perItemLabel: 'Pay to publish this event',
     subscribePrice: '£3.99/mo',
     subscribePlan: 'Pro Driver',

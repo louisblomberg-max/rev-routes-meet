@@ -18,14 +18,16 @@ const YouTab = () => {
   const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
+  const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles').eq('id', user.id).single();
+      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single();
       if (data) {
         setIsAvailableToHelp(data.available_to_help || false);
         setHelpDistance(data.help_radius_miles || 10);
+        setFreeEventCredits(data.free_event_credits ?? 0);
       }
     })();
   }, [user?.id]);
@@ -104,8 +106,16 @@ const YouTab = () => {
                     <span>{user.location}</span>
                   </div>
                 )}
-                {user?.bio && (
-                  <p className="text-xs text-foreground/70 mt-1.5 line-clamp-2">{user.bio}</p>
+            {user?.bio && (
+                <p className="text-xs text-foreground/70 mt-1.5 line-clamp-2">{user.bio}</p>
+                )}
+                {/* Free event credits display — hidden for Pro/Club */}
+                {effectivePlan === 'free' && freeEventCredits !== null && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {freeEventCredits > 0
+                      ? `${freeEventCredits} free event post remaining`
+                      : '0 free posts — £2.99 per event'}
+                  </p>
                 )}
               </div>
             </div>
