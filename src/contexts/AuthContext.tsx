@@ -162,17 +162,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (initialized.current) return;
     initialized.current = true;
 
+    let mounted = true;
+
     const initAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await loadUserProfile(session.user.id, session.user.email ?? undefined);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!mounted) return;
+        if (session?.user) {
+          await loadUserProfile(session.user.id, session.user.email ?? undefined);
+        }
+      } catch (error) {
+        console.error('Auth init error:', error);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     };
 
-    initAuth();
-
+    // Set up listener BEFORE getSession (per Supabase docs)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
       if (session?.user) {
         await loadUserProfile(session.user.id, session.user.email ?? undefined);
       } else {
@@ -181,7 +191,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    initAuth();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [loadUserProfile]);
 
   const login = useCallback(async (email: string, password: string) => {
