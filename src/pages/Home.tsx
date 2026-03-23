@@ -1,4 +1,5 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
