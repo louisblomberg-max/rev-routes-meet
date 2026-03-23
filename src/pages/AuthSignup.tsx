@@ -31,7 +31,14 @@ const COUNTRIES = [
 
 const AuthSignup = () => {
   const navigate = useNavigate();
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, user } = useAuth();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const [form, setForm] = useState({
     displayName: '',
