@@ -66,10 +66,22 @@ interface PlanStepProps {
 }
 
 const PlanStep = ({ onComplete }: PlanStepProps) => {
+  const navigate = useNavigate();
   const { back, data, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>(data.billingCycle || 'yearly');
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
 
+  // Fix 2: Refresh session when plan step mounts
+  useEffect(() => {
+    const refreshSession = async () => {
+      const { data: { session }, error } = await supabase.auth.refreshSession();
+      if (error || !session) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth/login');
+      }
+    };
+    refreshSession();
+  }, [navigate]);
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
   const handleContinue = () => {

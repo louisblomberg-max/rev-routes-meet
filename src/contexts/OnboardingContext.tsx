@@ -120,6 +120,14 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     persistState(step, data);
   }, [step, data]);
 
+  // Fix 5: Session heartbeat — keep session alive during onboarding
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      await supabase.auth.getSession();
+    }, 3 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const setStep = useCallback((s: number) => setStepState(s), []);
   const next = useCallback(() => setStepState(s => Math.min(s + 1, TOTAL_ONBOARDING_STEPS - 1)), []);
   const back = useCallback(() => setStepState(s => Math.max(s - 1, 0)), []);
