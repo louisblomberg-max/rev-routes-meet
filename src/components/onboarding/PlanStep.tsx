@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useOnboarding } from '@/contexts/OnboardingContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type PlanId = 'free' | 'pro' | 'club';
 
