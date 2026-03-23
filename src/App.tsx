@@ -69,6 +69,7 @@ import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 

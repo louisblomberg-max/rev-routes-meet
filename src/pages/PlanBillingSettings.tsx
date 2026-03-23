@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Download, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
+import { Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -16,37 +15,33 @@ import { usePlan, PlanId, FEATURE_REQUIREMENTS } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
+import { getPriceId } from '@/config/stripe';
 
 const PLAN_FEATURES: Record<PlanId, { label: string; icon: any; route?: string; featureId: string }[]> = {
   free: [
-    { label: 'Browse Routes', icon: Route, route: '/', featureId: 'browse_routes' },
-    { label: 'Browse Events', icon: CalendarIcon, route: '/', featureId: 'browse_events' },
-    { label: 'Browse Services', icon: Store, route: '/', featureId: 'browse_services' },
-    { label: 'Join Clubs', icon: Users, route: '/clubs', featureId: 'join_clubs' },
-    { label: 'Join Forums', icon: MessageSquare, route: '/forums', featureId: 'join_forums' },
-    { label: 'Basic Messaging', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
-    { label: 'Save Routes', icon: Route, route: '/my-routes', featureId: 'save_routes' },
-    { label: 'Save Events', icon: CalendarIcon, route: '/my-events', featureId: 'save_events' },
-    { label: 'My Friends', icon: Users, route: '/my-friends', featureId: 'my_friends' },
-    { label: 'My Discussions', icon: MessageSquare, route: '/my-discussions', featureId: 'my_discussions' },
+    { label: 'Browse routes, events & services', icon: Route, route: '/', featureId: 'browse_routes' },
+    { label: '1 free event post included', icon: CalendarIcon, featureId: 'browse_events' },
+    { label: 'Additional events £2.99 each', icon: CreditCard, featureId: 'browse_services' },
+    { label: 'Join clubs & forums', icon: Users, route: '/clubs', featureId: 'join_clubs' },
+    { label: 'Basic messaging', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
+    { label: 'Save & bookmark content', icon: Route, route: '/my-routes', featureId: 'save_routes' },
   ],
   pro: [
-    { label: 'Create Routes', icon: Route, route: '/add-route', featureId: 'create_routes' },
-    { label: 'Create Events', icon: CalendarIcon, route: '/add-event', featureId: 'create_events' },
-    { label: 'Live Location', icon: MapPin, featureId: 'live_location' },
-    { label: 'Breakdown Help', icon: Shield, featureId: 'breakdown_help' },
-    { label: 'Advanced Filters', icon: Filter, featureId: 'advanced_filters' },
-    { label: 'Garage Showcase', icon: Car, route: '/my-garage', featureId: 'garage_showcase' },
-    { label: 'Priority Visibility', icon: Eye, featureId: 'priority_visibility' },
+    { label: 'Unlimited event posts', icon: CalendarIcon, featureId: 'create_events' },
+    { label: 'Create & publish routes', icon: Route, route: '/add/route', featureId: 'create_routes' },
+    { label: 'Host unlimited events', icon: CalendarIcon, featureId: 'create_events' },
+    { label: 'Live location sharing', icon: MapPin, featureId: 'live_location' },
+    { label: 'SOS breakdown help', icon: Shield, featureId: 'breakdown_help' },
+    { label: 'Garage showcase', icon: Car, route: '/my-garage', featureId: 'garage_showcase' },
+    { label: 'Priority visibility', icon: Eye, featureId: 'priority_visibility' },
   ],
   club: [
-    { label: 'Create Clubs', icon: Users, route: '/add-club', featureId: 'create_clubs' },
-    { label: 'Club Announcements', icon: MessageSquare, featureId: 'club_announcements' },
-    { label: 'Event Ticketing', icon: Ticket, featureId: 'event_ticketing' },
-    { label: 'Business Listings', icon: Store, route: '/add-service', featureId: 'business_listings' },
-    { label: 'Analytics', icon: BarChart3, featureId: 'analytics' },
-    { label: 'Featured Placement', icon: MapPin, featureId: 'featured_placement' },
-    { label: 'Verified Badge', icon: BadgeCheck, featureId: 'verified_badge' },
+    { label: 'Create & manage clubs', icon: Users, route: '/add/club', featureId: 'create_clubs' },
+    { label: 'Event ticketing with Stripe payouts', icon: Ticket, featureId: 'event_ticketing' },
+    { label: 'Business & service listings', icon: Store, route: '/add/service', featureId: 'business_listings' },
+    { label: 'Analytics & insights', icon: BarChart3, featureId: 'analytics' },
+    { label: 'Featured placement', icon: MapPin, featureId: 'featured_placement' },
+    { label: 'Verified badge', icon: BadgeCheck, featureId: 'verified_badge' },
   ],
 };
 
@@ -56,6 +51,7 @@ const PlanBillingSettings = () => {
   const { currentPlan, hasAccess, getPlanLabel } = usePlan();
   const [isLoading, setIsLoading] = useState(true);
   const [subData, setSubData] = useState<any>(null);
+  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -68,9 +64,9 @@ const PlanBillingSettings = () => {
 
   const billingCycle = subData?.billing_cycle || 'monthly';
   const plans = [
-    { id: 'free' as PlanId, name: 'Free Member', price: { monthly: 0, yearly: 0 } },
-    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 3.99, yearly: 43.07 } },
-    { id: 'club' as PlanId, name: 'Club / Business', price: { monthly: 6.99, yearly: 75.49 } },
+    { id: 'free' as PlanId, name: 'Explorer (Free)', price: { monthly: 0, yearly: 0 }, desc: 'Browse routes, events & services · 1 free event post · Additional events £2.99 each · Join clubs & forums · Basic messaging · Save & bookmark content' },
+    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 3.99, yearly: 43.99 }, desc: 'Everything in Explorer · Unlimited event posts · Create & publish routes · Host unlimited events · Live location sharing · SOS breakdown help · Garage showcase · Priority visibility' },
+    { id: 'club' as PlanId, name: 'Club / Business', price: { monthly: 5.99, yearly: 63.99 }, desc: 'Everything in Pro · Create & manage clubs · Event ticketing with Stripe payouts · Business & service listings · Analytics & insights · Featured placement · Verified badge' },
   ];
   const currentPlanData = plans.find(p => p.id === currentPlan)!;
   const price = billingCycle === 'monthly' ? currentPlanData.price.monthly : currentPlanData.price.yearly;
@@ -82,7 +78,24 @@ const PlanBillingSettings = () => {
   ];
   const lockedFeatures = currentPlan === 'free' ? [...PLAN_FEATURES.pro, ...PLAN_FEATURES.club] : currentPlan === 'pro' ? PLAN_FEATURES.club : [];
 
-  const comingSoon = () => toast.info('Payment coming soon — Stripe integration in progress');
+  const handleUpgrade = async () => {
+    const targetPlan = currentPlan === 'free' ? 'pro' : 'club';
+    setUpgrading(true);
+    try {
+      const priceId = getPriceId(targetPlan as 'pro' | 'club', billingCycle as 'monthly' | 'yearly');
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { price_id: priceId, plan: targetPlan },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      toast.error('Failed to start checkout');
+    } finally {
+      setUpgrading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -123,17 +136,24 @@ const PlanBillingSettings = () => {
                   <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{subData?.status === 'active' ? 'Active' : subData?.status || 'Active'}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
-                  {currentPlan === 'free' && 'Basic access to clubs, forums & routes'}
+                  {currentPlan === 'free' && 'Browse, discover & join — upgrade for more'}
                   {currentPlan === 'pro' && 'Create routes, events & live features'}
-                  {currentPlan === 'club' && 'Full access including club management'}
+                  {currentPlan === 'club' && 'Full access including club management & ticketing'}
                 </p>
                 {currentPlan !== 'club' && (
-                  <Button size="sm" className="h-8" onClick={comingSoon}><Crown className="w-3.5 h-3.5 mr-1.5" />Upgrade plan</Button>
+                  <Button size="sm" className="h-8" onClick={handleUpgrade} disabled={upgrading}>
+                    <Crown className="w-3.5 h-3.5 mr-1.5" />{upgrading ? 'Redirecting…' : 'Upgrade plan'}
+                  </Button>
                 )}
               </div>
               <div className="text-right">
                 <span className="text-2xl font-bold text-foreground">{price === 0 ? 'Free' : `£${price.toFixed(2)}`}</span>
                 {price > 0 && <p className="text-xs text-muted-foreground">/ {billingCycle === 'monthly' ? 'month' : 'year'}</p>}
+                {price > 0 && billingCycle === 'yearly' && (
+                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 mt-0.5">
+                    {currentPlan === 'pro' ? 'Save 8%' : 'Save 11%'}
+                  </Badge>
+                )}
               </div>
             </div>
           </CardContent>
@@ -168,7 +188,7 @@ const PlanBillingSettings = () => {
                 const Icon = feature.icon;
                 const requiredPlan = FEATURE_REQUIREMENTS[feature.featureId] as PlanId;
                 return (
-                  <button key={`locked-${feature.featureId}-${idx}`} onClick={comingSoon} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
+                  <button key={`locked-${feature.featureId}-${idx}`} onClick={handleUpgrade} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
                     <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center"><Icon className="w-3.5 h-3.5 text-muted-foreground" /></div>
                     <span className="flex-1 text-left text-sm text-muted-foreground">{feature.label}</span>
                     <div className="flex items-center gap-1.5">
@@ -190,7 +210,7 @@ const PlanBillingSettings = () => {
           <div className="flex items-center justify-between px-3 py-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><CreditCard className="w-4 h-4 text-muted-foreground" /></div>
-              <div className="text-left"><p className="text-sm font-medium text-foreground">Payment method</p><p className="text-xs text-muted-foreground">{currentPlan === 'free' ? 'No card on file' : 'Coming soon'}</p></div>
+              <div className="text-left"><p className="text-sm font-medium text-foreground">Payment method</p><p className="text-xs text-muted-foreground">{currentPlan === 'free' ? 'No card on file' : 'Managed via Stripe'}</p></div>
             </div>
           </div>
           <div className="flex items-center justify-between px-3 py-3">
@@ -208,40 +228,23 @@ const PlanBillingSettings = () => {
         </div>
       </div>
 
-      {/* Billing History */}
-      <div className="px-4 pt-6">
-        <h2 className="text-sm font-semibold text-foreground mb-3">Billing history</h2>
-        <div className="bg-card rounded-xl border border-border/30 shadow-sm p-4 text-center">
-          <p className="text-sm text-muted-foreground">Billing history will be available once Stripe is connected.</p>
-        </div>
-      </div>
-
       {/* Manage Plan */}
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Manage plan</h2>
         <div className="space-y-2">
           {currentPlan !== 'free' && (
             <AlertDialog>
-              <AlertDialogTrigger asChild><Button variant="outline" className="w-full justify-start">Downgrade to {currentPlan === 'club' ? 'Pro Driver' : 'Free'}</Button></AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>Downgrade your plan?</AlertDialogTitle><AlertDialogDescription>You'll lose access to premium features.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Keep my plan</AlertDialogCancel><AlertDialogAction onClick={comingSoon}>Downgrade</AlertDialogAction></AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
-          {currentPlan !== 'free' && (
-            <AlertDialog>
               <AlertDialogTrigger asChild><Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">Cancel subscription</Button></AlertDialogTrigger>
               <AlertDialogContent>
-                <AlertDialogHeader><AlertDialogTitle>Cancel your subscription?</AlertDialogTitle><AlertDialogDescription>You'll be moved to the Free plan.</AlertDialogDescription></AlertDialogHeader>
-                <AlertDialogFooter><AlertDialogCancel>Keep my plan</AlertDialogCancel><AlertDialogAction onClick={comingSoon} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel subscription</AlertDialogAction></AlertDialogFooter>
+                <AlertDialogHeader><AlertDialogTitle>Cancel your subscription?</AlertDialogTitle><AlertDialogDescription>You'll be moved to the Free plan at the end of your billing period.</AlertDialogDescription></AlertDialogHeader>
+                <AlertDialogFooter><AlertDialogCancel>Keep my plan</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel subscription</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           )}
           {currentPlan === 'free' && (
             <div className="bg-muted/30 rounded-xl p-4 text-center">
               <p className="text-sm text-muted-foreground mb-2">You're on the Free plan</p>
-              <Button size="sm" onClick={comingSoon}><Crown className="w-3.5 h-3.5 mr-1.5" />Upgrade to Pro</Button>
+              <Button size="sm" onClick={handleUpgrade} disabled={upgrading}><Crown className="w-3.5 h-3.5 mr-1.5" />Upgrade to Pro</Button>
             </div>
           )}
         </div>
