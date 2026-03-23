@@ -151,7 +151,7 @@ const App = () => (
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

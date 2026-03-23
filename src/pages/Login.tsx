@@ -41,13 +41,9 @@ const Login = () => {
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      const result = await login(email, password);
+      await login(email, password);
       toast.success('Welcome back!');
-      if (result.onboardingComplete) {
-        navigate('/', { replace: true });
-      } else {
-        navigate('/onboarding', { replace: true });
-      }
+      navigate('/', { replace: true });
     } catch {
       toast.error('Login failed');
     } finally {
