@@ -20,10 +20,10 @@ const AuthLogin = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!authLoading && user && user.onboardingComplete) {
+    if (user) {
       navigate('/', { replace: true });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, navigate]);
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -45,13 +45,9 @@ const AuthLogin = () => {
     if (!validate()) return;
     setIsSubmitting(true);
     try {
-      const result = await login(email, password);
+      await login(email, password);
       toast.success('Welcome back!');
-      if (result.onboardingComplete) {
-        navigate('/', { replace: true });
-      } else {
-        navigate('/onboarding', { replace: true });
-      }
+      navigate('/', { replace: true });
     } catch {
       toast.error('Invalid email or password');
     } finally {

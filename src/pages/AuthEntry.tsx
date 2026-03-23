@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
@@ -7,16 +7,19 @@ import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
   const navigate = useNavigate();
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (!isLoading && user) {
-      if (user.onboardingComplete) {
-        navigate('/', { replace: true });
-      }
+    if (user) {
+      navigate('/', { replace: true });
     }
-  }, [user, isLoading, navigate]);
+  }, [user, navigate]);
+
+  // Immediate redirect if user already in context
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <div className="max-w-md mx-auto min-h-screen relative overflow-hidden flex flex-col" style={{ backgroundColor: '#f3f3e8', color: '#171717' }}>
