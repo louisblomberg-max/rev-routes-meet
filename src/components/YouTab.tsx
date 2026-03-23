@@ -192,6 +192,7 @@ const YouTab = () => {
               <Slider
                 value={[helpDistance]}
                 onValueChange={(v) => setHelpDistance(v[0])}
+                onValueCommit={handleHelpDistanceCommit}
                 min={1}
                 max={50}
                 step={1}
