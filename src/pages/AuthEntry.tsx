@@ -1,8 +1,9 @@
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import revnetLogo from '@/assets/revnet-logo-auth.png';
 
 const AuthEntry = () => {
