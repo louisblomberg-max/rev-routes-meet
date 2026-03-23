@@ -179,7 +179,7 @@ const MarketplaceTab = () => {
     const suggestions: string[] = [];
     
     // Get matching titles
-    mockMarketplaceListings.forEach(l => {
+    marketplaceListings.forEach(l => {
       if (l.title.toLowerCase().includes(query) && !suggestions.includes(l.title)) {
         suggestions.push(l.title);
       }
