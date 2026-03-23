@@ -14,41 +14,6 @@ import GarageStep from '@/components/onboarding/GarageStep';
 import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
 import PlanStep from '@/components/onboarding/PlanStep';
-import { useEffect, useRef } from 'react';
-
-// Wrapper that detects when PlanStep calls next() (which stays at step 12 since it's the last)
-const PlanStepWrapper = ({ onComplete }: { onComplete: () => Promise<void> }) => {
-  const { step } = useOnboarding();
-  const hasTriggered = useRef(false);
-  // PlanStep calls next() but step stays at 12 (max). We listen for the plan data being set.
-  // Instead, we override PlanStep's continue by intercepting. Since PlanStep uses next(),
-  // we need a different approach: wrap and listen for the onboarding data.plan change after mount.
-  return <PlanStepWithCallback onComplete={onComplete} />;
-};
-
-const PlanStepWithCallback = ({ onComplete }: { onComplete: () => Promise<void> }) => {
-  const { step, data } = useOnboarding();
-  const mountedRef = useRef(false);
-  const prevStepRef = useRef(step);
-
-  // PlanStep calls next() which tries to go to step 13 but clamps at 12.
-  // We detect this by checking if next() was called (step stays 12).
-  // Instead, override: PlanStep updates data.plan then calls next().
-  // Since TOTAL_ONBOARDING_STEPS is 13, next() from 12 stays at 12.
-  // We'll just render PlanStep and add a useEffect that fires onComplete
-  // when the component detects the plan was selected (after first render).
-  
-  useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      return;
-    }
-    // If step hasn't changed (still 12 after next() was called), it means PlanStep tried to advance
-    // This is our signal to complete
-  }, [step]);
-
-  return <PlanStep />;
-};
 
 const FEATURE_SLIDES = [
   {
@@ -84,7 +49,7 @@ const FEATURE_SLIDES = [
 ];
 
 /**
- * New onboarding order:
+ * Onboarding order:
  * 0: Welcome
  * 1-5: Feature slides
  * 6: Account creation (email/password) — creates Supabase account FIRST
@@ -100,18 +65,13 @@ const OnboardingContent = () => {
   const navigate = useNavigate();
   const { step, next, back, data, clearOnboarding } = useOnboarding();
   const { updateProfile, completeOnboarding, user } = useAuth();
-  const { addVehicle, updatePreferences } = useGarage();
+  const { addVehicle } = useGarage();
   const { setPlan, setBillingCycle, setSubscriptionStatus } = usePlan();
 
-  // Called after AccountStep creates the Supabase account
   const handleAccountCreated = async () => {
-    // Account is now created via Supabase auth — the trigger auto-creates
-    // profiles, subscriptions, and user_preferences rows.
-    // Just advance to the next step (profile personalization).
     next();
   };
 
-  // Called after the final Plan step
   const handleComplete = async () => {
     try {
       const userId = user?.id;
@@ -121,7 +81,6 @@ const OnboardingContent = () => {
         return;
       }
 
-      // Batch update profile data to Supabase
       const profileUpdates: Record<string, unknown> = {};
       if (data.username) profileUpdates.username = data.username;
       if (data.bio) profileUpdates.bio = data.bio;
@@ -133,7 +92,6 @@ const OnboardingContent = () => {
 
       await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
-      // Update subscription if not free
       if (data.plan !== 'free') {
         await supabase.from('subscriptions').update({
           plan: data.plan,
@@ -142,9 +100,8 @@ const OnboardingContent = () => {
         }).eq('user_id', userId);
       }
 
-      // Save vehicles
       for (const v of data.vehicles.filter(v => v.make.trim())) {
-        const { error } = await supabase.from('vehicles').insert({
+        await supabase.from('vehicles').insert({
           user_id: userId,
           vehicle_type: v.vehicleType,
           make: v.make,
@@ -161,10 +118,8 @@ const OnboardingContent = () => {
           visibility: v.visibility || 'public',
           is_primary: v.isPrimary || data.vehicles.indexOf(v) === 0,
         });
-        if (error) console.error('Vehicle save error:', error);
       }
 
-      // Sync to local contexts
       updateProfile({
         username: data.username,
         displayName: data.username || user?.displayName || 'User',
@@ -180,7 +135,6 @@ const OnboardingContent = () => {
       setBillingCycle(data.billingCycle);
       setSubscriptionStatus(data.plan === 'free' ? 'active' : 'selected');
 
-      // Sync vehicles to GarageContext
       for (const v of data.vehicles.filter(v => v.make.trim())) {
         addVehicle({
           userId,
@@ -228,16 +182,13 @@ const OnboardingContent = () => {
         />
       );
     }
-    // Step 6: Account creation FIRST
     if (step === 6) return <AccountStep onComplete={handleAccountCreated} />;
-    // Steps 7-11: Personalization (account already exists)
     if (step === 7) return <ProfileStep />;
     if (step === 8) return <UsernameStep />;
     if (step === 9) return <GarageStep />;
     if (step === 10) return <EnableNotificationsStep />;
     if (step === 11) return <EnableLocationStep />;
-    // Step 12: Plan — PlanStep calls next() which hits step 12 max, so we detect completion
-    if (step === 12) return <PlanStepWrapper onComplete={handleComplete} />;
+    if (step === 12) return <PlanStep onComplete={handleComplete} />;
     return null;
   };
 

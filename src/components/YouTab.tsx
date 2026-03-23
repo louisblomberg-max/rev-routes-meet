@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare, Lock, MapPin, Share2, Pencil, Sparkles, Star, Building2, LifeBuoy, Wrench } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useCurrentUser } from '@/hooks/useProfileData';
 import { usePlan } from '@/contexts/PlanContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const YouTab = () => {
   const navigate = useNavigate();
@@ -17,6 +18,26 @@ const YouTab = () => {
   const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles').eq('id', user.id).single();
+      if (data) {
+        setIsAvailableToHelp(data.available_to_help || false);
+        setHelpDistance(data.help_radius_miles || 10);
+      }
+    })();
+  }, [user?.id]);
+
+  const handleAvailableToggle = (v: boolean) => {
+    setIsAvailableToHelp(v);
+    if (user?.id) supabase.from('profiles').update({ available_to_help: v }).eq('id', user.id);
+  };
+  const handleHelpDistanceCommit = (v: number[]) => {
+    setHelpDistance(v[0]);
+    if (user?.id) supabase.from('profiles').update({ help_radius_miles: v[0] }).eq('id', user.id);
+  };
 
   const planBadge = {
     free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
@@ -156,9 +177,9 @@ const YouTab = () => {
             <div className="flex-1 min-w-0">
               <span className="text-sm font-semibold text-foreground">Available to Help</span>
             </div>
-            <Switch
+          <Switch
               checked={isAvailableToHelp}
-              onCheckedChange={setIsAvailableToHelp}
+              onCheckedChange={handleAvailableToggle}
               className="data-[state=checked]:bg-primary"
             />
           </div>
@@ -171,6 +192,7 @@ const YouTab = () => {
               <Slider
                 value={[helpDistance]}
                 onValueChange={(v) => setHelpDistance(v[0])}
+                onValueCommit={handleHelpDistanceCommit}
                 min={1}
                 max={50}
                 step={1}
