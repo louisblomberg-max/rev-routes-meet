@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Calendar, MapPin, Car, Users, Share2, Bookmark, Check, Flag, Clock, DollarSign, Tag, Shield } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar, MapPin, Car, Users, Share2, Bookmark, Check, Flag, Clock, DollarSign, Tag, Shield, Ticket } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import BackButton from '@/components/BackButton';
@@ -8,7 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import NavigateButton from '@/components/NavigateButton';
+import OrganiserDashboard from '@/components/OrganiserDashboard';
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
@@ -42,7 +44,24 @@ const EventDetail = () => {
   const isAttendingInitial = state.userAttendingEvents.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
   const [isAttending, setIsAttending] = useState(isAttendingInitial);
+  const [purchasingTicket, setPurchasingTicket] = useState(false);
+  const [hasTicket, setHasTicket] = useState(false);
   const isHost = event?.createdBy === authUser?.id;
+
+  // Check if event is ticketed from raw Supabase data
+  const [eventRaw, setEventRaw] = useState<any>(null);
+  useEffect(() => {
+    if (!id) return;
+    supabase.from('events').select('is_ticketed, ticket_price').eq('id', id).maybeSingle()
+      .then(({ data }) => setEventRaw(data));
+  }, [id]);
+
+  // Check if user already has a ticket
+  useEffect(() => {
+    if (!id || !authUser?.id) return;
+    supabase.from('event_tickets').select('id').eq('event_id', id).eq('user_id', authUser.id).eq('status', 'confirmed')
+      .then(({ data }) => setHasTicket((data?.length || 0) > 0));
+  }, [id, authUser?.id]);
 
   if (!event) {
     return (
@@ -54,6 +73,9 @@ const EventDetail = () => {
       </div>
     );
   }
+
+  const isTicketed = eventRaw?.is_ticketed === true;
+  const ticketPrice = eventRaw?.ticket_price || 0;
 
   const handleSave = () => {
     if (isSaved) {
@@ -77,8 +99,35 @@ const EventDetail = () => {
     });
   };
 
+  const handleBuyTicket = async () => {
+    if (!authUser?.id || !id) return;
+    setPurchasingTicket(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('purchase-event-ticket', {
+        body: { event_id: id, user_id: authUser.id, ticket_price: ticketPrice },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+      toast.success('Ticket confirmed!');
+      setHasTicket(true);
+      setIsAttending(true);
+      // Also add to event_attendees
+      await supabase.from('event_attendees').upsert({
+        event_id: id,
+        user_id: authUser.id,
+        status: 'attending',
+      });
+    } catch (err) {
+      toast.error('Failed to purchase ticket');
+      console.error(err);
+    } finally {
+      setPurchasingTicket(false);
+    }
+  };
+
   const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
-  const platformFee = !isFree ? '£0.50' : null;
   const isClubHosted = event.visibility === 'club' || !!event.clubId;
 
   const displayDate = event.startDate
@@ -117,7 +166,6 @@ const EventDetail = () => {
       {/* Content */}
       <div className="px-4 -mt-6 relative pb-8 space-y-4">
         <div className="bg-card rounded-2xl shadow-lg p-5 border border-border/30">
-          {/* Event Name & Date — below banner */}
           <h1 className="text-2xl font-bold text-foreground">{event.title}</h1>
           <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4 text-primary shrink-0" />
@@ -138,6 +186,11 @@ const EventDetail = () => {
             {isClubHosted && (
               <Badge variant="outline" className="text-[10px] bg-clubs/10 text-clubs border-clubs/20">
                 <Shield className="w-3 h-3 mr-1" /> Club
+              </Badge>
+            )}
+            {isTicketed && (
+              <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                <Ticket className="w-3 h-3 mr-1" /> Ticketed
               </Badge>
             )}
           </div>
@@ -162,10 +215,16 @@ const EventDetail = () => {
               <Users className="w-4.5 h-4.5 shrink-0" />
               <span>{event.attendees + (isAttending ? 1 : 0)} attending{event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}</span>
             </div>
-            {!isFree && (
+            {isTicketed && ticketPrice > 0 && (
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <Ticket className="w-4.5 h-4.5 shrink-0" />
+                <span>Ticket: £{Number(ticketPrice).toFixed(2)}</span>
+              </div>
+            )}
+            {!isFree && !isTicketed && (
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <DollarSign className="w-4.5 h-4.5 shrink-0" />
-                <span>{feeDisplay}{platformFee ? ` + ${platformFee} platform fee` : ''}</span>
+                <span>{feeDisplay}</span>
               </div>
             )}
           </div>
@@ -240,13 +299,35 @@ const EventDetail = () => {
           />
         )}
 
-        {/* RSVP */}
-        <Button
-          onClick={handleRSVP}
-          className={`w-full py-6 text-lg gap-2 ${isAttending ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
-        >
-          {isAttending ? (<><Check className="w-5 h-5" /> Going</>) : 'RSVP to Event'}
-        </Button>
+        {/* RSVP / Ticket Button */}
+        {isTicketed ? (
+          hasTicket || isAttending ? (
+            <div className="w-full py-4 text-center bg-green-600 text-white rounded-lg flex items-center justify-center gap-2 text-lg font-semibold">
+              <Check className="w-5 h-5" /> Already Attending
+            </div>
+          ) : (
+            <Button
+              onClick={handleBuyTicket}
+              disabled={purchasingTicket}
+              className="w-full py-6 text-lg gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <Ticket className="w-5 h-5" />
+              {purchasingTicket ? 'Processing…' : `Get Ticket — £${Number(ticketPrice).toFixed(2)}`}
+            </Button>
+          )
+        ) : (
+          <Button
+            onClick={handleRSVP}
+            className={`w-full py-6 text-lg gap-2 ${isAttending ? 'bg-green-600 hover:bg-green-700 text-white' : 'bg-primary hover:bg-primary/90 text-primary-foreground'}`}
+          >
+            {isAttending ? (<><Check className="w-5 h-5" /> Going</>) : 'RSVP to Event'}
+          </Button>
+        )}
+
+        {/* Organiser Dashboard — only visible to the event creator */}
+        {isHost && isTicketed && (
+          <OrganiserDashboard eventId={event.id} />
+        )}
 
         {/* Report */}
         <button onClick={() => toast.info('Report submitted')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors mx-auto">

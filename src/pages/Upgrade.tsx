@@ -8,15 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
-import { useData } from '@/contexts/DataContext';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { getPriceId } from '@/config/stripe';
 
 const Upgrade = () => {
   const navigate = useNavigate();
   const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
-  const { updateProfile } = useAuth();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
+  const [loading, setLoading] = useState(false);
 
   const togglePlanExpanded = (planId: string) => {
     setExpandedPlans(prev => ({ ...prev, [planId]: !prev[planId] }));
@@ -31,6 +31,7 @@ const Upgrade = () => {
       bgColor: 'bg-muted',
       borderColor: 'border-border/50',
       price: { monthly: 0, yearly: 0 },
+      savingsBadge: null,
       features: [
         'Browse routes, events & services',
         '1 free event post included',
@@ -48,9 +49,10 @@ const Upgrade = () => {
       color: 'text-primary',
       bgColor: 'bg-primary/10',
       borderColor: 'border-primary',
-      price: { monthly: 3.99, yearly: 43.07 },
+      price: { monthly: 3.99, yearly: 43.99 },
+      savingsBadge: 'Save 8%',
       features: [
-        'Everything in Free, plus:',
+        'Everything in Explorer, plus:',
         'Unlimited event posts',
         'Create & publish routes',
         'Host unlimited events',
@@ -68,7 +70,8 @@ const Upgrade = () => {
       color: 'text-clubs',
       bgColor: 'bg-clubs/10',
       borderColor: 'border-clubs/30',
-      price: { monthly: 6.99, yearly: 75.49 },
+      price: { monthly: 5.99, yearly: 63.99 },
+      savingsBadge: 'Save 11%',
       features: [
         'Everything in Pro, plus:',
         'Create & manage clubs',
@@ -82,36 +85,45 @@ const Upgrade = () => {
     },
   ];
 
-  const handleSelectPlan = (planId: PlanId) => {
+  const handleSelectPlan = async (planId: PlanId) => {
     if (planId === currentPlan) return;
     
-    if (planId !== 'free') {
-      // SECURITY: Paid plan activation must go through payment flow
-      toast.info('Redirecting to payment…');
-      // TODO: Integrate Stripe Checkout or RevenueCat here
+    if (planId === 'free') {
+      setPlan(planId);
+      setSubscriptionStatus('active');
+      toast.success('Downgraded to Free');
       return;
     }
 
-    // Downgrade to free is allowed
-    setPlan(planId);
-    setSubscriptionStatus('active');
-    
-    const planName = plans.find(p => p.id === planId)?.name || planId;
-    const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);
-    
-    toast.success(
-      isDowngrade ? `Downgraded to ${planName}` : `Upgraded to ${planName}!`, 
-      {
-        description: isDowngrade 
-          ? 'Some features are now locked.' 
-          : 'You now have access to more features!',
+    // Check for native platform
+    try {
+      const Capacitor = (window as any).Capacitor;
+      if (Capacitor.isNativePlatform()) {
+        toast.info('Payment available on web at revnet.app');
+        return;
       }
-    );
+    } catch { /* not native */ }
+
+    setLoading(true);
+    try {
+      const priceId = getPriceId(planId as 'pro' | 'club', billingCycle);
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { price_id: priceId, plan: planId },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      toast.error('Failed to start checkout');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="mobile-container bg-background min-h-screen">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-full bg-muted/80 hover:bg-muted" />
@@ -123,7 +135,6 @@ const Upgrade = () => {
       </div>
 
       <div className="px-4 py-5 space-y-6">
-        {/* Hero Section */}
         <div className="text-center">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-3">
             <Crown className="w-8 h-8 text-primary" />
@@ -134,7 +145,6 @@ const Upgrade = () => {
           </p>
         </div>
 
-        {/* Billing Cycle Toggle */}
         <div className="flex items-center justify-center gap-3 py-2">
           <span className={`text-sm transition-colors ${billingCycle === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Monthly
@@ -145,13 +155,9 @@ const Upgrade = () => {
           />
           <span className={`text-sm transition-colors ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-              Save 20%
-            </Badge>
           </span>
         </div>
 
-        {/* Plan Cards */}
         <div className="space-y-3">
           {plans.map((plan) => {
             const Icon = plan.icon;
@@ -197,6 +203,11 @@ const Upgrade = () => {
                           </span>
                         )}
                       </div>
+                      {billingCycle === 'yearly' && plan.savingsBadge && (
+                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                          {plan.savingsBadge}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   
@@ -244,7 +255,7 @@ const Upgrade = () => {
                     variant={isCurrentPlan ? 'secondary' : plan.recommended ? 'default' : 'outline'}
                     size="sm"
                     className={`w-full h-10 ${plan.recommended && !isCurrentPlan ? 'font-semibold' : ''}`}
-                    disabled={isCurrentPlan}
+                    disabled={isCurrentPlan || loading}
                     onClick={() => handleSelectPlan(plan.id)}
                   >
                     {isCurrentPlan 
@@ -264,7 +275,6 @@ const Upgrade = () => {
           })}
         </div>
 
-        {/* Assurance */}
         <div className="bg-muted/30 rounded-xl p-4 text-center">
           <p className="text-xs text-muted-foreground leading-relaxed">
             Cancel anytime. No hidden fees.<br />
@@ -272,7 +282,6 @@ const Upgrade = () => {
           </p>
         </div>
 
-        {/* Link to full billing */}
         <button 
           onClick={() => navigate('/settings/plan-billing')}
           className="w-full text-sm text-primary font-medium hover:text-primary/80 transition-colors py-2"

@@ -59,7 +59,7 @@ const CONFIG: Record<PaywallReason, {
     title: 'Publish a Service',
     perItemPrice: '',
     perItemLabel: '',
-    subscribePrice: '£6.99/mo',
+    subscribePrice: '£5.99/mo',
     subscribePlan: 'Club / Business',
     benefits: [
       'Create & manage service listings',
@@ -73,7 +73,7 @@ const CONFIG: Record<PaywallReason, {
     title: 'Create a Club',
     perItemPrice: '',
     perItemLabel: '',
-    subscribePrice: '£6.99/mo',
+    subscribePrice: '£5.99/mo',
     subscribePlan: 'Club / Business',
     benefits: [
       'Create & manage clubs',
@@ -111,18 +111,13 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
       <div className="relative bg-card rounded-t-3xl sm:rounded-3xl w-full max-w-md mx-auto border border-border/50 shadow-2xl animate-in slide-in-from-bottom-4 duration-300 max-h-[90vh] overflow-y-auto">
-        {/* Close */}
         <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted z-10">
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
 
         <div className="p-6 pt-8">
-          {/* Header */}
           <div className="text-center mb-6">
             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <Crown className="w-7 h-7 text-primary" />
@@ -134,7 +129,6 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
           </div>
 
           <div className="space-y-3">
-            {/* Per-item option */}
             {hasPerItem && (
               <div className="bg-muted/30 rounded-2xl border border-border/50 p-4">
                 <div className="flex items-center justify-between mb-3">
@@ -150,21 +144,12 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
                     disabled={!!processing}
                     className="flex-1 h-10 rounded-xl bg-foreground text-background hover:bg-foreground/90"
                   >
-                    {processing === 'per_item' ? 'Processing…' : 'Pay Now (Success)'}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => simulatePayment('per_item', false)}
-                    disabled={!!processing}
-                    className="h-10 rounded-xl text-xs px-3"
-                  >
-                    Fail
+                    {processing === 'per_item' ? 'Processing…' : 'Pay Now'}
                   </Button>
                 </div>
               </div>
             )}
 
-            {/* Divider */}
             {hasPerItem && (
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-border/50" />
@@ -173,7 +158,6 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
               </div>
             )}
 
-            {/* Subscribe option */}
             <div className="bg-primary/5 rounded-2xl border-2 border-primary/30 p-4">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="w-4 h-4 text-primary" />
@@ -193,27 +177,16 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
                   </li>
                 ))}
               </ul>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => simulatePayment('subscribe', true)}
-                  disabled={!!processing}
-                  className="flex-1 h-10 rounded-xl"
-                >
-                  {processing === 'subscribe' ? 'Processing…' : 'Subscribe (Success)'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => simulatePayment('subscribe', false)}
-                  disabled={!!processing}
-                  className="h-10 rounded-xl text-xs px-3"
-                >
-                  Fail
-                </Button>
-              </div>
+              <Button
+                onClick={() => simulatePayment('subscribe', true)}
+                disabled={!!processing}
+                className="w-full h-10 rounded-xl"
+              >
+                {processing === 'subscribe' ? 'Processing…' : 'Subscribe'}
+              </Button>
             </div>
           </div>
 
-          {/* Trust markers */}
           <div className="flex items-center justify-center gap-4 mt-5 pt-4 border-t border-border/30">
             <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
               <Shield className="w-3 h-3" />

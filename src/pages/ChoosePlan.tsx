@@ -6,7 +6,9 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getPriceId } from '@/config/stripe';
 import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const PLANS = [
@@ -16,6 +18,7 @@ const PLANS = [
     tagline: 'Get started for free',
     icon: Sparkles,
     price: { monthly: 0, yearly: 0 },
+    savingsBadge: null,
     features: [
       { label: 'Browse routes, events & services', included: true },
       { label: '1 free event post included', included: true },
@@ -32,7 +35,8 @@ const PLANS = [
     tagline: 'For active drivers',
     icon: Star,
     popular: true,
-    price: { monthly: 3.99, yearly: 43.07 },
+    price: { monthly: 3.99, yearly: 43.99 },
+    savingsBadge: 'Save 8%',
     features: [
       { label: 'Everything in Explorer', included: true },
       { label: 'Unlimited event posts', included: true },
@@ -48,7 +52,8 @@ const PLANS = [
     name: 'Club / Business',
     tagline: 'Organise & grow',
     icon: Building2,
-    price: { monthly: 6.99, yearly: 75.49 },
+    price: { monthly: 5.99, yearly: 63.99 },
+    savingsBadge: 'Save 11%',
     features: [
       { label: 'Everything in Pro', included: true },
       { label: 'Create & manage clubs', included: true },
@@ -80,22 +85,43 @@ const ChoosePlan = () => {
   const { setPlan } = usePlan();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [selected, setSelected] = useState<PlanId>('pro');
+  const [loading, setLoading] = useState(false);
 
-  const yearlyMonths = 12;
-  const yearlySavingsMonths = Math.round(yearlyMonths * 0.2);
-
-  const handleContinue = () => {
-    setPlan(selected);
-    if (selected !== 'free') {
-      toast.success(`${PLANS.find(p => p.id === selected)?.name} plan activated!`, {
-        description: 'You now have access to more features.',
-      });
+  const handleContinue = async () => {
+    if (selected === 'free') {
+      setPlan('free');
+      navigate('/onboarding/profile');
+      return;
     }
-    navigate('/onboarding/profile');
+
+    // Check for native platform
+    try {
+      const Capacitor = (window as any).Capacitor;
+      if (Capacitor.isNativePlatform()) {
+        toast.info('Payment available on web at revnet.app');
+        return;
+      }
+    } catch { /* not native */ }
+
+    setLoading(true);
+    try {
+      const priceId = getPriceId(selected as 'pro' | 'club', billing);
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { price_id: priceId, plan: selected },
+      });
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (err) {
+      toast.error('Failed to start checkout');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const selectedPlan = PLANS.find(p => p.id === selected)!;
-  const price = billing === 'monthly' ? selectedPlan.price.monthly : selectedPlan.price.yearly;
 
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
@@ -110,7 +136,6 @@ const ChoosePlan = () => {
             Routes, Events, Live Safety, Clubs and Community — built for drivers.
           </p>
 
-          {/* Why upgrade link */}
           <Dialog>
             <DialogTrigger asChild>
               <button className="inline-flex items-center gap-1 text-xs text-primary font-medium mt-3 hover:underline">
@@ -150,9 +175,6 @@ const ChoosePlan = () => {
           />
           <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-services-muted text-services dark:bg-services/20 dark:text-services">
-              Save 20% — {yearlySavingsMonths} months free
-            </Badge>
           </span>
         </div>
 
@@ -198,6 +220,11 @@ const ChoosePlan = () => {
                         / {billing === 'monthly' ? 'mo' : 'yr'}
                       </p>
                     )}
+                    {billing === 'yearly' && plan.savingsBadge && (
+                      <Badge variant="secondary" className="mt-0.5 text-[9px] px-1.5 py-0 bg-services-muted text-services dark:bg-services/20 dark:text-services">
+                        {plan.savingsBadge}
+                      </Badge>
+                    )}
                   </div>
                 </div>
 
@@ -216,7 +243,6 @@ const ChoosePlan = () => {
                   ))}
                 </ul>
 
-                {/* Selection indicator */}
                 <div className={`absolute top-4 left-4 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
                   isSelected ? 'border-primary bg-primary' : 'border-border'
                 }`}>
@@ -239,7 +265,6 @@ const ChoosePlan = () => {
           </div>
         </div>
 
-        {/* Legal */}
         <p className="px-6 pt-4 text-[10px] text-muted-foreground/60 text-center leading-relaxed">
           By continuing you agree to <button className="underline">Terms</button> & <button className="underline">Privacy</button>.
           Subscriptions renew automatically unless cancelled.
@@ -250,11 +275,10 @@ const ChoosePlan = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/30 px-6 py-4 safe-bottom z-20">
         <Button
           onClick={handleContinue}
+          disabled={loading}
           className="w-full h-12 text-base font-semibold mb-2"
         >
-          {selected === 'free'
-            ? 'Continue with Free'
-            : `Start ${selectedPlan.name}`}
+          {loading ? 'Redirecting…' : selected === 'free' ? 'Continue with Free' : `Start ${selectedPlan.name}`}
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
 

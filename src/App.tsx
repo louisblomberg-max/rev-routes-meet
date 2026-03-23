@@ -69,6 +69,7 @@ import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 const queryClient = new QueryClient();
 
@@ -148,6 +149,7 @@ const App = () => (
           <Route path="/settings/devtools" element={<ProtectedRoute><DevTools /></ProtectedRoute>} />
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
