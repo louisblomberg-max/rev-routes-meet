@@ -35,10 +35,10 @@ const PLANS = [
     price: { monthly: 3.99, yearly: 43.07 },
     features: [
       { label: 'Everything in Explorer', included: true },
+      { label: 'Unlimited event posts', included: true },
       { label: 'Create & publish routes', included: true },
-      { label: 'Create events & drive-outs', included: true },
       { label: 'Live location sharing', included: true },
-      { label: 'Breakdown / Help requests', included: true },
+      { label: 'SOS breakdown help', included: true },
       { label: 'Garage showcase', included: true },
       { label: 'Priority visibility', included: true },
     ],
