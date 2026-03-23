@@ -97,13 +97,8 @@ const OnboardingContent = () => {
 
       await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
-      // Use edge function for subscription updates (users cannot write to subscriptions directly)
-      if (data.plan && data.plan !== 'free') {
-        const { error: fnError } = await supabase.functions.invoke('complete-onboarding', {
-          body: { plan: data.plan, billingCycle: data.billingCycle },
-        });
-        if (fnError) console.error('Edge function error:', fnError);
-      }
+      // Fix 4: Do NOT call edge function for paid plans during onboarding.
+      // Complete onboarding first, then redirect to Stripe checkout after.
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {
         await supabase.from('vehicles').insert({
@@ -131,14 +126,13 @@ const OnboardingContent = () => {
         bio: data.bio,
         avatar: data.avatarUrl,
         location: data.location,
-        // SECURITY: Do not write membershipPlan to profiles — plan only set via server
         onboardingComplete: true,
         isProfileComplete: true,
       });
 
-      setPlan(data.plan);
+      setPlan(data.plan === 'free' ? 'free' : 'free'); // Stay free until payment confirmed
       setBillingCycle(data.billingCycle);
-      setSubscriptionStatus(data.plan === 'free' ? 'active' : 'selected');
+      setSubscriptionStatus('active');
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {
         addVehicle({
@@ -164,6 +158,24 @@ const OnboardingContent = () => {
 
       completeOnboarding();
       clearOnboarding();
+
+      // Fix 4: If paid plan selected, redirect to Stripe AFTER onboarding is saved
+      if (data.plan && data.plan !== 'free') {
+        try {
+          const priceId = getPriceId(data.plan as 'pro' | 'club', data.billingCycle);
+          const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout-session', {
+            body: { price_id: priceId, plan: data.plan },
+          });
+          if (!checkoutError && checkoutData?.url) {
+            window.location.href = checkoutData.url;
+            return;
+          }
+        } catch (e) {
+          console.error('Stripe checkout redirect failed:', e);
+          // Fall through to home — user can upgrade later
+        }
+      }
+
       navigate('/');
     } catch (err) {
       console.error('Onboarding completion error:', err);
