@@ -33,10 +33,11 @@ const Upgrade = () => {
       price: { monthly: 0, yearly: 0 },
       features: [
         'Browse routes, events & services',
+        '1 free event post included',
+        'Additional events £2.99 each',
         'Join clubs & forums',
-        'Post questions & replies',
-        'Save routes & events',
         'Basic messaging',
+        'Save & bookmark content',
       ],
       recommended: false,
     },
