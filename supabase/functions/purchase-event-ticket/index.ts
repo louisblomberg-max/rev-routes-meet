@@ -36,10 +36,10 @@ Deno.serve(async (req) => {
     }
 
     const user = userData.user;
-    const { event_id, ticket_price } = await req.json();
+    const { event_id } = await req.json();
 
-    if (!event_id || !ticket_price || ticket_price < 1) {
-      return new Response(JSON.stringify({ error: "Invalid event_id or ticket_price" }), {
+    if (!event_id) {
+      return new Response(JSON.stringify({ error: "Missing event_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
