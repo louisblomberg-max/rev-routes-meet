@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const Login = () => {
+  const navigate = useNavigate();
   const { login, isLoading, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
