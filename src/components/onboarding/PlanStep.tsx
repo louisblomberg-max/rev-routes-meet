@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap } from 'lucide-react';
+import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -62,7 +62,7 @@ const PLANS = [
 ];
 
 interface PlanStepProps {
-  onComplete?: () => void;
+  onComplete?: () => Promise<void> | void;
 }
 
 const PlanStep = ({ onComplete }: PlanStepProps) => {
@@ -70,8 +70,9 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
   const { back, data, updateData } = useOnboarding();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>(data.billingCycle || 'yearly');
   const [selected, setSelected] = useState<PlanId>(data.plan || 'pro');
+  const [loading, setLoading] = useState(false);
 
-  // Fix 2: Refresh session when plan step mounts
+  // Refresh session when plan step mounts
   useEffect(() => {
     const refreshSession = async () => {
       const { data: { session }, error } = await supabase.auth.refreshSession();
@@ -82,19 +83,59 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
     };
     refreshSession();
   }, [navigate]);
+
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
-  const handleContinue = () => {
-    updateData({ plan: selected, billingCycle: billing });
-    if (onComplete) {
-      onComplete();
+  const handleContinue = async () => {
+    setLoading(true);
+    try {
+      console.log('[PlanStep] Continue tapped. Selected plan:', selected, 'Billing:', billing);
+
+      // Verify session is still valid
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('[PlanStep] Session user ID:', sessionData.session?.user?.id);
+
+      if (!sessionData.session?.user?.id) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth/login');
+        return;
+      }
+
+      updateData({ plan: selected, billingCycle: billing });
+
+      if (onComplete) {
+        await onComplete();
+      }
+    } catch (err) {
+      console.error('[PlanStep] Error during continue:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleFree = () => {
-    updateData({ plan: 'free', billingCycle: billing });
-    if (onComplete) {
-      onComplete();
+  const handleFree = async () => {
+    setLoading(true);
+    try {
+      console.log('[PlanStep] Continue with Free tapped');
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session?.user?.id) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth/login');
+        return;
+      }
+
+      updateData({ plan: 'free', billingCycle: billing });
+
+      if (onComplete) {
+        await onComplete();
+      }
+    } catch (err) {
+      console.error('[PlanStep] Error during free continue:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -130,6 +171,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
           <Switch
             checked={billing === 'yearly'}
             onCheckedChange={(c) => setBilling(c ? 'yearly' : 'monthly')}
+            disabled={loading}
           />
           <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-black' : 'text-black/50'}`}>
             Yearly
@@ -149,12 +191,13 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
             return (
               <button
                 key={plan.id}
-                onClick={() => setSelected(plan.id)}
+                onClick={() => !loading && setSelected(plan.id)}
+                disabled={loading}
                 className={`w-full text-left rounded-2xl border-2 p-4 transition-all relative overflow-hidden ${
                   isSelected
                     ? 'border-primary bg-white shadow-lg'
                     : 'border-black/10 bg-white/80 hover:border-black/20'
-                }`}
+                } ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
                 {plan.popular && (
                   <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-bl-xl flex items-center gap-1">
@@ -218,11 +261,23 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
 
       {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
-        <Button onClick={handleContinue} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
-          {selected === 'free' ? 'Continue with Free' : `Start ${selectedPlan.name}`}
-          <ChevronRight className="w-5 h-5" />
+        <Button
+          onClick={handleContinue}
+          disabled={loading}
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Saving…
+            </>
+          ) : selected === 'free' ? (
+            <>Continue with Free <ChevronRight className="w-5 h-5" /></>
+          ) : (
+            <>Start {selectedPlan.name} <ChevronRight className="w-5 h-5" /></>
+          )}
         </Button>
-        {selected !== 'free' && (
+        {selected !== 'free' && !loading && (
           <button
             onClick={handleFree}
             className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors"
@@ -230,7 +285,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
             Continue with Free instead
           </button>
         )}
-        {selected === 'free' && (
+        {selected === 'free' && !loading && (
           <button onClick={back} className="w-full text-sm text-black/50 mt-2 py-2">Back</button>
         )}
       </div>
