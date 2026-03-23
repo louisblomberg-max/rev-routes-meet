@@ -181,14 +181,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     // Set up listener BEFORE getSession (per Supabase docs)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
-      if (session?.user) {
+
+      if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user.id, session.user.email ?? undefined);
-      } else {
+      } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setIsLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        await loadUserProfile(session.user.id, session.user.email ?? undefined);
+      } else if (!session) {
+        setUser(null);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     });
 
     initAuth();
