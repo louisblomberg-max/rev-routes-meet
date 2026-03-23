@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verify calling user
     const anonClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
@@ -36,51 +37,54 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userId = claimsData.claims.sub;
-    const { plan, billingCycle } = await req.json();
+    const callerUserId = claimsData.claims.sub;
+    const { conversation_id, participant_user_id } = await req.json();
+
+    if (!conversation_id || !participant_user_id) {
+      return new Response(JSON.stringify({ error: "Missing conversation_id or participant_user_id" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // SECURITY: Never activate a paid plan directly.
-    // Free plan → set active immediately.
-    // Paid plan → keep plan as 'free', store desired plan in pending_plan,
-    //             set status to 'pending_payment'. Activation only via Stripe/RevenueCat webhook.
-    if (plan && plan !== "free") {
-      const { error: subError } = await serviceClient
-        .from("subscriptions")
-        .update({
-          plan: "free",
-          pending_plan: plan,
-          billing_cycle: billingCycle || "monthly",
-          status: "pending_payment",
-        })
-        .eq("user_id", userId);
+    // Verify the caller is a participant of this conversation
+    const { data: callerParticipant } = await serviceClient
+      .from("conversation_participants")
+      .select("user_id")
+      .eq("conversation_id", conversation_id)
+      .eq("user_id", callerUserId)
+      .maybeSingle();
 
-      if (subError) {
-        console.error("Subscription update error:", subError);
-        return new Response(JSON.stringify({ error: "Failed to update subscription" }), {
-          status: 500,
+    if (!callerParticipant) {
+      return new Response(JSON.stringify({ error: "You are not a participant of this conversation" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Add the other user via service role (bypasses RLS)
+    const { error: insertError } = await serviceClient
+      .from("conversation_participants")
+      .insert({ conversation_id, user_id: participant_user_id });
+
+    if (insertError) {
+      // Ignore duplicate key errors (user already in conversation)
+      if (insertError.code === "23505") {
+        return new Response(JSON.stringify({ success: true, already_exists: true }), {
+          status: 200,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-    } else {
-      // Free plan — just ensure it's set correctly
-      const { error: subError } = await serviceClient
-        .from("subscriptions")
-        .update({
-          plan: "free",
-          pending_plan: null,
-          billing_cycle: billingCycle || "monthly",
-          status: "active",
-        })
-        .eq("user_id", userId);
-
-      if (subError) {
-        console.error("Subscription update error:", subError);
-      }
+      console.error("Insert error:", insertError);
+      return new Response(JSON.stringify({ error: "Failed to add participant" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ success: true }), {
@@ -88,7 +92,7 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("complete-onboarding error:", err);
+    console.error("add-conversation-participant error:", err);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

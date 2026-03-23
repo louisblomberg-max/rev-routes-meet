@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
 import type { PlanId } from '@/models';
 
 export type { PlanId } from '@/models';
@@ -68,7 +68,7 @@ interface PlanContextType {
 const PlanContext = createContext<PlanContextType | undefined>(undefined);
 
 export const PlanProvider = ({ children }: { children: ReactNode }) => {
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
 
   const [currentPlan, setCurrentPlan] = useState<PlanId>('free');
   const [billingCycle, setBillingCycleState] = useState<BillingCycle>('yearly');
@@ -97,23 +97,19 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const effectivePlan: PlanId = subscriptionStatus === 'inactive' ? 'free' : currentPlan;
 
+  // SECURITY: Plan changes must go through payment flow (Stripe/RevenueCat), never written directly.
+  // These setters only update local state for UI purposes (e.g. onboarding selection preview).
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
-    updateProfile({ membershipPlan: plan });
-    // Subscription row is read-only from the client; changes happen server-side
-    toast.info('Plan change is being processed.');
+    // Do NOT write to profiles or subscriptions — server-side only
   };
 
   const setBillingCycle = (cycle: BillingCycle) => {
     setBillingCycleState(cycle);
-    updateProfile({ billingCycle: cycle });
-    // Subscription row is read-only from the client
   };
 
   const setSubscriptionStatus = (status: SubscriptionStatus) => {
     setSubscriptionStatusState(status);
-    updateProfile({ subscriptionStatus: status });
-    // Subscription row is read-only from the client
   };
 
   const hasAccess = (featureId: string): boolean => {

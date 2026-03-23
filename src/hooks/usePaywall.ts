@@ -6,6 +6,7 @@
 import { usePlan, type PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PaywallReason } from '@/components/PaywallModal';
+import { toast } from 'sonner';
 
 export interface PaywallCheck {
   allowed: boolean;
@@ -62,13 +63,11 @@ export const usePaywall = () => {
     updateProfile({ routeCredits: Math.max(0, (user?.routeCredits ?? 0) - 1) });
   };
 
-  /** Upgrade to a plan (mock) */
-  const upgradeToPlan = (plan: PlanId) => {
-    updateProfile({
-      membershipPlan: plan,
-      eventCredits: -1,
-      routeCredits: -1,
-    });
+  /** Redirect to payment flow — never activate plan directly */
+  const upgradeToPlan = (_plan: PlanId) => {
+    // SECURITY: Plan activation must go through Stripe/RevenueCat payment flow.
+    // This is a placeholder — integrate with Stripe Checkout or RevenueCat here.
+    toast.info('Redirecting to payment…');
   };
 
   return {

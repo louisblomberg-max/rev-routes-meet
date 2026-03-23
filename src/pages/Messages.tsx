@@ -71,10 +71,14 @@ const Messages = () => {
     const name = groupName || (isGroup ? selectedUsers.map(u => u.name.split(' ')[0]).join(', ') : selectedUsers[0].name);
     const { data: conv } = await supabase.from('conversations').insert({ name, type: isGroup ? 'group' : 'direct' }).select().single();
     if (!conv) return;
-    await supabase.from('conversation_participants').insert([
-      { conversation_id: conv.id, user_id: user.id },
-      ...selectedUsers.map(u => ({ conversation_id: conv.id, user_id: u.id })),
-    ]);
+    // Add self directly (RLS allows inserting own user_id)
+    await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
+    // Add other participants via Edge Function (service role bypasses RLS)
+    for (const u of selectedUsers) {
+      await supabase.functions.invoke('add-conversation-participant', {
+        body: { conversation_id: conv.id, participant_user_id: u.id },
+      });
+    }
     navigate(`/messages/${conv.id}`);
   };
 

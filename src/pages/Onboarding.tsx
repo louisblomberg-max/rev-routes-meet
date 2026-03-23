@@ -130,7 +130,7 @@ const OnboardingContent = () => {
         bio: data.bio,
         avatar: data.avatarUrl,
         location: data.location,
-        membershipPlan: data.plan,
+        // SECURITY: Do not write membershipPlan to profiles — plan only set via server
         onboardingComplete: true,
         isProfileComplete: true,
       });
