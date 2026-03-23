@@ -85,15 +85,16 @@ const Upgrade = () => {
   const handleSelectPlan = (planId: PlanId) => {
     if (planId === currentPlan) return;
     
+    if (planId !== 'free') {
+      // SECURITY: Paid plan activation must go through payment flow
+      toast.info('Redirecting to payment…');
+      // TODO: Integrate Stripe Checkout or RevenueCat here
+      return;
+    }
+
+    // Downgrade to free is allowed
     setPlan(planId);
     setSubscriptionStatus('active');
-    
-    // Sync AuthContext user with new plan + credits
-    updateProfile({
-      membershipPlan: planId,
-      eventCredits: planId === 'free' ? undefined : -1,
-      routeCredits: planId === 'free' ? undefined : -1,
-    } as any);
     
     const planName = plans.find(p => p.id === planId)?.name || planId;
     const isDowngrade = ['free', 'pro', 'club'].indexOf(planId) < ['free', 'pro', 'club'].indexOf(currentPlan);

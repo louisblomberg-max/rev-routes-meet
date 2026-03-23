@@ -16,7 +16,7 @@ export interface PaywallCheck {
 
 export const usePaywall = () => {
   const { effectivePlan } = usePlan();
-  const { user, updateProfile } = useAuth();
+  const { user } = useAuth();
 
   const canCreateEvent = (): PaywallCheck => {
     if (effectivePlan === 'pro' || effectivePlan === 'club') {
