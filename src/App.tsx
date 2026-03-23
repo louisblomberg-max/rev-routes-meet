@@ -144,6 +144,8 @@ const App = () => (
           <Route path="/add/club" element={<ProtectedRoute><AddClub /></ProtectedRoute>} />
           <Route path="/add/vehicle" element={<ProtectedRoute><AddVehicle /></ProtectedRoute>} />
           <Route path="/route/:id" element={<ProtectedRoute><RouteDetail /></ProtectedRoute>} />
+          <Route path="/event/:id" element={<ProtectedRoute><EventDetail /></ProtectedRoute>} />
+          <Route path="/service/:id" element={<ProtectedRoute><ServiceDetail /></ProtectedRoute>} />
           <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
           <Route path="/permissions" element={<ProtectedRoute><Permissions /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />

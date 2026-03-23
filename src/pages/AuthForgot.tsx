@@ -78,8 +78,8 @@ const AuthForgot = () => {
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending...' : 'Send Reset Link'}
           </Button>
         </form>
       </div>

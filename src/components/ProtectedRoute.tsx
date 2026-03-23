@@ -11,7 +11,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const [forceReady, setForceReady] = useState(false);
 
   useEffect(() => {
-    const timeout = setTimeout(() => setForceReady(true), 5000);
+    const timeout = setTimeout(() => setForceReady(true), 3000);
     return () => clearTimeout(timeout);
   }, []);
 
