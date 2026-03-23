@@ -16,28 +16,48 @@ export function useUserStatsData() {
   const { user } = useAuth();
   const [stats, setStats] = useState({ garageCount: 0, friendsCount: 0, clubsCount: 0, eventsCount: 0, routesCount: 0, discussionsCount: 0, savedServicesCount: 0 });
 
-  useEffect(() => {
+  const fetchStats = useCallback(async () => {
     if (!user?.id) return;
-    (async () => {
-      const [vehicles, friends, clubs, events, routes, services] = await Promise.all([
-        supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('friends').select('user_id', { count: 'exact', head: true }).or(`user_id.eq.${user.id},friend_id.eq.${user.id}`).eq('status', 'accepted'),
-        supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', user.id),
-        supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
-        supabase.from('saved_services').select('service_id', { count: 'exact', head: true }).eq('user_id', user.id),
-      ]);
-      setStats({
-        garageCount: vehicles.count || 0,
-        friendsCount: friends.count || 0,
-        clubsCount: clubs.count || 0,
-        eventsCount: events.count || 0,
-        routesCount: routes.count || 0,
-        discussionsCount: 0,
-        savedServicesCount: services.count || 0,
-      });
-    })();
+    const [vehicles, friends, clubs, events, routes, services] = await Promise.all([
+      supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('friends').select('user_id', { count: 'exact', head: true }).or(`user_id.eq.${user.id},friend_id.eq.${user.id}`).eq('status', 'accepted'),
+      supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+      supabase.from('saved_services').select('service_id', { count: 'exact', head: true }).eq('user_id', user.id),
+    ]);
+    setStats({
+      garageCount: vehicles.count || 0,
+      friendsCount: friends.count || 0,
+      clubsCount: clubs.count || 0,
+      eventsCount: events.count || 0,
+      routesCount: routes.count || 0,
+      discussionsCount: 0,
+      savedServicesCount: services.count || 0,
+    });
   }, [user?.id]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Refetch when page becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchStats();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    
+    // Also listen for focus events (covers tab switching within SPA)
+    window.addEventListener('focus', fetchStats);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', fetchStats);
+    };
+  }, [fetchStats]);
 
   return stats;
 }

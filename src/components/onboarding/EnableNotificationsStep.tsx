@@ -1,23 +1,37 @@
 import { Bell, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const EnableNotificationsStep = () => {
   const { next, back, updateData } = useOnboarding();
 
   const handleEnable = async () => {
-    if (!('Notification' in window)) {
-      updateData({ notificationsEnabled: false });
-      next();
-      return;
-    }
     try {
+      if (!('Notification' in window)) {
+        updateData({ notificationsEnabled: false });
+        next();
+        return;
+      }
+
       const permission = await Notification.requestPermission();
-      updateData({ notificationsEnabled: permission === 'granted' });
-    } catch {
+      const granted = permission === 'granted';
+      updateData({ notificationsEnabled: granted });
+
+      // Save to user_preferences immediately
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        await supabase
+          .from('user_preferences')
+          .update({ push_notifications: granted })
+          .eq('user_id', session.user.id);
+      }
+    } catch (err) {
+      console.error('Notification permission error:', err);
       updateData({ notificationsEnabled: false });
+    } finally {
+      next();
     }
-    next();
   };
 
   const handleSkip = () => {
