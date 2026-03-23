@@ -147,6 +147,7 @@ const App = () => (
           <Route path="/services" element={<ProtectedRoute><ServicesList /></ProtectedRoute>} />
           <Route path="/settings/devtools" element={<ProtectedRoute><DevTools /></ProtectedRoute>} />
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
+          <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
