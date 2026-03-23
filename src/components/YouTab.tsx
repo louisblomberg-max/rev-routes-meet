@@ -18,6 +18,7 @@ const YouTab = () => {
   const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
+  const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
