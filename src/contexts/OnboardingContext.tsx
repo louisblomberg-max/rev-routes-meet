@@ -63,8 +63,15 @@ function loadPersistedState(): { step: number; data: OnboardingData } | null {
 
 function persistState(step: number, data: OnboardingData) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data }));
-  } catch {}
+    // Strip base64 photos to avoid localStorage quota issues
+    const safeData = {
+      ...data,
+      vehicles: data.vehicles.map(v => ({ ...v, photos: [] })),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
+  } catch (e) {
+    console.warn('[OnboardingContext] persist failed:', e);
+  }
 }
 
 interface OnboardingContextType {
