@@ -177,9 +177,9 @@ const YouTab = () => {
             <div className="flex-1 min-w-0">
               <span className="text-sm font-semibold text-foreground">Available to Help</span>
             </div>
-            <Switch
+          <Switch
               checked={isAvailableToHelp}
-              onCheckedChange={setIsAvailableToHelp}
+              onCheckedChange={handleAvailableToggle}
               className="data-[state=checked]:bg-primary"
             />
           </div>
