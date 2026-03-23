@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface OnboardingVehicle {
   id: string;
