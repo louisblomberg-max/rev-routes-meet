@@ -257,7 +257,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (updates.bio !== undefined) profileUpdates.bio = updates.bio;
     if (updates.location !== undefined) profileUpdates.location = updates.location;
     if (updates.country !== undefined) profileUpdates.country = updates.country;
-    if (updates.membershipPlan !== undefined) profileUpdates.plan = updates.membershipPlan;
+    // SECURITY: plan field must never be written from the client — only via server-side webhooks
     if (updates.discoveryRadiusMiles !== undefined) profileUpdates.discovery_radius_miles = updates.discoveryRadiusMiles;
     if (updates.eventCredits !== undefined) profileUpdates.event_credits = updates.eventCredits;
     if (updates.routeCredits !== undefined) profileUpdates.route_credits = updates.routeCredits;
