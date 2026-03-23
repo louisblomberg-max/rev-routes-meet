@@ -259,6 +259,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (updates.country !== undefined) profileUpdates.country = updates.country;
     // SECURITY: plan, event_credits, route_credits, free_event_credits must never be written from the client
     // These are only modified via server-side webhooks/RPCs
+    if (updates.discoveryRadiusMiles !== undefined) profileUpdates.discovery_radius_miles = updates.discoveryRadiusMiles;
     if (updates.preferences?.availableToHelp !== undefined) profileUpdates.available_to_help = updates.preferences.availableToHelp;
     if (updates.preferences?.helpDistanceMiles !== undefined) profileUpdates.help_radius_miles = updates.preferences.helpDistanceMiles;
     if (updates.preferences?.locationSharingEnabled !== undefined) profileUpdates.live_location_sharing = updates.preferences.locationSharingEnabled;
