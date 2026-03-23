@@ -45,7 +45,8 @@ import AddClub from "./pages/AddClub";
 import AddVehicle from "./pages/AddVehicle";
 
 import RouteDetail from "./pages/RouteDetail";
-
+import EventDetail from "./pages/EventDetail";
+import ServiceDetail from "./pages/ServiceDetail";
 import NotFound from "./pages/NotFound";
 import Welcome from "./pages/Welcome";
 import Permissions from "./pages/Permissions";
