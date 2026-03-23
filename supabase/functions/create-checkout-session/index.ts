@@ -7,6 +7,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -18,16 +23,24 @@ serve(async (req) => {
   );
 
   try {
+    logStep("Function invoked");
+
     const authHeader = req.headers.get("Authorization")!;
     const token = authHeader.replace("Bearer ", "");
     const { data } = await supabaseClient.auth.getUser(token);
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
     const { price_id, plan } = await req.json();
     if (!price_id) throw new Error("price_id is required");
+    logStep("Request body parsed", { price_id, plan });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key verified");
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: "2025-08-27.basil",
     });
 
@@ -36,9 +49,13 @@ serve(async (req) => {
     let customerId: string | undefined;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
+      logStep("Existing Stripe customer found", { customerId });
+    } else {
+      logStep("No existing Stripe customer, will create on checkout");
     }
 
     const origin = req.headers.get("origin") || "https://rev-routes-meet.lovable.app";
+    logStep("Origin for redirect", { origin });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -53,6 +70,8 @@ serve(async (req) => {
       },
     });
 
+    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+
     // Store pending_plan on subscriptions
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -65,12 +84,16 @@ serve(async (req) => {
       status: "pending_payment",
     }).eq("user_id", user.id);
 
+    logStep("Subscription updated to pending_payment");
+
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+    const errorMessage = (error as Error).message;
+    logStep("ERROR", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

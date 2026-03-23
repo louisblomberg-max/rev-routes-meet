@@ -97,7 +97,7 @@ const ChoosePlan = () => {
     // Check for native platform
     try {
       const Capacitor = (window as any).Capacitor;
-      if (Capacitor.isNativePlatform()) {
+      if (Capacitor?.isNativePlatform?.()) {
         toast.info('Payment available on web at revnet.app');
         return;
       }
@@ -105,17 +105,40 @@ const ChoosePlan = () => {
 
     setLoading(true);
     try {
+      console.log('[ChoosePlan] Selecting plan:', selected, 'billing:', billing);
+
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('[ChoosePlan] Session user ID:', sessionData.session?.user?.id);
+
+      if (!sessionData.session?.user?.id) {
+        toast.error('Session expired. Please sign in again.');
+        navigate('/auth/login');
+        return;
+      }
+
       const priceId = getPriceId(selected as 'pro' | 'club', billing);
+      console.log('[ChoosePlan] Price ID:', priceId);
+
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: selected },
       });
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
+
+      console.log('[ChoosePlan] Checkout response:', data, 'Error:', error);
+
+      if (error) {
+        toast.error('Payment error: ' + (error.message || 'Unknown error'));
+        return;
       }
+
+      if (!data?.url) {
+        toast.error('Payment setup error — please try again');
+        return;
+      }
+
+      window.location.href = data.url;
     } catch (err) {
-      toast.error('Failed to start checkout');
-      console.error(err);
+      console.error('[ChoosePlan] Error:', err);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -49,19 +49,6 @@ const FEATURE_SLIDES = [
   },
 ];
 
-/**
- * Onboarding order:
- * 0: Welcome
- * 1-5: Feature slides
- * 6: Account creation (email/password) — creates Supabase account FIRST
- * 7: Profile (avatar, bio, location)
- * 8: Username
- * 9: Garage (vehicles)
- * 10: Enable Notifications
- * 11: Enable Location
- * 12: Choose Plan — final step, batch saves then navigates to map
- */
-
 const OnboardingContent = () => {
   const navigate = useNavigate();
   const { step, next, back, data, clearOnboarding } = useOnboarding();
@@ -78,13 +65,18 @@ const OnboardingContent = () => {
       // Refresh session to prevent "session expired" errors
       const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
       if (sessionError || !sessionData.session) {
-        console.error('Session refresh failed:', sessionError);
+        console.error('[Onboarding] Session refresh failed:', sessionError);
         toast.error('Session expired. Please sign in again.');
         navigate('/auth/login');
         return;
       }
       const userId = sessionData.session.user.id;
       console.log('[Onboarding] Batch save starting for user:', userId);
+
+      // Read the latest data from context — PlanStep updates it before calling onComplete
+      const selectedPlan = data.plan;
+      const selectedBilling = data.billingCycle;
+      console.log('[Onboarding] Plan:', selectedPlan, 'Billing:', selectedBilling);
 
       const profileUpdates: Record<string, unknown> = {};
       if (data.username) profileUpdates.username = data.username;
@@ -93,15 +85,17 @@ const OnboardingContent = () => {
       if (data.location) profileUpdates.location = data.location;
       profileUpdates.onboarding_complete = true;
       profileUpdates.onboarding_step = 13;
-      // SECURITY: Never write plan to profiles — plan is managed server-side only
 
-      await supabase.from('profiles').update(profileUpdates).eq('id', userId);
-
-      // Fix 4: Do NOT call edge function for paid plans during onboarding.
-      // Complete onboarding first, then redirect to Stripe checkout after.
+      const { error: profileError } = await supabase.from('profiles').update(profileUpdates).eq('id', userId);
+      if (profileError) {
+        console.error('[Onboarding] Profile update error:', profileError);
+        toast.error('Failed to save profile: ' + profileError.message);
+        return;
+      }
+      console.log('[Onboarding] Profile saved successfully');
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {
-        await supabase.from('vehicles').insert({
+        const { error: vehicleError } = await supabase.from('vehicles').insert({
           user_id: userId,
           vehicle_type: v.vehicleType,
           make: v.make,
@@ -118,6 +112,9 @@ const OnboardingContent = () => {
           visibility: v.visibility || 'public',
           is_primary: v.isPrimary || data.vehicles.indexOf(v) === 0,
         });
+        if (vehicleError) {
+          console.error('[Onboarding] Vehicle insert error:', vehicleError);
+        }
       }
 
       updateProfile({
@@ -130,8 +127,8 @@ const OnboardingContent = () => {
         isProfileComplete: true,
       });
 
-      setPlan(data.plan === 'free' ? 'free' : 'free'); // Stay free until payment confirmed
-      setBillingCycle(data.billingCycle);
+      setPlan('free'); // Stay free until payment confirmed
+      setBillingCycle(selectedBilling);
       setSubscriptionStatus('active');
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {
@@ -159,26 +156,46 @@ const OnboardingContent = () => {
       completeOnboarding();
       clearOnboarding();
 
-      // Fix 4: If paid plan selected, redirect to Stripe AFTER onboarding is saved
-      if (data.plan && data.plan !== 'free') {
+      // If paid plan selected, redirect to Stripe AFTER onboarding is saved
+      if (selectedPlan && selectedPlan !== 'free') {
         try {
-          const priceId = getPriceId(data.plan as 'pro' | 'club', data.billingCycle);
+          const priceId = getPriceId(selectedPlan as 'pro' | 'club', selectedBilling);
+          console.log('[Onboarding] Creating checkout session. Price ID:', priceId, 'Plan:', selectedPlan);
+
           const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout-session', {
-            body: { price_id: priceId, plan: data.plan },
+            body: { price_id: priceId, plan: selectedPlan },
           });
-          if (!checkoutError && checkoutData?.url) {
-            window.location.href = checkoutData.url;
+
+          console.log('[Onboarding] Checkout response:', checkoutData, 'Error:', checkoutError);
+
+          if (checkoutError) {
+            console.error('[Onboarding] Checkout error:', checkoutError);
+            toast.error('Payment setup failed: ' + (checkoutError.message || 'Unknown error'));
+            navigate('/');
             return;
           }
+
+          if (!checkoutData?.url) {
+            console.error('[Onboarding] No checkout URL returned');
+            toast.error('Payment setup error — please try again from Settings');
+            navigate('/');
+            return;
+          }
+
+          console.log('[Onboarding] Redirecting to Stripe:', checkoutData.url);
+          window.location.href = checkoutData.url;
+          return;
         } catch (e) {
-          console.error('Stripe checkout redirect failed:', e);
-          // Fall through to home — user can upgrade later
+          console.error('[Onboarding] Stripe checkout redirect failed:', e);
+          toast.error('Payment redirect failed — you can upgrade from Settings');
+          navigate('/');
+          return;
         }
       }
 
       navigate('/');
     } catch (err) {
-      console.error('Onboarding completion error:', err);
+      console.error('[Onboarding] Completion error:', err);
       toast.error('Failed to save your profile. Please try again.');
     }
   };
