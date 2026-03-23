@@ -56,7 +56,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 ];
 
 /** Cost to publish a single event for non-Pro users */
-export const EVENT_PUBLISH_COST_GBP = 2.49;
+export const EVENT_PUBLISH_COST_GBP = 2.99;
 
 /** Cost to publish a single route for non-Pro users */
 export const ROUTE_PUBLISH_COST_GBP = 1.99;
