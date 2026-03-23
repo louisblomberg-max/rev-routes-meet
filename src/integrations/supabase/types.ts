@@ -1482,6 +1482,14 @@ export type Database = {
       }
     }
     Functions: {
+      can_message_user: {
+        Args: { recipient_id: string; sender_id: string }
+        Returns: boolean
+      }
+      check_can_message: {
+        Args: { recipient_id: string; sender_id: string }
+        Returns: boolean
+      }
       get_pins_in_bounds: {
         Args: {
           categories?: string[]

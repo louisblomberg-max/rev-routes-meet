@@ -92,12 +92,12 @@ const OnboardingContent = () => {
       if (data.location) profileUpdates.location = data.location;
       profileUpdates.onboarding_complete = true;
       profileUpdates.onboarding_step = 13;
-      profileUpdates.plan = data.plan;
+      // SECURITY: Never write plan to profiles — plan is managed server-side only
 
       await supabase.from('profiles').update(profileUpdates).eq('id', userId);
 
       // Use edge function for subscription updates (users cannot write to subscriptions directly)
-      if (data.plan !== 'free') {
+      if (data.plan && data.plan !== 'free') {
         const { error: fnError } = await supabase.functions.invoke('complete-onboarding', {
           body: { plan: data.plan, billingCycle: data.billingCycle },
         });

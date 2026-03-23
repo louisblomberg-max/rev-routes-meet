@@ -27,17 +27,15 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await anonClient.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const callerUserId = claimsData.claims.sub;
+    const callerUserId = user.id;
     const { conversation_id, participant_user_id } = await req.json();
 
     if (!conversation_id || !participant_user_id) {
@@ -65,6 +63,23 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // Check messaging privacy settings before adding participant
+    const { data: canMessage, error: privacyError } = await serviceClient
+      .rpc('can_message_user', {
+        sender_id: callerUserId,
+        recipient_id: participant_user_id,
+      });
+
+    if (privacyError || !canMessage) {
+      return new Response(
+        JSON.stringify({ error: "You cannot message this user based on their privacy settings" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Add the other user via service role (bypasses RLS)
