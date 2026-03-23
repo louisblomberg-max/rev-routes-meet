@@ -67,7 +67,7 @@ export interface PlanSelection {
 }
 
 interface PlanStepProps {
-  onComplete?: () => Promise<void> | void;
+  onComplete?: (selection: PlanSelection) => Promise<void> | void;
 }
 
 const PlanStep = ({ onComplete }: PlanStepProps) => {
