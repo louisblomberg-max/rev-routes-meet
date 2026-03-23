@@ -3,8 +3,7 @@ import { AtSign, Check, X, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-
-const TAKEN_USERNAMES = ['admin', 'revnet', 'driver', 'test'];
+import { supabase } from '@/integrations/supabase/client';
 
 const UsernameStep = () => {
   const { data, updateData, next, back } = useOnboarding();
@@ -27,9 +26,13 @@ const UsernameStep = () => {
     }
     setError('');
     setChecking(true);
-    const timer = setTimeout(() => {
-      const isTaken = TAKEN_USERNAMES.includes(username.toLowerCase());
-      setAvailable(!isTaken);
+    const timer = setTimeout(async () => {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', username.toLowerCase())
+        .maybeSingle();
+      setAvailable(!existing);
       setChecking(false);
     }, 600);
     return () => clearTimeout(timer);
