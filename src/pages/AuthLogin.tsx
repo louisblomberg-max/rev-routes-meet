@@ -36,7 +36,9 @@ const AuthLogin = () => {
     try {
       await login(email, password);
       toast.success('Welcome back!');
-      navigate('/');
+      // AuthContext will load user profile; ProtectedRoute or Onboarding
+      // will redirect based on onboardingComplete status
+      navigate('/', { replace: true });
     } catch {
       toast.error('Invalid email or password');
     }
