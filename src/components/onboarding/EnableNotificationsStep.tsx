@@ -1,35 +1,27 @@
 import { Bell, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 
 const EnableNotificationsStep = () => {
-  const { data, next, back, updateData } = useOnboarding();
+  const { next, back, updateData } = useOnboarding();
 
   const handleEnable = async () => {
-    if (typeof Notification === 'undefined') {
-      updateData({ permissions: { ...data.permissions, notificationsEnabled: false } });
+    if (!('Notification' in window)) {
+      updateData({ notificationsEnabled: false });
       next();
       return;
     }
     try {
       const permission = await Notification.requestPermission();
-      const granted = permission === 'granted';
-      updateData({
-        permissions: { ...data.permissions, notificationsEnabled: granted },
-        notifications: granted
-          ? { ...data.notifications, newEventsNearby: true, sosAlerts: true }
-          : data.notifications,
-      });
+      updateData({ notificationsEnabled: permission === 'granted' });
     } catch {
-      updateData({ permissions: { ...data.permissions, notificationsEnabled: false } });
+      updateData({ notificationsEnabled: false });
     }
     next();
   };
 
   const handleSkip = () => {
-    updateData({
-      permissions: { ...data.permissions, notificationsEnabled: false },
-    });
+    updateData({ notificationsEnabled: false });
     next();
   };
 
@@ -38,7 +30,7 @@ const EnableNotificationsStep = () => {
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: TOTAL_ONBOARDING_STEPS }).map((_, i) => (
             <div
               key={i}
               className={`flex-1 h-1 rounded-full transition-all ${i <= 3 ? 'bg-primary' : 'bg-black/10'}`}
@@ -48,7 +40,6 @@ const EnableNotificationsStep = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
-        {/* Icon */}
         <div className="w-28 h-28 rounded-3xl bg-white border border-black/10 flex items-center justify-center mb-8 shadow-sm">
           <Bell className="w-14 h-14 text-black/80" strokeWidth={1.5} />
         </div>

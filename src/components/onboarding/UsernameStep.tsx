@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { AtSign, Check, X, ChevronRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const UsernameStep = () => {
@@ -16,7 +16,7 @@ const UsernameStep = () => {
   useEffect(() => {
     if (!username || username.length < 3) {
       setAvailable(null);
-      setError('');
+      setError(username && username.length > 0 && username.length < 3 ? '' : '');
       return;
     }
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
@@ -34,7 +34,7 @@ const UsernameStep = () => {
         .maybeSingle();
       setAvailable(!existing);
       setChecking(false);
-    }, 600);
+    }, 500);
     return () => clearTimeout(timer);
   }, [username]);
 
@@ -45,7 +45,7 @@ const UsernameStep = () => {
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) =>
+          {Array.from({ length: TOTAL_ONBOARDING_STEPS }).map((_, i) =>
             <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= 1 ? 'bg-primary' : 'bg-black/10'}`} />
           )}
         </div>
@@ -78,7 +78,7 @@ const UsernameStep = () => {
 
           {error && <p className="text-xs text-red-500 mt-2 pl-1">{error}</p>}
           {!checking && available === false &&
-            <p className="text-xs text-red-500 mt-2 pl-1">This username is taken</p>
+            <p className="text-xs text-red-500 mt-2 pl-1">This username is already taken</p>
           }
           {!checking && available === true &&
             <p className="text-xs text-green-600 mt-2 pl-1">Username available!</p>

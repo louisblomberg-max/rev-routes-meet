@@ -1,42 +1,31 @@
 import { MapPin, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useOnboarding } from '@/contexts/OnboardingContext';
+import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 
 const EnableLocationStep = () => {
-  const { data, next, back, updateData } = useOnboarding();
+  const { next, back, updateData } = useOnboarding();
 
   const handleEnable = () => {
     if (!navigator.geolocation) {
-      updateData({
-        permissions: { ...data.permissions, locationEnabled: false },
-        locationPermissionStatus: 'skipped',
-      });
+      updateData({ locationPermissionStatus: 'skipped' });
       next();
       return;
     }
     navigator.geolocation.getCurrentPosition(
       () => {
-        updateData({
-          permissions: { ...data.permissions, locationEnabled: true },
-          locationPermissionStatus: 'allowed',
-        });
+        updateData({ locationPermissionStatus: 'allowed' });
         next();
       },
       () => {
-        updateData({
-          permissions: { ...data.permissions, locationEnabled: false },
-          locationPermissionStatus: 'denied',
-        });
+        updateData({ locationPermissionStatus: 'denied' });
         next();
-      }
+      },
+      { timeout: 10000 }
     );
   };
 
   const handleSkip = () => {
-    updateData({
-      permissions: { ...data.permissions, locationEnabled: false },
-      locationPermissionStatus: 'skipped',
-    });
+    updateData({ locationPermissionStatus: 'skipped' });
     next();
   };
 
@@ -45,7 +34,7 @@ const EnableLocationStep = () => {
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
-          {Array.from({ length: 8 }).map((_, i) => (
+          {Array.from({ length: TOTAL_ONBOARDING_STEPS }).map((_, i) => (
             <div
               key={i}
               className={`flex-1 h-1 rounded-full transition-all ${i <= 4 ? 'bg-primary' : 'bg-black/10'}`}
@@ -55,7 +44,6 @@ const EnableLocationStep = () => {
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
-        {/* Icon */}
         <div className="w-28 h-28 rounded-3xl bg-white border border-black/10 flex items-center justify-center mb-8 shadow-sm">
           <MapPin className="w-14 h-14 text-black/80" strokeWidth={1.5} />
         </div>

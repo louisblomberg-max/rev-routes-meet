@@ -7,9 +7,6 @@ import { usePlan } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { getPriceId } from '@/config/stripe';
-import WelcomeStep from '@/components/onboarding/WelcomeStep';
-import FeatureSlide from '@/components/onboarding/FeatureSlide';
-import AccountStep from '@/components/onboarding/AccountStep';
 import ProfileStep from '@/components/onboarding/ProfileStep';
 import UsernameStep from '@/components/onboarding/UsernameStep';
 import GarageStep from '@/components/onboarding/GarageStep';
@@ -17,136 +14,79 @@ import EnableNotificationsStep from '@/components/onboarding/EnableNotifications
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
 import PlanStep, { type PlanSelection } from '@/components/onboarding/PlanStep';
 
-const withTimeout = async <T,>(promise: Promise<T>, ms: number, timeoutMessage: string): Promise<T> => {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(() => reject(new Error(timeoutMessage)), ms);
-  });
-
-  try {
-    return await Promise.race([promise, timeoutPromise]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
+const withTimeout = async <T,>(promise: Promise<T>, ms: number, msg: string): Promise<T> => {
+  let tid: ReturnType<typeof setTimeout> | undefined;
+  const tp = new Promise<never>((_, reject) => { tid = setTimeout(() => reject(new Error(msg)), ms); });
+  try { return await Promise.race([promise, tp]); } finally { if (tid) clearTimeout(tid); }
 };
-
-const FEATURE_SLIDES = [
-  {
-    title: 'Discover Meets & Events',
-    description: 'Find car meets, shows, drive-outs and track days happening around you.',
-    highlights: ['Explore events on the map', 'Join community organised meets', 'Create your own events'],
-    gradient: 'from-primary/20 via-transparent to-transparent',
-  },
-  {
-    title: 'Explore Driving Routes',
-    description: 'Discover incredible driving roads shared by the community.',
-    highlights: ['Scenic roads', 'Twisty routes', 'GPX route uploads', 'Navigation ready routes'],
-    gradient: 'from-primary/15 via-transparent to-transparent',
-  },
-  {
-    title: 'Find Trusted Automotive Services',
-    description: 'Locate mechanics, detailers, tuners and specialists near you.',
-    highlights: ['Search nearby garages', 'Discover trusted services', 'Navigate directly to locations'],
-    gradient: 'from-primary/10 via-transparent to-transparent',
-  },
-  {
-    title: 'Join Clubs & Communities',
-    description: 'Connect with people who share your passion.',
-    highlights: ['Join local clubs', 'Organise group drives', 'Share posts and updates'],
-    gradient: 'from-primary/15 via-transparent to-transparent',
-  },
-  {
-    title: 'Get Help When You Need It',
-    description: 'RevNet connects drivers so help is always nearby.',
-    highlights: ['Request help from nearby drivers', 'Offer assistance to others', 'Find nearby recovery services', 'Share your location for fast support'],
-    gradient: 'from-primary/20 via-transparent to-transparent',
-  },
-];
 
 const OnboardingContent = () => {
   const navigate = useNavigate();
-  const { step, next, back, data, clearOnboarding } = useOnboarding();
+  const { step, data, clearOnboarding } = useOnboarding();
   const { updateProfile, completeOnboarding, user } = useAuth();
   const { addVehicle } = useGarage();
   const { setPlan, setBillingCycle, setSubscriptionStatus } = usePlan();
 
-  // If user is already authenticated with completed onboarding, skip to map
   useEffect(() => {
     if (user && user.onboardingComplete) {
       navigate('/', { replace: true });
     }
   }, [user, navigate]);
 
-  const handleAccountCreated = async () => {
-    next();
-  };
-
   const handleComplete = async (selection: PlanSelection) => {
     try {
-      const selectedPlan = selection.plan;
-      const selectedBilling = selection.billingCycle;
-
-      const {
-        data: { session: currentSession },
-        error: getSessionError,
-      } = await withTimeout(
-        supabase.auth.getSession(),
-        10000,
-        'Session check timed out. Please try again.'
+      const { data: { session: currentSession } } = await withTimeout(
+        supabase.auth.getSession(), 10000, 'Session check timed out.'
       );
 
       let activeSession = currentSession;
-
       if (!activeSession) {
         const { data: refreshData, error: refreshError } = await withTimeout(
-          supabase.auth.refreshSession(),
-          10000,
-          'Session refresh timed out. Please sign in again.'
+          supabase.auth.refreshSession(), 10000, 'Session refresh timed out.'
         );
-
         if (refreshError || !refreshData.session) {
-          console.error('[Onboarding] Session refresh failed:', refreshError ?? getSessionError);
           toast.error('Session expired. Please sign in again.');
           navigate('/auth/login');
           return;
         }
-
         activeSession = refreshData.session;
       }
 
       if (!activeSession?.user?.id) {
-        console.error('[Onboarding] Missing active session user.', getSessionError);
         toast.error('Session expired. Please sign in again.');
         navigate('/auth/login');
         return;
       }
 
       const userId = activeSession.user.id;
-      console.log('[Onboarding] Batch save starting for user:', userId, 'Plan:', selectedPlan, 'Billing:', selectedBilling);
 
-      const profileUpdates: Record<string, unknown> = {};
-      if (data.username) profileUpdates.username = data.username;
+      // 1. Save profile
+      const profileUpdates: Record<string, unknown> = {
+        onboarding_complete: true,
+        onboarding_step: 6,
+      };
+      if (data.username) profileUpdates.username = data.username.toLowerCase();
       if (data.bio) profileUpdates.bio = data.bio;
       if (data.avatarUrl) profileUpdates.avatar_url = data.avatarUrl;
       if (data.location) profileUpdates.location = data.location;
-      profileUpdates.onboarding_complete = true;
-      profileUpdates.onboarding_step = 13;
+      if (!profileUpdates.display_name && data.username) {
+        profileUpdates.display_name = data.username;
+      }
 
       const { error: profileError } = await supabase.from('profiles').update(profileUpdates).eq('id', userId);
       if (profileError) {
-        console.error('[Onboarding] Profile update error:', profileError);
+        console.error('[Onboarding] Profile error:', profileError);
         toast.error('Failed to save profile: ' + profileError.message);
         return;
       }
-      console.log('[Onboarding] Profile saved successfully');
 
+      // 2. Save vehicles
       for (const v of data.vehicles.filter(v => v.make.trim())) {
         const { error: vehicleError } = await supabase.from('vehicles').insert({
           user_id: userId,
           vehicle_type: v.vehicleType,
           make: v.make,
-          model: v.model,
+          model: v.model || null,
           year: v.year || null,
           engine: v.engine || null,
           transmission: v.transmission || null,
@@ -159,11 +99,20 @@ const OnboardingContent = () => {
           visibility: v.visibility || 'public',
           is_primary: v.isPrimary || data.vehicles.indexOf(v) === 0,
         });
-        if (vehicleError) {
-          console.error('[Onboarding] Vehicle insert error:', vehicleError);
-        }
+        if (vehicleError) console.error('[Onboarding] Vehicle error:', vehicleError);
       }
 
+      // 3. Save notification preference
+      await supabase.from('user_preferences').update({
+        push_notifications: data.notificationsEnabled,
+      }).eq('user_id', userId);
+
+      // 4. Save plan via edge function
+      await supabase.functions.invoke('complete-onboarding', {
+        body: { plan: selection.plan, billingCycle: selection.billingCycle },
+      });
+
+      // 5. Update local state
       updateProfile({
         username: data.username,
         displayName: data.username || user?.displayName || 'User',
@@ -174,8 +123,8 @@ const OnboardingContent = () => {
         isProfileComplete: true,
       });
 
-      setPlan('free'); // Stay free until payment confirmed
-      setBillingCycle(selectedBilling);
+      setPlan('free');
+      setBillingCycle(selection.billingCycle);
       setSubscriptionStatus('active');
 
       for (const v of data.vehicles.filter(v => v.make.trim())) {
@@ -203,84 +152,52 @@ const OnboardingContent = () => {
       completeOnboarding();
       clearOnboarding();
 
-      // If paid plan selected, redirect to Stripe AFTER onboarding is saved
-      if (selectedPlan && selectedPlan !== 'free') {
+      // Stripe redirect for paid plans
+      if (selection.plan !== 'free') {
         try {
-          const priceId = getPriceId(selectedPlan as 'pro' | 'club', selectedBilling);
-          console.log('[Onboarding] Creating checkout session. Price ID:', priceId, 'Plan:', selectedPlan);
-
+          const priceId = getPriceId(selection.plan as 'pro' | 'club', selection.billingCycle);
           const { data: checkoutData, error: checkoutError } = await withTimeout(
             supabase.functions.invoke('create-checkout-session', {
               body: {
                 price_id: priceId,
-                plan: selectedPlan,
+                plan: selection.plan,
                 user_id: userId,
                 success_url: `${window.location.origin}/payment-success`,
-                cancel_url: `${window.location.origin}/auth`,
+                cancel_url: `${window.location.origin}/`,
               },
             }),
             15000,
-            'Payment setup timed out. Please try again.'
+            'Payment setup timed out.'
           );
-
-          console.log('[Onboarding] Checkout response:', checkoutData, 'Error:', checkoutError);
-
-          if (checkoutError) {
-            console.error('[Onboarding] Checkout error:', checkoutError);
-            toast.error('Payment error: ' + (checkoutError.message || 'Unknown error'));
-            navigate('/');
+          if (!checkoutError && checkoutData?.url) {
+            window.location.href = checkoutData.url;
             return;
           }
-
-          if (!checkoutData?.url) {
-            console.error('[Onboarding] No checkout URL returned');
-            toast.error('Payment setup error — please try again');
-            navigate('/');
-            return;
-          }
-
-          console.log('[Onboarding] Redirecting to Stripe:', checkoutData.url);
-          window.location.href = checkoutData.url;
-          return;
-        } catch (e) {
-          console.error('[Onboarding] Stripe checkout redirect failed:', e);
+          toast.error('Payment setup failed — you can upgrade from Settings');
+        } catch {
           toast.error('Payment redirect failed — you can upgrade from Settings');
-          navigate('/');
-          return;
         }
       }
 
-      navigate('/');
+      navigate('/', { replace: true });
+      toast.success('Welcome to RevNet!');
     } catch (err) {
-      console.error('[Onboarding] Completion error:', err);
+      console.error('[Onboarding] Error:', err);
       toast.error('Failed to save your profile. Please try again.');
     }
   };
 
+  // 6 steps: 0=Profile, 1=Username, 2=Garage, 3=Notifications, 4=Location, 5=Plan
   const renderStep = () => {
-    if (step === 0) return <WelcomeStep />;
-    if (step >= 1 && step <= 5) {
-      const slideIdx = step - 1;
-      const slide = FEATURE_SLIDES[slideIdx];
-      return (
-        <FeatureSlide
-          title={slide.title}
-          description={slide.description}
-          highlights={slide.highlights}
-          gradient={slide.gradient}
-          slideIndex={slideIdx}
-          totalSlides={FEATURE_SLIDES.length}
-        />
-      );
+    switch (step) {
+      case 0: return <ProfileStep />;
+      case 1: return <UsernameStep />;
+      case 2: return <GarageStep />;
+      case 3: return <EnableNotificationsStep />;
+      case 4: return <EnableLocationStep />;
+      case 5: return <PlanStep onComplete={handleComplete} />;
+      default: return <ProfileStep />;
     }
-    if (step === 6) return <AccountStep onComplete={handleAccountCreated} />;
-    if (step === 7) return <ProfileStep />;
-    if (step === 8) return <UsernameStep />;
-    if (step === 9) return <GarageStep />;
-    if (step === 10) return <EnableNotificationsStep />;
-    if (step === 11) return <EnableLocationStep />;
-    if (step === 12) return <PlanStep onComplete={handleComplete} />;
-    return null;
   };
 
   return (

@@ -27,23 +27,10 @@ export interface OnboardingData {
   location: string;
   username: string;
   vehicles: OnboardingVehicle[];
-  permissions: {
-    notificationsEnabled: boolean;
-    locationEnabled: boolean;
-  };
+  notificationsEnabled: boolean;
   locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
-  notifications: {
-    newEventsNearby: boolean;
-    clubActivity: boolean;
-    marketplaceMessages: boolean;
-    nearbyDrivers: boolean;
-    sosAlerts: boolean;
-  };
-  interests: string[];
   plan: 'free' | 'pro' | 'club';
   billingCycle: 'monthly' | 'yearly';
-  email: string;
-  password: string;
 }
 
 const DEFAULT_DATA: OnboardingData = {
@@ -52,24 +39,14 @@ const DEFAULT_DATA: OnboardingData = {
   location: '',
   username: '',
   vehicles: [],
-  permissions: {
-    notificationsEnabled: false,
-    locationEnabled: false,
-  },
+  notificationsEnabled: false,
   locationPermissionStatus: 'not_requested',
-  notifications: {
-    newEventsNearby: false,
-    clubActivity: false,
-    marketplaceMessages: false,
-    nearbyDrivers: false,
-    sosAlerts: false,
-  },
-  interests: [],
   plan: 'free',
   billingCycle: 'yearly',
-  email: '',
-  password: '',
 };
+
+// 6 steps: 0=Profile, 1=Username, 2=Garage, 3=Notifications, 4=Location, 5=Plan
+export const TOTAL_ONBOARDING_STEPS = 6;
 
 const STORAGE_KEY = 'revnet_onboarding_state';
 
@@ -86,8 +63,7 @@ function loadPersistedState(): { step: number; data: OnboardingData } | null {
 
 function persistState(step: number, data: OnboardingData) {
   try {
-    const { password, ...safeData } = data;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data }));
   } catch {}
 }
 
@@ -104,10 +80,6 @@ interface OnboardingContextType {
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
-// Updated: 13 steps (0-12)
-// 0: Welcome, 1-5: Features, 6: Account, 7: Profile, 8: Username, 9: Garage, 10: Notifications, 11: Location, 12: Plan
-export const TOTAL_ONBOARDING_STEPS = 13;
-
 export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const persisted = loadPersistedState();
   const [step, setStepState] = useState(persisted?.step ?? 0);
@@ -120,33 +92,13 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
     persistState(step, data);
   }, [step, data]);
 
-  // Fix 5: Session heartbeat — keep session alive during onboarding
+  // Session heartbeat
   useEffect(() => {
-    let heartbeatInFlight = false;
-
-    const keepSessionAlive = async () => {
-      if (heartbeatInFlight) return;
-      heartbeatInFlight = true;
-
+    const interval = setInterval(async () => {
       try {
-        await Promise.race([
-          supabase.auth.getSession(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('heartbeat-timeout')), 8000)),
-        ]);
-      } catch (error) {
-        console.warn(
-          '[Onboarding] Session heartbeat skipped:',
-          error instanceof Error ? error.message : error
-        );
-      } finally {
-        heartbeatInFlight = false;
-      }
-    };
-
-    const interval = setInterval(() => {
-      void keepSessionAlive();
+        await supabase.auth.getSession();
+      } catch {}
     }, 3 * 60 * 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -156,7 +108,6 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
   const updateData = useCallback((updates: Partial<OnboardingData>) => {
     setData(prev => ({ ...prev, ...updates }));
   }, []);
-
   const clearOnboarding = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     setStepState(0);
