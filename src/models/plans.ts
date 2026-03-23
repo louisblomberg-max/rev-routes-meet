@@ -28,13 +28,13 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     routeCreditsPerMonth: -1,
     features: [
       'Everything in Free',
+      'Unlimited event posts',
       'Create & publish routes',
-      'Host events (unlimited)',
+      'Host unlimited events',
       'Live location sharing',
-      'Breakdown help (SOS)',
+      'SOS breakdown help',
       'Garage showcase',
       'Priority visibility',
-      'Marketplace listings',
     ],
   },
   {
