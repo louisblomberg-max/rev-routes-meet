@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { OnboardingProvider, useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGarage } from '@/contexts/GarageContext';
@@ -69,6 +70,13 @@ const OnboardingContent = () => {
   const { updateProfile, completeOnboarding, user } = useAuth();
   const { addVehicle } = useGarage();
   const { setPlan, setBillingCycle, setSubscriptionStatus } = usePlan();
+
+  // If user is already authenticated with completed onboarding, skip to map
+  useEffect(() => {
+    if (user && user.onboardingComplete) {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleAccountCreated = async () => {
     next();
