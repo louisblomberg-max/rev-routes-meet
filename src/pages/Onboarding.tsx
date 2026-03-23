@@ -5,6 +5,7 @@ import { useGarage } from '@/contexts/GarageContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { getPriceId } from '@/config/stripe';
 import WelcomeStep from '@/components/onboarding/WelcomeStep';
 import FeatureSlide from '@/components/onboarding/FeatureSlide';
 import AccountStep from '@/components/onboarding/AccountStep';
