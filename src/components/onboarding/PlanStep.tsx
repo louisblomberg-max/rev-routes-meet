@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useOnboarding } from '@/contexts/OnboardingContext';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type PlanId = 'free' | 'pro' | 'club';
@@ -93,45 +92,18 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
 
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
-  const getActiveUserId = async () => {
-    const { data: sessionData } = await withTimeout(
-      supabase.auth.getSession(),
-      8000,
-      'Session check timed out. Please try again.'
-    );
-
-    if (sessionData.session?.user?.id) {
-      return sessionData.session.user.id;
-    }
-
-    const { data: refreshData, error: refreshError } = await withTimeout(
-      supabase.auth.refreshSession(),
-      10000,
-      'Session refresh timed out. Please sign in again.'
-    );
-
-    if (refreshError || !refreshData.session?.user?.id) {
-      throw new Error('Session expired. Please sign in again.');
-    }
-
-    return refreshData.session.user.id;
-  };
-
   const handleContinue = async () => {
     setLoading(true);
     try {
       console.log('[PlanStep] Continue tapped. Selected plan:', selected, 'Billing:', billing);
-
-      const userId = await getActiveUserId();
-      console.log('[PlanStep] Session user ID:', userId);
 
       updateData({ plan: selected, billingCycle: billing });
 
       if (onComplete) {
         await withTimeout(
           Promise.resolve(onComplete({ plan: selected, billingCycle: billing })),
-          30000,
-          'Saving timed out. Please try again.'
+          45000,
+          'Saving is taking too long. Please check your connection and try again.'
         );
       } else {
         throw new Error('Unable to continue onboarding. Please try again.');
@@ -153,16 +125,13 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
     try {
       console.log('[PlanStep] Continue with Free tapped');
 
-      const userId = await getActiveUserId();
-      console.log('[PlanStep] Free flow session user ID:', userId);
-
       updateData({ plan: 'free', billingCycle: billing });
 
       if (onComplete) {
         await withTimeout(
           Promise.resolve(onComplete({ plan: 'free', billingCycle: billing })),
-          30000,
-          'Saving timed out. Please try again.'
+          45000,
+          'Saving is taking too long. Please check your connection and try again.'
         );
       } else {
         throw new Error('Unable to continue onboarding. Please try again.');
