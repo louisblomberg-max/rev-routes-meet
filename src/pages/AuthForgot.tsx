@@ -9,10 +9,11 @@ import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const AuthForgot = () => {
   const navigate = useNavigate();
-  const { resetPassword, isLoading } = useAuth();
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,8 +21,15 @@ const AuthForgot = () => {
       setError('Enter a valid email');
       return;
     }
-    await resetPassword(email);
-    setSent(true);
+    setIsSubmitting(true);
+    try {
+      await resetPassword(email);
+      setSent(true);
+    } catch {
+      setError('Could not send reset link. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (sent) {
@@ -70,8 +78,8 @@ const AuthForgot = () => {
             {error && <p className="text-xs text-destructive">{error}</p>}
           </div>
 
-          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isLoading}>
-            {isLoading ? 'Sending...' : 'Send Reset Link'}
+          <Button type="submit" className="w-full h-12 text-base font-semibold" disabled={isSubmitting}>
+            {isSubmitting ? 'Sending...' : 'Send Reset Link'}
           </Button>
         </form>
       </div>
