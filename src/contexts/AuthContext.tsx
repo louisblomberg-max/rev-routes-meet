@@ -199,10 +199,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [loadUserProfile]);
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<{ onboardingComplete: boolean }> => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setIsLoading(false); throw error; }
+
+    // Check onboarding status from profile
+    if (data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('id', data.user.id)
+        .single();
+      return { onboardingComplete: profile?.onboarding_complete ?? false };
+    }
+    return { onboardingComplete: false };
   }, []);
 
   const loginPhone = useCallback(async (phone: string) => {
