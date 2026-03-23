@@ -61,8 +61,13 @@ const PLANS = [
   },
 ];
 
+export interface PlanSelection {
+  plan: 'free' | 'pro' | 'club';
+  billingCycle: 'monthly' | 'yearly';
+}
+
 interface PlanStepProps {
-  onComplete?: () => Promise<void> | void;
+  onComplete?: (selection: PlanSelection) => Promise<void> | void;
 }
 
 const PlanStep = ({ onComplete }: PlanStepProps) => {
@@ -104,7 +109,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: selected, billingCycle: billing });
 
       if (onComplete) {
-        await onComplete();
+        await onComplete({ plan: selected, billingCycle: billing });
       }
     } catch (err) {
       console.error('[PlanStep] Error during continue:', err);
@@ -129,7 +134,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       updateData({ plan: 'free', billingCycle: billing });
 
       if (onComplete) {
-        await onComplete();
+        await onComplete({ plan: 'free', billingCycle: billing });
       }
     } catch (err) {
       console.error('[PlanStep] Error during free continue:', err);

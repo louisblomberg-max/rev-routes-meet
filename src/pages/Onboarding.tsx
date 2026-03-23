@@ -14,7 +14,7 @@ import UsernameStep from '@/components/onboarding/UsernameStep';
 import GarageStep from '@/components/onboarding/GarageStep';
 import EnableNotificationsStep from '@/components/onboarding/EnableNotificationsStep';
 import EnableLocationStep from '@/components/onboarding/EnableLocationStep';
-import PlanStep from '@/components/onboarding/PlanStep';
+import PlanStep, { type PlanSelection } from '@/components/onboarding/PlanStep';
 
 const FEATURE_SLIDES = [
   {
@@ -60,8 +60,11 @@ const OnboardingContent = () => {
     next();
   };
 
-  const handleComplete = async () => {
+  const handleComplete = async (selection: PlanSelection) => {
     try {
+      const selectedPlan = selection.plan;
+      const selectedBilling = selection.billingCycle;
+
       // Refresh session to prevent "session expired" errors
       const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
       if (sessionError || !sessionData.session) {
@@ -71,12 +74,7 @@ const OnboardingContent = () => {
         return;
       }
       const userId = sessionData.session.user.id;
-      console.log('[Onboarding] Batch save starting for user:', userId);
-
-      // Read the latest data from context — PlanStep updates it before calling onComplete
-      const selectedPlan = data.plan;
-      const selectedBilling = data.billingCycle;
-      console.log('[Onboarding] Plan:', selectedPlan, 'Billing:', selectedBilling);
+      console.log('[Onboarding] Batch save starting for user:', userId, 'Plan:', selectedPlan, 'Billing:', selectedBilling);
 
       const profileUpdates: Record<string, unknown> = {};
       if (data.username) profileUpdates.username = data.username;
