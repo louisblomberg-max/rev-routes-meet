@@ -18,9 +18,7 @@ import { Button } from '@/components/ui/button';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePaywall } from '@/hooks/usePaywall';
-import PaywallModal, { type PaywallReason } from '@/components/PaywallModal';
-import { usePlan } from '@/contexts/PlanContext';
+import CreationPaywallSheet from '@/components/CreationPaywallSheet';
 
 if (!import.meta.env.VITE_MAPBOX_TOKEN) {
   console.error('VITE_MAPBOX_TOKEN environment variable is not set');
@@ -33,14 +31,11 @@ const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
   const { user: authUser } = useAuth();
-  const { canCreateRoute, deductRouteCredit, upgradeToPlan } = usePaywall();
-  const { setPlan, setSubscriptionStatus } = usePlan();
 
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [paywallReason, setPaywallReason] = useState<PaywallReason>('route_credits');
   const [pendingPublishData, setPendingPublishData] = useState<PublishRouteFormData | null>(null);
   const isTransitioningRef = useRef(false);
 
@@ -277,27 +272,25 @@ const AddRoute = () => {
     }
   };
 
-  const handlePublish = (data: PublishRouteFormData) => {
-    const check = canCreateRoute();
-    if (!check.allowed) {
+  const handlePublish = async (data: PublishRouteFormData) => {
+    if (!authUser?.id) { toast.error('You must be signed in'); return; }
+
+    // Check subscription from DB
+    const { data: sub } = await supabase
+      .from('subscriptions')
+      .select('plan')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    const isPaid = sub?.plan === 'pro' || sub?.plan === 'club';
+
+    if (!isPaid) {
       setPendingPublishData(data);
-      setPaywallReason(check.reason!);
       setShowPaywall(true);
       return;
     }
-    doPublishRoute(data);
-  };
 
-  const handlePaywallResult = (success: boolean, method: 'per_item' | 'subscribe') => {
-    setShowPaywall(false);
-    if (!success || !pendingPublishData) return;
-    if (method === 'subscribe') {
-      setPlan('pro');
-      setSubscriptionStatus('active');
-      upgradeToPlan('pro');
-    }
-    doPublishRoute(pendingPublishData);
-    setPendingPublishData(null);
+    doPublishRoute(data);
   };
 
   const handleSaveDraft = (data: PublishRouteFormData) => {
@@ -394,12 +387,10 @@ const AddRoute = () => {
         onOpenChange={(open) => { if (!open) setPhase('pick'); }}
         onImport={handleGPXImport}
       />
-      <PaywallModal
+      <CreationPaywallSheet
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
-        reason={paywallReason}
-        creditsRemaining={authUser?.routeCredits ?? 0}
-        onPaymentResult={handlePaywallResult}
+        type="route"
       />
     </>
   );
