@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2, Crown } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, X, Users, MapPin, Eye, Globe, Lock, UserCheck, Shield, Hash, Image, Link as LinkIcon, Instagram, CheckSquare, Plus, Trash2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
+import CreationPaywallSheet from '@/components/CreationPaywallSheet';
+import { supabase } from '@/integrations/supabase/client';
 
 const CLUB_TYPES = ['Car Club', 'Motorcycle Club', 'Mixed', 'Brand-specific', 'Track / Performance', 'Off-road', 'Classic'];
 const TAG_OPTIONS = ['Porsche', 'BMW', 'Audi', 'Mercedes', 'VW', 'JDM', 'Supercars', 'Classics', 'EV', 'Ford', 'Ferrari', 'Lamborghini'];
@@ -60,9 +61,9 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 const AddClub = () => {
   const navigate = useNavigate();
   const { clubs: clubsRepo, state } = useData();
-  const { hasAccess, getPlanLabel } = usePlan();
   const { user: authUser } = useAuth();
   const currentUser = authUser;
+  const [showPaywall, setShowPaywall] = useState(false);
 
   // All hooks must be declared before early return
   const [formData, setFormData] = useState({
@@ -92,32 +93,7 @@ const AddClub = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Plan gate: require Club / Business plan
-  if (!hasAccess('create_clubs')) {
-    return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
-        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
-          <div className="px-4 py-3 flex items-center gap-3">
-            <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
-            <h1 className="text-lg font-bold text-foreground">Create Club</h1>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-clubs/10 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-clubs" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground">Club / Business Plan Required</h2>
-          <p className="text-sm text-muted-foreground">
-            Creating and managing clubs requires the {getPlanLabel('club')} plan (£6.99/mo).
-          </p>
-          <Button onClick={() => navigate('/upgrade')} className="mt-2 gap-2">
-            <Crown className="w-4 h-4" />
-            Upgrade Now
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Plan check is now done on submit via paywall
 
   const autoHandle = (name: string) => {
     return name.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20);
@@ -128,7 +104,6 @@ const AddClub = () => {
     if (!formData.name.trim()) errs.name = 'Club name is required';
     if (!formData.handle.trim()) errs.handle = 'Handle is required';
     else if (!/^[a-z0-9_]+$/.test(formData.handle)) errs.handle = 'Only lowercase letters, numbers, underscores';
-    else if (!clubsRepo.isHandleAvailable(formData.handle)) errs.handle = 'Handle already taken';
     if (!formData.location.trim()) errs.location = 'Location is required';
     if (!visibility) errs.visibility = 'Select visibility';
     if (!joinApproval) errs.joining = 'Select joining mode';
@@ -162,7 +137,7 @@ const AddClub = () => {
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     if (!currentUser) {
       toast.error('You must be logged in to create a club');
@@ -172,51 +147,80 @@ const AddClub = () => {
     setIsSubmitting(true);
 
     try {
+      // Check subscription from DB
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const isOrganiser = sub?.plan === 'club';
+
+      if (!isOrganiser) {
+        setShowPaywall(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check handle uniqueness
+      const { data: existing } = await supabase
+        .from('clubs')
+        .select('id')
+        .eq('handle', formData.handle.toLowerCase().trim())
+        .maybeSingle();
+
+      if (existing) {
+        toast.error('This handle is already taken');
+        setIsSubmitting(false);
+        return;
+      }
+
       const activeRules = DEFAULT_RULES.filter((_, i) => enabledRules[i]);
       const allRules = [...activeRules, ...customRules];
 
-      const newClub = clubsRepo.create({
+      const { data: newClub, error } = await supabase.from('clubs').insert({
+        created_by: currentUser.id,
         name: formData.name.trim(),
-        handle: formData.handle.trim(),
-        description: formData.description.trim(),
-        tagline: tags.length > 0 ? tags.slice(0, 2).join(' · ') : clubType || undefined,
-        location: formData.location.trim(),
-        locationCoords: formData.locationCoords,
-        coverPhoto: coverImage,
-        logo: logoImage,
-        image: null,
-        members: 1,
-        categories: tags,
-        clubType,
-        vehicleFocus,
-        membershipType: 'free',
-        visibility,
-        postingPermissions,
-        joinApproval,
-        roles: {
-          ownerId: currentUser.id,
-          adminIds: [currentUser.id],
-          moderatorIds: [],
-        },
-        socialLinks: {
+        handle: formData.handle.toLowerCase().trim(),
+        description: formData.description?.trim() || null,
+        logo_url: logoImage || null,
+        cover_url: coverImage || null,
+        club_type: clubType || null,
+        vehicle_focus: vehicleFocus,
+        tags: [...tags.map(t => t.toLowerCase()), ...(vehicleFocus || []).map(v => v.toLowerCase()), clubType?.toLowerCase() || ''].filter(Boolean),
+        visibility: visibility === 'inviteOnly' ? 'invite_only' : visibility,
+        join_mode: joinApproval === 'adminApproval' ? 'approval' : 'auto',
+        posting_permissions: postingPermissions === 'adminsOnly' ? 'admins_only' : 'any_member',
+        rules: allRules as any,
+        social_links: {
           instagram: formData.instagram || undefined,
           website: formData.website || undefined,
           tiktok: formData.tiktok || undefined,
           youtube: formData.youtube || undefined,
           x: formData.x || undefined,
-        },
-        rules: allRules,
-        tags: [...tags.map(t => t.toLowerCase()), ...(vehicleFocus || []).map(v => v.toLowerCase()), clubType?.toLowerCase() || ''].filter(Boolean),
-        createdBy: currentUser.id,
+        } as any,
+        lat: formData.locationCoords?.lat || null,
+        lng: formData.locationCoords?.lng || null,
+      }).select().single();
+
+      if (error) {
+        console.error('[CreateClub] Insert error:', error);
+        toast.error('Could not create club: ' + error.message);
+        return;
+      }
+
+      // Add creator as owner
+      await supabase.from('club_memberships').insert({
+        user_id: currentUser.id,
+        club_id: newClub.id,
+        role: 'owner',
       });
 
-      // Auto-join creator as admin
-      clubsRepo.join(currentUser.id, newClub.id);
-
-      toast.success('Club created successfully!', { description: formData.name });
-      navigate(`/club/${newClub.id}`);
-    } catch {
-      toast.error('Failed to create club. Please try again.');
+      toast.success('Club created!', { description: formData.name });
+      navigate(`/club/${newClub.id}`, { replace: true });
+    } catch (err: any) {
+      console.error('[CreateClub] Error:', err);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -603,6 +607,12 @@ const AddClub = () => {
           </div>
         </div>
       </div>
+
+      <CreationPaywallSheet
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        type="club"
+      />
     </div>
   );
 };
