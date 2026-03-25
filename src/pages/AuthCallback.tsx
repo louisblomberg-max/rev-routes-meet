@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -8,7 +9,9 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleCallback = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
+
       if (error || !session) {
+        toast.error('Authentication failed. Please try again.');
         navigate('/auth', { replace: true });
         return;
       }

@@ -4,12 +4,11 @@ import { ArrowLeft, Mail, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import revnetLogo from '@/assets/revnet-logo-new.png';
 
 const AuthForgot = () => {
   const navigate = useNavigate();
-  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +22,13 @@ const AuthForgot = () => {
     }
     setIsSubmitting(true);
     try {
-      await resetPassword(email);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: window.location.origin + '/auth/reset',
+      });
+      if (resetError) {
+        setError('Could not send reset link. Please try again.');
+        return;
+      }
       setSent(true);
     } catch {
       setError('Could not send reset link. Please try again.');
@@ -72,7 +77,7 @@ const AuthForgot = () => {
                 placeholder="you@example.com"
                 className="pl-10 rounded-xl h-11"
                 value={email}
-                onChange={e => { setEmail(e.target.value); setError(''); }}
+                onChange={(e) => { setEmail(e.target.value); setError(''); }}
               />
             </div>
             {error && <p className="text-xs text-destructive">{error}</p>}
