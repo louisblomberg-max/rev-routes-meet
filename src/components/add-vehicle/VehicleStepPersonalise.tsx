@@ -1,11 +1,11 @@
 import { useState, useRef } from 'react';
 import {
-  Camera, X, Plus, Eye, Users, Lock, Check, Sparkles,
+  Camera, X, Plus, Eye, Users, Lock, Check,
   Tag, ImagePlus,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import type { VehicleFormData } from '@/models/vehicle';
 import { MOD_PRESETS, USAGE_OPTIONS } from '@/models/vehicle';
 
@@ -63,28 +63,15 @@ const VehicleStepPersonalise = ({ data, onChange, onSave, onBack, isSaving }: Pr
 
   return (
     <div className="flex-1 flex flex-col px-5 py-6 gap-7 animate-in fade-in slide-in-from-right-4 duration-300 pb-32">
-      {/* Nickname */}
-      <div>
-        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5" /> Nickname
-        </Label>
-        <Input
-          placeholder='e.g. "Black Beast"'
-          value={data.nickname}
-          onChange={(e) => onChange({ nickname: e.target.value })}
-          className="h-12 rounded-xl bg-card border-border text-foreground"
-        />
-      </div>
-
-      {/* Description */}
+      {/* Details / Description */}
       <div>
         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 block">
-          Description
+          Details
         </Label>
         <Textarea
           placeholder="Tell the community about your build..."
-          value={data.description}
-          onChange={(e) => onChange({ description: e.target.value })}
+          value={data.details}
+          onChange={(e) => onChange({ details: e.target.value })}
           className="min-h-[80px] rounded-xl bg-card border-border text-foreground resize-none"
         />
       </div>

@@ -1,7 +1,7 @@
 // ============================
 // Vehicle Data Model (Supabase-ready)
 // ============================
-// All field names use snake_case to match future DB columns.
+// All field names use snake_case to match DB columns.
 
 export interface VehicleFormData {
   // Step 1 — Basics
@@ -11,18 +11,16 @@ export interface VehicleFormData {
   year: number | null;
 
   // Step 2 — Core Details
-  fuel_type: string;
   transmission: string;
   drivetrain: string;
-  engine_size: string;
-  power: string;
+  engine: string;        // maps to vehicles.engine
   category: string[];
 
   // Step 3 — Personalisation
-  nickname: string;
-  description: string;
-  images: string[];       // URLs or base64 previews (frontend-only for now)
+  details: string;       // maps to vehicles.details
+  images: string[];      // URLs or base64 previews (frontend-only for now)
   modifications: string[];
+  mods_text: string;     // maps to vehicles.mods_text
   usage: string;
   visibility: 'public' | 'friends' | 'private';
   is_active: boolean;
@@ -33,16 +31,14 @@ export const EMPTY_VEHICLE: VehicleFormData = {
   brand: '',
   model: '',
   year: null,
-  fuel_type: '',
   transmission: '',
   drivetrain: '',
-  engine_size: '',
-  power: '',
+  engine: '',
   category: [],
-  nickname: '',
-  description: '',
+  details: '',
   images: [],
   modifications: [],
+  mods_text: '',
   usage: '',
   visibility: 'public',
   is_active: false,
@@ -75,14 +71,7 @@ export const MOTORCYCLE_CATEGORIES = [
   'Sport', 'Naked', 'Touring', 'Cruiser', 'Adventure', 'Supermoto', 'Classic',
 ] as const;
 
-// ---- Fuel / Transmission / Drivetrain ----
-export const FUEL_TYPES = [
-  { value: 'petrol', label: 'Petrol' },
-  { value: 'diesel', label: 'Diesel' },
-  { value: 'electric', label: 'Electric' },
-  { value: 'hybrid', label: 'Hybrid' },
-] as const;
-
+// ---- Transmission / Drivetrain ----
 export const TRANSMISSION_TYPES = [
   { value: 'manual', label: 'Manual' },
   { value: 'automatic', label: 'Automatic' },

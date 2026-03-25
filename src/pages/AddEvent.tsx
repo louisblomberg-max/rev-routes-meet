@@ -335,7 +335,7 @@ const AddEvent = () => {
 
       if (profile && (profile.free_event_credits ?? 0) > 0) {
         // Use the free credit via RPC
-        const { data: creditUsed } = await supabase.rpc('use_event_credit', { user_id: authUser.id });
+        const { data: creditUsed } = await supabase.rpc('use_event_credit', { p_user_id: authUser.id });
         if (creditUsed) {
           toast.success('Your free event post has been used.', {
             description: 'Future events cost £2.99 each or upgrade to Pro.',

@@ -209,16 +209,19 @@ export type Database = {
         Row: {
           conversation_id: string
           joined_at: string | null
+          last_read_at: string | null
           user_id: string
         }
         Insert: {
           conversation_id: string
           joined_at?: string | null
+          last_read_at?: string | null
           user_id: string
         }
         Update: {
           conversation_id?: string
           joined_at?: string | null
+          last_read_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -571,9 +574,12 @@ export type Database = {
           body: string | null
           category: string | null
           club_id: string | null
+          comment_count: number | null
           created_at: string | null
           id: string
           photos: string[] | null
+          status: string | null
+          tags: string[] | null
           title: string
           type: string | null
           upvotes: number | null
@@ -583,9 +589,12 @@ export type Database = {
           body?: string | null
           category?: string | null
           club_id?: string | null
+          comment_count?: number | null
           created_at?: string | null
           id?: string
           photos?: string[] | null
+          status?: string | null
+          tags?: string[] | null
           title: string
           type?: string | null
           upvotes?: number | null
@@ -595,9 +604,12 @@ export type Database = {
           body?: string | null
           category?: string | null
           club_id?: string | null
+          comment_count?: number | null
           created_at?: string | null
           id?: string
           photos?: string[] | null
+          status?: string | null
+          tags?: string[] | null
           title?: string
           type?: string | null
           upvotes?: number | null
@@ -911,6 +923,7 @@ export type Database = {
           show_garage_on_profile: boolean | null
           show_routes_i_create: boolean | null
           stripe_connect_account_id: string | null
+          updated_at: string | null
           username: string | null
           who_can_message: string | null
         }
@@ -941,6 +954,7 @@ export type Database = {
           show_garage_on_profile?: boolean | null
           show_routes_i_create?: boolean | null
           stripe_connect_account_id?: string | null
+          updated_at?: string | null
           username?: string | null
           who_can_message?: string | null
         }
@@ -971,6 +985,7 @@ export type Database = {
           show_garage_on_profile?: boolean | null
           show_routes_i_create?: boolean | null
           stripe_connect_account_id?: string | null
+          updated_at?: string | null
           username?: string | null
           who_can_message?: string | null
         }
@@ -1098,6 +1113,39 @@ export type Database = {
           {
             foreignKeyName: "routes_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_events: {
+        Row: {
+          event_id: string
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_events_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_events_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1349,7 +1397,9 @@ export type Database = {
           id: string
           pending_plan: string | null
           plan: string | null
+          revenuecat_app_user_id: string | null
           status: string | null
+          stripe_customer_id: string | null
           stripe_subscription_id: string | null
           user_id: string | null
         }
@@ -1360,7 +1410,9 @@ export type Database = {
           id?: string
           pending_plan?: string | null
           plan?: string | null
+          revenuecat_app_user_id?: string | null
           status?: string | null
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           user_id?: string | null
         }
@@ -1371,7 +1423,9 @@ export type Database = {
           id?: string
           pending_plan?: string | null
           plan?: string | null
+          revenuecat_app_user_id?: string | null
           status?: string | null
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           user_id?: string | null
         }
@@ -1530,6 +1584,33 @@ export type Database = {
           },
         ]
       }
+      waitlist: {
+        Row: {
+          confirmed: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          source: string | null
+          unsubscribed: boolean | null
+        }
+        Insert: {
+          confirmed?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          source?: string | null
+          unsubscribed?: boolean | null
+        }
+        Update: {
+          confirmed?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          source?: string | null
+          unsubscribed?: boolean | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       vehicles_public: {
@@ -1640,7 +1721,7 @@ export type Database = {
         Args: { new_plan: string; user_id: string }
         Returns: undefined
       }
-      use_event_credit: { Args: { user_id: string }; Returns: boolean }
+      use_event_credit: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

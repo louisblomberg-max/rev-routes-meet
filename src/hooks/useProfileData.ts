@@ -163,9 +163,10 @@ export function useUserEvents() {
     if (!user?.id) { setIsLoading(false); return; }
     const now = new Date().toISOString();
     (async () => {
-      const [attendingRes, hostingRes] = await Promise.all([
+      const [attendingRes, hostingRes, savedRes] = await Promise.all([
         supabase.from('event_attendees').select('event_id, events(*)').eq('user_id', user.id),
         supabase.from('events').select('*').eq('created_by', user.id),
+        supabase.from('saved_events').select('event_id, events(*)').eq('user_id', user.id),
       ]);
 
       const attendedEvents = (attendingRes.data || []).map((a: any) => ({
@@ -178,11 +179,18 @@ export function useUserEvents() {
         ...e, isHost: true, status: 'hosting', date: e.date_start, eventType: e.type || 'Meets', attendees: 0,
       }));
 
+      const savedEvents = (savedRes.data || []).map((s: any) => ({
+        ...s.events, id: s.events?.id, isHost: false, status: 'saved',
+        title: s.events?.title, date: s.events?.date_start, location: s.events?.location,
+        eventType: s.events?.type || 'Meets', attendees: 0,
+      })).filter((e: any) => e.id);
+
       const allEvents = [...attendedEvents, ...hostedEvents];
       const unique = Array.from(new Map(allEvents.map(e => [e.id, e])).values());
 
       setUpcoming(unique.filter(e => !e.date_start || new Date(e.date_start) >= new Date(now)));
       setPast(unique.filter(e => e.date_start && new Date(e.date_start) < new Date(now)));
+      setSaved(savedEvents);
       setIsLoading(false);
     })();
   }, [user?.id]);
