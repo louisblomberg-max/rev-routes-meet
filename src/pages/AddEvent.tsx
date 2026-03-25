@@ -18,7 +18,7 @@ import { useData } from '@/contexts/DataContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
-import EventPostingPaywall from '@/components/EventPostingPaywall';
+import CreationPaywallSheet from '@/components/CreationPaywallSheet';
 import type { EventType, VehicleType, EntryFeeType } from '@/models';
 
 const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
@@ -261,7 +261,7 @@ const AddEvent = () => {
     }
   };
 
-  const doPublish = async (paymentStatus: string = 'free') => {
+  const saveEvent = async () => {
     setIsSubmitting(true);
     try {
       const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0;
@@ -297,7 +297,7 @@ const AddEvent = () => {
         return;
       }
 
-      toast.success('Event published!', { description: formData.name });
+      toast.success('Event published! 🎉', { description: formData.name });
       navigate('/', { replace: true });
     } catch (err: any) {
       console.error('[AddEvent] Error:', err);
@@ -309,46 +309,47 @@ const AddEvent = () => {
 
   const handleSubmit = async () => {
     if (!validate()) return;
+    if (!authUser?.id) { toast.error('You must be signed in'); return; }
 
-    // Step 1: Pro/Club users — unlimited events
-    if (effectivePlan === 'pro' || effectivePlan === 'club') {
-      doPublish('free');
-      return;
-    }
+    setIsSubmitting(true);
+    try {
+      // Check subscription plan from DB
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
 
-    // Step 2: Free user — check free credits
-    if (authUser?.id) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('free_event_credits')
-        .eq('id', authUser.id)
-        .single();
+      const isPaid = sub?.plan === 'pro' || sub?.plan === 'club';
 
-      if (profile && (profile.free_event_credits ?? 0) > 0) {
-        // Use the free credit via RPC
-        const { data: creditUsed } = await supabase.rpc('use_event_credit', { p_user_id: authUser.id });
-        if (creditUsed) {
-          toast.success('Your free event post has been used.', {
-            description: 'Future events cost £2.99 each or upgrade to Pro.',
-          });
-          doPublish('credit_used');
-          return;
-        }
+      if (isPaid) {
+        // Pro/Club — unlimited events
+        await saveEvent();
+        return;
       }
-    }
 
-    // Step 3: No credits — show paywall
-    setShowPaywall(true);
-  };
+      // Free user — try to use a free credit
+      const { data: creditUsed, error: creditError } = await supabase
+        .rpc('use_event_credit', { p_user_id: authUser.id });
 
-  const handlePaywallPayment = async () => {
-    // Redirect to Stripe Checkout for £2.99 event post
-    const { data, error } = await supabase.functions.invoke('charge-event-post');
-    if (error || !data?.url) {
-      toast.error('Payment failed — please try again.');
-      return;
+      console.log('[AddEvent] Credit used:', creditUsed, creditError);
+
+      if (creditUsed) {
+        toast.success('Your free event post has been used.', {
+          description: 'Future events cost £2.99 each or upgrade to Pro.',
+        });
+        await saveEvent();
+        return;
+      }
+
+      // No credits left — show paywall
+      setShowPaywall(true);
+    } catch (err) {
+      console.error('[AddEvent] handleSubmit error:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
-    window.open(data.url, '_blank');
   };
 
   const handleConnectStripe = async () => {
@@ -841,11 +842,10 @@ const AddEvent = () => {
       </div>
 
       {/* Event Posting Paywall */}
-      <EventPostingPaywall
+      <CreationPaywallSheet
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
-        onPayPerEvent={handlePaywallPayment}
-        onUpgrade={() => navigate('/upgrade')}
+        type="event"
       />
     </div>
   );
