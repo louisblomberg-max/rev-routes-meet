@@ -109,32 +109,7 @@ const AddService = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Plan gate: require Club / Business plan
-  if (!hasAccess('create_services')) {
-    return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
-        <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
-          <div className="px-4 py-3 flex items-center gap-3">
-            <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
-            <h1 className="text-lg font-bold text-foreground">Add Service</h1>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-services/10 flex items-center justify-center">
-            <Lock className="w-8 h-8 text-services" />
-          </div>
-          <h2 className="text-xl font-bold text-foreground">Club / Business Plan Required</h2>
-          <p className="text-sm text-muted-foreground">
-            Publishing service listings requires the {getPlanLabel('club')} plan (£6.99/mo).
-          </p>
-          <Button onClick={() => navigate('/upgrade')} className="mt-2 gap-2">
-            <Crown className="w-4 h-4" />
-            Upgrade Now
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Plan check is now done on submit via paywall
 
   const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && coverImage && formData.phone.trim() && formData.website.trim();
 
