@@ -1,42 +1,63 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/integrations/supabase/client'
 
-const AuthCallback = () => {
-  const navigate = useNavigate();
+export default function AuthCallback() {
+  const navigate = useNavigate()
+  const [message, setMessage] = useState('Signing you in...')
 
   useEffect(() => {
-    const handleCallback = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+    const handle = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000))
 
-      if (error || !session) {
-        toast.error('Authentication failed. Please try again.');
-        navigate('/auth', { replace: true });
-        return;
+        const { data: { session }, error } = await supabase.auth.getSession()
+
+        if (error || !session?.user) {
+          console.error('[AuthCallback] No session:', error)
+          setMessage('Something went wrong')
+          setTimeout(() => navigate('/auth', { replace: true }), 1500)
+          return
+        }
+
+        const userId = session.user.id
+        console.log('[AuthCallback] Got session for user:', userId)
+
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('onboarding_complete')
+          .eq('id', userId)
+          .maybeSingle()
+
+        console.log('[AuthCallback] Profile result:', profile, profileError)
+
+        if (profileError || !profile) {
+          console.log('[AuthCallback] No profile — sending to onboarding')
+          navigate('/onboarding', { replace: true })
+          return
+        }
+
+        if (profile.onboarding_complete === true) {
+          console.log('[AuthCallback] Complete — sending to map')
+          navigate('/', { replace: true })
+        } else {
+          console.log('[AuthCallback] Incomplete — sending to onboarding')
+          navigate('/onboarding', { replace: true })
+        }
+
+      } catch (err) {
+        console.error('[AuthCallback] Caught error:', err)
+        navigate('/auth', { replace: true })
       }
+    }
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_complete')
-        .eq('id', session.user.id)
-        .maybeSingle();
-
-      if (profile?.onboarding_complete) {
-        navigate('/', { replace: true });
-      } else {
-        navigate('/onboarding', { replace: true });
-      }
-    };
-
-    handleCallback();
-  }, [navigate]);
+    handle()
+  }, [])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="mt-4 text-muted-foreground">{message}</p>
     </div>
-  );
-};
-
-export default AuthCallback;
+  )
+}
