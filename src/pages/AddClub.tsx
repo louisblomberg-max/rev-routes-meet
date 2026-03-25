@@ -104,7 +104,6 @@ const AddClub = () => {
     if (!formData.name.trim()) errs.name = 'Club name is required';
     if (!formData.handle.trim()) errs.handle = 'Handle is required';
     else if (!/^[a-z0-9_]+$/.test(formData.handle)) errs.handle = 'Only lowercase letters, numbers, underscores';
-    else if (!clubsRepo.isHandleAvailable(formData.handle)) errs.handle = 'Handle already taken';
     if (!formData.location.trim()) errs.location = 'Location is required';
     if (!visibility) errs.visibility = 'Select visibility';
     if (!joinApproval) errs.joining = 'Select joining mode';
@@ -138,7 +137,7 @@ const AddClub = () => {
     setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     if (!currentUser) {
       toast.error('You must be logged in to create a club');
@@ -148,51 +147,80 @@ const AddClub = () => {
     setIsSubmitting(true);
 
     try {
+      // Check subscription from DB
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const isOrganiser = sub?.plan === 'club';
+
+      if (!isOrganiser) {
+        setShowPaywall(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check handle uniqueness
+      const { data: existing } = await supabase
+        .from('clubs')
+        .select('id')
+        .eq('handle', formData.handle.toLowerCase().trim())
+        .maybeSingle();
+
+      if (existing) {
+        toast.error('This handle is already taken');
+        setIsSubmitting(false);
+        return;
+      }
+
       const activeRules = DEFAULT_RULES.filter((_, i) => enabledRules[i]);
       const allRules = [...activeRules, ...customRules];
 
-      const newClub = clubsRepo.create({
+      const { data: newClub, error } = await supabase.from('clubs').insert({
+        created_by: currentUser.id,
         name: formData.name.trim(),
-        handle: formData.handle.trim(),
-        description: formData.description.trim(),
-        tagline: tags.length > 0 ? tags.slice(0, 2).join(' · ') : clubType || undefined,
-        location: formData.location.trim(),
-        locationCoords: formData.locationCoords,
-        coverPhoto: coverImage,
-        logo: logoImage,
-        image: null,
-        members: 1,
-        categories: tags,
-        clubType,
-        vehicleFocus,
-        membershipType: 'free',
-        visibility,
-        postingPermissions,
-        joinApproval,
-        roles: {
-          ownerId: currentUser.id,
-          adminIds: [currentUser.id],
-          moderatorIds: [],
-        },
-        socialLinks: {
+        handle: formData.handle.toLowerCase().trim(),
+        description: formData.description?.trim() || null,
+        logo_url: logoImage || null,
+        cover_url: coverImage || null,
+        club_type: clubType || null,
+        vehicle_focus: vehicleFocus,
+        tags: [...tags.map(t => t.toLowerCase()), ...(vehicleFocus || []).map(v => v.toLowerCase()), clubType?.toLowerCase() || ''].filter(Boolean),
+        visibility: visibility === 'inviteOnly' ? 'invite_only' : visibility,
+        join_mode: joinApproval === 'adminApproval' ? 'approval' : 'auto',
+        posting_permissions: postingPermissions === 'adminsOnly' ? 'admins_only' : 'any_member',
+        rules: allRules as any,
+        social_links: {
           instagram: formData.instagram || undefined,
           website: formData.website || undefined,
           tiktok: formData.tiktok || undefined,
           youtube: formData.youtube || undefined,
           x: formData.x || undefined,
-        },
-        rules: allRules,
-        tags: [...tags.map(t => t.toLowerCase()), ...(vehicleFocus || []).map(v => v.toLowerCase()), clubType?.toLowerCase() || ''].filter(Boolean),
-        createdBy: currentUser.id,
+        } as any,
+        lat: formData.locationCoords?.lat || null,
+        lng: formData.locationCoords?.lng || null,
+      }).select().single();
+
+      if (error) {
+        console.error('[CreateClub] Insert error:', error);
+        toast.error('Could not create club: ' + error.message);
+        return;
+      }
+
+      // Add creator as owner
+      await supabase.from('club_memberships').insert({
+        user_id: currentUser.id,
+        club_id: newClub.id,
+        role: 'owner',
       });
 
-      // Auto-join creator as admin
-      clubsRepo.join(currentUser.id, newClub.id);
-
-      toast.success('Club created successfully!', { description: formData.name });
-      navigate(`/club/${newClub.id}`);
-    } catch {
-      toast.error('Failed to create club. Please try again.');
+      toast.success('Club created!', { description: formData.name });
+      navigate(`/club/${newClub.id}`, { replace: true });
+    } catch (err: any) {
+      console.error('[CreateClub] Error:', err);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
