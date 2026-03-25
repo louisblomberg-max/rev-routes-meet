@@ -153,18 +153,11 @@ const AddService = () => {
     toast.success('Monday hours copied to weekdays');
   };
 
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    if (!currentUser) {
-      toast.error('You must be logged in to add a service');
-      return;
-    }
-
+  const saveService = async () => {
     setIsSubmitting(true);
-
     try {
       const { error } = await supabase.from('services').insert({
-        created_by: currentUser.id,
+        created_by: currentUser!.id,
         name: formData.name.trim(),
         description: formData.description?.trim() || null,
         tagline: formData.tagline?.trim() || null,
@@ -193,6 +186,38 @@ const AddService = () => {
       console.error('[AddService] Error:', err);
       toast.error('Something went wrong. Please try again.');
     } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    if (!currentUser) {
+      toast.error('You must be logged in to add a service');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Check subscription from DB
+      const { data: sub } = await supabase
+        .from('subscriptions')
+        .select('plan')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      const isOrganiser = sub?.plan === 'club';
+
+      if (!isOrganiser) {
+        setShowPaywall(true);
+        setIsSubmitting(false);
+        return;
+      }
+
+      await saveService();
+    } catch (err) {
+      console.error('[AddService] handleSubmit error:', err);
+      toast.error('Something went wrong.');
       setIsSubmitting(false);
     }
   };
@@ -491,6 +516,12 @@ const AddService = () => {
           </Button>
         </div>
       </div>
+
+      <CreationPaywallSheet
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        type="service"
+      />
     </div>
   );
 };
