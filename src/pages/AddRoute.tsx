@@ -3,6 +3,7 @@
  * Uses the new RouteDraft model. All business logic in routeService.ts.
  */
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -234,43 +235,46 @@ const AddRoute = () => {
     }
   }, []);
 
-  const doPublishRoute = (data: PublishRouteFormData) => {
+  const doPublishRoute = async (data: PublishRouteFormData) => {
     const draft = data.draft;
     if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
       return;
     }
-    const userId = authUser?.id || 'anon';
+    const userId = authUser?.id || null;
     const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
-    routesRepo.create({
-      name: data.name,
-      description: data.description,
-      distance: `${(draft.stats.distanceMeters / 1609.34).toFixed(1)} mi`,
-      type: data.routeType || 'Mixed',
-      vehicleType: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
-      rating: 0,
-      createdBy: userId,
-      lat: draft.startLat,
-      lng: draft.startLng,
-      polyline: JSON.stringify(draft.geometry),
-      saves: 0,
-      drives: 0,
-      visibility: data.visibility?.level || 'public',
-      tags: [data.routeType?.toLowerCase() || 'mixed', ...data.vehicleTypes.map((v: string) => v.toLowerCase())],
-      difficulty: data.difficulty?.toLowerCase() as any,
-      surfaceType: data.surfaceType?.toLowerCase() as any,
-      safetyTags: data.safetyTags,
-      durationMinutes,
-    });
 
-    // Deduct credit if free user with credits
-    const check = canCreateRoute();
-    if (check.creditsRemaining > 0) {
-      deductRouteCredit();
+    try {
+      const { error } = await supabase.from('routes').insert({
+        created_by: userId,
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        geometry: draft.geometry as any,
+        distance_meters: draft.stats.distanceMeters || null,
+        duration_minutes: durationMinutes || null,
+        visibility: data.visibility?.level || 'public',
+        lat: draft.startLat || null,
+        lng: draft.startLng || null,
+        photos: [],
+        type: data.routeType || null,
+        difficulty: data.difficulty?.toLowerCase() || null,
+        surface_type: data.surfaceType?.toLowerCase() || null,
+        safety_tags: data.safetyTags || [],
+        vehicle_type: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
+      });
+
+      if (error) {
+        console.error('[AddRoute] Insert error:', error);
+        toast.error('Could not publish route: ' + error.message);
+        return;
+      }
+
+      toast.success('Route published!', { description: data.name });
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      console.error('[AddRoute] Error:', err);
+      toast.error('Something went wrong. Please try again.');
     }
-
-    toast.success('Route published — shown on map', { description: data.name });
-    navigate('/', { state: { centerOn: { lat: draft.startLat, lng: draft.startLng }, category: 'routes' } });
   };
 
   const handlePublish = (data: PublishRouteFormData) => {

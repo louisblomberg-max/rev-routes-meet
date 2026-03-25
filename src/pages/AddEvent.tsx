@@ -261,59 +261,50 @@ const AddEvent = () => {
     }
   };
 
-  const doPublish = (paymentStatus: string = 'free') => {
+  const doPublish = async (paymentStatus: string = 'free') => {
     setIsSubmitting(true);
+    try {
+      const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0;
 
-    const entryFeeType: EntryFeeType = formData.entryFee ? 'paid' : 'free';
-    const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : undefined;
+      const { error } = await supabase.from('events').insert({
+        created_by: authUser?.id || null,
+        title: formData.name.trim(),
+        description: formData.description?.trim() || null,
+        banner_url: bannerImage?.preview || null,
+        type: eventType || 'meets',
+        vehicle_types: selectedVehicleTypes.filter(t => t !== 'all'),
+        vehicle_brands: vehicleBrands,
+        vehicle_categories: vehicleCategories,
+        vehicle_ages: vehicleAges.filter(a => a !== 'all'),
+        date_start: startDate ? startDate.toISOString() : new Date().toISOString(),
+        date_end: endDate?.toISOString() || null,
+        location: formData.locationName.trim(),
+        lat: formData.locationCoords?.lat ?? null,
+        lng: formData.locationCoords?.lng ?? null,
+        max_attendees: parseInt(formData.maxAttendees) || null,
+        is_first_come_first_serve: formData.firstComeFirstServe,
+        entry_fee: entryFeeAmount,
+        is_free: !entryFeeAmount || entryFeeAmount === 0,
+        is_ticketed: ticketingEnabled,
+        ticket_price: ticketingEnabled ? ticketPriceNum : 0,
+        visibility,
+        club_id: visibility === 'club' ? clubId || null : null,
+      });
 
-    const newEvent = eventsRepo.create({
-      title: formData.name,
-      description: formData.description,
-      locationName: formData.locationName,
-      location: formData.locationName,
-      lat: formData.locationCoords?.lat ?? 51.5074,
-      lng: formData.locationCoords?.lng ?? -0.1278,
+      if (error) {
+        console.error('[AddEvent] Insert error:', error);
+        toast.error('Could not create event: ' + error.message);
+        return;
+      }
 
-      eventType: eventType as EventType,
-      vehicleType: selectedVehicleTypes.includes('all') ? 'all' : (selectedVehicleTypes[0] || 'all'),
-      vehicleBrands,
-      vehicleCategories,
-      vehicleAge: vehicleAges.includes('all') ? 'all' : (vehicleAges[0] || 'all'),
-      vehicleAges: vehicleAges.filter(a => a !== 'all'),
-
-      startDate: startDate ? startDate.toISOString() : new Date().toISOString(),
-      endDate: endDate?.toISOString(),
-      startTime,
-      endTime,
-
-      date: startDate ? format(startDate, "EEE, MMM d • ") + startTime : 'TBD',
-
-      visibility,
-      clubId: visibility === 'club' ? clubId : undefined,
-
-      maxAttendees: parseInt(formData.maxAttendees) || 50,
-      attendees: 0,
-      attendeesList: [],
-      firstComeFirstServe: formData.firstComeFirstServe,
-      entryFeeType,
-      entryFeeAmount,
-      currency: 'GBP',
-
-      entryFee: formData.entryFee ? `£${formData.feeAmount || '0'}` : 'Free',
-      vehicleTypes: selectedVehicleTypes.includes('all') ? ['All Welcome'] : selectedVehicleTypes.map(vt => VEHICLE_TYPE_OPTIONS.find(o => o.id === vt)?.label || vt),
-      ticketLimit: parseInt(formData.maxAttendees) || undefined,
-
-      bannerImage: bannerImage?.preview,
-      photos: bannerImage ? [bannerImage.preview] : undefined,
-
-      createdBy: authUser?.id || 'unknown',
-      tags: [],
-    });
-
-    toast.success('Event published — shown on map', { description: formData.name });
-    setIsSubmitting(false);
-    navigate('/', { state: { centerOn: { lat: newEvent.lat, lng: newEvent.lng }, category: 'events' } });
+      toast.success('Event published!', { description: formData.name });
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      console.error('[AddEvent] Error:', err);
+      toast.error('Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSubmit = async () => {
