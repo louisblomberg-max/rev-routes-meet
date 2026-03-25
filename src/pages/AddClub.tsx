@@ -607,6 +607,12 @@ const AddClub = () => {
           </div>
         </div>
       </div>
+
+      <CreationPaywallSheet
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        type="club"
+      />
     </div>
   );
 };
