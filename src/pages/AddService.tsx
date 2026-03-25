@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Lock, Star, Copy, AlertCircle, Crown } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -177,7 +178,7 @@ const AddService = () => {
     toast.success('Monday hours copied to weekdays');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validate()) return;
     if (!currentUser) {
       toast.error('You must be logged in to add a service');
@@ -187,29 +188,35 @@ const AddService = () => {
     setIsSubmitting(true);
 
     try {
-      servicesRepo.create({
+      const { error } = await supabase.from('services').insert({
+        created_by: currentUser.id,
         name: formData.name.trim(),
-        category: formData.categories[0],
-        serviceTypes: formData.categories,
-        rating: 0,
-        distance: '0 mi',
-        reviewCount: 0,
-        openingHours: formatOpeningHours(),
-        phone: formData.phone ? `${formData.countryCode} ${formData.phone}` : '',
-        address: formData.location.trim(),
-        isOpen: true,
-        priceRange: formData.priceRange || '$$',
-        lat: formData.locationCoords?.lat,
-        lng: formData.locationCoords?.lng,
-        createdBy: currentUser.id,
-        visibility: (formData as any).visibility || 'public',
-        tags: formData.categories.map((c: string) => c.toLowerCase()),
+        description: formData.description?.trim() || null,
+        tagline: formData.tagline?.trim() || null,
+        lat: formData.locationCoords?.lat || null,
+        lng: formData.locationCoords?.lng || null,
+        address: formData.location.trim() || null,
+        phone: formData.phone ? `${formData.countryCode} ${formData.phone}` : null,
+        website: formData.website?.trim() || null,
+        types: formData.categories,
+        service_type: formData.serviceType || 'fixed',
+        is_24_7: formData.is24h,
+        is_emergency: formData.isEmergency,
+        hide_exact_address: formData.hideAddress,
+        hours: formData.is24h ? { '24/7': true } : dayHours as any,
       });
 
-      toast.success('Service published — shown on map', { description: `${formData.name} is now listed.` });
-      navigate('/', { state: { centerOn: { lat: formData.locationCoords?.lat, lng: formData.locationCoords?.lng }, category: 'services' } });
-    } catch {
-      toast.error('Failed to add service. Please try again.');
+      if (error) {
+        console.error('[AddService] Insert error:', error);
+        toast.error('Could not create listing: ' + error.message);
+        return;
+      }
+
+      toast.success('Service listing created!', { description: `${formData.name} is now listed.` });
+      navigate('/', { replace: true });
+    } catch (err: any) {
+      console.error('[AddService] Error:', err);
+      toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

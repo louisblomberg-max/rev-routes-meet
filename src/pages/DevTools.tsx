@@ -150,17 +150,32 @@ const DevTools = () => {
 
   const [profiles, setProfiles] = useState<ProfilePreset[]>([]);
   const [loadingProfiles, setLoadingProfiles] = useState(true);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [activePreset, setActivePreset] = useState<string | null>(() => {
     return localStorage.getItem('revnet_dev_preset') || null;
   });
 
   useEffect(() => {
     (async () => {
+      const { data: { user: su } } = await supabase.auth.getUser();
+      if (su?.email !== 'louisblomberg@gmail.com') {
+        setIsAdmin(false);
+        return;
+      }
+      setIsAdmin(true);
       const { data } = await supabase.from('profiles').select('id, username, display_name, avatar_url, plan').limit(20);
       setProfiles(data || []);
       setLoadingProfiles(false);
     })();
   }, []);
+
+  if (isAdmin === null) {
+    return <div className="mobile-container bg-background min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  }
+  if (isAdmin === false) {
+    navigate('/settings', { replace: true });
+    return null;
+  }
 
   const switchUser = (profile: ProfilePreset) => {
     updateProfile({
