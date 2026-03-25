@@ -129,11 +129,11 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     },
     saveEvent: (userId, eventId) => {
       setLocalSavedEvents(prev => [...prev, eventId]);
-      (async () => { await supabase.from('event_attendees').insert({ user_id: userId, event_id: eventId, status: 'attending' }); })();
+      (async () => { await supabase.from('saved_events').insert({ user_id: userId, event_id: eventId }); })();
     },
     unsaveEvent: (userId, eventId) => {
       setLocalSavedEvents(prev => prev.filter(id => id !== eventId));
-      (async () => { await supabase.from('event_attendees').delete().eq('user_id', userId).eq('event_id', eventId); })();
+      (async () => { await supabase.from('saved_events').delete().eq('user_id', userId).eq('event_id', eventId); })();
     },
     update: (id, updates) => {
       setLocalEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));

@@ -1,9 +1,9 @@
-import { Fuel, Cog, CircleDot, Gauge, Zap, ChevronRight } from 'lucide-react';
+import { Cog, CircleDot, Gauge, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { VehicleFormData } from '@/models/vehicle';
 import {
-  FUEL_TYPES, TRANSMISSION_TYPES, DRIVETRAIN_TYPES,
+  TRANSMISSION_TYPES, DRIVETRAIN_TYPES,
   CAR_CATEGORIES, MOTORCYCLE_CATEGORIES,
 } from '@/models/vehicle';
 
@@ -64,14 +64,6 @@ const VehicleStepDetails = ({ data, onChange, onNext, onBack }: Props) => {
 
   return (
     <div className="flex-1 flex flex-col px-5 py-6 gap-6 animate-in fade-in slide-in-from-right-4 duration-300">
-      {/* Fuel Type */}
-      <div>
-        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-          <Fuel className="w-3.5 h-3.5" /> Fuel Type
-        </Label>
-        <SelectChips options={FUEL_TYPES} value={data.fuel_type} onChange={(v: string) => onChange({ fuel_type: v })} />
-      </div>
-
       {/* Transmission */}
       <div>
         <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
@@ -90,30 +82,17 @@ const VehicleStepDetails = ({ data, onChange, onNext, onBack }: Props) => {
         </div>
       )}
 
-      {/* Engine Size & Power */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-            <Gauge className="w-3.5 h-3.5" /> Engine Size
-          </Label>
-          <Input
-            placeholder="e.g. 2.0L"
-            value={data.engine_size}
-            onChange={(e) => onChange({ engine_size: e.target.value })}
-            className="h-12 rounded-xl bg-card border-border text-foreground"
-          />
-        </div>
-        <div>
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5" /> Power
-          </Label>
-          <Input
-            placeholder="e.g. 300hp"
-            value={data.power}
-            onChange={(e) => onChange({ power: e.target.value })}
-            className="h-12 rounded-xl bg-card border-border text-foreground"
-          />
-        </div>
+      {/* Engine */}
+      <div>
+        <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-1.5">
+          <Gauge className="w-3.5 h-3.5" /> Engine
+        </Label>
+        <Input
+          placeholder="e.g. 2.0L Turbo, V8, Electric"
+          value={data.engine}
+          onChange={(e) => onChange({ engine: e.target.value })}
+          className="h-12 rounded-xl bg-card border-border text-foreground"
+        />
       </div>
 
       {/* Category / Style */}
