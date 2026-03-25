@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Lock, Star, Copy, AlertCircle, Crown } from 'lucide-react';
+import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Star, Copy, AlertCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,8 @@ import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
+import CreationPaywallSheet from '@/components/CreationPaywallSheet';
 
 const SERVICE_CATEGORIES = [
   'Garages & Mechanics',
@@ -83,9 +83,9 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 const AddService = () => {
   const navigate = useNavigate();
   const { services: servicesRepo, state } = useData();
-  const { hasAccess, getPlanLabel } = usePlan();
   const { user: authUser } = useAuth();
   const currentUser = authUser;
+  const [showPaywall, setShowPaywall] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
