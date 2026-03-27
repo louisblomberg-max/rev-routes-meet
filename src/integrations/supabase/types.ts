@@ -706,6 +706,38 @@ export type Database = {
           },
         ]
       }
+      live_location_sessions: {
+        Row: {
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_location_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       marketplace_listings: {
         Row: {
           category: string | null
@@ -1269,8 +1301,10 @@ export type Database = {
           id: string
           is_24_7: boolean | null
           is_emergency: boolean | null
+          is_mapbox_poi: boolean | null
           lat: number | null
           lng: number | null
+          mapbox_id: string | null
           name: string
           phone: string | null
           rating: number | null
@@ -1295,8 +1329,10 @@ export type Database = {
           id?: string
           is_24_7?: boolean | null
           is_emergency?: boolean | null
+          is_mapbox_poi?: boolean | null
           lat?: number | null
           lng?: number | null
+          mapbox_id?: string | null
           name: string
           phone?: string | null
           rating?: number | null
@@ -1321,8 +1357,10 @@ export type Database = {
           id?: string
           is_24_7?: boolean | null
           is_emergency?: boolean | null
+          is_mapbox_poi?: boolean | null
           lat?: number | null
           lng?: number | null
+          mapbox_id?: string | null
           name?: string
           phone?: string | null
           rating?: number | null
