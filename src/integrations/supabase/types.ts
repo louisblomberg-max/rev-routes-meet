@@ -143,6 +143,7 @@ export type Database = {
           join_mode: string | null
           lat: number | null
           lng: number | null
+          location: string | null
           logo_url: string | null
           member_count: number | null
           name: string
@@ -164,6 +165,7 @@ export type Database = {
           join_mode?: string | null
           lat?: number | null
           lng?: number | null
+          location?: string | null
           logo_url?: string | null
           member_count?: number | null
           name: string
@@ -185,6 +187,7 @@ export type Database = {
           join_mode?: string | null
           lat?: number | null
           lng?: number | null
+          location?: string | null
           logo_url?: string | null
           member_count?: number | null
           name?: string
@@ -427,7 +430,6 @@ export type Database = {
         Row: {
           banner_url: string | null
           club_id: string | null
-          commission_paid: boolean | null
           commission_rate: number | null
           created_at: string | null
           created_by: string | null
@@ -443,11 +445,9 @@ export type Database = {
           lng: number | null
           location: string | null
           max_attendees: number | null
-          payment_status: string | null
-          revnet_commission: number | null
+          status: string | null
           ticket_price: number | null
           title: string
-          total_revenue: number | null
           type: string | null
           vehicle_ages: string[] | null
           vehicle_brands: string[] | null
@@ -458,7 +458,6 @@ export type Database = {
         Insert: {
           banner_url?: string | null
           club_id?: string | null
-          commission_paid?: boolean | null
           commission_rate?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -474,11 +473,9 @@ export type Database = {
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
-          payment_status?: string | null
-          revnet_commission?: number | null
+          status?: string | null
           ticket_price?: number | null
           title: string
-          total_revenue?: number | null
           type?: string | null
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
@@ -489,7 +486,6 @@ export type Database = {
         Update: {
           banner_url?: string | null
           club_id?: string | null
-          commission_paid?: boolean | null
           commission_rate?: number | null
           created_at?: string | null
           created_by?: string | null
@@ -505,11 +501,9 @@ export type Database = {
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
-          payment_status?: string | null
-          revnet_commission?: number | null
+          status?: string | null
           ticket_price?: number | null
           title?: string
-          total_revenue?: number | null
           type?: string | null
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
@@ -1049,6 +1043,7 @@ export type Database = {
           rating: number | null
           safety_tags: string[] | null
           saves: number | null
+          status: string | null
           surface_type: string | null
           tips: string | null
           type: string | null
@@ -1076,6 +1071,7 @@ export type Database = {
           rating?: number | null
           safety_tags?: string[] | null
           saves?: number | null
+          status?: string | null
           surface_type?: string | null
           tips?: string | null
           type?: string | null
@@ -1103,6 +1099,7 @@ export type Database = {
           rating?: number | null
           safety_tags?: string[] | null
           saves?: number | null
+          status?: string | null
           surface_type?: string | null
           tips?: string | null
           type?: string | null
@@ -1277,9 +1274,14 @@ export type Database = {
           name: string
           phone: string | null
           rating: number | null
+          review_count: number | null
+          service_delivery: string | null
           service_type: string | null
+          service_types: string[] | null
+          status: string | null
           tagline: string | null
           types: string[] | null
+          visibility: string | null
           website: string | null
         }
         Insert: {
@@ -1298,9 +1300,14 @@ export type Database = {
           name: string
           phone?: string | null
           rating?: number | null
+          review_count?: number | null
+          service_delivery?: string | null
           service_type?: string | null
+          service_types?: string[] | null
+          status?: string | null
           tagline?: string | null
           types?: string[] | null
+          visibility?: string | null
           website?: string | null
         }
         Update: {
@@ -1319,9 +1326,14 @@ export type Database = {
           name?: string
           phone?: string | null
           rating?: number | null
+          review_count?: number | null
+          service_delivery?: string | null
           service_type?: string | null
+          service_types?: string[] | null
+          status?: string | null
           tagline?: string | null
           types?: string[] | null
+          visibility?: string | null
           website?: string | null
         }
         Relationships: [
@@ -1385,6 +1397,41 @@ export type Database = {
             columns: ["vehicle_id"]
             isOneToOne: false
             referencedRelation: "vehicles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stripe_connect_accounts: {
+        Row: {
+          charges_enabled: boolean | null
+          created_at: string | null
+          id: string
+          payouts_enabled: boolean | null
+          stripe_account_id: string
+          user_id: string | null
+        }
+        Insert: {
+          charges_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          payouts_enabled?: boolean | null
+          stripe_account_id: string
+          user_id?: string | null
+        }
+        Update: {
+          charges_enabled?: boolean | null
+          created_at?: string | null
+          id?: string
+          payouts_enabled?: boolean | null
+          stripe_account_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_connect_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
