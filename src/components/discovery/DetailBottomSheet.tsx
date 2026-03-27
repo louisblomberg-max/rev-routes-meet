@@ -7,7 +7,10 @@ import { Drawer, DrawerContent, DrawerOverlay } from '@/components/ui/drawer';
 import { X } from 'lucide-react';
 import { RevEvent, RevRoute, RevService } from '@/models';
 import { useNavigation } from '@/contexts/NavigationContext';
-import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import EventDetailContent from './EventDetailContent';
 import RouteDetailContent from './RouteDetailContent';
 import ServiceDetailContent from './ServiceDetailContent';
@@ -25,7 +28,30 @@ interface DetailBottomSheetProps {
 
 const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps) => {
   const { startNavigation } = useNavigation();
-  const { events: eventsRepo, routes: routesRepo, services: servicesRepo, state } = useData();
+  const { user: authUser } = useAuth();
+  const userId = authUser?.id;
+
+  const [savedEvents, setSavedEvents] = useState<string[]>([]);
+  const [savedRoutes, setSavedRoutes] = useState<string[]>([]);
+  const [savedServices, setSavedServices] = useState<string[]>([]);
+
+  // Fetch saved status when item changes
+  useEffect(() => {
+    if (!item || !userId) return;
+    const fetchSaved = async () => {
+      if (item.type === 'event') {
+        const { data } = await supabase.from('saved_events').select('event_id').eq('user_id', userId).eq('event_id', item.data.id).maybeSingle();
+        setSavedEvents(data ? [item.data.id] : []);
+      } else if (item.type === 'route') {
+        const { data } = await supabase.from('saved_routes').select('route_id').eq('user_id', userId).eq('route_id', item.data.id).maybeSingle();
+        setSavedRoutes(data ? [item.data.id] : []);
+      } else if (item.type === 'service') {
+        const { data } = await supabase.from('saved_services').select('service_id').eq('user_id', userId).eq('service_id', item.data.id).maybeSingle();
+        setSavedServices(data ? [item.data.id] : []);
+      }
+    };
+    fetchSaved();
+  }, [item, userId]);
 
   if (!item) return null;
 
@@ -48,27 +74,42 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
     onViewFull(item.type, d.id);
   };
 
-  const handleSaveEvent = (eventId: string) => {
-    if (state.savedEvents.includes(eventId)) {
-      eventsRepo.unsaveEvent('user-1', eventId);
+  const handleSaveEvent = async (eventId: string) => {
+    if (!userId) return;
+    if (savedEvents.includes(eventId)) {
+      await supabase.from('saved_events').delete().eq('event_id', eventId).eq('user_id', userId);
+      setSavedEvents([]);
+      toast.success('Removed from saved');
     } else {
-      eventsRepo.saveEvent('user-1', eventId);
+      await supabase.from('saved_events').insert({ event_id: eventId, user_id: userId });
+      setSavedEvents([eventId]);
+      toast.success('Event saved');
     }
   };
 
-  const handleSaveRoute = (routeId: string) => {
-    if (state.savedRoutes.includes(routeId)) {
-      routesRepo.unsaveRoute('user-1', routeId);
+  const handleSaveRoute = async (routeId: string) => {
+    if (!userId) return;
+    if (savedRoutes.includes(routeId)) {
+      await supabase.from('saved_routes').delete().eq('route_id', routeId).eq('user_id', userId);
+      setSavedRoutes([]);
+      toast.success('Removed from saved');
     } else {
-      routesRepo.saveRoute('user-1', routeId);
+      await supabase.from('saved_routes').insert({ route_id: routeId, user_id: userId });
+      setSavedRoutes([routeId]);
+      toast.success('Route saved');
     }
   };
 
-  const handleSaveService = (serviceId: string) => {
-    if (state.savedServices.includes(serviceId)) {
-      servicesRepo.unsaveService('user-1', serviceId);
+  const handleSaveService = async (serviceId: string) => {
+    if (!userId) return;
+    if (savedServices.includes(serviceId)) {
+      await supabase.from('saved_services').delete().eq('service_id', serviceId).eq('user_id', userId);
+      setSavedServices([]);
+      toast.success('Removed from saved');
     } else {
-      servicesRepo.saveService('user-1', serviceId);
+      await supabase.from('saved_services').insert({ service_id: serviceId, user_id: userId });
+      setSavedServices([serviceId]);
+      toast.success('Service saved');
     }
   };
 
@@ -95,7 +136,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
             <EventDetailContent
               event={item.data}
               onNavigate={handleNavigate}
-              isSaved={state.savedEvents.includes(item.data.id)}
+              isSaved={savedEvents.includes(item.data.id)}
               onToggleSave={() => handleSaveEvent(item.data.id)}
             />
           )}
@@ -104,7 +145,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               route={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
-              isSaved={state.savedRoutes.includes(item.data.id)}
+              isSaved={savedRoutes.includes(item.data.id)}
               onToggleSave={() => handleSaveRoute(item.data.id)}
             />
           )}
@@ -113,7 +154,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               service={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
-              isSaved={state.savedServices.includes(item.data.id)}
+              isSaved={savedServices.includes(item.data.id)}
               onToggleSave={() => handleSaveService(item.data.id)}
             />
           )}
