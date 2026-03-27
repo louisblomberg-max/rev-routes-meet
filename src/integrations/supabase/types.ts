@@ -1802,6 +1802,16 @@ export type Database = {
         Args: { _club_id: string; _roles: string[]; _user_id: string }
         Returns: boolean
       }
+      send_notification: {
+        Args: {
+          p_body?: string
+          p_data?: Json
+          p_title: string
+          p_type: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       update_user_plan: {
         Args: { new_plan: string; user_id: string }
         Returns: undefined
