@@ -6,10 +6,10 @@
 import { Drawer, DrawerContent, DrawerOverlay } from '@/components/ui/drawer';
 import { X } from 'lucide-react';
 import { RevEvent, RevRoute, RevService } from '@/models';
-import { useNavigation } from '@/contexts/NavigationContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import EventDetailContent from './EventDetailContent';
 import RouteDetailContent from './RouteDetailContent';
@@ -27,7 +27,7 @@ interface DetailBottomSheetProps {
 }
 
 const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps) => {
-  const { startNavigation } = useNavigation();
+  const navigate = useNavigate();
   const { user: authUser } = useAuth();
   const userId = authUser?.id;
 
@@ -35,7 +35,6 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
   const [savedRoutes, setSavedRoutes] = useState<string[]>([]);
   const [savedServices, setSavedServices] = useState<string[]>([]);
 
-  // Fetch saved status when item changes
   useEffect(() => {
     if (!item || !userId) return;
     const fetchSaved = async () => {
@@ -55,17 +54,25 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
 
   if (!item) return null;
 
-  const handleNavigate = async () => {
+  const handleNavigate = () => {
     const d = item.data;
     const lat = (d as any).lat;
     const lng = (d as any).lng;
+    const title = 'title' in d ? (d as any).title : (d as any).name;
+    const geometry = item.type === 'route' ? ((d as any).geometry || null) : null;
+
     if (lat != null && lng != null) {
-      await startNavigation({
-        lat,
-        lng,
-        title: 'title' in d ? (d as any).title : (d as any).name,
-        itemType: item.type === 'event' ? 'events' : item.type === 'route' ? 'routes' : 'services',
+      onClose();
+      navigate('/navigation', {
+        state: {
+          destLat: lat,
+          destLng: lng,
+          destTitle: title,
+          geometry,
+        },
       });
+    } else {
+      toast.error('Location not available for this item');
     }
   };
 
@@ -117,12 +124,10 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
     <Drawer open={!!item} onClose={onClose} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DrawerOverlay className="bg-black/20" />
       <DrawerContent className="max-h-[85vh] bg-card border-t border-border/50 rounded-t-2xl">
-        {/* Handle bar */}
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-muted-foreground/20 rounded-full" />
         </div>
 
-        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 z-10 w-8 h-8 rounded-full bg-card/80 backdrop-blur flex items-center justify-center hover:bg-muted transition-colors"
@@ -130,7 +135,6 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
 
-        {/* Scrollable content */}
         <div className="overflow-y-auto px-5 pb-6 max-h-[calc(85vh-24px)]">
           {item.type === 'event' && (
             <EventDetailContent

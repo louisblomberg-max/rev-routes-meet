@@ -34,6 +34,9 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     { id: 'parts-accessories', label: 'Parts & Accessories' },
     { id: 'recovery-roadside', label: 'Recovery & Roadside' },
     { id: 'storage-parking', label: 'Storage & Parking' },
+    { id: 'fuel-petrol', label: 'Fuel & Petrol' },
+    { id: 'ev-charging', label: 'EV Charging' },
+    { id: 'mobile-services', label: 'Mobile Services' },
     { id: 'shipping-transportation', label: 'Shipping & Transport' },
   ];
 
@@ -69,9 +72,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Bar Row */}
       <div className="flex items-center gap-2">
-        {/* Filter Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
@@ -84,7 +85,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           <span className="text-[10px] font-semibold">Filters</span>
         </button>
 
-        {/* Add Service Button */}
         <button
           onClick={() => navigate('/add/service')}
           className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-services text-services-foreground shadow-sm hover:bg-services/90 active:scale-[0.97] transition-all"
@@ -94,10 +94,8 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
         </button>
       </div>
 
-      {/* Filter Panel */}
       {isOpen && (
         <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
-          {/* Header with close */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Services</h3>
             <div className="flex items-center gap-2">
@@ -118,7 +116,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </div>
           </div>
 
-          {/* Distance Filter */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Distance</p>
@@ -151,7 +148,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </div>
           </div>
 
-          {/* Type Filter */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Type</p>
             <div className="flex flex-wrap gap-1.5">
@@ -171,7 +167,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             </div>
           </div>
 
-          {/* Open Now Toggle */}
           <div className="flex items-center justify-between py-1">
             <p className="text-xs font-medium text-foreground">Open Now</p>
             <Switch
@@ -181,7 +176,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
             />
           </div>
 
-          {/* Apply Button */}
           <button
             onClick={() => setIsOpen(false)}
             className="w-full py-2.5 rounded-lg text-sm font-medium bg-services/80 text-white hover:bg-services transition-colors"

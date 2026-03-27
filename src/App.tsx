@@ -72,6 +72,7 @@ import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import AuthCallback from "./pages/AuthCallback";
+import NavigationPage from "./pages/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +156,7 @@ const App = () => (
           <Route path="/settings/devtools" element={<ProtectedRoute><DevTools /></ProtectedRoute>} />
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
