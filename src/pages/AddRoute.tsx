@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import CreationPaywallSheet from '@/components/CreationPaywallSheet';
+
 
 if (!import.meta.env.VITE_MAPBOX_TOKEN) {
   console.error('VITE_MAPBOX_TOKEN environment variable is not set');
@@ -35,8 +35,6 @@ const AddRoute = () => {
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
   const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [pendingPublishData, setPendingPublishData] = useState<PublishRouteFormData | null>(null);
   const isTransitioningRef = useRef(false);
 
   // Map refs
@@ -265,7 +263,7 @@ const AddRoute = () => {
       }
 
       toast.success('Route published!', { description: data.name });
-      navigate('/', { replace: true });
+      navigate('/', { replace: true, state: { refreshMap: true, centerOn: draft.startLat && draft.startLng ? { lat: draft.startLat, lng: draft.startLng } : undefined } });
     } catch (err: any) {
       console.error('[AddRoute] Error:', err);
       toast.error('Something went wrong. Please try again.');
@@ -274,22 +272,6 @@ const AddRoute = () => {
 
   const handlePublish = async (data: PublishRouteFormData) => {
     if (!authUser?.id) { toast.error('You must be signed in'); return; }
-
-    // Check subscription from DB
-    const { data: sub } = await supabase
-      .from('subscriptions')
-      .select('plan')
-      .eq('user_id', authUser.id)
-      .maybeSingle();
-
-    const isPaid = sub?.plan === 'pro' || sub?.plan === 'club';
-
-    if (!isPaid) {
-      setPendingPublishData(data);
-      setShowPaywall(true);
-      return;
-    }
-
     doPublishRoute(data);
   };
 
@@ -386,11 +368,6 @@ const AddRoute = () => {
         open={phase === 'gpx'}
         onOpenChange={(open) => { if (!open) setPhase('pick'); }}
         onImport={handleGPXImport}
-      />
-      <CreationPaywallSheet
-        open={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        type="route"
       />
     </>
   );

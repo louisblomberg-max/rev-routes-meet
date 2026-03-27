@@ -22,7 +22,7 @@ import ServicesFiltersPanel, { ServicesFilterState } from '@/components/Services
 import RouteLayer from '@/components/Map/RouteLayer';
 import RoutePreviewLayer from '@/components/Map/RoutePreviewLayer';
 import NavigationHUD from '@/components/NavigationHUD';
-import { MapPin } from '@/contexts/MapContext';
+import { MapPin, useMap } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useMapItems } from '@/hooks/useMapItems';
@@ -34,6 +34,7 @@ const Home = () => {
   const location = useLocation();
   const { status: navStatus } = useNavigation();
   const { state } = useData();
+  const { viewport, fetchPinsForViewport } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
@@ -66,9 +67,43 @@ const Home = () => {
   // Bridge DataContext → MapContext pins
   useMapItems();
 
+  // Refresh map pins helper
+  const refreshPins = useCallback(() => {
+    if (viewport) {
+      fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
+    }
+  }, [viewport, fetchPinsForViewport]);
+
+  // Realtime subscriptions for new content
+  useEffect(() => {
+    const channel = supabase
+      .channel('map-realtime-inserts')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, () => {
+        console.log('[Map] New event added — refreshing pins');
+        refreshPins();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'routes' }, () => {
+        console.log('[Map] New route added — refreshing pins');
+        refreshPins();
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'services' }, () => {
+        console.log('[Map] New service added — refreshing pins');
+        refreshPins();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [refreshPins]);
+
   // Center map on newly published item or open a specific service (via navigation state)
   useEffect(() => {
-    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string } | null;
+    const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
+    
+    // Handle refreshMap flag from creation flows
+    if (navState?.refreshMap) {
+      refreshPins();
+    }
+    
     if (navState?.centerOn && mapRef.current) {
       const { lat, lng } = navState.centerOn;
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
