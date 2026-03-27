@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search } from 'lucide-react';
+import { Search, X, Navigation as NavIcon } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
@@ -25,15 +25,34 @@ import NavigationHUD from '@/components/NavigationHUD';
 import { MapPin, useMap } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useMapItems } from '@/hooks/useMapItems';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
+
+interface TappedLocation {
+  lat: number;
+  lng: number;
+  name: string;
+}
+
+interface FriendLocation {
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string | null;
+  lat: number;
+  lng: number;
+  heading: number;
+  receivedAt: number;
+}
 
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { status: navStatus } = useNavigation();
   const { state } = useData();
+  const { user: authUser } = useAuth();
   const { viewport, fetchPinsForViewport } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
@@ -64,10 +83,16 @@ const Home = () => {
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
 
-  // Bridge DataContext → MapContext pins
+  // Tap-to-navigate state
+  const [tappedLocation, setTappedLocation] = useState<TappedLocation | null>(null);
+  const [showLocationPopup, setShowLocationPopup] = useState(false);
+
+  // Friend live locations
+  const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
+  const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
+
   useMapItems();
 
-  // Refresh map pins helper
   const refreshPins = useCallback(() => {
     if (viewport) {
       fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
@@ -95,15 +120,127 @@ const Home = () => {
     return () => { supabase.removeChannel(channel); };
   }, [refreshPins]);
 
-  // Center map on newly published item or open a specific service (via navigation state)
+  // Friend live location tracking
+  useEffect(() => {
+    if (!authUser?.id) return;
+
+    let channels: any[] = [];
+
+    const setupFriendTracking = async () => {
+      const { data: friends } = await supabase
+        .from('friends')
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${authUser.id},friend_id.eq.${authUser.id}`)
+        .eq('status', 'accepted');
+
+      if (!friends?.length) return;
+
+      const friendIds = friends.map(f =>
+        f.user_id === authUser.id ? f.friend_id : f.user_id
+      );
+
+      channels = friendIds.map(friendId => {
+        const channel = supabase.channel(`live-location:${friendId}`);
+        channel
+          .on('broadcast', { event: 'location_update' }, ({ payload }) => {
+            setFriendLocations(prev => ({
+              ...prev,
+              [payload.user_id]: {
+                ...payload,
+                receivedAt: Date.now(),
+              },
+            }));
+          })
+          .subscribe();
+        return channel;
+      });
+    };
+
+    setupFriendTracking();
+
+    return () => {
+      channels.forEach(c => supabase.removeChannel(c));
+    };
+  }, [authUser?.id]);
+
+  // Remove stale friend locations
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setFriendLocations(prev => {
+        const updated = { ...prev };
+        let changed = false;
+        Object.keys(updated).forEach(id => {
+          if (now - updated[id].receivedAt > 10000) {
+            delete updated[id];
+            changed = true;
+          }
+        });
+        return changed ? updated : prev;
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Render friend markers on map
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    const activeFriendIds = new Set(Object.keys(friendLocations));
+
+    // Remove markers for friends no longer sharing
+    Object.keys(friendMarkersRef.current).forEach(id => {
+      if (!activeFriendIds.has(id)) {
+        friendMarkersRef.current[id].remove();
+        delete friendMarkersRef.current[id];
+      }
+    });
+
+    // Update or create markers
+    Object.values(friendLocations).forEach((friend) => {
+      if (friendMarkersRef.current[friend.user_id]) {
+        friendMarkersRef.current[friend.user_id].setLngLat([friend.lng, friend.lat]);
+      } else {
+        const el = document.createElement('div');
+        el.className = 'friend-location-marker';
+        el.style.cssText = `
+          width: 36px; height: 36px; border-radius: 50%;
+          border: 3px solid hsl(var(--primary)); overflow: hidden;
+          background: hsl(var(--muted)); cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          position: relative;
+        `;
+        if (friend.avatar_url) {
+          el.style.backgroundImage = `url(${friend.avatar_url})`;
+          el.style.backgroundSize = 'cover';
+        } else {
+          el.innerText = (friend.display_name || friend.username || '?')[0].toUpperCase();
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.justifyContent = 'center';
+          el.style.fontSize = '14px';
+          el.style.fontWeight = '600';
+          el.style.color = 'hsl(var(--primary))';
+        }
+
+        const marker = new mapboxgl.Marker({ element: el, rotation: friend.heading || 0 })
+          .setLngLat([friend.lng, friend.lat])
+          .addTo(m);
+
+        friendMarkersRef.current[friend.user_id] = marker;
+      }
+    });
+  }, [friendLocations]);
+
+  // Center map on newly published item
   useEffect(() => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
-    
-    // Handle refreshMap flag from creation flows
+
     if (navState?.refreshMap) {
       refreshPins();
     }
-    
+
     if (navState?.centerOn && mapRef.current) {
       const { lat, lng } = navState.centerOn;
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
@@ -156,11 +293,29 @@ const Home = () => {
     );
   };
 
+  const handleMapTap = async (lngLat: { lng: number; lat: number }) => {
+    if (isNavigating) return;
+    const { lng, lat } = lngLat;
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=1&types=address,poi,place`
+      );
+      const data = await response.json();
+      const placeName = data.features?.[0]?.place_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      setTappedLocation({ lat, lng, name: placeName });
+      setShowLocationPopup(true);
+    } catch {
+      setTappedLocation({ lat, lng, name: `${lat.toFixed(5)}, ${lng.toFixed(5)}` });
+      setShowLocationPopup(true);
+    }
+  };
+
   const handlePinClick = async (pin: MapPin) => {
     if (isNavigating) return;
+    setShowLocationPopup(false);
 
     if (pin.type === 'events') {
-      // Try DataContext first, then fetch from Supabase
       let event = state.events.find(e => e.id === pin.id);
       if (!event) {
         const { data } = await supabase.from('events').select('*').eq('id', pin.id).maybeSingle();
@@ -247,6 +402,7 @@ const Home = () => {
       <MapView
         activeCategories={activeCategories}
         onPinClick={handlePinClick}
+        onMapTap={handleMapTap}
         selectedRouteId={selectedRouteId}
         showEmptyPrompt={false}
         isDimmed={false}
@@ -307,6 +463,38 @@ const Home = () => {
 
       {!isNavigating && (
         <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
+      )}
+
+      {/* Tap-to-navigate popup */}
+      {showLocationPopup && tappedLocation && !isNavigating && (
+        <div className="absolute bottom-24 left-3 right-3 z-40 animate-fade-up">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-4 py-3 flex items-center gap-3">
+            <span className="text-xl flex-shrink-0">📍</span>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate">{tappedLocation.name}</p>
+              <p className="text-[10px] text-muted-foreground">Tap Navigate to get directions</p>
+            </div>
+            <button
+              onClick={() => {
+                setShowLocationPopup(false);
+                navigate('/navigation', {
+                  state: {
+                    destLat: tappedLocation.lat,
+                    destLng: tappedLocation.lng,
+                    destTitle: tappedLocation.name,
+                    geometry: null,
+                  },
+                });
+              }}
+              className="bg-foreground text-background text-xs font-medium px-3 py-2 rounded-xl flex-shrink-0"
+            >
+              Navigate
+            </button>
+            <button onClick={() => setShowLocationPopup(false)} className="text-muted-foreground text-xl flex-shrink-0 leading-none">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       )}
 
       <NavigationHUD />

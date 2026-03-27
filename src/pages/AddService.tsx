@@ -26,6 +26,9 @@ const SERVICE_CATEGORIES = [
   'Parts & Accessories',
   'Recovery & Roadside Assistance',
   'Storage & Parking',
+  'Fuel & Petrol',
+  'EV Charging',
+  'Mobile Services',
   'Shipping & Transportation',
 ];
 
