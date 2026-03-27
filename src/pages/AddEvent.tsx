@@ -224,10 +224,6 @@ const AddEvent = () => {
 
   // Ticketing calculations
   const ticketPriceNum = parseFloat(ticketPrice) || 0;
-  const maxTicketsNum = parseInt(maxTickets) || parseInt(formData.maxAttendees) || 0;
-  const estimatedRevenue = ticketPriceNum * maxTicketsNum;
-  const revnetCommission = estimatedRevenue * 0.05;
-  const organiserPayout = estimatedRevenue * 0.95;
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -298,7 +294,7 @@ const AddEvent = () => {
       }
 
       toast.success('Event published! 🎉', { description: formData.name });
-      navigate('/', { replace: true });
+      navigate('/', { replace: true, state: { refreshMap: true, centerOn: formData.locationCoords } });
     } catch (err: any) {
       console.error('[AddEvent] Error:', err);
       toast.error('Something went wrong. Please try again.');
@@ -809,23 +805,9 @@ const AddEvent = () => {
                 />
               </div>
 
-              {/* Revenue calculator */}
-              {ticketPriceNum > 0 && maxTicketsNum > 0 && (
-                <div className="p-3 rounded-xl bg-muted/40 border border-border/30 space-y-1.5">
-                  <p className="text-xs font-semibold text-foreground">Revenue Estimate</p>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Estimated revenue</span>
-                    <span className="font-medium text-foreground">£{estimatedRevenue.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>RevNet commission (5%)</span>
-                    <span className="text-destructive">−£{revnetCommission.toFixed(2)}</span>
-                  </div>
-                  <div className="border-t border-border/30 pt-1.5 flex justify-between text-xs">
-                    <span className="font-semibold text-foreground">You receive</span>
-                    <span className="font-bold text-primary">£{organiserPayout.toFixed(2)}</span>
-                  </div>
-                </div>
+              {/* Commission info */}
+              {ticketPriceNum > 0 && (
+                <p className="text-[11px] text-muted-foreground">RevNet charges a 5% commission on ticket sales. You keep 95%.</p>
               )}
             </div>
           )}

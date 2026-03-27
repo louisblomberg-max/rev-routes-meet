@@ -181,7 +181,7 @@ const AddService = () => {
       }
 
       toast.success('Service listing created!', { description: `${formData.name} is now listed.` });
-      navigate('/', { replace: true });
+      navigate('/', { replace: true, state: { refreshMap: true, centerOn: formData.locationCoords } });
     } catch (err: any) {
       console.error('[AddService] Error:', err);
       toast.error('Something went wrong. Please try again.');
