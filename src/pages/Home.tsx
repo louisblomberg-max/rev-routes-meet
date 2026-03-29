@@ -283,7 +283,8 @@ const Home = () => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
 
     if (navState?.refreshMap) {
-      refreshPins();
+      // Delay to ensure map is ready after navigation
+      setTimeout(() => refreshPins(), 500);
     }
 
     if (navState?.centerOn && mapRef.current) {
