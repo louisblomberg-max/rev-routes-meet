@@ -47,8 +47,11 @@ interface FriendLocation {
 }
 
 const PIN_COLORS: Record<string, string> = {
+  event: '#CC2222',
   events: '#CC2222',
+  route: '#185FA5',
   routes: '#185FA5',
+  service: '#C2700A',
   services: '#C2700A',
 };
 
