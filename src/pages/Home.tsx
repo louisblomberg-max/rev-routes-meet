@@ -283,6 +283,54 @@ const Home = () => {
     });
   }, [friendLocations]);
 
+  // Render DOM markers for pins
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
+
+    // Remove old markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    pins.forEach(pin => {
+      const lat = Number(pin.lat);
+      const lng = Number(pin.lng);
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn('[Map] Skipping pin with invalid coords:', pin);
+        return;
+      }
+
+      // Filter by active category
+      if (activeCategory && pin.type !== activeCategory) return;
+
+      const color = PIN_COLORS[pin.type] || '#888888';
+
+      const el = document.createElement('div');
+      el.style.cssText = `
+        width: 14px; height: 14px;
+        background: ${color}; border: 2px solid white;
+        border-radius: 50%; cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      `;
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('[Map] Pin tapped:', pin.type, pin.id, pin.title);
+        handlePinClick(pin);
+      });
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(m);
+
+      markersRef.current.push(marker);
+    });
+
+    console.log('[Map] Rendered', markersRef.current.length, 'markers');
+  }, [pins, activeCategory]);
+
   // Center map on newly published item
   useEffect(() => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
