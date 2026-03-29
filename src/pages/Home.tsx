@@ -100,54 +100,54 @@ const Home = () => {
 
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
-    if (m) {
-      const bounds = m.getBounds();
-      if (bounds) {
-        const north = bounds.getNorth();
-        const south = bounds.getSouth();
-        const east = bounds.getEast();
-        const west = bounds.getWest();
-        console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
-        setIsLoadingPins(true);
-        try {
-          const { data, error } = await supabase.rpc('get_pins_in_bounds', {
-            north, south, east, west,
-            categories: ['events', 'routes', 'services'],
-          });
-          if (error) {
-            console.error('[Map] get_pins_in_bounds error:', error);
-          } else if (data) {
-            console.log('[Map] Pins returned:', data.length);
-            const normalizeType = (t: string) => {
-              if (t === 'event') return 'events';
-              if (t === 'route') return 'routes';
-              if (t === 'service') return 'services';
-              return t;
-            };
-            setPins(data.map((pin: any) => {
-              const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
-              return {
-                id: pin.id,
-                type: normalizeType(pin.type),
-                lat: Number(pin.lat),
-                lng: Number(pin.lng),
-                title: pin.title,
-                ...pinData,
-              };
-            }));
-          }
-        } catch (err) {
-          console.error('[Map] fetchPins error:', err);
-        } finally {
-          setIsLoadingPins(false);
-        }
-        return;
+    if (!m) {
+      console.log('[Map] refreshPins — no map ref');
+      return;
+    }
+    const bounds = m.getBounds();
+    if (!bounds) {
+      console.log('[Map] refreshPins — no bounds');
+      return;
+    }
+    const north = bounds.getNorth();
+    const south = bounds.getSouth();
+    const east = bounds.getEast();
+    const west = bounds.getWest();
+    console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+    setIsLoadingPins(true);
+    try {
+      const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+        north, south, east, west,
+        categories: ['events', 'routes', 'services'],
+      });
+      if (error) {
+        console.error('[Map] get_pins_in_bounds error:', error);
+      } else if (data) {
+        console.log('[Map] Pins returned:', data.length, data);
+        const normalizeType = (t: string) => {
+          if (t === 'event') return 'events';
+          if (t === 'route') return 'routes';
+          if (t === 'service') return 'services';
+          return t;
+        };
+        setPins(data.map((pin: any) => {
+          const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
+          return {
+            id: pin.id,
+            type: normalizeType(pin.type),
+            lat: Number(pin.lat),
+            lng: Number(pin.lng),
+            title: pin.title,
+            ...pinData,
+          };
+        }));
       }
+    } catch (err) {
+      console.error('[Map] fetchPins error:', err);
+    } finally {
+      setIsLoadingPins(false);
     }
-    if (viewport) {
-      fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
-    }
-  }, [viewport, fetchPinsForViewport, setPins, setIsLoadingPins]);
+  }, [setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -451,18 +451,22 @@ const Home = () => {
   return (
     <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <MapView
-        activeCategories={activeCategories}
-        onPinClick={handlePinClick}
-        onMapTap={handleMapTap}
-        selectedRouteId={selectedRouteId}
-        showEmptyPrompt={false}
+        onMapTap={(lngLat) => {
+          // Check if we clicked near a marker — if so, ignore
+          // The marker click handlers use stopPropagation so this only fires for empty areas
+          handleMapTap(lngLat);
+        }}
         isDimmed={false}
-        markerOpacity={isNavigating ? 0.3 : 1}
-        eventsFilters={eventsFilters}
-        routesFilters={routesFilters}
-        servicesFilters={servicesFilters}
         mapStyle={mapStyle}
-        onMapReady={(m) => { mapRef.current = m; }}
+        onMapReady={(m) => {
+          console.log('[Home] Map ready, fetching pins');
+          mapRef.current = m;
+          refreshPins();
+        }}
+        onMoveEnd={() => {
+          if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+          moveTimerRef.current = setTimeout(() => refreshPins(), 500);
+        }}
       />
 
       <RouteLayer map={mapRef.current} />
