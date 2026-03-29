@@ -53,7 +53,7 @@ const Home = () => {
   const { status: navStatus } = useNavigation();
   const { state } = useData();
   const { user: authUser } = useAuth();
-  const { viewport, fetchPinsForViewport } = useMap();
+  const { viewport, fetchPinsForViewport, setPins, setIsLoadingPins } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
