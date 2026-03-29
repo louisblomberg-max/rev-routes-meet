@@ -364,6 +364,14 @@ const AddEvent = () => {
     if (!authUser?.id) { toast.error('You must be signed in'); return; }
 
     setIsSubmitting(true);
+
+    // Overall 15-second timeout guard
+    const publishTimeout = setTimeout(() => {
+      console.error('[AddEvent] Overall publish timeout reached');
+      setIsSubmitting(false);
+      toast.error('Request timed out. Please try again.');
+    }, 15000);
+
     try {
       // Check subscription plan from DB
       const { data: sub } = await supabase
@@ -373,18 +381,29 @@ const AddEvent = () => {
         .maybeSingle();
 
       const isPaid = sub?.plan === 'pro' || sub?.plan === 'club';
+      console.log('[AddEvent] Plan:', sub?.plan, 'isPaid:', isPaid);
 
       if (isPaid) {
-        // Pro/Club — unlimited events
         await saveEvent();
         return;
       }
 
-      // Free user — try to use a free credit
-      const { data: creditUsed, error: creditError } = await supabase
-        .rpc('use_event_credit', { p_user_id: authUser.id });
-
-      console.log('[AddEvent] Credit used:', creditUsed, creditError);
+      // Free user — try to use a free credit with 5s timeout
+      let creditUsed = false;
+      try {
+        const creditPromise = supabase.rpc('use_event_credit', { p_user_id: authUser.id });
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Credit check timed out')), 5000)
+        );
+        const result = await Promise.race([creditPromise, timeoutPromise]);
+        creditUsed = (result as any).data === true;
+        console.log('[AddEvent] Credit used:', creditUsed, result);
+      } catch (err) {
+        console.error('[AddEvent] Credit check failed:', err);
+        setIsSubmitting(false);
+        setShowPaywall(true);
+        return;
+      }
 
       if (creditUsed) {
         toast.success('Your free event post has been used.', {
@@ -395,12 +414,15 @@ const AddEvent = () => {
       }
 
       // No credits left — show paywall
-      setShowPaywall(true);
-    } catch (err) {
-      console.error('[AddEvent] handleSubmit error:', err);
-      toast.error('Something went wrong. Please try again.');
-    } finally {
+      console.log('[AddEvent] No credits — showing paywall');
       setIsSubmitting(false);
+      setShowPaywall(true);
+    } catch (err: any) {
+      console.error('[AddEvent] handleSubmit error:', err);
+      toast.error('Something went wrong: ' + (err.message || 'Please try again.'));
+      setIsSubmitting(false);
+    } finally {
+      clearTimeout(publishTimeout);
     }
   };
 
