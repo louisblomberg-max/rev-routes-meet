@@ -246,14 +246,15 @@ const AddService = () => {
 
     setIsSubmitting(true);
     try {
-      // Check subscription from DB
-      const { data: sub } = await supabase
-        .from('subscriptions')
+      // Check plan from profile — simple direct query, no RPC
+      const { data: profile } = await supabase
+        .from('profiles')
         .select('plan')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
+        .eq('id', currentUser.id)
+        .single();
 
-      const isOrganiser = sub?.plan === 'club';
+      console.log('[AddService] Profile plan:', profile?.plan);
+      const isOrganiser = profile?.plan === 'club' || profile?.plan === 'organiser';
 
       if (!isOrganiser) {
         setShowPaywall(true);

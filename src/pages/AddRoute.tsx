@@ -228,18 +228,21 @@ const AddRoute = () => {
     }
   }, []);
 
-  const doPublishRoute = async (data: PublishRouteFormData) => {
+  const handlePublish = async (data: PublishRouteFormData) => {
+    if (!authUser?.id) { toast.error('You must be signed in'); return; }
+
     const draft = data.draft;
     if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
       toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
       return;
     }
-    const userId = authUser?.id || null;
+
     const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
 
     try {
-      const { error } = await supabase.from('routes').insert({
-        created_by: userId,
+      console.log('[AddRoute] Inserting route...');
+      const { data: newRoute, error } = await supabase.from('routes').insert({
+        created_by: authUser.id,
         name: data.name.trim(),
         description: data.description?.trim() || null,
         geometry: draft.geometry as any,
@@ -253,8 +256,9 @@ const AddRoute = () => {
         difficulty: data.difficulty?.toLowerCase() || null,
         surface_type: data.surfaceType?.toLowerCase() || null,
         safety_tags: data.safetyTags || [],
+        status: 'published',
         vehicle_type: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
-      });
+      }).select().single();
 
       if (error) {
         console.error('[AddRoute] Insert error:', error);
@@ -262,17 +266,13 @@ const AddRoute = () => {
         return;
       }
 
+      console.log('[AddRoute] Route created:', newRoute);
       toast.success('Route published!', { description: data.name });
       navigate('/', { replace: true, state: { refreshMap: true, centerOn: draft.startLat && draft.startLng ? { lat: draft.startLat, lng: draft.startLng } : undefined } });
     } catch (err: any) {
       console.error('[AddRoute] Error:', err);
       toast.error('Something went wrong. Please try again.');
     }
-  };
-
-  const handlePublish = async (data: PublishRouteFormData) => {
-    if (!authUser?.id) { toast.error('You must be signed in'); return; }
-    doPublishRoute(data);
   };
 
   const handleSaveDraft = (data: PublishRouteFormData) => {
