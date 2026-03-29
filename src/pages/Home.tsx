@@ -549,7 +549,16 @@ const Home = () => {
             </div>
           )}
 
-          <div className="px-3 pt-2 flex justify-end">
+          <div className="px-3 pt-2 flex justify-end gap-2">
+            <button
+              onClick={() => {
+                console.log('[Map] Manual refresh triggered');
+                refreshPins();
+              }}
+              className="bg-white/90 backdrop-blur-md border border-border/50 rounded-xl px-3 py-2 text-xs font-medium shadow-sm flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" /> Refresh pins
+            </button>
             <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
           </div>
         </div>
