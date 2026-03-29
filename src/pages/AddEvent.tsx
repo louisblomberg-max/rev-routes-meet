@@ -384,9 +384,8 @@ const AddEvent = () => {
           setShowPaywall(true);
           return;
         }
-        // Note: credit deduction will be handled by protect_profile_sensitive_columns trigger
-        // which blocks client updates to free_event_credits. Use the RPC but don't block on failure.
-        supabase.rpc('use_event_credit', { p_user_id: authUser.id }).then(res => {
+        // Fire-and-forget credit deduction — don't block the save
+        Promise.resolve(supabase.rpc('use_event_credit', { p_user_id: authUser.id })).then(res => {
           console.log('[AddEvent] Credit deducted:', res.data);
         }).catch(() => {});
 
