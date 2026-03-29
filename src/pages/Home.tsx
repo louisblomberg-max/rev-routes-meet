@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, Navigation as NavIcon } from 'lucide-react';
+import { Search, X, RefreshCw } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
@@ -26,7 +26,6 @@ import { MapPin, useMap } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMapItems } from '@/hooks/useMapItems';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
@@ -47,13 +46,19 @@ interface FriendLocation {
   receivedAt: number;
 }
 
+const PIN_COLORS: Record<string, string> = {
+  events: '#CC2222',
+  routes: '#185FA5',
+  services: '#C2700A',
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { status: navStatus } = useNavigation();
   const { state } = useData();
   const { user: authUser } = useAuth();
-  const { viewport, fetchPinsForViewport, setPins, setIsLoadingPins } = useMap();
+  const { pins, setPins, setIsLoadingPins } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
@@ -82,6 +87,8 @@ const Home = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Tap-to-navigate state
   const [tappedLocation, setTappedLocation] = useState<TappedLocation | null>(null);
@@ -91,58 +98,56 @@ const Home = () => {
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
-  useMapItems();
-
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
-    if (m) {
-      const bounds = m.getBounds();
-      if (bounds) {
-        const north = bounds.getNorth();
-        const south = bounds.getSouth();
-        const east = bounds.getEast();
-        const west = bounds.getWest();
-        console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
-        setIsLoadingPins(true);
-        try {
-          const { data, error } = await supabase.rpc('get_pins_in_bounds', {
-            north, south, east, west,
-            categories: ['events', 'routes', 'services'],
-          });
-          if (error) {
-            console.error('[Map] get_pins_in_bounds error:', error);
-          } else if (data) {
-            console.log('[Map] Pins returned:', data.length);
-            const normalizeType = (t: string) => {
-              if (t === 'event') return 'events';
-              if (t === 'route') return 'routes';
-              if (t === 'service') return 'services';
-              return t;
-            };
-            setPins(data.map((pin: any) => {
-              const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
-              return {
-                id: pin.id,
-                type: normalizeType(pin.type),
-                lat: Number(pin.lat),
-                lng: Number(pin.lng),
-                title: pin.title,
-                ...pinData,
-              };
-            }));
-          }
-        } catch (err) {
-          console.error('[Map] fetchPins error:', err);
-        } finally {
-          setIsLoadingPins(false);
-        }
-        return;
+    if (!m) {
+      console.log('[Map] refreshPins — no map ref');
+      return;
+    }
+    const bounds = m.getBounds();
+    if (!bounds) {
+      console.log('[Map] refreshPins — no bounds');
+      return;
+    }
+    const north = bounds.getNorth();
+    const south = bounds.getSouth();
+    const east = bounds.getEast();
+    const west = bounds.getWest();
+    console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+    setIsLoadingPins(true);
+    try {
+      const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+        north, south, east, west,
+        categories: ['events', 'routes', 'services'],
+      });
+      if (error) {
+        console.error('[Map] get_pins_in_bounds error:', error);
+      } else if (data) {
+        console.log('[Map] Pins returned:', data.length, data);
+        const normalizeType = (t: string) => {
+          if (t === 'event') return 'events';
+          if (t === 'route') return 'routes';
+          if (t === 'service') return 'services';
+          return t;
+        };
+        setPins(data.map((pin: any) => {
+          const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
+          return {
+            id: pin.id,
+            type: normalizeType(pin.type),
+            lat: Number(pin.lat),
+            lng: Number(pin.lng),
+            title: pin.title,
+            ...pinData,
+          };
+        }));
       }
+    } catch (err) {
+      console.error('[Map] fetchPins error:', err);
+    } finally {
+      setIsLoadingPins(false);
     }
-    if (viewport) {
-      fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
-    }
-  }, [viewport, fetchPinsForViewport, setPins, setIsLoadingPins]);
+  }, [setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -277,6 +282,54 @@ const Home = () => {
       }
     });
   }, [friendLocations]);
+
+  // Render DOM markers for pins
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
+
+    // Remove old markers
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    pins.forEach(pin => {
+      const lat = Number(pin.lat);
+      const lng = Number(pin.lng);
+      if (isNaN(lat) || isNaN(lng)) {
+        console.warn('[Map] Skipping pin with invalid coords:', pin);
+        return;
+      }
+
+      // Filter by active category
+      if (activeCategory && pin.type !== activeCategory) return;
+
+      const color = PIN_COLORS[pin.type] || '#888888';
+
+      const el = document.createElement('div');
+      el.style.cssText = `
+        width: 14px; height: 14px;
+        background: ${color}; border: 2px solid white;
+        border-radius: 50%; cursor: pointer;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      `;
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        console.log('[Map] Pin tapped:', pin.type, pin.id, pin.title);
+        handlePinClick(pin);
+      });
+
+      const marker = new mapboxgl.Marker({ element: el })
+        .setLngLat([lng, lat])
+        .addTo(m);
+
+      markersRef.current.push(marker);
+    });
+
+    console.log('[Map] Rendered', markersRef.current.length, 'markers');
+  }, [pins, activeCategory]);
 
   // Center map on newly published item
   useEffect(() => {
@@ -446,18 +499,22 @@ const Home = () => {
   return (
     <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <MapView
-        activeCategories={activeCategories}
-        onPinClick={handlePinClick}
-        onMapTap={handleMapTap}
-        selectedRouteId={selectedRouteId}
-        showEmptyPrompt={false}
+        onMapTap={(lngLat) => {
+          // Check if we clicked near a marker — if so, ignore
+          // The marker click handlers use stopPropagation so this only fires for empty areas
+          handleMapTap(lngLat);
+        }}
         isDimmed={false}
-        markerOpacity={isNavigating ? 0.3 : 1}
-        eventsFilters={eventsFilters}
-        routesFilters={routesFilters}
-        servicesFilters={servicesFilters}
         mapStyle={mapStyle}
-        onMapReady={(m) => { mapRef.current = m; }}
+        onMapReady={(m) => {
+          console.log('[Home] Map ready, fetching pins');
+          mapRef.current = m;
+          refreshPins();
+        }}
+        onMoveEnd={() => {
+          if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
+          moveTimerRef.current = setTimeout(() => refreshPins(), 500);
+        }}
       />
 
       <RouteLayer map={mapRef.current} />
@@ -492,7 +549,16 @@ const Home = () => {
             </div>
           )}
 
-          <div className="px-3 pt-2 flex justify-end">
+          <div className="px-3 pt-2 flex justify-end gap-2">
+            <button
+              onClick={() => {
+                console.log('[Map] Manual refresh triggered');
+                refreshPins();
+              }}
+              className="bg-white/90 backdrop-blur-md border border-border/50 rounded-xl px-3 py-2 text-xs font-medium shadow-sm flex items-center gap-1"
+            >
+              <RefreshCw className="w-3 h-3" /> Refresh pins
+            </button>
             <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
           </div>
         </div>
