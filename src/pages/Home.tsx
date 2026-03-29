@@ -94,7 +94,6 @@ const Home = () => {
   useMapItems();
 
   const refreshPins = useCallback(async () => {
-    // Use map bounds directly for most accurate fetch
     const m = mapRef.current;
     if (m) {
       const bounds = m.getBounds();
@@ -104,6 +103,7 @@ const Home = () => {
         const east = bounds.getEast();
         const west = bounds.getWest();
         console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+        setIsLoadingPins(true);
         try {
           const { data, error } = await supabase.rpc('get_pins_in_bounds', {
             north, south, east, west,
@@ -111,23 +111,38 @@ const Home = () => {
           });
           if (error) {
             console.error('[Map] get_pins_in_bounds error:', error);
-            return;
-          }
-          console.log('[Map] Pins returned:', data?.length);
-          if (data) {
-            const { setPins } = useMap();
-            // We can't call hooks here, use fetchPinsForViewport instead
+          } else if (data) {
+            console.log('[Map] Pins returned:', data.length);
+            const normalizeType = (t: string) => {
+              if (t === 'event') return 'events';
+              if (t === 'route') return 'routes';
+              if (t === 'service') return 'services';
+              return t;
+            };
+            setPins(data.map((pin: any) => {
+              const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
+              return {
+                id: pin.id,
+                type: normalizeType(pin.type),
+                lat: Number(pin.lat),
+                lng: Number(pin.lng),
+                title: pin.title,
+                ...pinData,
+              };
+            }));
           }
         } catch (err) {
           console.error('[Map] fetchPins error:', err);
+        } finally {
+          setIsLoadingPins(false);
         }
+        return;
       }
     }
-    // Fallback to viewport from context
     if (viewport) {
       fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
     }
-  }, [viewport, fetchPinsForViewport]);
+  }, [viewport, fetchPinsForViewport, setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
