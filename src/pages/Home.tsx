@@ -53,7 +53,7 @@ const Home = () => {
   const { status: navStatus } = useNavigation();
   const { state } = useData();
   const { user: authUser } = useAuth();
-  const { viewport, fetchPinsForViewport } = useMap();
+  const { viewport, fetchPinsForViewport, setPins, setIsLoadingPins } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
@@ -93,11 +93,56 @@ const Home = () => {
 
   useMapItems();
 
-  const refreshPins = useCallback(() => {
+  const refreshPins = useCallback(async () => {
+    const m = mapRef.current;
+    if (m) {
+      const bounds = m.getBounds();
+      if (bounds) {
+        const north = bounds.getNorth();
+        const south = bounds.getSouth();
+        const east = bounds.getEast();
+        const west = bounds.getWest();
+        console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+        setIsLoadingPins(true);
+        try {
+          const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+            north, south, east, west,
+            categories: ['events', 'routes', 'services'],
+          });
+          if (error) {
+            console.error('[Map] get_pins_in_bounds error:', error);
+          } else if (data) {
+            console.log('[Map] Pins returned:', data.length);
+            const normalizeType = (t: string) => {
+              if (t === 'event') return 'events';
+              if (t === 'route') return 'routes';
+              if (t === 'service') return 'services';
+              return t;
+            };
+            setPins(data.map((pin: any) => {
+              const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
+              return {
+                id: pin.id,
+                type: normalizeType(pin.type),
+                lat: Number(pin.lat),
+                lng: Number(pin.lng),
+                title: pin.title,
+                ...pinData,
+              };
+            }));
+          }
+        } catch (err) {
+          console.error('[Map] fetchPins error:', err);
+        } finally {
+          setIsLoadingPins(false);
+        }
+        return;
+      }
+    }
     if (viewport) {
       fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
     }
-  }, [viewport, fetchPinsForViewport]);
+  }, [viewport, fetchPinsForViewport, setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -238,7 +283,8 @@ const Home = () => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
 
     if (navState?.refreshMap) {
-      refreshPins();
+      // Delay to ensure map is ready after navigation
+      setTimeout(() => refreshPins(), 500);
     }
 
     if (navState?.centerOn && mapRef.current) {

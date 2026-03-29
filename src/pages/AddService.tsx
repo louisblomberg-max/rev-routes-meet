@@ -156,16 +156,49 @@ const AddService = () => {
     toast.success('Monday hours copied to weekdays');
   };
 
+  const geocodeLocation = async (text: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&limit=1`
+      );
+      const data = await res.json();
+      if (data.features?.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        return { lat, lng };
+      }
+    } catch (err) {
+      console.error('[AddService] Geocoding error:', err);
+    }
+    return null;
+  };
+
   const saveService = async () => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('services').insert({
+      let lat = formData.locationCoords?.lat ?? null;
+      let lng = formData.locationCoords?.lng ?? null;
+
+      if ((!lat || !lng) && formData.location.trim()) {
+        const coords = await geocodeLocation(formData.location.trim());
+        if (coords) {
+          lat = coords.lat;
+          lng = coords.lng;
+        }
+      }
+
+      if (!lat || !lng) {
+        toast.error('Please enter a valid location so your service appears on the map');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const payload = {
         created_by: currentUser!.id,
         name: formData.name.trim(),
         description: formData.description?.trim() || null,
         tagline: formData.tagline?.trim() || null,
-        lat: formData.locationCoords?.lat || null,
-        lng: formData.locationCoords?.lng || null,
+        lat: Number(lat),
+        lng: Number(lng),
         address: formData.location.trim() || null,
         phone: formData.phone ? `${formData.countryCode} ${formData.phone}` : null,
         website: formData.website?.trim() || null,
@@ -175,7 +208,17 @@ const AddService = () => {
         is_emergency: formData.isEmergency,
         hide_exact_address: formData.hideAddress,
         hours: formData.is24h ? { '24/7': true } : dayHours as any,
-      });
+        status: 'active',
+        visibility: 'public',
+      };
+
+      console.log('[AddService] Inserting payload:', payload);
+
+      const { data, error } = await supabase
+        .from('services')
+        .insert(payload)
+        .select()
+        .single();
 
       if (error) {
         console.error('[AddService] Insert error:', error);
@@ -183,8 +226,9 @@ const AddService = () => {
         return;
       }
 
+      console.log('[AddService] Service created:', data);
       toast.success('Service listing created!', { description: `${formData.name} is now listed.` });
-      navigate('/', { replace: true, state: { refreshMap: true, centerOn: formData.locationCoords } });
+      navigate('/', { replace: true, state: { refreshMap: true, centerOn: { lat: Number(lat), lng: Number(lng) } } });
     } catch (err: any) {
       console.error('[AddService] Error:', err);
       toast.error('Something went wrong. Please try again.');
