@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, Navigation as NavIcon } from 'lucide-react';
+import { Search, X, RefreshCw } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
@@ -26,7 +26,6 @@ import { MapPin, useMap } from '@/contexts/MapContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { useMapItems } from '@/hooks/useMapItems';
 
 type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
 
@@ -47,13 +46,19 @@ interface FriendLocation {
   receivedAt: number;
 }
 
+const PIN_COLORS: Record<string, string> = {
+  events: '#CC2222',
+  routes: '#185FA5',
+  services: '#C2700A',
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { status: navStatus } = useNavigation();
   const { state } = useData();
   const { user: authUser } = useAuth();
-  const { viewport, fetchPinsForViewport, setPins, setIsLoadingPins } = useMap();
+  const { pins, setPins, setIsLoadingPins } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
@@ -82,6 +87,8 @@ const Home = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Tap-to-navigate state
   const [tappedLocation, setTappedLocation] = useState<TappedLocation | null>(null);
@@ -90,8 +97,6 @@ const Home = () => {
   // Friend live locations
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
-
-  useMapItems();
 
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
