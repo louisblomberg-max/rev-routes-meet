@@ -104,14 +104,14 @@ const Home = () => {
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
     if (!m) return;
+    if (!m.loaded()) {
+      m.once('load', () => refreshPins());
+      return;
+    }
     const bounds = m.getBounds();
     if (!bounds) return;
 
-    const categories = activeCategory
-      ? [activeCategory]
-      : ['events', 'routes', 'services'];
-
-    console.log('[Map] Fetching pins — category:', activeCategory || 'all', 'categories:', categories);
+    console.log('[Map] Fetching pins — activeCategory:', activeCategory || 'all');
     setIsLoadingPins(true);
     try {
       const { data, error } = await supabase.rpc('get_pins_in_bounds', {
@@ -119,19 +119,19 @@ const Home = () => {
         south: bounds.getSouth(),
         east: bounds.getEast(),
         west: bounds.getWest(),
-        categories,
+        categories: ['events', 'routes', 'services'],
       });
       if (error) {
-        console.error('[Map] get_pins_in_bounds error:', error);
+        console.error('[Map] RPC error:', error);
       } else if (data) {
-        console.log('[Map] Pins returned:', data.length);
+        console.log('[Map] Raw pins from RPC:', data.length);
         const normalizeType = (t: string) => {
           if (t === 'event') return 'events';
           if (t === 'route') return 'routes';
           if (t === 'service') return 'services';
           return t;
         };
-        setPins(data.map((pin: any) => {
+        let mapped = data.map((pin: any) => {
           const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
           return {
             id: pin.id,
@@ -141,7 +141,13 @@ const Home = () => {
             title: pin.title,
             ...pinData,
           };
-        }));
+        });
+        // Client-side category filter
+        if (activeCategory) {
+          mapped = mapped.filter((p: any) => p.type === activeCategory);
+        }
+        console.log('[Map] Filtered pins:', mapped.length);
+        setPins(mapped);
       }
     } catch (err) {
       console.error('[Map] fetchPins error:', err);
