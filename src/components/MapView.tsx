@@ -7,7 +7,6 @@ import { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import { MapStyle } from '@/components/MapStyleButton';
 import { useMap, MapPin } from '@/contexts/MapContext';
-import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
 
 if (!import.meta.env.VITE_MAPBOX_TOKEN) {
   console.error('VITE_MAPBOX_TOKEN environment variable is not set');
@@ -20,87 +19,13 @@ const MAP_STYLE_URLS: Record<MapStyle, string> = {
   satellite: 'mapbox://styles/mapbox/satellite-streets-v12',
 };
 
-const PIN_COLORS: Record<string, string> = {
-  events: '#E53935',
-  routes: '#4F7FFF',
-  services: '#FF8000',
-  clubs: '#7c3aed',
-};
-
 interface MapViewProps {
-  activeCategories?: string[];
-  activeCategory?: string | null;
-  onPinClick?: (pin: MapPin) => void;
   onMapTap?: (lngLat: { lng: number; lat: number }) => void;
-  selectedRouteId?: string | null;
-  showEmptyPrompt?: boolean;
-  isDimmed?: boolean;
-  markerOpacity?: number;
-  eventsFilters?: EventsFilterState;
-  routesFilters?: RoutesFilterState;
-  servicesFilters?: ServicesFilterState;
   mapStyle?: MapStyle;
   onMapReady?: (map: mapboxgl.Map) => void;
+  onMoveEnd?: () => void;
 }
 
-function parseDisplayDate(dateStr: string): Date | null {
-  if (!dateStr) return null;
-  const cleaned = dateStr.replace(/^[A-Za-z]+,\s*/, '').replace(/\s*•\s*/, ' ');
-  const withYear = `${cleaned} ${new Date().getFullYear()}`;
-  const parsed = new Date(withYear);
-  if (!isNaN(parsed.getTime())) return parsed;
-  const raw = new Date(dateStr);
-  return isNaN(raw.getTime()) ? null : raw;
-}
-
-function isSameDay(d1: Date, d2: Date): boolean {
-  return d1.getFullYear() === d2.getFullYear() &&
-    d1.getMonth() === d2.getMonth() &&
-    d1.getDate() === d2.getDate();
-}
-
-function buildGeoJSON(pins: MapPin[]): GeoJSON.FeatureCollection {
-  return {
-    type: 'FeatureCollection',
-    features: pins.map(pin => ({
-      type: 'Feature' as const,
-      geometry: { type: 'Point' as const, coordinates: [pin.lng, pin.lat] },
-      properties: {
-        id: pin.id,
-        type: pin.type,
-        title: pin.title,
-        ...Object.fromEntries(
-          Object.entries(pin).filter(([k]) => !['lat', 'lng'].includes(k))
-        ),
-      },
-    })),
-  };
-}
-
-const SOURCE_ID = 'map-items';
-const LAYER_IDS = ['events-layer', 'routes-layer', 'services-layer', 'clubs-layer'] as const;
-
-function addSourceAndLayers(map: mapboxgl.Map) {
-  if (map.getSource(SOURCE_ID)) return;
-
-  map.addSource(SOURCE_ID, {
-    type: 'geojson',
-    data: { type: 'FeatureCollection', features: [] },
-  });
-
-  const pinStyle = (color: string) => ({
-    'circle-radius': 7,
-    'circle-color': color,
-    'circle-stroke-width': 2,
-    'circle-stroke-color': '#ffffff',
-    'circle-opacity': 0.9,
-  });
-
-  map.addLayer({ id: 'events-layer', type: 'circle', source: SOURCE_ID, filter: ['==', ['get', 'type'], 'events'], paint: pinStyle(PIN_COLORS.events) });
-  map.addLayer({ id: 'routes-layer', type: 'circle', source: SOURCE_ID, filter: ['==', ['get', 'type'], 'routes'], paint: pinStyle(PIN_COLORS.routes) });
-  map.addLayer({ id: 'services-layer', type: 'circle', source: SOURCE_ID, filter: ['==', ['get', 'type'], 'services'], paint: pinStyle(PIN_COLORS.services) });
-  map.addLayer({ id: 'clubs-layer', type: 'circle', source: SOURCE_ID, filter: ['==', ['get', 'type'], 'clubs'], paint: pinStyle(PIN_COLORS.clubs) });
-}
 
 const MapView = ({
   activeCategories,
