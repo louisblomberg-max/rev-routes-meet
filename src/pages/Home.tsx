@@ -352,49 +352,48 @@ const Home = () => {
   // Center map on newly published item
   useEffect(() => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
+    if (!navState) return;
 
-    if (navState?.refreshMap) {
-      // Delay to ensure map is ready after navigation
+    const map = mapRef.current;
+
+    if (navState.centerOn && map) {
+      const { lat, lng } = navState.centerOn;
+      map.flyTo({ center: [lng, lat], zoom: 14, duration: 1200 });
+      if (navState.category) setActiveCategory(navState.category);
+      setTimeout(() => refreshPins(), 1400);
+    } else if (navState.refreshMap) {
       setTimeout(() => refreshPins(), 500);
     }
 
-    if (navState?.centerOn && mapRef.current) {
-      const { lat, lng } = navState.centerOn;
-      mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
-      if (navState.category) {
-        setActiveCategory(navState.category);
-      }
-    }
-    if (navState?.showServiceId) {
+    if (navState.showServiceId) {
       const service = state.services.find(s => s.id === navState.showServiceId);
       if (service) {
         setSelectedDetail({ type: 'service', data: service });
         setActiveCategory('services');
       }
     }
-    if (navState?.showEventId) {
+    if (navState.showEventId) {
       const event = state.events.find(e => e.id === navState.showEventId);
       if (event) {
         setSelectedDetail({ type: 'event', data: event });
         setActiveCategory('events');
-        if (event.lat && event.lng && mapRef.current) {
-          mapRef.current.flyTo({ center: [event.lng, event.lat], zoom: 14, duration: 1500 });
+        if (event.lat && event.lng && map) {
+          map.flyTo({ center: [event.lng, event.lat], zoom: 14, duration: 1500 });
         }
       }
     }
-    if (navState?.showRouteId) {
+    if (navState.showRouteId) {
       const route = state.routes.find(r => r.id === navState.showRouteId);
       if (route) {
         setSelectedDetail({ type: 'route', data: route });
         setActiveCategory('routes');
-        if (route.lat && route.lng && mapRef.current) {
-          mapRef.current.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
+        if (route.lat && route.lng && map) {
+          map.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
         }
       }
     }
-    if (navState) {
-      window.history.replaceState({}, '');
-    }
+
+    window.history.replaceState({}, '');
   }, [location.state]);
 
   const handleLocateUser = () => {
