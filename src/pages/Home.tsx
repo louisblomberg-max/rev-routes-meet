@@ -104,14 +104,14 @@ const Home = () => {
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
     if (!m) return;
+    if (!m.loaded()) {
+      m.once('load', () => refreshPins());
+      return;
+    }
     const bounds = m.getBounds();
     if (!bounds) return;
 
-    const categories = activeCategory
-      ? [activeCategory]
-      : ['events', 'routes', 'services'];
-
-    console.log('[Map] Fetching pins — category:', activeCategory || 'all', 'categories:', categories);
+    console.log('[Map] Fetching pins — activeCategory:', activeCategory || 'all');
     setIsLoadingPins(true);
     try {
       const { data, error } = await supabase.rpc('get_pins_in_bounds', {
@@ -119,19 +119,19 @@ const Home = () => {
         south: bounds.getSouth(),
         east: bounds.getEast(),
         west: bounds.getWest(),
-        categories,
+        categories: ['events', 'routes', 'services'],
       });
       if (error) {
-        console.error('[Map] get_pins_in_bounds error:', error);
+        console.error('[Map] RPC error:', error);
       } else if (data) {
-        console.log('[Map] Pins returned:', data.length);
+        console.log('[Map] Raw pins from RPC:', data.length);
         const normalizeType = (t: string) => {
           if (t === 'event') return 'events';
           if (t === 'route') return 'routes';
           if (t === 'service') return 'services';
           return t;
         };
-        setPins(data.map((pin: any) => {
+        let mapped = data.map((pin: any) => {
           const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
           return {
             id: pin.id,
@@ -141,7 +141,13 @@ const Home = () => {
             title: pin.title,
             ...pinData,
           };
-        }));
+        });
+        // Client-side category filter
+        if (activeCategory) {
+          mapped = mapped.filter((p: any) => p.type === activeCategory);
+        }
+        console.log('[Map] Filtered pins:', mapped.length);
+        setPins(mapped);
       }
     } catch (err) {
       console.error('[Map] fetchPins error:', err);
@@ -296,93 +302,104 @@ const Home = () => {
     const m = mapRef.current;
     if (!m) return;
 
-    console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
+    const doRender = () => {
+      console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
 
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
 
-    pins.forEach(pin => {
-      const lat = Number(pin.lat);
-      const lng = Number(pin.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
+      pins.forEach(pin => {
+        const lat = Number(pin.lat);
+        const lng = Number(pin.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
 
-      const color = PIN_COLORS[pin.type] || '#888888';
-      const size = pin.type === 'events' ? '16px' : '14px';
+        const type = String(pin.type || '').toLowerCase().trim();
+        const color = PIN_COLORS[type] || '#CC2222';
 
-      const el = document.createElement('div');
-      el.style.cssText = `
-        width: ${size}; height: ${size};
-        background: ${color}; border: 2.5px solid white;
-        border-radius: 50%; cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-        transition: transform 0.15s ease;
-      `;
+        const el = document.createElement('div');
+        el.style.cssText = `
+          width: 16px; height: 16px;
+          background-color: ${color}; border: 2.5px solid white;
+          border-radius: 50%; cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        `;
 
-      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.3)'; });
-      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+        el.addEventListener('mouseenter', () => {
+          el.style.borderColor = color;
+          el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.borderColor = 'white';
+          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+        });
 
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        console.log('[Map] Pin tapped:', pin.type, pin.id, pin.title);
-        handlePinClick(pin);
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handlePinClick(pin);
+        });
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([lng, lat])
+          .addTo(m);
+
+        markersRef.current.push(marker);
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([lng, lat])
-        .addTo(m);
+      console.log('[Map] Rendered', markersRef.current.length, 'markers');
+    };
 
-      markersRef.current.push(marker);
-    });
-
-    console.log('[Map] Rendered', markersRef.current.length, 'markers');
+    if (m.loaded()) {
+      doRender();
+    } else {
+      m.once('load', doRender);
+    }
   }, [pins]);
 
   // Center map on newly published item
   useEffect(() => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;
+    if (!navState) return;
 
-    if (navState?.refreshMap) {
-      // Delay to ensure map is ready after navigation
+    const map = mapRef.current;
+
+    if (navState.centerOn && map) {
+      const { lat, lng } = navState.centerOn;
+      map.flyTo({ center: [lng, lat], zoom: 14, duration: 1200 });
+      if (navState.category) setActiveCategory(navState.category);
+      setTimeout(() => refreshPins(), 1400);
+    } else if (navState.refreshMap) {
       setTimeout(() => refreshPins(), 500);
     }
 
-    if (navState?.centerOn && mapRef.current) {
-      const { lat, lng } = navState.centerOn;
-      mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1500 });
-      if (navState.category) {
-        setActiveCategory(navState.category);
-      }
-    }
-    if (navState?.showServiceId) {
+    if (navState.showServiceId) {
       const service = state.services.find(s => s.id === navState.showServiceId);
       if (service) {
         setSelectedDetail({ type: 'service', data: service });
         setActiveCategory('services');
       }
     }
-    if (navState?.showEventId) {
+    if (navState.showEventId) {
       const event = state.events.find(e => e.id === navState.showEventId);
       if (event) {
         setSelectedDetail({ type: 'event', data: event });
         setActiveCategory('events');
-        if (event.lat && event.lng && mapRef.current) {
-          mapRef.current.flyTo({ center: [event.lng, event.lat], zoom: 14, duration: 1500 });
+        if (event.lat && event.lng && map) {
+          map.flyTo({ center: [event.lng, event.lat], zoom: 14, duration: 1500 });
         }
       }
     }
-    if (navState?.showRouteId) {
+    if (navState.showRouteId) {
       const route = state.routes.find(r => r.id === navState.showRouteId);
       if (route) {
         setSelectedDetail({ type: 'route', data: route });
         setActiveCategory('routes');
-        if (route.lat && route.lng && mapRef.current) {
-          mapRef.current.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
+        if (route.lat && route.lng && map) {
+          map.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
         }
       }
     }
-    if (navState) {
-      window.history.replaceState({}, '');
-    }
+
+    window.history.replaceState({}, '');
   }, [location.state]);
 
   const handleLocateUser = () => {
