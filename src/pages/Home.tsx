@@ -296,45 +296,57 @@ const Home = () => {
     const m = mapRef.current;
     if (!m) return;
 
-    console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
+    const doRender = () => {
+      console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
 
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+      markersRef.current.forEach(marker => marker.remove());
+      markersRef.current = [];
 
-    pins.forEach(pin => {
-      const lat = Number(pin.lat);
-      const lng = Number(pin.lng);
-      if (isNaN(lat) || isNaN(lng)) return;
+      pins.forEach(pin => {
+        const lat = Number(pin.lat);
+        const lng = Number(pin.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
 
-      const color = PIN_COLORS[pin.type] || '#888888';
-      const size = pin.type === 'events' ? '16px' : '14px';
+        const type = String(pin.type || '').toLowerCase().trim();
+        const color = PIN_COLORS[type] || '#CC2222';
 
-      const el = document.createElement('div');
-      el.style.cssText = `
-        width: ${size}; height: ${size};
-        background: ${color}; border: 2.5px solid white;
-        border-radius: 50%; cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
-        transition: transform 0.15s ease;
-      `;
+        const el = document.createElement('div');
+        el.style.cssText = `
+          width: 16px; height: 16px;
+          background-color: ${color}; border: 2.5px solid white;
+          border-radius: 50%; cursor: pointer;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        `;
 
-      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.3)'; });
-      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+        el.addEventListener('mouseenter', () => {
+          el.style.borderColor = color;
+          el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.borderColor = 'white';
+          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
+        });
 
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        console.log('[Map] Pin tapped:', pin.type, pin.id, pin.title);
-        handlePinClick(pin);
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handlePinClick(pin);
+        });
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([lng, lat])
+          .addTo(m);
+
+        markersRef.current.push(marker);
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([lng, lat])
-        .addTo(m);
+      console.log('[Map] Rendered', markersRef.current.length, 'markers');
+    };
 
-      markersRef.current.push(marker);
-    });
-
-    console.log('[Map] Rendered', markersRef.current.length, 'markers');
+    if (m.loaded()) {
+      doRender();
+    } else {
+      m.once('load', doRender);
+    }
   }, [pins]);
 
   // Center map on newly published item
