@@ -103,30 +103,28 @@ const Home = () => {
 
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
-    if (!m) {
-      console.log('[Map] refreshPins — no map ref');
-      return;
-    }
+    if (!m) return;
     const bounds = m.getBounds();
-    if (!bounds) {
-      console.log('[Map] refreshPins — no bounds');
-      return;
-    }
-    const north = bounds.getNorth();
-    const south = bounds.getSouth();
-    const east = bounds.getEast();
-    const west = bounds.getWest();
-    console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+    if (!bounds) return;
+
+    const categories = activeCategory
+      ? [activeCategory]
+      : ['events', 'routes', 'services'];
+
+    console.log('[Map] Fetching pins — category:', activeCategory || 'all', 'categories:', categories);
     setIsLoadingPins(true);
     try {
       const { data, error } = await supabase.rpc('get_pins_in_bounds', {
-        north, south, east, west,
-        categories: ['events', 'routes', 'services'],
+        north: bounds.getNorth(),
+        south: bounds.getSouth(),
+        east: bounds.getEast(),
+        west: bounds.getWest(),
+        categories,
       });
       if (error) {
         console.error('[Map] get_pins_in_bounds error:', error);
       } else if (data) {
-        console.log('[Map] Pins returned:', data.length, data);
+        console.log('[Map] Pins returned:', data.length);
         const normalizeType = (t: string) => {
           if (t === 'event') return 'events';
           if (t === 'route') return 'routes';
@@ -150,7 +148,7 @@ const Home = () => {
     } finally {
       setIsLoadingPins(false);
     }
-  }, [setPins, setIsLoadingPins]);
+  }, [activeCategory, setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -286,6 +284,13 @@ const Home = () => {
     });
   }, [friendLocations]);
 
+  // Re-fetch pins when category changes
+  useEffect(() => {
+    if (mapRef.current) {
+      refreshPins();
+    }
+  }, [activeCategory, refreshPins]);
+
   // Render DOM markers for pins
   useEffect(() => {
     const m = mapRef.current;
@@ -293,30 +298,28 @@ const Home = () => {
 
     console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
 
-    // Remove old markers
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
     pins.forEach(pin => {
       const lat = Number(pin.lat);
       const lng = Number(pin.lng);
-      if (isNaN(lat) || isNaN(lng)) {
-        console.warn('[Map] Skipping pin with invalid coords:', pin);
-        return;
-      }
-
-      // Filter by active category
-      if (activeCategory && pin.type !== activeCategory) return;
+      if (isNaN(lat) || isNaN(lng)) return;
 
       const color = PIN_COLORS[pin.type] || '#888888';
+      const size = pin.type === 'events' ? '16px' : '14px';
 
       const el = document.createElement('div');
       el.style.cssText = `
-        width: 14px; height: 14px;
-        background: ${color}; border: 2px solid white;
+        width: ${size}; height: ${size};
+        background: ${color}; border: 2.5px solid white;
         border-radius: 50%; cursor: pointer;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        transition: transform 0.15s ease;
       `;
+
+      el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.3)'; });
+      el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -332,7 +335,7 @@ const Home = () => {
     });
 
     console.log('[Map] Rendered', markersRef.current.length, 'markers');
-  }, [pins, activeCategory]);
+  }, [pins]);
 
   // Center map on newly published item
   useEffect(() => {
@@ -571,6 +574,26 @@ const Home = () => {
         <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
+        </div>
+      )}
+
+      {/* Map legend */}
+      {!isNavigating && (
+        <div className="absolute bottom-28 left-3 bg-white/95 backdrop-blur-md rounded-xl px-3 py-2 z-20 shadow-sm border border-border/30">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#CC2222', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              <span className="text-[11px] text-muted-foreground">Events</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#185FA5', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              <span className="text-[11px] text-muted-foreground">Routes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#C2700A', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+              <span className="text-[11px] text-muted-foreground">Services</span>
+            </div>
+          </div>
         </div>
       )}
 
