@@ -257,16 +257,63 @@ const AddEvent = () => {
     }
   };
 
+  const geocodeLocation = async (text: string): Promise<{ lat: number; lng: number } | null> => {
+    try {
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&limit=1`
+      );
+      const data = await res.json();
+      if (data.features?.length > 0) {
+        const [lng, lat] = data.features[0].center;
+        console.log('[AddEvent] Geocoded location:', lat, lng);
+        return { lat, lng };
+      }
+    } catch (err) {
+      console.error('[AddEvent] Geocoding error:', err);
+    }
+    return null;
+  };
+
   const saveEvent = async () => {
     setIsSubmitting(true);
     try {
       const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0;
 
-      const { error } = await supabase.from('events').insert({
+      // Resolve coordinates
+      let lat = formData.locationCoords?.lat ?? null;
+      let lng = formData.locationCoords?.lng ?? null;
+
+      if ((!lat || !lng) && formData.locationName.trim()) {
+        const coords = await geocodeLocation(formData.locationName.trim());
+        if (coords) {
+          lat = coords.lat;
+          lng = coords.lng;
+        }
+      }
+
+      if (!lat || !lng) {
+        toast.error('Please enter a valid location so your event appears on the map');
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Upload banner if present
+      let bannerUrl: string | null = null;
+      if (bannerImage?.file) {
+        const fileExt = bannerImage.file.name.split('.').pop();
+        const fileName = `${authUser?.id}/${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage.from('events').upload(fileName, bannerImage.file);
+        if (!uploadError) {
+          const { data: urlData } = supabase.storage.from('events').getPublicUrl(fileName);
+          bannerUrl = urlData.publicUrl;
+        }
+      }
+
+      const payload = {
         created_by: authUser?.id || null,
         title: formData.name.trim(),
         description: formData.description?.trim() || null,
-        banner_url: bannerImage?.preview || null,
+        banner_url: bannerUrl,
         type: eventType || 'meets',
         vehicle_types: selectedVehicleTypes.filter(t => t !== 'all'),
         vehicle_brands: vehicleBrands,
@@ -275,8 +322,8 @@ const AddEvent = () => {
         date_start: startDate ? startDate.toISOString() : new Date().toISOString(),
         date_end: endDate?.toISOString() || null,
         location: formData.locationName.trim(),
-        lat: formData.locationCoords?.lat ?? null,
-        lng: formData.locationCoords?.lng ?? null,
+        lat: Number(lat),
+        lng: Number(lng),
         max_attendees: parseInt(formData.maxAttendees) || null,
         is_first_come_first_serve: formData.firstComeFirstServe,
         entry_fee: entryFeeAmount,
@@ -285,7 +332,15 @@ const AddEvent = () => {
         ticket_price: ticketingEnabled ? ticketPriceNum : 0,
         visibility,
         club_id: visibility === 'club' ? clubId || null : null,
-      });
+      };
+
+      console.log('[AddEvent] Inserting payload:', payload);
+
+      const { data, error } = await supabase
+        .from('events')
+        .insert(payload)
+        .select()
+        .single();
 
       if (error) {
         console.error('[AddEvent] Insert error:', error);
@@ -293,8 +348,9 @@ const AddEvent = () => {
         return;
       }
 
+      console.log('[AddEvent] Event created:', data);
       toast.success('Event published! 🎉', { description: formData.name });
-      navigate('/', { replace: true, state: { refreshMap: true, centerOn: formData.locationCoords } });
+      navigate('/', { replace: true, state: { refreshMap: true, centerOn: { lat: Number(lat), lng: Number(lng) } } });
     } catch (err: any) {
       console.error('[AddEvent] Error:', err);
       toast.error('Something went wrong. Please try again.');

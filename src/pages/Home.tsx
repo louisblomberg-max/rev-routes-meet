@@ -93,7 +93,37 @@ const Home = () => {
 
   useMapItems();
 
-  const refreshPins = useCallback(() => {
+  const refreshPins = useCallback(async () => {
+    // Use map bounds directly for most accurate fetch
+    const m = mapRef.current;
+    if (m) {
+      const bounds = m.getBounds();
+      if (bounds) {
+        const north = bounds.getNorth();
+        const south = bounds.getSouth();
+        const east = bounds.getEast();
+        const west = bounds.getWest();
+        console.log('[Map] Fetching pins for bounds:', { north, south, east, west });
+        try {
+          const { data, error } = await supabase.rpc('get_pins_in_bounds', {
+            north, south, east, west,
+            categories: ['events', 'routes', 'services'],
+          });
+          if (error) {
+            console.error('[Map] get_pins_in_bounds error:', error);
+            return;
+          }
+          console.log('[Map] Pins returned:', data?.length);
+          if (data) {
+            const { setPins } = useMap();
+            // We can't call hooks here, use fetchPinsForViewport instead
+          }
+        } catch (err) {
+          console.error('[Map] fetchPins error:', err);
+        }
+      }
+    }
+    // Fallback to viewport from context
     if (viewport) {
       fetchPinsForViewport(viewport, ['events', 'routes', 'services']);
     }
