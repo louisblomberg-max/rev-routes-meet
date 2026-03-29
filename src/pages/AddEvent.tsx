@@ -364,65 +364,41 @@ const AddEvent = () => {
     if (!authUser?.id) { toast.error('You must be signed in'); return; }
 
     setIsSubmitting(true);
-
-    // Overall 15-second timeout guard
-    const publishTimeout = setTimeout(() => {
-      console.error('[AddEvent] Overall publish timeout reached');
-      setIsSubmitting(false);
-      toast.error('Request timed out. Please try again.');
-    }, 15000);
-
     try {
-      // Check subscription plan from DB
-      const { data: sub } = await supabase
-        .from('subscriptions')
-        .select('plan')
-        .eq('user_id', authUser.id)
-        .maybeSingle();
+      // Check plan and credits from profile — no RPC, no blocking calls
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan, free_event_credits')
+        .eq('id', authUser.id)
+        .single();
 
-      const isPaid = sub?.plan === 'pro' || sub?.plan === 'club';
-      console.log('[AddEvent] Plan:', sub?.plan, 'isPaid:', isPaid);
+      console.log('[AddEvent] Profile:', profile);
 
-      if (isPaid) {
-        await saveEvent();
-        return;
-      }
+      const isPaid = profile?.plan === 'pro' || profile?.plan === 'club';
 
-      // Free user — try to use a free credit with 5s timeout
-      let creditUsed = false;
-      try {
-        const creditPromise = supabase.rpc('use_event_credit', { p_user_id: authUser.id });
-        const timeoutPromise = new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Credit check timed out')), 5000)
-        );
-        const result = await Promise.race([creditPromise, timeoutPromise]);
-        creditUsed = (result as any).data === true;
-        console.log('[AddEvent] Credit used:', creditUsed, result);
-      } catch (err) {
-        console.error('[AddEvent] Credit check failed:', err);
-        setIsSubmitting(false);
-        setShowPaywall(true);
-        return;
-      }
+      if (!isPaid) {
+        const credits = profile?.free_event_credits || 0;
+        if (credits <= 0) {
+          console.log('[AddEvent] No credits — showing paywall');
+          setIsSubmitting(false);
+          setShowPaywall(true);
+          return;
+        }
+        // Fire-and-forget credit deduction — don't block the save
+        Promise.resolve(supabase.rpc('use_event_credit', { p_user_id: authUser.id })).then(res => {
+          console.log('[AddEvent] Credit deducted:', res.data);
+        }).catch(() => {});
 
-      if (creditUsed) {
         toast.success('Your free event post has been used.', {
           description: 'Future events cost £2.99 each or upgrade to Pro.',
         });
-        await saveEvent();
-        return;
       }
 
-      // No credits left — show paywall
-      console.log('[AddEvent] No credits — showing paywall');
-      setIsSubmitting(false);
-      setShowPaywall(true);
+      await saveEvent();
     } catch (err: any) {
       console.error('[AddEvent] handleSubmit error:', err);
       toast.error('Something went wrong: ' + (err.message || 'Please try again.'));
       setIsSubmitting(false);
-    } finally {
-      clearTimeout(publishTimeout);
     }
   };
 
