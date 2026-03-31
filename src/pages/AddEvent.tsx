@@ -1,890 +1,1128 @@
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { ArrowLeft, Calendar, Camera, X, DollarSign, Users, Clock, ImagePlus, Car, MapPin, Eye, Globe, UsersRound, ChevronDown, Search, Tag, Ticket, Info, CreditCard, Banknote } from 'lucide-react';
-import BackButton from '@/components/BackButton';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Calendar as CalendarUI } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
-import LocationPicker from '@/components/LocationPicker';
-import { useData } from '@/contexts/DataContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
-import CreationPaywallSheet from '@/components/CreationPaywallSheet';
-import type { EventType, VehicleType, EntryFeeType } from '@/models';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from 'sonner'
+import { getMakesByType } from '@/data/vehicles'
+import { addWeeks, addMonths, format } from 'date-fns'
+import BackButton from '@/components/BackButton'
+import { Switch } from '@/components/ui/switch'
+import { Button } from '@/components/ui/button'
+import {
+  Camera, Plus, X, Calendar, MapPin, Users, Ticket,
+  ImagePlus, RefreshCw, Info, Banknote,
+  CreditCard, Eye, Globe, UsersRound, Tag
+} from 'lucide-react'
+import CreationPaywallSheet from '@/components/CreationPaywallSheet'
 
-const EVENT_TYPE_OPTIONS: { id: EventType; label: string }[] = [
-  { id: 'meets', label: 'Meets' },
-  { id: 'shows', label: 'Shows' },
-  { id: 'drive', label: 'Drive' },
-  { id: 'track_day', label: 'Track Day' },
-  { id: 'motorsport', label: 'Motorsport' },
-  { id: 'autojumble', label: 'Autojumble' },
-  { id: 'off_road', label: 'Off-Road' },
-];
+const EVENT_TYPES = [
+  'Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble', 'Off-Road', 'Other'
+]
 
-const VEHICLE_TYPE_OPTIONS: { id: VehicleType; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'cars', label: 'Cars' },
-  { id: 'bikes', label: 'Bikes' },
-  { id: 'big_stuff', label: 'Big Stuff' },
-  { id: 'military', label: 'Military' },
-];
+const MEET_STYLE_TAGS = [
+  'JDM', 'Supercars', 'Muscle Car', 'American', 'European',
+  '4x4', 'Classics', 'Vintage', 'Modified', 'Show & Shine',
+  'Track Focus', 'Charity', 'Family Friendly', 'Electric', 'Stance'
+]
 
-const VEHICLE_CATEGORY_OPTIONS = [
-  { id: 'jdm', label: 'JDM' },
-  { id: 'supercars', label: 'Supercars' },
-  { id: 'muscle-car', label: 'Muscle Car' },
-  { id: 'american', label: 'American' },
-  { id: 'european', label: 'European' },
-  { id: '4x4', label: '4x4' },
-  { id: 'row', label: 'ROW' },
-  { id: 'modern', label: 'Modern' },
-  { id: 'classics', label: 'Classics' },
-  { id: 'vintage', label: 'Vintage' },
-];
-
-const VEHICLE_AGE_OPTIONS = [
-  { id: 'all', label: 'All' },
-  { id: 'pre_2000', label: "Pre 00's" },
-  { id: 'pre_1990', label: "Pre 90's" },
-  { id: 'pre_1980', label: "Pre 80's" },
-  { id: 'pre_1970', label: "Pre 70's" },
-  { id: 'pre_1960', label: "Pre 60's" },
-  { id: 'pre_1950', label: "Pre 50's" },
-];
-
-const CAR_BRANDS = [
-  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
-  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
-  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
-  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
-  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
-  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
-  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
-];
-const BIKE_BRANDS = [
-  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
-  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
-  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
-];
-const POPULAR_CAR_BRANDS = ['BMW','Porsche','Mercedes-Benz','Audi','Ford','Ferrari','Lamborghini','Nissan'];
-const POPULAR_BIKE_BRANDS = ['Ducati','Harley-Davidson','Honda','Kawasaki','Yamaha','Triumph','KTM','BMW Motorrad'];
-
-const VISIBILITY_OPTIONS = [
-  { value: 'public' as const, label: 'Public', description: 'Visible to everyone on RevNet', icon: Globe },
-  { value: 'club' as const, label: 'Club', description: 'Post to your club', icon: UsersRound },
-  { value: 'friends' as const, label: 'Friends Only', description: 'Visible to friends', icon: Users },
-];
-
-// ── Shared layout components ──
-const SectionCard = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`bg-card rounded-2xl border border-border/50 shadow-card p-5 ${className}`}>
-    {children}
-  </div>
-);
-
-const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; children: React.ReactNode }) => (
-  <div className="flex items-center gap-2.5 mb-4">
-    <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
-      <Icon className="w-4 h-4 text-events" />
-    </div>
-    <h2 className="text-base font-bold text-foreground">{children}</h2>
-  </div>
-);
+const VEHICLE_FOCUS_OPTIONS = [
+  { id: 'all_welcome', label: 'All welcome', sub: 'Any vehicle can attend' },
+  { id: 'cars_only', label: 'Cars only', sub: 'Four wheeled vehicles only' },
+  { id: 'motorcycles_only', label: 'Motorcycles only', sub: 'Two wheeled vehicles only' },
+  { id: 'specific_makes', label: 'Specific makes', sub: 'Choose which brands are welcome' },
+]
 
 const AddEvent = () => {
-  const navigate = useNavigate();
-  const { events: eventsRepo, state } = useData();
-  const { user: authUser } = useAuth();
-  const { effectivePlan } = usePlan();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showPaywall, setShowPaywall] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    locationName: '',
-    locationCoords: undefined as { lat: number; lng: number } | undefined,
-    entryFee: false,
-    feeAmount: '',
-    maxAttendees: '',
-    firstComeFirstServe: false,
-  });
-  const [eventType, setEventType] = useState<EventType | ''>('');
-  const [vehicleType, setVehicleType] = useState<VehicleType>('all');
-  const [selectedVehicleTypes, setSelectedVehicleTypes] = useState<VehicleType[]>(['all']);
-  const [vehicleCategories, setVehicleCategories] = useState<string[]>([]);
-  const [vehicleBrands, setVehicleBrands] = useState<string[]>([]);
-  const [brandSearch, setBrandSearch] = useState('');
-  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
-  const brandRef = useRef<HTMLDivElement>(null);
-  const [vehicleAges, setVehicleAges] = useState<string[]>(['all']);
-  const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public');
-  const [clubId, setClubId] = useState('');
-  const [myOwnedClubs, setMyOwnedClubs] = useState<{ id: string; name: string }[]>([]);
-  const currentUserId = authUser?.id || 'current-user';
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const photosInputRef = useRef<HTMLInputElement>(null)
+  const makeSearchRef = useRef<HTMLDivElement>(null)
+  const locationRef = useRef<HTMLDivElement>(null)
 
-  // Ticketing state
-  const [ticketingEnabled, setTicketingEnabled] = useState(false);
-  const [ticketPrice, setTicketPrice] = useState('');
-  const [maxTickets, setMaxTickets] = useState('');
-  const [hasStripeConnect, setHasStripeConnect] = useState(false);
-  const [connectingStripe, setConnectingStripe] = useState(false);
+  const [saving, setSaving] = useState(false)
+  const [showPaywall, setShowPaywall] = useState(false)
 
+  // Credits and plan
+  const [userCredits, setUserCredits] = useState(0)
+  const [userPlan, setUserPlan] = useState('free')
+  const [hasStripeConnect, setHasStripeConnect] = useState(false)
+  const [myClubs, setMyClubs] = useState<{ id: string; name: string }[]>([])
+
+  // Section 1 — Details
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [bannerFile, setBannerFile] = useState<File | null>(null)
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
+
+  // Section 2 — Event type
+  const [eventType, setEventType] = useState('')
+
+  // Section 3 — Vehicle focus
+  const [vehicleFocus, setVehicleFocus] = useState<'all_welcome' | 'cars_only' | 'motorcycles_only' | 'specific_makes'>('all_welcome')
+  const [specificMakes, setSpecificMakes] = useState<string[]>([])
+  const [makeSearch, setMakeSearch] = useState('')
+  const [showMakeSuggestions, setShowMakeSuggestions] = useState(false)
+
+  // Section 4 — Meet style tags
+  const [meetStyleTags, setMeetStyleTags] = useState<string[]>([])
+
+  // Section 5 — Dates
+  const [dates, setDates] = useState([{
+    id: crypto.randomUUID(),
+    date: '',
+    startTime: '10:00',
+    endTime: '14:00'
+  }])
+  const [isRecurring, setIsRecurring] = useState(false)
+  const [recurringFrequency, setRecurringFrequency] = useState<'weekly' | 'fortnightly' | 'monthly'>('weekly')
+  const [recurringCount, setRecurringCount] = useState(4)
+
+  // Section 6 — Location
+  const [location, setLocation] = useState('')
+  const [locationLat, setLocationLat] = useState<number | null>(null)
+  const [locationLng, setLocationLng] = useState<number | null>(null)
+  const [locationQuery, setLocationQuery] = useState('')
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([])
+  const [what3words, setWhat3words] = useState('')
+
+  // Section 7 — Capacity
+  const [maxAttendees, setMaxAttendees] = useState('')
+  const [firstComeFirstServe, setFirstComeFirstServe] = useState(true)
+  const [waitlistEnabled, setWaitlistEnabled] = useState(false)
+
+  // Section 8 — Entry and tickets
+  const [isFree, setIsFree] = useState(true)
+  const [entryFee, setEntryFee] = useState('')
+  const [isTicketed, setIsTicketed] = useState(false)
+  const [ticketPrice, setTicketPrice] = useState('')
+  const [maxTickets, setMaxTickets] = useState('')
+
+  // Section 9 — Rules
+  const [eventRules, setEventRules] = useState('')
+
+  // Section 10 — Visibility
+  const [visibility, setVisibility] = useState<'public' | 'club' | 'friends'>('public')
+  const [clubId, setClubId] = useState('')
+
+  // Load user data on mount
   useEffect(() => {
-    if (!authUser?.id) return;
-    (async () => {
-      const { data } = await supabase
-        .from('club_memberships')
-        .select('club_id, clubs(id, name)')
-        .eq('user_id', authUser.id);
-      if (data) {
-        setMyOwnedClubs(data.map((d: any) => ({ id: d.clubs?.id || d.club_id, name: d.clubs?.name || 'Unknown Club' })));
-      }
-    })();
-    // Check Stripe Connect status
-    (async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('stripe_connect_account_id')
-        .eq('id', authUser.id)
-        .single();
-      if (data?.stripe_connect_account_id) {
-        setHasStripeConnect(true);
-      }
-    })();
-  }, [authUser?.id]);
-
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [startTime, setStartTime] = useState('12:00');
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [endTime, setEndTime] = useState('14:00');
-  const [bannerImage, setBannerImage] = useState<{ file: File; preview: string } | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Sync maxTickets with maxAttendees
-  useEffect(() => {
-    if (!maxTickets && formData.maxAttendees) {
-      setMaxTickets(formData.maxAttendees);
-    }
-  }, [formData.maxAttendees]);
-
-  // Close brand dropdown on outside click
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
-        setIsBrandDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const availableBrands = useMemo(() => {
-    const types = selectedVehicleTypes.filter(t => t !== 'all');
-    if (types.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS].sort();
-    const brands = new Set<string>();
-    for (const vt of types) {
-      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
-      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
-    }
-    return brands.size > 0 ? [...brands].sort() : [...CAR_BRANDS, ...BIKE_BRANDS].sort();
-  }, [selectedVehicleTypes]);
-
-  const popularBrands = useMemo(() => {
-    const types = selectedVehicleTypes.filter(t => t !== 'all');
-    if (types.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
-    const pBrands = new Set<string>();
-    for (const vt of types) {
-      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
-      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
-    }
-    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS];
-  }, [selectedVehicleTypes]);
-
-  const filteredBrandResults = useMemo(() => {
-    const query = brandSearch.trim().toLowerCase();
-    if (!query) {
-      const rest = availableBrands.filter(b => !popularBrands.includes(b));
-      return [...popularBrands, ...rest].filter(b => !vehicleBrands.includes(b)).slice(0, 8);
-    }
-    return availableBrands
-      .filter(b => b.toLowerCase().includes(query) && !vehicleBrands.includes(b))
-      .slice(0, 8);
-  }, [brandSearch, availableBrands, popularBrands, vehicleBrands]);
-
-  // Ticketing calculations
-  const ticketPriceNum = parseFloat(ticketPrice) || 0;
-
-  const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!formData.name.trim()) errs.name = 'Event name is required';
-    const wordCount = formData.description.trim().split(/\s+/).filter(Boolean).length;
-    if (wordCount < 15) errs.description = `Description must be at least 15 words (currently ${wordCount})`;
-    if (!eventType) errs.eventType = 'Select an event type';
-    if (!startDate) errs.startDate = 'Start date is required';
-    if (!formData.locationName.trim()) errs.locationName = 'Location is required';
-    if (!formData.maxAttendees.trim()) errs.maxAttendees = 'Max attendees is required';
-    if (formData.entryFee && !formData.feeAmount) errs.feeAmount = 'Enter fee amount';
-    if (ticketingEnabled && ticketPriceNum < 1) errs.ticketPrice = 'Minimum ticket price is £1.00';
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleImageUpload = () => fileInputRef.current?.click();
-
-  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (bannerImage) URL.revokeObjectURL(bannerImage.preview);
-    setBannerImage({ file, preview: URL.createObjectURL(file) });
-    e.target.value = '';
-  };
-
-  const removeBanner = () => {
-    if (bannerImage) {
-      URL.revokeObjectURL(bannerImage.preview);
-      setBannerImage(null);
-    }
-  };
-
-  const geocodeLocation = async (text: string): Promise<{ lat: number; lng: number } | null> => {
-    try {
-      const res = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&limit=1`
-      );
-      const data = await res.json();
-      if (data.features?.length > 0) {
-        const [lng, lat] = data.features[0].center;
-        console.log('[AddEvent] Geocoded location:', lat, lng);
-        return { lat, lng };
-      }
-    } catch (err) {
-      console.error('[AddEvent] Geocoding error:', err);
-    }
-    return null;
-  };
-
-  const saveEvent = async () => {
-    setIsSubmitting(true);
-    try {
-      const entryFeeAmount = formData.entryFee ? parseFloat(formData.feeAmount) || 0 : 0;
-
-      // Resolve coordinates
-      let lat = formData.locationCoords?.lat ?? null;
-      let lng = formData.locationCoords?.lng ?? null;
-
-      if ((!lat || !lng) && formData.locationName.trim()) {
-        const coords = await geocodeLocation(formData.locationName.trim());
-        if (coords) {
-          lat = coords.lat;
-          lng = coords.lng;
-        }
-      }
-
-      if (!lat || !lng) {
-        toast.error('Please enter a valid location so your event appears on the map');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Upload banner if present
-      let bannerUrl: string | null = null;
-      if (bannerImage?.file) {
-        const fileExt = bannerImage.file.name.split('.').pop();
-        const fileName = `${authUser?.id}/${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage.from('events').upload(fileName, bannerImage.file);
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage.from('events').getPublicUrl(fileName);
-          bannerUrl = urlData.publicUrl;
-        }
-      }
-
-      const payload = {
-        created_by: authUser?.id || null,
-        title: formData.name.trim(),
-        description: formData.description?.trim() || null,
-        banner_url: bannerUrl,
-        type: eventType || 'meets',
-        vehicle_types: selectedVehicleTypes.filter(t => t !== 'all'),
-        vehicle_brands: vehicleBrands,
-        vehicle_categories: vehicleCategories,
-        vehicle_ages: vehicleAges.filter(a => a !== 'all'),
-        date_start: startDate ? startDate.toISOString() : new Date().toISOString(),
-        date_end: endDate?.toISOString() || null,
-        location: formData.locationName.trim(),
-        lat: Number(lat),
-        lng: Number(lng),
-        max_attendees: parseInt(formData.maxAttendees) || null,
-        is_first_come_first_serve: formData.firstComeFirstServe,
-        entry_fee: entryFeeAmount,
-        is_free: !entryFeeAmount || entryFeeAmount === 0,
-        is_ticketed: ticketingEnabled,
-        ticket_price: ticketingEnabled ? ticketPriceNum : 0,
-        visibility,
-        club_id: visibility === 'club' ? clubId || null : null,
-      };
-
-      console.log('[AddEvent] Inserting payload:', payload);
-
-      const { data, error } = await supabase
-        .from('events')
-        .insert(payload)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('[AddEvent] Insert error:', error);
-        toast.error('Could not create event: ' + error.message);
-        return;
-      }
-
-      console.log('[AddEvent] Event created:', data);
-      toast.success('Event published! 🎉', { description: formData.name });
-      navigate('/', { replace: true, state: { refreshMap: true, centerOn: { lat: Number(lat), lng: Number(lng) } } });
-    } catch (err: any) {
-      console.error('[AddEvent] Error:', err);
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    if (!authUser?.id) { toast.error('You must be signed in'); return; }
-
-    setIsSubmitting(true);
-    try {
-      // Check plan and credits from profile — no RPC, no blocking calls
+    if (!user?.id) return
+    const load = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('plan, free_event_credits')
-        .eq('id', authUser.id)
-        .single();
+        .select('free_event_credits, plan, stripe_connect_account_id')
+        .eq('id', user.id)
+        .single()
+      if (profile) {
+        setUserCredits(profile.free_event_credits || 0)
+        setUserPlan(profile.plan || 'free')
+        setHasStripeConnect(!!profile.stripe_connect_account_id)
+      }
+      const { data: clubData } = await supabase
+        .from('club_memberships')
+        .select('club_id, clubs(id, name)')
+        .eq('user_id', user.id)
+      if (clubData) {
+        setMyClubs(clubData.map((d: any) => ({
+          id: d.clubs?.id || d.club_id,
+          name: d.clubs?.name || 'Unknown Club'
+        })))
+      }
+    }
+    load()
+  }, [user?.id])
 
-      console.log('[AddEvent] Profile:', profile);
+  // Make search
+  const allMakes = useMemo(() => getMakesByType('all'), [])
+  const filteredMakes = useMemo(() => {
+    const q = makeSearch.toLowerCase().trim()
+    if (!q) return allMakes.slice(0, 8)
+    return allMakes.filter(m => m.name.toLowerCase().includes(q)).slice(0, 8)
+  }, [makeSearch, allMakes])
 
-      const isPaid = profile?.plan === 'pro' || profile?.plan === 'club';
+  // Click outside handlers
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (makeSearchRef.current && !makeSearchRef.current.contains(e.target as Node)) {
+        setShowMakeSuggestions(false)
+      }
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocationSuggestions([])
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
+  // Location search
+  useEffect(() => {
+    if (locationQuery.length < 3) { setLocationSuggestions([]); return }
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationQuery)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&limit=5&types=address,poi,place,postcode`
+        )
+        const data = await res.json()
+        setLocationSuggestions(data.features || [])
+      } catch { setLocationSuggestions([]) }
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [locationQuery])
+
+  const selectLocation = (feature: any) => {
+    const [lng, lat] = feature.center
+    setLocation(feature.place_name)
+    setLocationQuery(feature.place_name)
+    setLocationLat(lat)
+    setLocationLng(lng)
+    setLocationSuggestions([])
+  }
+
+  // Date management
+  const addDate = () => {
+    setDates(prev => [...prev, {
+      id: crypto.randomUUID(),
+      date: '',
+      startTime: '10:00',
+      endTime: '14:00'
+    }])
+  }
+
+  const removeDate = (id: string) => {
+    if (dates.length === 1) return
+    setDates(prev => prev.filter(d => d.id !== id))
+  }
+
+  const updateDate = (id: string, field: string, value: string) => {
+    setDates(prev => prev.map(d => d.id === id ? { ...d, [field]: value } : d))
+  }
+
+  const generateRecurringDates = useCallback(() => {
+    if (!dates[0]?.date) {
+      toast.error('Set the first date before generating recurring dates')
+      return
+    }
+    const base = new Date(dates[0].date)
+    const generated = [dates[0]]
+    for (let i = 1; i < recurringCount; i++) {
+      let next: Date
+      if (recurringFrequency === 'weekly') next = addWeeks(base, i)
+      else if (recurringFrequency === 'fortnightly') next = addWeeks(base, i * 2)
+      else next = addMonths(base, i)
+      generated.push({
+        id: crypto.randomUUID(),
+        date: format(next, 'yyyy-MM-dd'),
+        startTime: dates[0].startTime,
+        endTime: dates[0].endTime,
+      })
+    }
+    setDates(generated)
+    toast.success(`Generated ${generated.length} dates`)
+  }, [dates, recurringFrequency, recurringCount])
+
+  // Credit cost calculation
+  const validDates = dates.filter(d => d.date)
+  const dateCount = validDates.length
+  const isPaidPlan = userPlan === 'pro' || userPlan === 'organiser'
+  const creditsToUse = isPaidPlan ? 0 : Math.min(userCredits, dateCount)
+  const datesToPay = isPaidPlan ? 0 : Math.max(0, dateCount - userCredits)
+  const totalCost = datesToPay * 2.99
+
+  // Banner and photo upload handlers
+  const handleBannerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (bannerPreview) URL.revokeObjectURL(bannerPreview)
+    setBannerFile(file)
+    setBannerPreview(URL.createObjectURL(file))
+    e.target.value = ''
+  }
+
+  const handlePhotosSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    if (photoFiles.length + files.length > 10) {
+      toast.error('Maximum 10 photos allowed')
+      return
+    }
+    const newPreviews = files.map(f => URL.createObjectURL(f))
+    setPhotoFiles(prev => [...prev, ...files])
+    setPhotoPreviews(prev => [...prev, ...newPreviews])
+    e.target.value = ''
+  }
+
+  const removePhoto = (index: number) => {
+    URL.revokeObjectURL(photoPreviews[index])
+    setPhotoFiles(prev => prev.filter((_, i) => i !== index))
+    setPhotoPreviews(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const uploadBanner = async (): Promise<string | null> => {
+    if (!bannerFile || !user) return null
+    try {
+      const ext = bannerFile.name.split('.').pop()
+      const path = `${user.id}/${Date.now()}-banner.${ext}`
+      const { error } = await supabase.storage.from('events').upload(path, bannerFile)
+      if (error) throw error
+      const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
+      return publicUrl
+    } catch (err) {
+      console.error('[AddEvent] Banner upload error:', err)
+      return null
+    }
+  }
+
+  const uploadPhotos = async (): Promise<string[]> => {
+    if (!photoFiles.length || !user) return []
+    const urls: string[] = []
+    for (const file of photoFiles) {
+      try {
+        const ext = file.name.split('.').pop()
+        const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error } = await supabase.storage.from('events').upload(path, file)
+        if (error) throw error
+        const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
+        urls.push(publicUrl)
+      } catch (err) {
+        console.error('[AddEvent] Photo upload error:', err)
+      }
+    }
+    return urls
+  }
+
+  // Validation
+  const validate = (): boolean => {
+    if (!title.trim()) { toast.error('Please enter an event name'); return false }
+    if (!description.trim() || description.trim().split(/\s+/).length < 15) {
+      toast.error('Description must be at least 15 words'); return false
+    }
+    if (!eventType) { toast.error('Please select an event type'); return false }
+    if (!location.trim()) { toast.error('Please enter a location'); return false }
+    if (!locationLat || !locationLng) { toast.error('Please select a location from the dropdown'); return false }
+    const validDatesList = dates.filter(d => d.date)
+    if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
+    if (!maxAttendees) { toast.error('Please enter max attendees'); return false }
+    if (isTicketed && (!ticketPrice || Number(ticketPrice) < 1)) {
+      toast.error('Minimum ticket price is £1.00'); return false
+    }
+    if (isTicketed && !hasStripeConnect) {
+      toast.error('Please connect your bank account to sell tickets'); return false
+    }
+    if (visibility === 'club' && !clubId) {
+      toast.error('Please select a club'); return false
+    }
+    return true
+  }
+
+  // Main publish handler
+  const handlePublish = async () => {
+    if (!validate()) return
+    if (!user?.id) { toast.error('Please sign in'); return }
+
+    setSaving(true)
+    const publishTimeout = setTimeout(() => {
+      setSaving(false)
+      toast.error('Request timed out. Please try again.')
+    }, 15000)
+
+    try {
+      const validDatesList = dates.filter(d => d.date)
+      const isPaid = userPlan === 'pro' || userPlan === 'organiser'
+
+      // Check credits for free users
       if (!isPaid) {
-        const credits = profile?.free_event_credits || 0;
-        if (credits <= 0) {
-          console.log('[AddEvent] No credits — showing paywall');
-          setIsSubmitting(false);
-          setShowPaywall(true);
-          return;
-        }
-        // Fire-and-forget credit deduction — don't block the save
-        Promise.resolve(supabase.rpc('use_event_credit', { p_user_id: authUser.id })).then(res => {
-          console.log('[AddEvent] Credit deducted:', res.data);
-        }).catch(() => {});
+        const creditsNeeded = Math.min(userCredits, validDatesList.length)
+        const remainingAfter = userCredits - creditsNeeded
+        const toPay = Math.max(0, validDatesList.length - userCredits)
 
-        toast.success('Your free event post has been used.', {
-          description: 'Future events cost £2.99 each or upgrade to Pro.',
-        });
+        if (toPay > 0) {
+          clearTimeout(publishTimeout)
+          setSaving(false)
+          setShowPaywall(true)
+          return
+        }
+
+        // Deduct credits via RPC (server-side protected)
+        if (creditsNeeded > 0) {
+          for (let i = 0; i < creditsNeeded; i++) {
+            await supabase.rpc('use_event_credit', { p_user_id: user.id })
+          }
+        }
       }
 
-      await saveEvent();
+      // Upload media
+      const [bannerUrl, photoUrls] = await Promise.all([
+        uploadBanner(),
+        uploadPhotos()
+      ])
+
+      // Create series if multiple dates
+      let seriesId: string | null = null
+      if (validDatesList.length > 1) {
+        const { data: series, error: seriesError } = await supabase
+          .from('event_series')
+          .insert({
+            created_by: user.id,
+            title: title.trim(),
+            description: description.trim(),
+            event_count: validDatesList.length,
+          })
+          .select()
+          .single()
+        if (!seriesError && series) seriesId = series.id
+      }
+
+      // Insert one event per date
+      const eventPayloads = validDatesList.map((d, index) => {
+        const dateStart = new Date(`${d.date}T${d.startTime}:00`)
+        const dateEnd = new Date(`${d.date}T${d.endTime}:00`)
+        return {
+          created_by: user.id,
+          title: title.trim(),
+          description: description.trim(),
+          banner_url: bannerUrl,
+          photos: photoUrls,
+          type: eventType,
+          vehicle_focus: vehicleFocus,
+          vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
+          vehicle_types: vehicleFocus === 'cars_only' ? ['cars']
+            : vehicleFocus === 'motorcycles_only' ? ['bikes'] : [],
+          meet_style_tags: meetStyleTags,
+          date_start: dateStart.toISOString(),
+          date_end: dateEnd.toISOString(),
+          location: location.trim(),
+          lat: locationLat,
+          lng: locationLng,
+          what3words: what3words.trim() || null,
+          max_attendees: maxAttendees ? Number(maxAttendees) : null,
+          is_first_come_first_serve: firstComeFirstServe,
+          waitlist_enabled: waitlistEnabled,
+          entry_fee: isFree ? 0 : Number(entryFee) || 0,
+          is_free: isFree,
+          is_ticketed: isTicketed,
+          ticket_price: isTicketed ? Number(ticketPrice) : 0,
+          event_rules: eventRules.trim() || null,
+          visibility,
+          club_id: visibility === 'club' ? clubId : null,
+          series_id: seriesId,
+          series_index: index,
+          is_recurring: isRecurring,
+          recurring_frequency: isRecurring ? recurringFrequency : null,
+          status: 'published',
+          attendee_count: 0,
+          commission_rate: 0.05,
+        }
+      })
+
+      const { data: newEvents, error: insertError } = await supabase
+        .from('events')
+        .insert(eventPayloads)
+        .select()
+
+      if (insertError) {
+        console.error('[AddEvent] Insert error:', insertError)
+        toast.error('Could not publish: ' + insertError.message)
+        return
+      }
+
+      // Self-notification (best-effort)
+      try {
+        await supabase.rpc('send_notification', {
+          p_user_id: user.id,
+          p_type: 'event_published',
+          p_title: 'Your event is live!',
+          p_body: `${title} is now visible on the map`,
+          p_data: { event_id: newEvents?.[0]?.id }
+        })
+      } catch {
+        // ignore notification errors
+      }
+
+      const dateLabel = validDatesList.length === 1
+        ? `on ${format(new Date(validDatesList[0].date), 'd MMM yyyy')}`
+        : `across ${validDatesList.length} dates`
+
+      toast.success(`Event published ${dateLabel}! 🎉`)
+      navigate('/', {
+        replace: true,
+        state: {
+          refreshMap: true,
+          centerOn: { lat: locationLat, lng: locationLng }
+        }
+      })
+
     } catch (err: any) {
-      console.error('[AddEvent] handleSubmit error:', err);
-      toast.error('Something went wrong: ' + (err.message || 'Please try again.'));
-      setIsSubmitting(false);
+      console.error('[AddEvent] Error:', err)
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      clearTimeout(publishTimeout)
+      setSaving(false)
     }
-  };
-
-  const handleConnectStripe = async () => {
-    setConnectingStripe(true);
-    const { data, error } = await supabase.functions.invoke('create-stripe-connect-account');
-    setConnectingStripe(false);
-    if (error || !data?.url) {
-      toast.error('Failed to start bank account setup.');
-      return;
-    }
-    window.open(data.url, '_blank');
-  };
-
-  const update = (field: string, value: string | boolean | { lat: number; lng: number } | undefined) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setErrors(prev => ({ ...prev, [field]: '' }));
-  };
+  }
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
-      {/* ── HEADER ── */}
-      <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
-        <div className="px-4 py-3 flex items-center gap-3">
-          <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
-          <h1 className="text-lg font-bold text-foreground">Add Event</h1>
+    <div className="min-h-screen bg-background">
+      {/* Hidden file inputs */}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} />
+      <input ref={photosInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotosSelect} />
+
+      {/* Header */}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <BackButton />
+          <h1 className="text-lg font-bold">Add Event</h1>
         </div>
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFilesSelected} />
+      {/* Scroll area */}
+      <div className="px-4 pb-28 space-y-4 pt-4">
 
-      <div className="px-4 py-6 space-y-6 pb-28">
+        {/* SECTION 1 — Event details */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Camera className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Event Details</h2>
+          </div>
 
-        {/* ── BANNER IMAGE ── */}
-        <SectionCard>
-          <SectionTitle icon={Camera}>Event Banner</SectionTitle>
-          <Label className="text-xs text-muted-foreground mb-2 block">This image appears at the top of your event detail</Label>
-          {bannerImage ? (
-            <div className="relative w-full h-40 rounded-2xl overflow-hidden border border-border/50">
-              <img src={bannerImage.preview} alt="Event banner" className="w-full h-full object-cover" />
-              <button onClick={removeBanner} className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md">
+          {/* Banner */}
+          {bannerPreview ? (
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4">
+              <img src={bannerPreview} className="w-full h-full object-cover" alt="Banner" />
+              <button onClick={() => { URL.revokeObjectURL(bannerPreview); setBannerPreview(null); setBannerFile(null) }}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-white flex items-center justify-center">
                 <X className="w-4 h-4" />
               </button>
-              <button onClick={handleImageUpload} className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg bg-card/90 backdrop-blur text-xs font-medium text-foreground border border-border/50 shadow-sm">
+              <button onClick={() => fileInputRef.current?.click()}
+                className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg bg-card/90 text-xs font-medium border border-border/50">
                 Change
               </button>
             </div>
           ) : (
-            <button onClick={handleImageUpload} className="w-full h-40 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-events/50 transition-colors bg-muted/30">
+            <button onClick={() => fileInputRef.current?.click()}
+              className="w-full h-44 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-events/50 transition-colors bg-muted/20 mb-4">
               <ImagePlus className="w-8 h-8 text-muted-foreground" />
-              <span className="text-xs font-medium text-muted-foreground">Upload banner image</span>
-              <span className="text-[10px] text-muted-foreground/60">Recommended: 16:9 ratio</span>
+              <span className="text-sm text-muted-foreground">Upload banner image</span>
+              <span className="text-xs text-muted-foreground/60">Recommended 16:9</span>
             </button>
           )}
-        </SectionCard>
 
-        {/* ── EVENT INFO ── */}
-        <SectionCard>
-          <SectionTitle icon={Calendar}>Event Info <span className="text-destructive">*</span></SectionTitle>
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name" className="text-xs text-muted-foreground">Event Name *</Label>
-              <Input id="name" placeholder="e.g. Monthly Porsche Meet" value={formData.name} onChange={e => update('name', e.target.value)} className="rounded-xl h-11" />
-              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="description" className="text-xs text-muted-foreground">Description * <span className="text-muted-foreground/60">(min 15 words)</span></Label>
-              <Textarea id="description" placeholder="Tell people what to expect... (minimum 15 words)" rows={3} value={formData.description} onChange={e => update('description', e.target.value)} className="rounded-xl" />
-              {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+          {/* Additional photos */}
+          <div className="mb-4">
+            <p className="text-xs text-muted-foreground mb-2">Additional photos (max 10)</p>
+            <div className="flex flex-wrap gap-2">
+              {photoPreviews.map((preview, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden">
+                  <img src={preview} className="w-full h-full object-cover" alt="" />
+                  <button onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-destructive text-white flex items-center justify-center">
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {photoPreviews.length < 10 && (
+                <button onClick={() => photosInputRef.current?.click()}
+                  className="w-20 h-20 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-events/50 transition-colors bg-muted/20">
+                  <Plus className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-[10px] text-muted-foreground">Add</span>
+                </button>
+              )}
             </div>
           </div>
-        </SectionCard>
 
-        {/* ── EVENT TYPE ── */}
-        <SectionCard>
-          <SectionTitle icon={Calendar}>Event Type <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {EVENT_TYPE_OPTIONS.map(opt => (
-              <button key={opt.id} onClick={() => { setEventType(opt.id); setErrors(prev => ({ ...prev, eventType: '' })); }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  eventType === opt.id
-                    ? 'bg-events text-events-foreground border-events shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                }`}>
-                {opt.label}
-              </button>
-            ))}
+          {/* Title */}
+          <div className="mb-3">
+            <label className="text-xs text-muted-foreground mb-1.5 block">Event Name *</label>
+            <input
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="e.g. Monthly Porsche Meet"
+              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+            />
           </div>
-          {errors.eventType && <p className="text-xs text-destructive mt-2">{errors.eventType}</p>}
-        </SectionCard>
 
-        {/* ── VEHICLE TYPE ── */}
-        <SectionCard>
-          <SectionTitle icon={Car}>Vehicle Type <span className="text-destructive">*</span></SectionTitle>
+          {/* Description */}
+          <div>
+            <label className="text-xs text-muted-foreground mb-1.5 block">Description * (min 15 words)</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder="Tell people what to expect at your event..."
+              rows={4}
+              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background resize-none"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              {description.trim().split(/\s+/).filter(Boolean).length} / 15 words minimum
+            </p>
+          </div>
+        </div>
+
+        {/* SECTION 2 — Event type */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Tag className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Event Type *</h2>
+          </div>
           <div className="flex flex-wrap gap-2">
-            {VEHICLE_TYPE_OPTIONS.map(opt => (
+            {EVENT_TYPES.map(type => (
               <button
-                key={opt.id}
-                onClick={() => {
-                  if (opt.id === 'all') {
-                    setSelectedVehicleTypes(['all']);
-                    setVehicleType('all');
-                    setVehicleBrands([]);
-                    setBrandSearch('');
-                  } else {
-                    setSelectedVehicleTypes(prev => {
-                      const withoutAll = prev.filter(t => t !== 'all') as VehicleType[];
-                      const newTypes: VehicleType[] = withoutAll.includes(opt.id)
-                        ? withoutAll.filter(t => t !== opt.id)
-                        : [...withoutAll, opt.id];
-                      const result: VehicleType[] = newTypes.length === 0 ? ['all'] : newTypes;
-                      setVehicleType(result[0]);
-                      return result;
-                    });
-                  }
-                }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  selectedVehicleTypes.includes(opt.id)
-                    ? 'bg-events text-events-foreground border-events shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
+                key={type}
+                onClick={() => setEventType(eventType === type ? '' : type)}
+                className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                  eventType === type
+                    ? 'bg-events text-events-foreground border-events'
+                    : 'bg-muted/50 text-muted-foreground border-border/50'
                 }`}
               >
-                {opt.label}
+                {type}
               </button>
             ))}
           </div>
-        </SectionCard>
+        </div>
 
-        {/* ── VEHICLE BRAND ── */}
-        <SectionCard>
-          <SectionTitle icon={Tag}>
-            Specific Vehicle Brand
-          </SectionTitle>
+        {/* SECTION 3 — Vehicle focus */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Tag className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Vehicle Focus *</h2>
+          </div>
+          <div className="space-y-2">
+            {VEHICLE_FOCUS_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setVehicleFocus(opt.id as any)}
+                className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                  vehicleFocus === opt.id
+                    ? 'bg-events/10 border-events'
+                    : 'bg-muted/30 border-border/50'
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                  vehicleFocus === opt.id ? 'bg-events border-events' : 'border-muted-foreground'
+                }`} />
+                <div>
+                  <p className="text-sm font-medium">{opt.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{opt.sub}</p>
+                </div>
+              </button>
+            ))}
+          </div>
 
-          <div ref={brandRef} className="relative">
-            {vehicleBrands.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {vehicleBrands.map((brand) => (
-                  <span
-                    key={brand}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30"
-                  >
-                    {brand}
-                    <button
-                      onClick={() => setVehicleBrands(vehicleBrands.filter(b => b !== brand))}
-                      className="w-4 h-4 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
-                    >
-                      <X className="w-3 h-3" />
+          {/* Specific makes picker */}
+          {vehicleFocus === 'specific_makes' && (
+            <div className="mt-4" ref={makeSearchRef}>
+              {specificMakes.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {specificMakes.map(make => (
+                    <span key={make} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full bg-events/15 text-events text-xs font-semibold border border-events/30">
+                      {make}
+                      <button onClick={() => setSpecificMakes(prev => prev.filter(m => m !== make))}
+                        className="w-4 h-4 rounded-full bg-events/20 flex items-center justify-center">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="relative">
+                <input
+                  value={makeSearch}
+                  onChange={e => { setMakeSearch(e.target.value); setShowMakeSuggestions(true) }}
+                  onFocus={() => setShowMakeSuggestions(true)}
+                  placeholder="Search vehicle make e.g. Porsche..."
+                  className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+                />
+                {showMakeSuggestions && filteredMakes.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-48 overflow-y-auto shadow-lg">
+                    {filteredMakes.filter(m => !specificMakes.includes(m.name)).map(make => (
+                      <button
+                        key={make.id}
+                        onClick={() => {
+                          setSpecificMakes(prev => [...prev, make.name])
+                          setMakeSearch('')
+                          setShowMakeSuggestions(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 border-b border-border/30 last:border-none"
+                      >
+                        <span className="font-medium">{make.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{make.country}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 4 — Meet style tags */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Tag className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Meet Style <span className="text-muted-foreground text-sm font-normal">(optional)</span></h2>
+          </div>
+          <p className="text-xs text-muted-foreground mb-3">What best describes this event? Select all that apply.</p>
+          <div className="flex flex-wrap gap-2">
+            {MEET_STYLE_TAGS.map(tag => (
+              <button
+                key={tag}
+                onClick={() => setMeetStyleTags(prev =>
+                  prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+                )}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
+                  meetStyleTags.includes(tag)
+                    ? 'bg-events text-events-foreground border-events'
+                    : 'bg-muted/50 text-muted-foreground border-border/50'
+                }`}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* SECTION 5 — Dates and times */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-events" />
+              </div>
+              <h2 className="text-base font-bold">Dates & Times *</h2>
+            </div>
+            <button
+              onClick={addDate}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-events/10 text-events text-xs font-semibold border border-events/30"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Date
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {dates.map((d, index) => (
+              <div key={d.id} className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted-foreground">Date {index + 1}</span>
+                  {dates.length > 1 && (
+                    <button onClick={() => removeDate(d.id)} className="text-destructive">
+                      <X className="w-4 h-4" />
                     </button>
-                  </span>
-                ))}
+                  )}
+                </div>
+                <input
+                  type="date"
+                  value={d.date}
+                  min={format(new Date(), 'yyyy-MM-dd')}
+                  onChange={e => updateDate(d.id, 'date', e.target.value)}
+                  className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background mb-2"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground">Start time</label>
+                    <input
+                      type="time"
+                      value={d.startTime}
+                      onChange={e => updateDate(d.id, 'startTime', e.target.value)}
+                      className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground">End time</label>
+                    <input
+                      type="time"
+                      value={d.endTime}
+                      onChange={e => updateDate(d.id, 'endTime', e.target.value)}
+                      className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Recurring toggle */}
+          <div className="mt-4 p-3 rounded-xl bg-muted/30 border border-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-xs font-medium">Recurring event</p>
+                <p className="text-[10px] text-muted-foreground">Auto-generate multiple dates</p>
+              </div>
+              <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            </div>
+            {isRecurring && (
+              <div className="space-y-3 mt-3">
+                <div>
+                  <label className="text-[10px] text-muted-foreground mb-1 block">Frequency</label>
+                  <div className="flex gap-2">
+                    {(['weekly', 'fortnightly', 'monthly'] as const).map(freq => (
+                      <button
+                        key={freq}
+                        onClick={() => setRecurringFrequency(freq)}
+                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-medium border transition-all ${
+                          recurringFrequency === freq
+                            ? 'bg-events text-events-foreground border-events'
+                            : 'bg-muted/50 text-muted-foreground border-border/50'
+                        }`}
+                      >
+                        {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-muted-foreground mb-1 block">Number of dates: {recurringCount}</label>
+                  <input
+                    type="range"
+                    min={2}
+                    max={12}
+                    value={recurringCount}
+                    onChange={e => setRecurringCount(Number(e.target.value))}
+                    className="w-full"
+                  />
+                </div>
+                <button
+                  onClick={generateRecurringDates}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-events/10 text-events text-xs font-semibold border border-events/30"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Generate {recurringCount} dates
+                </button>
               </div>
             )}
+          </div>
+        </div>
 
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={brandSearch}
-                onChange={(e) => {
-                  setBrandSearch(e.target.value);
-                  setIsBrandDropdownOpen(true);
-                }}
-                onFocus={() => setIsBrandDropdownOpen(true)}
-                placeholder="Search vehicle brand..."
-                className="w-full h-11 pl-9 pr-3 rounded-xl border border-border/50 bg-background text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
-              />
+        {/* SECTION 6 — Location */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <MapPin className="w-4 h-4 text-events" />
             </div>
+            <h2 className="text-base font-bold">Location *</h2>
+          </div>
 
-            {isBrandDropdownOpen && filteredBrandResults.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-card border border-border/50 rounded-xl shadow-lg z-50 max-h-52 overflow-y-auto">
-                {!brandSearch.trim() && (
-                  <p className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
-                )}
-                {filteredBrandResults.map((brand) => (
+          <div className="relative" ref={locationRef}>
+            <input
+              value={locationQuery}
+              onChange={e => {
+                setLocationQuery(e.target.value)
+                setLocation('')
+                setLocationLat(null)
+                setLocationLng(null)
+              }}
+              placeholder="Search for event location..."
+              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+            />
+            {locationLat && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">✓</div>
+            )}
+            {locationSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-48 overflow-y-auto shadow-lg">
+                {locationSuggestions.map((feature: any, i: number) => (
                   <button
-                    key={brand}
-                    onClick={() => {
-                      setVehicleBrands([...vehicleBrands, brand]);
-                      setBrandSearch('');
-                      setIsBrandDropdownOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2.5 text-sm text-foreground hover:bg-events/10 transition-colors"
+                    key={i}
+                    onClick={() => selectLocation(feature)}
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 border-b border-border/30 last:border-none"
                   >
-                    {brand}
+                    <p className="font-medium truncate">{feature.text}</p>
+                    <p className="text-xs text-muted-foreground truncate">{feature.place_name}</p>
                   </button>
                 ))}
               </div>
             )}
           </div>
-        </SectionCard>
 
-        {/* ── VEHICLE CATEGORY ── */}
-        <SectionCard>
-          <SectionTitle icon={Car}>Specific Vehicle Category</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {VEHICLE_CATEGORY_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  setVehicleCategories(prev =>
-                    prev.includes(opt.id) ? prev.filter(c => c !== opt.id) : [...prev, opt.id]
-                  );
-                }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleCategories.includes(opt.id)
-                    ? 'bg-events text-events-foreground border-events shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* ── VEHICLE AGE ── */}
-        <SectionCard>
-          <SectionTitle icon={Clock}>Vehicle Age</SectionTitle>
-          <div className="flex flex-wrap gap-2">
-            {VEHICLE_AGE_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  if (opt.id === 'all') {
-                    setVehicleAges(['all']);
-                  } else {
-                    setVehicleAges(prev => {
-                      const withoutAll = prev.filter(a => a !== 'all');
-                      const newAges = withoutAll.includes(opt.id)
-                        ? withoutAll.filter(a => a !== opt.id)
-                        : [...withoutAll, opt.id];
-                      return newAges.length === 0 ? ['all'] : newAges;
-                    });
-                  }
-                }}
-                className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-200 border ${
-                  vehicleAges.includes(opt.id)
-                    ? 'bg-events text-events-foreground border-events shadow-sm'
-                    : 'bg-muted/50 text-muted-foreground border-border/50 hover:border-events/40'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </SectionCard>
-
-        {/* ── DATE & TIME ── */}
-        <SectionCard>
-          <SectionTitle icon={Clock}>Date & Time <span className="text-destructive">*</span></SectionTitle>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">Start *</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !startDate && "text-muted-foreground")}>
-                    <Calendar className="mr-2 h-3.5 w-3.5" />
-                    {startDate ? format(startDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={startDate} onSelect={(d) => { setStartDate(d); setErrors(prev => ({ ...prev, startDate: '' })); }} disabled={(date) => date < new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="h-9 text-xs rounded-xl" />
-              {errors.startDate && <p className="text-xs text-destructive">{errors.startDate}</p>}
+          {/* What3Words */}
+          <div className="mt-3">
+            <label className="text-xs text-muted-foreground mb-1.5 block">
+              What3Words <span className="text-muted-foreground/60">(optional — precise meetup point)</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 font-bold text-sm">///</span>
+              <input
+                value={what3words}
+                onChange={e => setWhat3words(e.target.value.replace(/^\/\/\//, ''))}
+                placeholder="word.word.word"
+                className="w-full border border-border/50 rounded-xl pl-9 pr-4 py-3 text-sm bg-background"
+              />
             </div>
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground font-medium">End</span>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className={cn("w-full justify-start text-left font-normal h-11 text-xs rounded-xl", !endDate && "text-muted-foreground")}>
-                    <Clock className="mr-2 h-3.5 w-3.5" />
-                    {endDate ? format(endDate, "d MMM yyyy") : "Pick date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <CalendarUI mode="single" selected={endDate} onSelect={setEndDate} disabled={(date) => date < (startDate || new Date())} initialFocus className={cn("p-3 pointer-events-auto")} />
-                </PopoverContent>
-              </Popover>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="h-9 text-xs rounded-xl" />
-            </div>
+            <p className="text-[10px] text-muted-foreground mt-1">Find yours at what3words.com</p>
           </div>
-        </SectionCard>
+        </div>
 
-        {/* ── LOCATION ── */}
-        <SectionCard>
-          <SectionTitle icon={MapPin}>Location <span className="text-destructive">*</span></SectionTitle>
-          <LocationPicker
-            value={formData.locationName}
-            onChange={(loc, coords) => { update('locationName', loc); update('locationCoords', coords); }}
-            error={errors.locationName}
+        {/* SECTION 7 — Capacity */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Users className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Capacity *</h2>
+          </div>
+
+          <div className="mb-3">
+            <label className="text-xs text-muted-foreground mb-1.5 block">Max attendees</label>
+            <input
+              type="number"
+              value={maxAttendees}
+              onChange={e => setMaxAttendees(e.target.value)}
+              placeholder="e.g. 100"
+              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-2">
+            <div>
+              <p className="text-xs font-medium">First come first served</p>
+              <p className="text-[10px] text-muted-foreground">Places given in order of attendance</p>
+            </div>
+            <Switch checked={firstComeFirstServe} onCheckedChange={setFirstComeFirstServe} />
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
+            <div>
+              <p className="text-xs font-medium">Enable waitlist</p>
+              <p className="text-[10px] text-muted-foreground">Users join a waitlist when event is full</p>
+            </div>
+            <Switch checked={waitlistEnabled} onCheckedChange={setWaitlistEnabled} />
+          </div>
+        </div>
+
+        {/* SECTION 8 — Entry and tickets */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Ticket className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Entry & Tickets</h2>
+          </div>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
+            <p className="text-xs font-medium">Free entry</p>
+            <Switch checked={isFree} onCheckedChange={v => { setIsFree(v); if (v) setEntryFee('') }} />
+          </div>
+
+          {!isFree && (
+            <div className="mb-3">
+              <label className="text-xs text-muted-foreground mb-1.5 block">Entry fee (£) — cash on door</label>
+              <input
+                type="number"
+                value={entryFee}
+                onChange={e => setEntryFee(e.target.value)}
+                placeholder="5.00"
+                className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+              />
+            </div>
+          )}
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
+            <div>
+              <p className="text-xs font-medium">Sell tickets through RevNet</p>
+              <p className="text-[10px] text-muted-foreground">5% commission — you keep 95%</p>
+            </div>
+            <Switch checked={isTicketed} onCheckedChange={setIsTicketed} />
+          </div>
+
+          {isTicketed && (
+            <div className="space-y-3">
+              {!hasStripeConnect && (
+                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-2">Connect bank account to receive payments</p>
+                  <button
+                    onClick={async () => {
+                      const { data, error } = await supabase.functions.invoke('create-stripe-connect-account')
+                      if (error || !data?.url) { toast.error('Could not start setup'); return }
+                      window.open(data.url, '_blank')
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-800 dark:text-amber-200"
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                    Connect Bank Account
+                  </button>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Ticket price (£) *</label>
+                <input
+                  type="number"
+                  value={ticketPrice}
+                  onChange={e => setTicketPrice(e.target.value)}
+                  placeholder="10.00"
+                  min="1"
+                  className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Max tickets</label>
+                <input
+                  type="number"
+                  value={maxTickets}
+                  onChange={e => setMaxTickets(e.target.value)}
+                  placeholder="Same as max attendees"
+                  className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+                />
+              </div>
+
+              {ticketPrice && maxTickets && (
+                <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                  <p className="text-xs font-semibold text-green-800 dark:text-green-200 mb-1">Potential revenue</p>
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    {maxTickets} tickets × £{Number(ticketPrice).toFixed(2)} = £{(Number(maxTickets) * Number(ticketPrice)).toFixed(2)} gross
+                  </p>
+                  <p className="text-xs text-green-700 dark:text-green-300">
+                    You receive: £{(Number(maxTickets) * Number(ticketPrice) * 0.95).toFixed(2)} after 5% RevNet fee
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* SECTION 9 — Event rules */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Info className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Event Rules <span className="text-muted-foreground text-sm font-normal">(optional)</span></h2>
+          </div>
+          <textarea
+            value={eventRules}
+            onChange={e => setEventRules(e.target.value)}
+            placeholder="e.g. No loud exhausts after 8pm, clean cars only, no burnouts, respect the venue..."
+            rows={3}
+            className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background resize-none"
           />
-        </SectionCard>
+        </div>
 
-        {/* ── VISIBILITY ── */}
-        <SectionCard>
-          <SectionTitle icon={Eye}>Visibility <span className="text-destructive">*</span></SectionTitle>
-          <div className="grid grid-cols-2 gap-2">
-            {VISIBILITY_OPTIONS.map(opt => {
-              const Icon = opt.icon;
+        {/* SECTION 10 — Visibility */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
+              <Eye className="w-4 h-4 text-events" />
+            </div>
+            <h2 className="text-base font-bold">Visibility *</h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { value: 'public' as const, label: 'Public', sub: 'Everyone', icon: Globe },
+              { value: 'club' as const, label: 'Club', sub: 'Club only', icon: UsersRound },
+              { value: 'friends' as const, label: 'Friends', sub: 'Friends only', icon: Users },
+            ]).map(opt => {
+              const Icon = opt.icon
               return (
                 <button
                   key={opt.value}
-                  onClick={() => { setVisibility(opt.value); if (opt.value !== 'club') setClubId(''); setErrors(prev => ({ ...prev, club: '' })); }}
-                  className={`flex items-center gap-2.5 p-3 rounded-xl text-left transition-all duration-200 border ${
+                  onClick={() => setVisibility(opt.value)}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all ${
                     visibility === opt.value
-                      ? 'bg-events/10 border-events shadow-sm'
-                      : 'bg-muted/30 border-border/50 hover:border-events/40'
+                      ? 'bg-events/10 border-events'
+                      : 'bg-muted/30 border-border/50'
                   }`}
                 >
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    visibility === opt.value ? 'bg-events text-events-foreground' : 'bg-muted text-muted-foreground'
-                  }`}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className={`text-xs font-semibold ${visibility === opt.value ? 'text-foreground' : 'text-muted-foreground'}`}>{opt.label}</p>
-                    <p className="text-[10px] text-muted-foreground truncate">{opt.description}</p>
-                  </div>
+                  <Icon className={`w-4 h-4 ${visibility === opt.value ? 'text-events' : 'text-muted-foreground'}`} />
+                  <p className="text-xs font-medium">{opt.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{opt.sub}</p>
                 </button>
-              );
+              )
             })}
           </div>
-          {visibility === 'club' && (
-            <div className="mt-3 animate-in fade-in-0 slide-in-from-top-1 duration-200">
-              {myOwnedClubs.length > 0 ? (
-                <>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Your Club *</Label>
-                  <Select value={clubId} onValueChange={(v) => { setClubId(v); setErrors(prev => ({ ...prev, club: '' })); }}>
-                    <SelectTrigger className="rounded-xl h-11">
-                      <SelectValue placeholder="Select one of your clubs" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {myOwnedClubs.map(club => (
-                        <SelectItem key={club.id} value={club.id}>{club.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground mt-1.5">This event will appear in your club's Events section</p>
-                  {errors.club && <p className="text-xs text-destructive mt-1">{errors.club}</p>}
-                </>
-              ) : (
-                <div className="p-3 rounded-xl bg-muted/40 border border-border/30">
-                  <p className="text-xs text-muted-foreground">You need to be a club founder to post club events. Create a club first.</p>
-                </div>
-              )}
+
+          {visibility === 'club' && myClubs.length > 0 && (
+            <div className="mt-3">
+              <label className="text-xs text-muted-foreground mb-1.5 block">Select club</label>
+              <select
+                value={clubId}
+                onChange={e => setClubId(e.target.value)}
+                className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+              >
+                <option value="">Choose a club...</option>
+                {myClubs.map(club => (
+                  <option key={club.id} value={club.id}>{club.name}</option>
+                ))}
+              </select>
             </div>
           )}
-        </SectionCard>
+        </div>
 
-        {/* ── MAX ATTENDEES ── */}
-        <SectionCard>
-          <SectionTitle icon={Users}>Max Attendees <span className="text-destructive">*</span></SectionTitle>
-          <div className="relative">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input id="maxAttendees" type="number" placeholder="e.g. 50" className="pl-10 rounded-xl h-11" value={formData.maxAttendees} onChange={e => { update('maxAttendees', e.target.value); setErrors(prev => ({ ...prev, maxAttendees: '' })); }} />
-          </div>
-          {errors.maxAttendees && <p className="text-xs text-destructive mt-1">{errors.maxAttendees}</p>}
-
-          <div className="flex items-start gap-3 mt-4 p-3 rounded-xl bg-muted/40 border border-border/30">
-            <input
-              type="checkbox"
-              id="fcfs"
-              checked={formData.firstComeFirstServe}
-              onChange={e => update('firstComeFirstServe', e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded border-border text-events focus:ring-events"
-            />
-            <div>
-              <label htmlFor="fcfs" className="text-xs font-medium text-foreground cursor-pointer">First come first serve</label>
-              <p className="text-[10px] text-muted-foreground mt-0.5">The first people to attend will take the available places.</p>
+        {/* Cost summary */}
+        <div className="bg-card rounded-2xl border border-border/50 p-5">
+          <div className="flex items-center gap-2.5 mb-3">
+            <div className="w-8 h-8 rounded-xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <Banknote className="w-4 h-4 text-green-600 dark:text-green-400" />
             </div>
+            <h2 className="text-base font-bold">Publishing Summary</h2>
           </div>
-        </SectionCard>
 
-        {/* ── ENTRY FEE ── */}
-        <SectionCard>
-          <SectionTitle icon={DollarSign}>Entry Fee <span className="text-destructive">*</span></SectionTitle>
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-            <p className="text-xs font-medium text-foreground">Charge attendees?</p>
-            <Switch checked={formData.entryFee} onCheckedChange={v => update('entryFee', v)} />
-          </div>
-          {formData.entryFee && (
-            <div className="space-y-1.5 mt-4">
-              <Label htmlFor="feeAmount" className="text-xs text-muted-foreground">Fee Amount (£)</Label>
-              <Input id="feeAmount" type="number" placeholder="0.00" value={formData.feeAmount} onChange={e => update('feeAmount', e.target.value)} className="rounded-xl h-11" />
-              {errors.feeAmount && <p className="text-xs text-destructive">{errors.feeAmount}</p>}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Dates to publish</span>
+              <span className="font-medium">{dateCount}</span>
             </div>
-          )}
-        </SectionCard>
-
-        {/* ── TICKETING & REVENUE ── */}
-        <SectionCard>
-          <SectionTitle icon={Ticket}>Ticketing & Revenue</SectionTitle>
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/40 border border-border/30">
-            <p className="text-xs font-medium text-foreground">Enable ticket sales for this event</p>
-            <Switch checked={ticketingEnabled} onCheckedChange={setTicketingEnabled} />
-          </div>
-
-          {ticketingEnabled && (
-            <div className="mt-4 space-y-4">
-              {/* Info box */}
-              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20">
-                <div className="flex gap-2">
-                  <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    RevNet charges a 5% commission on ticket sales. You keep 95% of all revenue.
-                    Payments are processed securely via Stripe and paid out to your connected bank account.
-                  </p>
+            {!isPaidPlan && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Free credits available</span>
+                  <span className="font-medium">{userCredits}</span>
                 </div>
-              </div>
-
-              {/* Stripe Connect banner */}
-              {!hasStripeConnect && (
-                <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Banknote className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                    <p className="text-xs font-semibold text-amber-800 dark:text-amber-200">Connect bank account to receive ticket payments</p>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Credits used</span>
+                  <span className="font-medium text-green-600">{creditsToUse} free</span>
+                </div>
+                {datesToPay > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Additional cost</span>
+                    <span className="font-medium text-red-500">£{totalCost.toFixed(2)}</span>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleConnectStripe}
-                    disabled={connectingStripe}
-                    className="h-8 text-xs border-amber-300 dark:border-amber-700"
-                  >
-                    <CreditCard className="w-3.5 h-3.5 mr-1.5" />
-                    {connectingStripe ? 'Setting up…' : 'Connect Bank Account'}
-                  </Button>
-                </div>
-              )}
-
-              {/* Ticket price */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Ticket Price (£) *</Label>
-                <Input
-                  type="number"
-                  placeholder="e.g. 10.00"
-                  min="1"
-                  step="0.01"
-                  value={ticketPrice}
-                  onChange={e => { setTicketPrice(e.target.value); setErrors(prev => ({ ...prev, ticketPrice: '' })); }}
-                  className="rounded-xl h-11"
-                />
-                {errors.ticketPrice && <p className="text-xs text-destructive">{errors.ticketPrice}</p>}
+                )}
+              </>
+            )}
+            {isPaidPlan && (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Pro plan</span>
+                <span className="font-medium text-green-600">Unlimited — included</span>
               </div>
-
-              {/* Max tickets */}
-              <div className="space-y-1.5">
-                <Label className="text-xs text-muted-foreground">Maximum Tickets</Label>
-                <Input
-                  type="number"
-                  placeholder="Same as max attendees"
-                  value={maxTickets}
-                  onChange={e => setMaxTickets(e.target.value)}
-                  className="rounded-xl h-11"
-                />
-              </div>
-
-              {/* Commission info */}
-              {ticketPriceNum > 0 && (
-                <p className="text-[11px] text-muted-foreground">RevNet charges a 5% commission on ticket sales. You keep 95%.</p>
-              )}
+            )}
+            <div className="border-t border-border/30 pt-2 flex justify-between text-sm font-semibold">
+              <span>Total</span>
+              <span>{isPaidPlan || datesToPay === 0 ? 'Free' : `£${totalCost.toFixed(2)}`}</span>
             </div>
-          )}
-        </SectionCard>
+          </div>
+        </div>
+
       </div>
 
-      {/* ── STICKY SUBMIT ── */}
+      {/* Sticky publish button */}
       <div className="fixed bottom-0 left-0 right-0 z-20 safe-bottom">
-        <div className="max-w-md mx-auto px-4 pb-4 pt-3 bg-gradient-to-t from-background via-background to-background/0">
-          <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full bg-events hover:bg-events/90 text-events-foreground h-12 text-base font-semibold rounded-2xl shadow-elevated">
-            {isSubmitting ? 'Creating...' : 'Create Event'}
+        <div className="max-w-md mx-auto px-4 pb-4 pt-3 bg-gradient-to-t from-background via-background to-transparent">
+          <Button
+            onClick={handlePublish}
+            disabled={saving}
+            className="w-full bg-events hover:bg-events/90 text-events-foreground h-12 text-base font-semibold rounded-2xl"
+          >
+            {saving ? 'Publishing...' : dateCount > 1 ? `Publish ${dateCount} Events` : 'Publish Event'}
           </Button>
         </div>
       </div>
 
-      {/* Event Posting Paywall */}
       <CreationPaywallSheet
         open={showPaywall}
         onClose={() => setShowPaywall(false)}
         type="event"
       />
     </div>
-  );
-};
+  )
+}
 
-export default AddEvent;
+export default AddEvent
