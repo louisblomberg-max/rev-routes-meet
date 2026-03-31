@@ -1,354 +1,394 @@
-import { Calendar, MapPin, User, Users, Navigation, Bookmark, Share2, Car, DollarSign, Shield, Info, ClipboardList, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { RevEvent } from '@/models';
-import { toast } from 'sonner';
-import { useState } from 'react';
-import { format, parseISO } from 'date-fns';
-import { AttendEventSheet, AttendeeListSheet } from '@/components/AttendEventSheet';
-import { useData } from '@/contexts/DataContext';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-
-const REVNET_FEE_PENCE = 50;
-
-const EVENT_TYPE_LABELS: Record<string, string> = {
-  meets: 'Meets', shows: 'Shows', drive: 'Drive', track_day: 'Track Day',
-  motorsport: 'Motorsport', autojumble: 'Autojumble', off_road: 'Off-Road',
-};
-
-const VEHICLE_TYPE_LABELS: Record<string, string> = {
-  cars: 'Cars', bikes: 'Bikes', all: 'All Welcome', big_stuff: 'Big Stuff', military: 'Military',
-};
-
-const VEHICLE_AGE_LABELS: Record<string, string> = {
-  all: 'All Ages', classics: 'Classics', modern: 'Modern', vintage: 'Vintage',
-  pre_2000: "Pre 00's", pre_1990: "Pre 90's", pre_1980: "Pre 80's",
-  pre_1970: "Pre 70's", pre_1960: "Pre 60's", pre_1950: "Pre 50's",
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  jdm: 'JDM', supercars: 'Supercars', 'muscle-car': 'Muscle Car',
-  american: 'American', european: 'European', '4x4': '4x4', row: 'ROW',
-  modern: 'Modern', classics: 'Classics', vintage: 'Vintage',
-};
+import { toast } from 'sonner';
+import { format } from 'date-fns';
 
 interface EventDetailContentProps {
-  event: RevEvent;
+  event: any;
   onNavigate: () => void;
+  onViewFull?: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }
 
 const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventDetailContentProps) => {
-  const { events: eventsRepo, state } = useData();
   const { user: authUser } = useAuth();
-  const currentUserId = authUser?.id || '';
-  const isHost = event.createdBy === currentUserId;
+  const navigate = useNavigate();
+  const userId = authUser?.id;
 
-  const [showAttendSheet, setShowAttendSheet] = useState(false);
-  const [showAttendeeList, setShowAttendeeList] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
+  const [attendeeCount, setAttendeeCount] = useState(0);
+  const [organiser, setOrganiser] = useState<any>(null);
+  const [seriesEvents, setSeriesEvents] = useState<any[]>([]);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  const isAttending = (event.attendeesList || []).some(a => a.userId === currentUserId);
-  const attendeeCount = event.attendees || (event.attendeesList?.length ?? 0);
-  const isFull = event.maxAttendees > 0 && attendeeCount >= event.maxAttendees;
-  const isNearlyFull = event.maxAttendees > 0 && attendeeCount >= event.maxAttendees * 0.8 && !isFull;
+  // Normalize — event may come from pin data or direct
+  const data = event.data || event;
+  const eventId = event.id || data.id;
+  const title = event.title || data.title;
+  const lat = event.lat || data.lat;
+  const lng = event.lng || data.lng;
 
-  const isFree = event.entryFeeType === 'free' || (!event.entryFeeType && (!event.entryFee || event.entryFee === 'Free' || event.entryFee === '£0'));
-  const feeAmountPence = event.entryFeeAmount ? event.entryFeeAmount * 100 : 0;
-  const totalPence = isFree ? 0 : feeAmountPence + REVNET_FEE_PENCE;
+  const allPhotos = [
+    data.banner_url || data.bannerImage,
+    ...(data.photos || [])
+  ].filter(Boolean);
 
-  const displayDate = event.startDate
-    ? format(parseISO(event.startDate), 'EEE, MMM d yyyy') + (event.startTime ? ` • ${event.startTime}` : '')
-    : event.date || 'Date TBD';
+  useEffect(() => {
+    if (!eventId || !userId) return;
+    const load = async () => {
+      // Organiser
+      if (data.created_by || data.createdBy) {
+        const creatorId = data.created_by || data.createdBy;
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, username, display_name, avatar_url, plan')
+          .eq('id', creatorId)
+          .single();
+        setOrganiser(profile);
+      }
 
-  const endDisplayDate = event.endDate
-    ? format(parseISO(event.endDate), 'EEE, MMM d yyyy') + (event.endTime ? ` • ${event.endTime}` : '')
-    : null;
+      // Attendance
+      const { data: attending } = await supabase
+        .from('event_attendees')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .maybeSingle();
+      setIsAttending(!!attending);
 
-  const handleAttendClick = () => {
-    if (isAttending) {
-      // Cancel attendance
-      const updated = (event.attendeesList || []).filter(a => a.userId !== currentUserId);
-      eventsRepo.update(event.id, {
-        attendeesList: updated,
-        attendees: Math.max(0, (event.attendees || 0) - 1),
-      });
-      toast.success('Attendance cancelled');
-    } else {
-      if (isFull) return;
-      setShowAttendSheet(true);
-    }
-  };
+      // Count
+      setAttendeeCount(data.attendee_count || data.attendees || 0);
 
-  const handleConfirmAttendance = (registration: string, colour: string) => {
-    const newAttendee = {
-      userId: currentUserId,
-      username: authUser?.username || 'user',
-      displayName: authUser?.displayName || 'User',
-      profileImage: authUser?.avatar || null,
-      vehicleRegistration: registration,
-      vehicleColour: colour,
-      joinedAt: new Date().toISOString(),
+      // Series
+      if (data.series_id) {
+        const { data: series } = await supabase
+          .from('events')
+          .select('id, title, date_start, attendee_count')
+          .eq('series_id', data.series_id)
+          .neq('id', eventId)
+          .order('date_start', { ascending: true })
+          .limit(5);
+        setSeriesEvents(series || []);
+      }
     };
-    const updatedList = [...(event.attendeesList || []), newAttendee];
-    eventsRepo.update(event.id, {
-      attendeesList: updatedList,
-      attendees: (event.attendees || 0) + 1,
-    });
-    setShowAttendSheet(false);
-    toast.success('You\'re attending!', { description: `See you at ${event.title}!` });
-  };
+    load();
+  }, [eventId, userId]);
 
-  const handleRemoveAttendee = (userId: string) => {
-    const updated = (event.attendeesList || []).filter(a => a.userId !== userId);
-    eventsRepo.update(event.id, {
-      attendeesList: updated,
-      attendees: Math.max(0, (event.attendees || 0) - 1),
-    });
-    toast.success('Attendee removed');
-  };
+  // Realtime attendee count
+  useEffect(() => {
+    if (!eventId) return;
+    const channel = supabase
+      .channel(`event-attendees-${eventId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'event_attendees',
+        filter: `event_id=eq.${eventId}`
+      }, () => {
+        supabase
+          .from('events')
+          .select('attendee_count')
+          .eq('id', eventId)
+          .single()
+          .then(({ data: d }) => {
+            if (d) setAttendeeCount(d.attendee_count || 0);
+          });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [eventId]);
 
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({ title: event.title, text: `Check out ${event.title} on RevNet` }).catch(() => {});
-    } else {
-      toast.success('Link copied');
+  const handleAttend = async () => {
+    if (!userId) { navigate('/auth'); return; }
+    setActionLoading(true);
+    try {
+      if (isAttending) {
+        await supabase.from('event_attendees').delete().eq('event_id', eventId).eq('user_id', userId);
+        setIsAttending(false);
+        setAttendeeCount(prev => Math.max(0, prev - 1));
+        toast.success('Removed from attending');
+      } else {
+        const maxAtt = data.max_attendees || data.maxAttendees;
+        if (maxAtt && attendeeCount >= maxAtt) {
+          if (data.waitlist_enabled) {
+            toast.info('Event is full — you have been added to the waitlist');
+          } else {
+            toast.error('This event is full');
+          }
+          return;
+        }
+        await supabase.from('event_attendees').insert({ event_id: eventId, user_id: userId, status: 'attending' });
+        setIsAttending(true);
+        setAttendeeCount(prev => prev + 1);
+        toast.success("You're attending!");
+
+        const creatorId = data.created_by || data.createdBy;
+        if (creatorId && creatorId !== userId) {
+          const { data: myProfile } = await supabase
+            .from('profiles')
+            .select('display_name, username')
+            .eq('id', userId)
+            .single();
+          await supabase.rpc('send_notification', {
+            p_user_id: creatorId,
+            p_type: 'event_attend',
+            p_title: 'New attendee',
+            p_body: `${myProfile?.display_name || myProfile?.username || 'Someone'} is attending ${title}`,
+            p_data: { event_id: eventId }
+          });
+        }
+      }
+    } catch {
+      toast.error('Something went wrong');
+    } finally {
+      setActionLoading(false);
     }
   };
 
-  const handleSave = () => {
-    onToggleSave();
-    toast.success(isSaved ? 'Removed from saved' : 'Saved to My Events');
+  const handleShare = async () => {
+    const dateStr = data.date_start ? format(new Date(data.date_start), 'EEE d MMM yyyy') : '';
+    const shareText = `Check out ${title} on RevNet!\n${data.location || ''}\n${dateStr}`;
+    if (navigator.share) {
+      try { await navigator.share({ title, text: shareText, url: window.location.href }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      toast.success('Event details copied to clipboard');
+    }
   };
 
-  const isClubHosted = event.visibility === 'club' || !!event.clubId;
+  const isOwnEvent = userId === (data.created_by || data.createdBy);
+  const isFree = data.is_free !== false && !data.is_ticketed;
+  const meetStyleTags = data.meet_style_tags || [];
+  const vehicleFocus = data.vehicle_focus || 'all_welcome';
+  const vehicleBrands = data.vehicle_brands || [];
+  const maxAtt = data.max_attendees || data.maxAttendees;
+  const eventRules = data.event_rules;
 
   return (
     <div className="space-y-4">
-      {/* Banner */}
-      <div className="relative h-40 -mx-5 -mt-1 rounded-t-2xl overflow-hidden">
-        {(event.bannerImage || event.photos?.[0]) ? (
-          <img src={event.bannerImage || event.photos![0]} alt={event.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-events/80 to-events/40 flex items-center justify-center">
-            <Calendar className="w-12 h-12 text-events-foreground/60" />
-          </div>
-        )}
+      {/* Photo gallery */}
+      {allPhotos.length > 0 && (
+        <div className="relative w-full h-52 -mx-5 -mt-1 rounded-t-2xl overflow-hidden bg-muted flex-shrink-0">
+          <img
+            src={allPhotos[currentPhotoIndex]}
+            className="w-full h-full object-cover"
+            alt={title}
+          />
+          {allPhotos.length > 1 && (
+            <>
+              <button
+                onClick={() => setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length)}
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center"
+              >‹</button>
+              <button
+                onClick={() => setCurrentPhotoIndex(prev => (prev + 1) % allPhotos.length)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center"
+              >›</button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                {allPhotos.map((_, i) => (
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`} />
+                ))}
+              </div>
+            </>
+          )}
+          {data.type && (
+            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium">
+              {data.type}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Title and actions */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <h2 className="text-lg font-bold text-foreground leading-tight">{title}</h2>
+          {data.date_start && (
+            <p className="text-sm text-events font-medium mt-0.5">
+              {format(new Date(data.date_start), 'EEE d MMM yyyy · HH:mm')}
+              {data.date_end && ` — ${format(new Date(data.date_end), 'HH:mm')}`}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-2 flex-shrink-0">
+          <button
+            onClick={() => { onToggleSave(); }}
+            className={`w-9 h-9 rounded-xl flex items-center justify-center border transition-all ${
+              isSaved ? 'bg-events/10 border-events text-events' : 'bg-muted/50 border-border/50 text-muted-foreground'
+            }`}
+          >
+            {isSaved ? '♥' : '♡'}
+          </button>
+          <button
+            onClick={handleShare}
+            className="w-9 h-9 rounded-xl flex items-center justify-center border bg-muted/50 border-border/50 text-muted-foreground"
+          >↗</button>
+        </div>
       </div>
 
-      {/* Title & Date below banner */}
-      <div className="mt-3">
-        <h2 className="text-lg font-bold text-foreground">{event.title}</h2>
-        <p className="text-sm text-muted-foreground mt-0.5">{displayDate}</p>
-      </div>
-
-      {/* Tags / Badges */}
-      <div className="flex flex-wrap gap-1.5">
-        <Badge variant="outline" className="bg-events/10 text-events border-events/20 text-xs">
-          {EVENT_TYPE_LABELS[event.eventType] || event.eventType}
-        </Badge>
-        <Badge variant="outline" className="text-xs">
-          {VEHICLE_TYPE_LABELS[event.vehicleType] || event.vehicleType}
-        </Badge>
-        {(() => {
-          const ages = event.vehicleAges && event.vehicleAges.length > 0
-            ? event.vehicleAges
-            : (event.vehicleAge && event.vehicleAge !== 'all' ? [event.vehicleAge] : []);
-          return ages.map(age => (
-            <Badge key={age} variant="outline" className="text-xs">
-              {VEHICLE_AGE_LABELS[age] || age}
-            </Badge>
-          ));
-        })()}
-        {isClubHosted && (
-          <Badge variant="outline" className="text-xs bg-clubs/10 text-clubs border-clubs/20">
-            <Shield className="w-3 h-3 mr-1" /> Club Hosted
-          </Badge>
-        )}
-      </div>
-
-      {/* Vehicle Brands */}
-      {event.vehicleBrands && event.vehicleBrands.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {event.vehicleBrands.map(brand => (
-            <span key={brand} className="px-2 py-0.5 rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-              {brand}
+      {/* Meet style tags */}
+      {meetStyleTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {meetStyleTags.map((tag: string) => (
+            <span key={tag} className="px-2 py-0.5 rounded-full bg-events/10 text-events text-[10px] font-semibold border border-events/20">
+              {tag}
             </span>
           ))}
         </div>
       )}
 
-      {/* Vehicle Categories */}
-      {event.vehicleCategories && event.vehicleCategories.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {event.vehicleCategories.map(cat => (
-            <span key={cat} className="px-2 py-0.5 rounded-full bg-events/10 text-[10px] font-medium text-events">
-              {CATEGORY_LABELS[cat] || cat}
-            </span>
-          ))}
+      {/* Location */}
+      <div className="flex items-start gap-2">
+        <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">📍</div>
+        <div>
+          <p className="text-sm font-medium text-foreground">{data.location || 'Location not set'}</p>
+          {data.what3words && (
+            <p className="text-xs text-muted-foreground mt-0.5">
+              <span className="text-red-500 font-bold">///</span>{data.what3words}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Attendees */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">👥</div>
+        <div>
+          <p className="text-sm font-medium">
+            {attendeeCount}{maxAtt ? ` / ${maxAtt}` : ''} attending
+          </p>
+          {maxAtt && attendeeCount >= maxAtt && (
+            <p className="text-xs text-destructive font-medium">
+              {data.waitlist_enabled ? 'Full — waitlist available' : 'Event full'}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Entry */}
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">🎫</div>
+        <div>
+          {isFree ? (
+            <p className="text-sm font-medium text-green-600">Free entry</p>
+          ) : data.is_ticketed ? (
+            <p className="text-sm font-medium">Tickets — £{Number(data.ticket_price).toFixed(2)}</p>
+          ) : (
+            <p className="text-sm font-medium">Entry — £{Number(data.entry_fee).toFixed(2)} cash on door</p>
+          )}
+        </div>
+      </div>
+
+      {/* Vehicle focus */}
+      {vehicleFocus !== 'all_welcome' && (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">🚗</div>
+          <p className="text-sm font-medium">
+            {vehicleFocus === 'cars_only' ? 'Cars only' :
+             vehicleFocus === 'motorcycles_only' ? 'Motorcycles only' :
+             vehicleFocus === 'specific_makes' && vehicleBrands.length > 0
+               ? `${vehicleBrands.join(', ')} only` : 'Specific vehicles'}
+          </p>
+        </div>
+      )}
+
+      {/* Event rules */}
+      {eventRules && (
+        <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+          <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-1">Event Rules</p>
+          <p className="text-xs text-amber-700 dark:text-amber-300">{eventRules}</p>
         </div>
       )}
 
       {/* Description */}
-      {event.description && (
-        <p className="text-sm text-muted-foreground leading-relaxed">{event.description}</p>
+      {(data.description) && (
+        <p className="text-sm text-muted-foreground leading-relaxed">{data.description}</p>
       )}
 
-      {/* Core info */}
-      <div className="space-y-2.5">
-        <div className="flex items-center gap-3 text-sm">
-          <Calendar className="w-4 h-4 text-events shrink-0" />
-          <div>
-            <span className="text-foreground">{displayDate}</span>
-            {endDisplayDate && (
-              <span className="text-muted-foreground"> — {endDisplayDate}</span>
+      {/* Organiser */}
+      {organiser && (
+        <button
+          onClick={() => navigate(`/profile/${organiser.id}`)}
+          className="w-full flex items-center gap-3 p-3 rounded-xl bg-muted/30 border border-border/30"
+        >
+          <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+            {organiser.avatar_url ? (
+              <img src={organiser.avatar_url} className="w-full h-full object-cover" alt={organiser.display_name} />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
+                {(organiser.display_name || organiser.username || '?')[0].toUpperCase()}
+              </div>
             )}
           </div>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span className="text-foreground">{event.locationName || event.location || 'Location not set'}</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <Car className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span className="text-foreground">{VEHICLE_TYPE_LABELS[event.vehicleType] || 'All Welcome'}</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <User className="w-4 h-4 text-muted-foreground shrink-0" />
-          <div className="flex items-center gap-2">
-            <span className="text-foreground">Hosted by</span>
-            <Avatar className="h-5 w-5">
-              <AvatarFallback className="text-[10px] bg-muted">{event.createdBy?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
-            </Avatar>
-            <span className="text-foreground font-medium">{event.createdBy || 'Unknown'}</span>
+          <div className="flex-1 text-left">
+            <p className="text-xs text-muted-foreground">Organised by</p>
+            <p className="text-sm font-semibold">{organiser.display_name || organiser.username}</p>
+            {organiser.plan === 'organiser' && (
+              <span className="text-[10px] text-events font-medium">Verified Organiser</span>
+            )}
+          </div>
+          <span className="text-muted-foreground">›</span>
+        </button>
+      )}
+
+      {/* Series events */}
+      {seriesEvents.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Other dates in this series</p>
+          <div className="space-y-2">
+            {seriesEvents.map(se => (
+              <div key={se.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
+                <div>
+                  <p className="text-xs font-medium">{format(new Date(se.date_start), 'EEE d MMM yyyy')}</p>
+                  <p className="text-[10px] text-muted-foreground">{se.attendee_count} attending</p>
+                </div>
+                <button
+                  onClick={() => navigate(`/event/${se.id}`)}
+                  className="text-xs text-events font-medium"
+                >View →</button>
+              </div>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Attendance */}
-      <div className="bg-muted/50 rounded-xl p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-foreground">
-              {attendeeCount} attending{event.maxAttendees ? ` / ${event.maxAttendees} max` : ''}
-            </span>
-          </div>
-          {/* Organiser: view attendee list */}
-          {isHost && (
-            <button
-              onClick={() => setShowAttendeeList(true)}
-              className="flex items-center gap-1 text-xs font-medium text-events hover:text-events/80 transition-colors"
-            >
-              <ClipboardList className="w-3.5 h-3.5" />
-              View list
-            </button>
-          )}
-        </div>
+      {/* Manage for host */}
+      {isOwnEvent && (
+        <button
+          onClick={() => navigate(`/manage/event/${eventId}`)}
+          className="w-full py-3 rounded-xl bg-muted/50 border border-border/50 text-sm font-medium text-foreground"
+        >Manage Event & Attendees</button>
+      )}
 
-        {/* Status labels */}
-        <div className="mt-2 space-y-1">
-          {event.firstComeFirstServe && !isFull && (
-            <p className="text-xs text-muted-foreground">First come, first served</p>
-          )}
-          {isNearlyFull && (
-            <p className="text-xs text-amber-500 font-medium flex items-center gap-1">
-              <AlertTriangle className="w-3 h-3" /> Limited spaces available
-            </p>
-          )}
-          {isFull && (
-            <p className="text-xs text-destructive font-medium">This event is full</p>
-          )}
-          {attendeeCount === 0 && (
-            <p className="text-xs text-muted-foreground">No attendees yet</p>
-          )}
-        </div>
-      </div>
-
-      {/* Pricing */}
-      <div className="bg-muted/50 rounded-xl p-3">
-        <div className="flex items-center gap-2 mb-1">
-          <DollarSign className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-foreground">Entry fee</span>
-        </div>
-        {isFree ? (
-          <span className="text-lg font-bold text-services">Free</span>
-        ) : (
-          <div className="space-y-1">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Ticket</span>
-              <span className="text-foreground">£{(feeAmountPence / 100).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-sm items-center">
-              <span className="text-muted-foreground flex items-center gap-1">
-                RevNet fee
-                <span className="relative group">
-                  <Info className="w-3 h-3 text-muted-foreground/60 cursor-help" />
-                  <span className="absolute hidden group-hover:block bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-popover text-popover-foreground rounded shadow-lg whitespace-nowrap border border-border z-50">
-                    Includes a £0.50 RevNet platform fee
-                  </span>
-                </span>
-              </span>
-              <span className="text-foreground">£{(REVNET_FEE_PENCE / 100).toFixed(2)}</span>
-            </div>
-            <div className="border-t border-border pt-1 flex justify-between text-sm font-semibold">
-              <span className="text-foreground">Total</span>
-              <span className="text-foreground">£{(totalPence / 100).toFixed(2)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* CTA */}
-      <Button
-        className={`w-full py-5 font-semibold ${
-          isAttending
-            ? 'bg-green-600 hover:bg-green-700 text-white'
-            : isFull
-              ? 'bg-muted text-muted-foreground cursor-not-allowed'
-              : 'bg-events hover:bg-events/90 text-events-foreground'
-        }`}
-        onClick={handleAttendClick}
-        disabled={isFull && !isAttending}
-      >
-        {isAttending ? '✓ Attending' : isFull ? 'Event Full' : 'Attend'}
-      </Button>
-
-      {/* Actions row */}
-      <div className="flex gap-2">
-        <Button variant="outline" className="flex-1 gap-2" onClick={onNavigate}>
-          <Navigation className="w-4 h-4" /> Directions
-        </Button>
-        <Button variant="outline" size="icon" className="shrink-0 h-10 w-10" onClick={handleShare}>
-          <Share2 className="w-4 h-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className={`shrink-0 h-10 w-10 ${isSaved ? 'bg-events/10 border-events/30' : ''}`}
-          onClick={handleSave}
+      {/* Action buttons */}
+      <div className="grid grid-cols-2 gap-3 pb-4">
+        <button
+          onClick={onNavigate}
+          className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[hsl(var(--routes))] text-white text-sm font-semibold"
+        >Directions</button>
+        <button
+          onClick={handleAttend}
+          disabled={actionLoading}
+          className={`flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
+            isAttending
+              ? 'bg-green-600 text-white'
+              : 'bg-events text-events-foreground'
+          }`}
         >
-          <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-events text-events' : ''}`} />
-        </Button>
+          {actionLoading ? '...' : isAttending ? 'Attending ✓' : 'Attend'}
+        </button>
       </div>
 
-      {/* Attend Sheet */}
-      <AttendEventSheet
-        open={showAttendSheet}
-        onClose={() => setShowAttendSheet(false)}
-        onConfirm={handleConfirmAttendance}
-        eventTitle={event.title}
-      />
-
-      {/* Attendee List (organiser only) */}
-      {isHost && (
-        <AttendeeListSheet
-          open={showAttendeeList}
-          onClose={() => setShowAttendeeList(false)}
-          attendees={event.attendeesList || []}
-          onRemoveAttendee={handleRemoveAttendee}
-        />
+      {/* Buy ticket */}
+      {data.is_ticketed && !isOwnEvent && (
+        <button
+          onClick={() => navigate(`/event/${eventId}/ticket`)}
+          className="w-full py-3.5 rounded-xl bg-green-600 text-white text-sm font-semibold mb-4"
+        >Buy Ticket — £{Number(data.ticket_price).toFixed(2)}</button>
       )}
     </div>
   );
