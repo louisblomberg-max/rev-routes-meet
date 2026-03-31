@@ -136,6 +136,7 @@ const App = () => (
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/my-clubs" element={<ProtectedRoute><MyClubs /></ProtectedRoute>} />
           <Route path="/club/:id" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
+          <Route path="/club/:clubId" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
           <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/messages/:id" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
