@@ -1608,13 +1608,16 @@ export type Database = {
           id: string
           is_primary: boolean | null
           make: string
+          make_id: string | null
           model: string | null
+          model_id: string | null
           mods_text: string | null
           number_plate: string | null
           photos: string[] | null
           tags: string[] | null
           transmission: string | null
           user_id: string | null
+          variant: string | null
           vehicle_type: string | null
           visibility: string | null
           year: string | null
@@ -1628,13 +1631,16 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           make: string
+          make_id?: string | null
           model?: string | null
+          model_id?: string | null
           mods_text?: string | null
           number_plate?: string | null
           photos?: string[] | null
           tags?: string[] | null
           transmission?: string | null
           user_id?: string | null
+          variant?: string | null
           vehicle_type?: string | null
           visibility?: string | null
           year?: string | null
@@ -1648,13 +1654,16 @@ export type Database = {
           id?: string
           is_primary?: boolean | null
           make?: string
+          make_id?: string | null
           model?: string | null
+          model_id?: string | null
           mods_text?: string | null
           number_plate?: string | null
           photos?: string[] | null
           tags?: string[] | null
           transmission?: string | null
           user_id?: string | null
+          variant?: string | null
           vehicle_type?: string | null
           visibility?: string | null
           year?: string | null
