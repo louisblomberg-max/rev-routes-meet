@@ -44,6 +44,7 @@ interface FriendLocation {
   lng: number;
   heading: number;
   receivedAt: number;
+  destination_title?: string | null;
 }
 
 const PIN_COLORS: Record<string, string> = {
