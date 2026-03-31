@@ -50,23 +50,71 @@ export type Database = {
           },
         ]
       }
+      club_join_requests: {
+        Row: {
+          club_id: string | null
+          created_at: string | null
+          id: string
+          message: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_join_requests_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_join_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_memberships: {
         Row: {
           club_id: string
           joined_at: string | null
+          points: number | null
           role: string | null
+          status: string | null
           user_id: string
         }
         Insert: {
           club_id: string
           joined_at?: string | null
+          points?: number | null
           role?: string | null
+          status?: string | null
           user_id: string
         }
         Update: {
           club_id?: string
           joined_at?: string | null
+          points?: number | null
           role?: string | null
+          status?: string | null
           user_id?: string
         }
         Relationships: [
@@ -86,32 +134,116 @@ export type Database = {
           },
         ]
       }
+      club_post_comments: {
+        Row: {
+          body: string
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "club_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_post_comments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_post_likes: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "club_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_posts: {
         Row: {
           body: string
           club_id: string | null
+          comment_count: number | null
           created_at: string | null
           id: string
+          is_pinned: boolean | null
           likes: number | null
           photos: string[] | null
+          post_type: string | null
           user_id: string | null
         }
         Insert: {
           body: string
           club_id?: string | null
+          comment_count?: number | null
           created_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           likes?: number | null
           photos?: string[] | null
+          post_type?: string | null
           user_id?: string | null
         }
         Update: {
           body?: string
           club_id?: string | null
+          comment_count?: number | null
           created_at?: string | null
           id?: string
+          is_pinned?: boolean | null
           likes?: number | null
           photos?: string[] | null
+          post_type?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -140,6 +272,8 @@ export type Database = {
           description: string | null
           handle: string | null
           id: string
+          invite_code: string | null
+          is_verified: boolean | null
           join_mode: string | null
           lat: number | null
           lng: number | null
@@ -147,7 +281,9 @@ export type Database = {
           logo_url: string | null
           member_count: number | null
           name: string
+          post_count: number | null
           posting_permissions: string | null
+          region: string | null
           rules: Json | null
           social_links: Json | null
           tags: string[] | null
@@ -162,6 +298,8 @@ export type Database = {
           description?: string | null
           handle?: string | null
           id?: string
+          invite_code?: string | null
+          is_verified?: boolean | null
           join_mode?: string | null
           lat?: number | null
           lng?: number | null
@@ -169,7 +307,9 @@ export type Database = {
           logo_url?: string | null
           member_count?: number | null
           name: string
+          post_count?: number | null
           posting_permissions?: string | null
+          region?: string | null
           rules?: Json | null
           social_links?: Json | null
           tags?: string[] | null
@@ -184,6 +324,8 @@ export type Database = {
           description?: string | null
           handle?: string | null
           id?: string
+          invite_code?: string | null
+          is_verified?: boolean | null
           join_mode?: string | null
           lat?: number | null
           lng?: number | null
@@ -191,7 +333,9 @@ export type Database = {
           logo_url?: string | null
           member_count?: number | null
           name?: string
+          post_count?: number | null
           posting_permissions?: string | null
+          region?: string | null
           rules?: Json | null
           social_links?: Json | null
           tags?: string[] | null
