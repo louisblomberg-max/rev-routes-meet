@@ -378,6 +378,41 @@ export type Database = {
           },
         ]
       }
+      event_series: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          event_count: number | null
+          id: string
+          title: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_count?: number | null
+          id?: string
+          title: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_count?: number | null
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_series_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tickets: {
         Row: {
           commission_amount: number
@@ -428,6 +463,7 @@ export type Database = {
       }
       events: {
         Row: {
+          attendee_count: number | null
           banner_url: string | null
           club_id: string | null
           commission_rate: number | null
@@ -437,14 +473,21 @@ export type Database = {
           date_start: string | null
           description: string | null
           entry_fee: number | null
+          event_rules: string | null
           id: string
           is_first_come_first_serve: boolean | null
           is_free: boolean | null
+          is_recurring: boolean | null
           is_ticketed: boolean | null
           lat: number | null
           lng: number | null
           location: string | null
           max_attendees: number | null
+          meet_style_tags: string[] | null
+          photos: string[] | null
+          recurring_frequency: string | null
+          series_id: string | null
+          series_index: number | null
           status: string | null
           ticket_price: number | null
           title: string
@@ -452,10 +495,14 @@ export type Database = {
           vehicle_ages: string[] | null
           vehicle_brands: string[] | null
           vehicle_categories: string[] | null
+          vehicle_focus: string | null
           vehicle_types: string[] | null
           visibility: string | null
+          waitlist_enabled: boolean | null
+          what3words: string | null
         }
         Insert: {
+          attendee_count?: number | null
           banner_url?: string | null
           club_id?: string | null
           commission_rate?: number | null
@@ -465,14 +512,21 @@ export type Database = {
           date_start?: string | null
           description?: string | null
           entry_fee?: number | null
+          event_rules?: string | null
           id?: string
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
+          is_recurring?: boolean | null
           is_ticketed?: boolean | null
           lat?: number | null
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
+          meet_style_tags?: string[] | null
+          photos?: string[] | null
+          recurring_frequency?: string | null
+          series_id?: string | null
+          series_index?: number | null
           status?: string | null
           ticket_price?: number | null
           title: string
@@ -480,10 +534,14 @@ export type Database = {
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
           vehicle_categories?: string[] | null
+          vehicle_focus?: string | null
           vehicle_types?: string[] | null
           visibility?: string | null
+          waitlist_enabled?: boolean | null
+          what3words?: string | null
         }
         Update: {
+          attendee_count?: number | null
           banner_url?: string | null
           club_id?: string | null
           commission_rate?: number | null
@@ -493,14 +551,21 @@ export type Database = {
           date_start?: string | null
           description?: string | null
           entry_fee?: number | null
+          event_rules?: string | null
           id?: string
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
+          is_recurring?: boolean | null
           is_ticketed?: boolean | null
           lat?: number | null
           lng?: number | null
           location?: string | null
           max_attendees?: number | null
+          meet_style_tags?: string[] | null
+          photos?: string[] | null
+          recurring_frequency?: string | null
+          series_id?: string | null
+          series_index?: number | null
           status?: string | null
           ticket_price?: number | null
           title?: string
@@ -508,8 +573,11 @@ export type Database = {
           vehicle_ages?: string[] | null
           vehicle_brands?: string[] | null
           vehicle_categories?: string[] | null
+          vehicle_focus?: string | null
           vehicle_types?: string[] | null
           visibility?: string | null
+          waitlist_enabled?: boolean | null
+          what3words?: string | null
         }
         Relationships: [
           {
@@ -1795,20 +1863,13 @@ export type Database = {
       get_event_ticket_price: { Args: { event_id: string }; Returns: number }
       get_pins_in_bounds: {
         Args: {
-          categories?: string[]
+          categories: string[]
           east: number
           north: number
           south: number
           west: number
         }
-        Returns: {
-          data: Json
-          id: string
-          lat: number
-          lng: number
-          title: string
-          type: string
-        }[]
+        Returns: Json[]
       }
       has_club_role: {
         Args: { _club_id: string; _roles: string[]; _user_id: string }
