@@ -427,14 +427,18 @@ const AddEvent = () => {
         return
       }
 
-      // Self-notification
-      await supabase.rpc('send_notification', {
-        p_user_id: user.id,
-        p_type: 'event_published',
-        p_title: 'Your event is live!',
-        p_body: `${title} is now visible on the map`,
-        p_data: { event_id: newEvents?.[0]?.id }
-      }).catch(() => {})
+      // Self-notification (best-effort)
+      try {
+        await supabase.rpc('send_notification', {
+          p_user_id: user.id,
+          p_type: 'event_published',
+          p_title: 'Your event is live!',
+          p_body: `${title} is now visible on the map`,
+          p_data: { event_id: newEvents?.[0]?.id }
+        })
+      } catch {
+        // ignore notification errors
+      }
 
       const dateLabel = validDatesList.length === 1
         ? `on ${format(new Date(validDatesList[0].date), 'd MMM yyyy')}`
