@@ -934,6 +934,7 @@ export type Database = {
           dest_lat: number | null
           dest_lng: number | null
           destination_title: string | null
+          distance_driven_meters: number | null
           distance_meters: number | null
           ended_at: string | null
           id: string
@@ -945,6 +946,7 @@ export type Database = {
           dest_lat?: number | null
           dest_lng?: number | null
           destination_title?: string | null
+          distance_driven_meters?: number | null
           distance_meters?: number | null
           ended_at?: string | null
           id?: string
@@ -956,6 +958,7 @@ export type Database = {
           dest_lat?: number | null
           dest_lng?: number | null
           destination_title?: string | null
+          distance_driven_meters?: number | null
           distance_meters?: number | null
           ended_at?: string | null
           id?: string
