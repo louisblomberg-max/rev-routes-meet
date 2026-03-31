@@ -776,23 +776,47 @@ export type Database = {
       }
       live_location_sessions: {
         Row: {
+          dest_lat: number | null
+          dest_lng: number | null
+          destination_title: string | null
           ended_at: string | null
           id: string
           is_active: boolean | null
+          last_heading: number | null
+          last_lat: number | null
+          last_lng: number | null
+          last_updated: string | null
+          session_type: string | null
           started_at: string | null
           user_id: string | null
         }
         Insert: {
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_heading?: number | null
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          session_type?: string | null
           started_at?: string | null
           user_id?: string | null
         }
         Update: {
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean | null
+          last_heading?: number | null
+          last_lat?: number | null
+          last_lng?: number | null
+          last_updated?: string | null
+          session_type?: string | null
           started_at?: string | null
           user_id?: string | null
         }
@@ -1861,6 +1885,22 @@ export type Database = {
         Returns: boolean
       }
       get_event_ticket_price: { Args: { event_id: string }; Returns: number }
+      get_friend_locations: {
+        Args: { p_user_id: string }
+        Returns: {
+          avatar_url: string
+          dest_lat: number
+          dest_lng: number
+          destination_title: string
+          display_name: string
+          heading: number
+          last_updated: string
+          lat: number
+          lng: number
+          user_id: string
+          username: string
+        }[]
+      }
       get_pins_in_bounds: {
         Args: {
           categories: string[]
