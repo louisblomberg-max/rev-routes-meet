@@ -691,5 +691,633 @@ export const VEHICLE_DATABASE: VehicleMake[] = [
     ]
   },
 
-  // ─── PLACEHOLDER: More makes will be added in next part ───
+  {
+    id: 'porsche',
+    name: 'Porsche',
+    type: 'car',
+    country: 'Germany',
+    models: [
+      { name: '356', yearStart: 1948, yearEnd: 1965, variants: ['Pre-A', 'A', 'B', 'C', 'Speedster', 'Cabriolet', 'Coupe'] },
+      { name: '911', yearStart: 1963, yearEnd: 2025, variants: ['Carrera', 'Carrera S', 'Carrera 4', 'Carrera 4S', 'Carrera T', 'Carrera GTS', 'Targa 4', 'Targa 4S', 'Targa 4 GTS', 'Cabriolet', 'Cabriolet S', 'Cabriolet 4S', 'Turbo', 'Turbo S', 'Turbo Cabriolet', 'Turbo S Cabriolet', 'GT3', 'GT3 RS', 'GT3 Touring', 'GT3 R', 'GT2', 'GT2 RS', 'R', 'Sport Classic', 'Dakar', 'Safari', 'S', '2.0', '2.2', '2.4', '2.7 RS', '3.0 RS', 'SC', 'SC RS', '930 Turbo', '964 Carrera', '964 RS', '993 Carrera', '993 RS', '996 GT3', '997 GT3', '991 GT3'] },
+      { name: '912', yearStart: 1965, yearEnd: 1969, variants: ['Base', 'E'] },
+      { name: '914', yearStart: 1969, yearEnd: 1976, variants: ['1.7', '2.0', '4', '6'] },
+      { name: '944', yearStart: 1982, yearEnd: 1991, variants: ['Base', 'S', 'S2', 'Turbo', 'Turbo S', 'Cabriolet'] },
+      { name: '968', yearStart: 1991, yearEnd: 1995, variants: ['Base', 'CS', 'Sport', 'Cabriolet'] },
+      { name: '928', yearStart: 1977, yearEnd: 1995, variants: ['Base', 'S', 'S4', 'GTS'] },
+      { name: 'Boxster', yearStart: 1996, yearEnd: 2025, variants: ['Base', 'S', 'GTS', 'GTS 4.0', 'Spyder', 'RS 60', '25 Years', 'Style Edition', '718 Base', '718 S', '718 GTS', '718 Spyder', '718 Spyder RS'] },
+      { name: 'Cayman', yearStart: 2005, yearEnd: 2025, variants: ['Base', 'S', 'R', 'GTS', 'GT4', 'GT4 RS', 'GT4 Clubsport', '718 Base', '718 S', '718 GTS', '718 GT4', '718 GT4 RS', 'Style Edition'] },
+      { name: 'Cayenne', yearStart: 2002, yearEnd: 2025, variants: ['Base', 'S', 'GTS', 'Turbo', 'Turbo S', 'Turbo E-Hybrid', 'Turbo S E-Hybrid', 'E-Hybrid', 'Coupe', 'Coupe GTS', 'Coupe Turbo', 'Coupe Turbo GT', 'Platinum Edition'] },
+      { name: 'Macan', yearStart: 2014, yearEnd: 2025, variants: ['Base', 'S', 'GTS', 'Turbo', 'T', 'Electric', 'Electric Turbo'] },
+      { name: 'Panamera', yearStart: 2009, yearEnd: 2025, variants: ['Base', 'S', '4S', 'GTS', 'Turbo', 'Turbo S', 'Turbo S E-Hybrid', '4 E-Hybrid', 'Executive', 'Sport Turismo'] },
+      { name: 'Taycan', yearStart: 2019, yearEnd: 2025, variants: ['Base', '4S', 'Turbo', 'Turbo S', 'Turbo GT', 'Cross Turismo', 'GTS', 'GTS Sport Turismo', 'Sport Turismo'] },
+    ]
+  },
+
+  {
+    id: 'renault',
+    name: 'Renault',
+    type: 'car',
+    country: 'France',
+    models: [
+      { name: 'Clio', yearStart: 1990, yearEnd: 2025, variants: ['Base', 'Expression', 'Dynamique', 'Privilege', 'GT Line', 'RS', 'RS Trophy', 'RS 200', 'Williams', 'Cup', 'V6 Renault Sport', 'Hybrid E-Tech'] },
+      { name: 'Megane', yearStart: 1995, yearEnd: 2025, variants: ['Base', 'Expression', 'Dynamique', 'Privilege', 'GT Line', 'RS', 'RS Trophy', 'RS Cup', 'RS 300', 'R26.R', 'Trophy R', 'E-Tech'] },
+      { name: 'Zoe', yearStart: 2012, yearEnd: 2025, variants: ['Life', 'Play', 'Iconic', 'GT Line', 'GT Line+', 'R135'] },
+      { name: 'Laguna', yearStart: 1993, yearEnd: 2015, variants: ['Base', 'Expression', 'Privilege', 'GT', 'Estate', 'Coupe'] },
+      { name: 'Alpine A110', yearStart: 1961, yearEnd: 1977, variants: ['A110 1300', 'A110 1600', 'A110 1600 S', 'Berlinette'] },
+      { name: 'R5', yearStart: 1972, yearEnd: 1996, variants: ['Base', 'TS', 'GTL', 'Turbo', 'Turbo 2', 'Maxi Turbo', 'GT Turbo', 'Campus'] },
+      { name: 'Scenic', yearStart: 1996, yearEnd: 2025, variants: ['Base', 'Expression', 'Dynamique', 'Privilege', 'GT Line', 'E-Tech', 'Grand Scenic'] },
+      { name: '5', yearStart: 2024, yearEnd: 2025, variants: ['Evolution', 'Techno', 'Iconic', 'E-Tech'] },
+    ]
+  },
+
+  {
+    id: 'rolls_royce',
+    name: 'Rolls-Royce',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'Silver Shadow', yearStart: 1965, yearEnd: 1980, variants: ['Base', 'Long Wheelbase', 'Corniche', 'Silver Wraith II'] },
+      { name: 'Silver Spirit', yearStart: 1980, yearEnd: 1998, variants: ['Base', 'Silver Spur', 'Silver Spur III', 'Silver Dawn'] },
+      { name: 'Silver Seraph', yearStart: 1998, yearEnd: 2002, variants: ['Base', 'Park Ward'] },
+      { name: 'Phantom', yearStart: 2003, yearEnd: 2025, variants: ['VII', 'VIII', 'Extended', 'Drophead', 'Coupe', 'Tempus Collection', 'Oribe', 'Koa'] },
+      { name: 'Ghost', yearStart: 2009, yearEnd: 2025, variants: ['Base', 'Extended', 'Black Badge', 'Series II', 'EWB'] },
+      { name: 'Wraith', yearStart: 2013, yearEnd: 2023, variants: ['Base', 'Black Badge', 'Eagle VIII', 'Inspired by Music', 'Luminary Collection'] },
+      { name: 'Dawn', yearStart: 2015, yearEnd: 2023, variants: ['Base', 'Black Badge', 'Silver Bullet'] },
+      { name: 'Cullinan', yearStart: 2018, yearEnd: 2025, variants: ['Base', 'Black Badge', 'Series II'] },
+      { name: 'Spectre', yearStart: 2023, yearEnd: 2025, variants: ['Base', 'Black Badge'] },
+      { name: 'Corniche', yearStart: 1971, yearEnd: 1995, variants: ['Coupe', 'Convertible', 'III', 'IV', 'S'] },
+    ]
+  },
+
+  {
+    id: 'seat',
+    name: 'Seat',
+    type: 'car',
+    country: 'Spain',
+    models: [
+      { name: 'Ibiza', yearStart: 1984, yearEnd: 2025, variants: ['Base', 'S', 'SE', 'FR', 'Cupra', 'Cupra R', 'SC'] },
+      { name: 'Leon', yearStart: 1998, yearEnd: 2025, variants: ['S', 'SE', 'FR', 'Cupra', 'Cupra R', 'Sportstourer', 'ST FR', 'PHEV FR'] },
+      { name: 'Arona', yearStart: 2017, yearEnd: 2025, variants: ['S', 'SE', 'FR', 'Xcellence', 'FR Sport'] },
+      { name: 'Ateca', yearStart: 2016, yearEnd: 2025, variants: ['S', 'SE', 'FR', 'Xcellence', 'Cupra'] },
+      { name: 'Tarraco', yearStart: 2018, yearEnd: 2025, variants: ['SE', 'FR', 'Xcellence', 'FR Sport', 'FR Plus'] },
+    ]
+  },
+
+  {
+    id: 'skoda',
+    name: 'Skoda',
+    type: 'car',
+    country: 'Czech Republic',
+    models: [
+      { name: 'Octavia', yearStart: 1996, yearEnd: 2025, variants: ['S', 'SE', 'SE L', 'vRS', 'vRS 245', 'Estate', 'Estate SE', 'Estate vRS', 'Scout'] },
+      { name: 'Fabia', yearStart: 1999, yearEnd: 2025, variants: ['S', 'SE', 'SE Comfort', 'Monte Carlo', 'Scout', 'vRS'] },
+      { name: 'Superb', yearStart: 2001, yearEnd: 2025, variants: ['S', 'SE', 'SE L', 'SportLine', 'Laurin & Klement', 'Estate', 'Estate SE', 'iV'] },
+      { name: 'Karoq', yearStart: 2017, yearEnd: 2025, variants: ['S', 'SE', 'SE L', 'SportLine', 'Scout', 'Sportline Business'] },
+      { name: 'Kodiaq', yearStart: 2016, yearEnd: 2025, variants: ['S', 'SE', 'SE L', 'SportLine', 'Scout', 'vRS', 'L&K'] },
+      { name: 'Enyaq', yearStart: 2020, yearEnd: 2025, variants: ['iV 60', 'iV 80', 'iV 80x', 'iV RS', 'Coupe RS', '60 Suite', '80 Suite'] },
+    ]
+  },
+
+  {
+    id: 'subaru',
+    name: 'Subaru',
+    type: 'car',
+    country: 'Japan',
+    models: [
+      { name: 'Impreza WRX', yearStart: 1992, yearEnd: 2025, variants: ['WRX', 'WRX STI', 'WRX STI S204', 'WRX STI RA-R', 'WRX STI Type RA', 'P1', 'Type UK', 'Spec C', 'Version V', 'WRX TR', 'WRX Limited'] },
+      { name: 'BRZ', yearStart: 2012, yearEnd: 2025, variants: ['R', 'S', 'SE', 'Limited', 'tS', 'STI Sport', 'Premium', 'WR Blue mica'] },
+      { name: 'Forester', yearStart: 1997, yearEnd: 2025, variants: ['XS', 'XT', 'STI', 'XE', 'SE', 'Premium', 'Sport', 'e-BOXER'] },
+      { name: 'Outback', yearStart: 1994, yearEnd: 2025, variants: ['Base', 'SE', 'SE Premium', 'XS', 'XT', 'Lineartronic', 'Field'] },
+      { name: 'SVX', yearStart: 1991, yearEnd: 1996, variants: ['Base', 'LS', 'LSi', 'LSL'] },
+      { name: 'Legacy', yearStart: 1989, yearEnd: 2025, variants: ['L', 'GL', 'LSi', 'GT', 'GTB', 'B4', 'RS', 'SE', 'Touring Sport'] },
+    ]
+  },
+
+  {
+    id: 'suzuki',
+    name: 'Suzuki',
+    type: 'car',
+    country: 'Japan',
+    models: [
+      { name: 'Swift', yearStart: 1983, yearEnd: 2025, variants: ['Base', 'GL', 'GLX', 'Sport', 'Sport AllGrip', 'RS', 'Z Series'] },
+      { name: 'Jimny', yearStart: 1970, yearEnd: 2025, variants: ['SJ', 'Samurai', 'Base', 'JLX', 'JLX+', 'Ranger', 'Sierra'] },
+      { name: 'Vitara', yearStart: 1988, yearEnd: 2025, variants: ['Base', 'SZ3', 'SZ4', 'SZ5', 'S-Cross', 'AllGrip', 'Hybrid'] },
+      { name: 'Cappuccino', yearStart: 1991, yearEnd: 1998, variants: ['Base', 'Special Edition'] },
+      { name: 'Ignis', yearStart: 2000, yearEnd: 2025, variants: ['GLS', 'Sport', 'SZ3', 'SZ5', 'AllGrip'] },
+    ]
+  },
+
+  {
+    id: 'tesla',
+    name: 'Tesla',
+    type: 'car',
+    country: 'USA',
+    models: [
+      { name: 'Model S', yearStart: 2012, yearEnd: 2025, variants: ['60', '70D', '75', '75D', '85', '85D', 'P85D', '90D', 'P90D', '100D', 'P100D', 'Long Range', 'Plaid', 'Plaid+'] },
+      { name: 'Model 3', yearStart: 2017, yearEnd: 2025, variants: ['Standard Range', 'Standard Range Plus', 'Long Range', 'Long Range AWD', 'Performance', 'Highland Standard Range', 'Highland Long Range', 'Highland Performance'] },
+      { name: 'Model X', yearStart: 2015, yearEnd: 2025, variants: ['60D', '75D', '90D', 'P90D', '100D', 'P100D', 'Long Range', 'Plaid'] },
+      { name: 'Model Y', yearStart: 2020, yearEnd: 2025, variants: ['Standard Range', 'Long Range', 'Long Range AWD', 'Performance', 'Juniper Long Range', 'Juniper Performance'] },
+      { name: 'Cybertruck', yearStart: 2023, yearEnd: 2025, variants: ['All-Wheel Drive', 'Cyberbeast'] },
+      { name: 'Roadster', yearStart: 2008, yearEnd: 2012, variants: ['Base', 'Sport', '2.5'] },
+    ]
+  },
+
+  {
+    id: 'toyota',
+    name: 'Toyota',
+    type: 'car',
+    country: 'Japan',
+    models: [
+      { name: 'Supra', yearStart: 1978, yearEnd: 2025, variants: ['A40', 'A60', 'A70', 'A80 Twin Turbo', 'A80 Non Turbo', 'A80 RZ', 'A90 Base', 'A90 Pro', 'A91 GR', 'A91 GR Heritage Edition', 'A91 GR 45th Anniversary'] },
+      { name: 'GT86 / GR86', yearStart: 2012, yearEnd: 2025, variants: ['Base', 'Primo', 'GT', 'GR', 'GR Premium', 'GR Circuit Pack', 'Aero', 'Club Series', 'Sprint'] },
+      { name: 'GR Yaris', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Circuit Pack', 'Morizo Edition', 'RZ High Performance'] },
+      { name: 'MR2', yearStart: 1984, yearEnd: 2007, variants: ['AW11', 'SW20 NA', 'SW20 Turbo', 'ZZW30 Base', 'ZZW30 SMT', 'Roadster'] },
+      { name: 'Celica', yearStart: 1970, yearEnd: 2006, variants: ['TA22', 'RA28', 'RA60', 'ST162', 'ST165 GT-Four', 'ST182', 'ST185 GT-Four', 'ST202', 'ST205 GT-Four', 'ZZT230 T Sport', 'ZZT231 190'] },
+      { name: 'GR Corolla', yearStart: 2022, yearEnd: 2025, variants: ['Core', 'Premium', 'Circuit Edition', 'Morizo Edition'] },
+      { name: 'Corolla', yearStart: 1966, yearEnd: 2025, variants: ['Base', 'Saloon', 'Estate', 'Touring Sports', 'GR Sport', 'Hybrid'] },
+      { name: 'Yaris', yearStart: 1999, yearEnd: 2025, variants: ['Base', 'T2', 'T3', 'T Spirit', 'SR', 'RS', 'GR Sport', 'Hybrid'] },
+      { name: 'Land Cruiser', yearStart: 1951, yearEnd: 2025, variants: ['40 Series', '55 Series', '60 Series', '70 Series', '80 Series', '100 Series', '200 Series', '300 Series', 'Prado', 'Amazon'] },
+      { name: 'RAV4', yearStart: 1994, yearEnd: 2025, variants: ['Base', 'XT3', 'XT4', 'XT5', 'GX', 'Hybrid', 'PHEV', 'Adventure', 'Dynamic'] },
+      { name: 'GR Supra', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'Pro', 'A91 Edition', 'Heritage Edition', '45th Anniversary Edition', 'Matte Storm Grey'] },
+    ]
+  },
+
+  {
+    id: 'tvr',
+    name: 'TVR',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'Griffith', yearStart: 1963, yearEnd: 2017, variants: ['400', '500', '4.0', '5.0', 'SE', '500 SE', '500 Sports Racer'] },
+      { name: 'Chimaera', yearStart: 1992, yearEnd: 2003, variants: ['400', '430', '450', '500', '5.0', '400 SE'] },
+      { name: 'Cerbera', yearStart: 1994, yearEnd: 2003, variants: ['4.2', '4.5', 'Speed 6', 'AJP6'] },
+      { name: 'Tuscan', yearStart: 1999, yearEnd: 2006, variants: ['S', '2', 'R', 'S 4.0', 'Speed Six'] },
+      { name: 'Sagaris', yearStart: 2004, yearEnd: 2006, variants: ['Base'] },
+      { name: 'T350', yearStart: 2002, yearEnd: 2006, variants: ['Base', 'C'] },
+      { name: 'Tamora', yearStart: 2001, yearEnd: 2006, variants: ['Base'] },
+    ]
+  },
+
+  {
+    id: 'vauxhall',
+    name: 'Vauxhall',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'Astra', yearStart: 1979, yearEnd: 2025, variants: ['Base', 'Life', 'Design', 'SRi', 'GTC', 'VXR', 'OPC', 'Sports Tourer', 'Electric', 'GSe'] },
+      { name: 'Corsa', yearStart: 1982, yearEnd: 2025, variants: ['Base', 'Life', 'Design', 'GS Line', 'SRi', 'VXR', 'OPC', 'Electric', 'GSe'] },
+      { name: 'Cavalier', yearStart: 1975, yearEnd: 1995, variants: ['GL', 'GLS', 'CD', 'CDi', 'GSi 2000', 'Turbo 4x4'] },
+      { name: 'Nova', yearStart: 1983, yearEnd: 1993, variants: ['Base', 'LS', 'L', 'GL', 'GTE', 'GSi'] },
+      { name: 'Vectra', yearStart: 1988, yearEnd: 2008, variants: ['Base', 'LS', 'GL', 'GLS', 'CD', 'SRi', 'OPC', 'Estate'] },
+      { name: 'Insignia', yearStart: 2008, yearEnd: 2022, variants: ['Base', 'Design', 'SRi', 'Elite', 'VXR', 'OPC', 'Sports Tourer', 'Country Tourer', 'GSi'] },
+      { name: 'Mokka', yearStart: 2012, yearEnd: 2025, variants: ['Base', 'Design', 'GS Line', 'SRi', 'Elite', 'Ultimate', 'Electric', 'GSe'] },
+      { name: 'VX220', yearStart: 2000, yearEnd: 2005, variants: ['Base', 'Turbo', 'NA', 'Limited Edition'] },
+      { name: 'Monaro', yearStart: 2004, yearEnd: 2006, variants: ['V6', 'V8', 'VXR'] },
+      { name: 'Ampera', yearStart: 2012, yearEnd: 2015, variants: ['Base', 'Electron'] },
+    ]
+  },
+
+  {
+    id: 'volkswagen',
+    name: 'Volkswagen',
+    type: 'car',
+    country: 'Germany',
+    models: [
+      { name: 'Golf', yearStart: 1974, yearEnd: 2025, variants: ['S', 'SE', 'Match', 'GT', 'GTE', 'GTI', 'GTI Performance', 'GTI Clubsport', 'GTI TCR', 'R', 'R32', 'GTD', 'Alltrack', 'Estate', 'SV', 'Mk1', 'Mk2', 'Mk3', 'Mk4', 'Mk5', 'Mk6', 'Mk7', 'Mk8'] },
+      { name: 'Polo', yearStart: 1975, yearEnd: 2025, variants: ['S', 'SE', 'Match', 'Beats', 'R Line', 'GTI', 'GTI Cup', 'Cross', 'Bluemotion', 'WRC Edition'] },
+      { name: 'Passat', yearStart: 1973, yearEnd: 2025, variants: ['S', 'SE', 'SE Business', 'GT', 'GTE', 'R Line', 'Estate', 'R36', 'W8'] },
+      { name: 'Scirocco', yearStart: 1974, yearEnd: 2017, variants: ['Mk1', 'Mk2', 'Mk3', 'GT', 'GTS', 'R', 'Storm', 'Million'] },
+      { name: 'Corrado', yearStart: 1988, yearEnd: 1995, variants: ['1.8', 'G60', '2.0', 'VR6', 'Storm'] },
+      { name: 'Phaeton', yearStart: 2002, yearEnd: 2016, variants: ['V6 TDI', 'V8', 'W12', '3.0 TDI', '6.0 W12'] },
+      { name: 'Arteon', yearStart: 2017, yearEnd: 2023, variants: ['SE', 'SE R-Line', 'R-Line', 'R', 'Shooting Brake', 'eHybrid'] },
+      { name: 'ID.3', yearStart: 2020, yearEnd: 2025, variants: ['Pure', 'Pure Performance', 'Pro', 'Pro S', 'Tour', '1st Edition', 'GTX'] },
+      { name: 'ID.4', yearStart: 2020, yearEnd: 2025, variants: ['Life', 'Style', 'Max', 'GTX', 'GTX Max'] },
+      { name: 'ID.5', yearStart: 2021, yearEnd: 2025, variants: ['Style', 'Max', 'GTX', 'GTX Max'] },
+      { name: 'Beetle', yearStart: 1938, yearEnd: 2019, variants: ['Classic', 'Cabriolet', 'RSi', 'Dune', 'Final Edition', '1200', '1300', '1302', '1303', 'Herbie'] },
+      { name: 'Touareg', yearStart: 2002, yearEnd: 2025, variants: ['SE', 'Sport', 'Altitude', 'Black Edition', 'R', 'R-Line', 'eHybrid'] },
+      { name: 'T-Roc', yearStart: 2017, yearEnd: 2025, variants: ['S', 'SE', 'Design', 'R-Line', 'Cabriolet', 'R', 'R Cabriolet'] },
+      { name: 'T-Cross', yearStart: 2018, yearEnd: 2025, variants: ['S', 'SE', 'Style', 'R-Line'] },
+      { name: 'Tiguan', yearStart: 2007, yearEnd: 2025, variants: ['S', 'SE', 'SEL', 'R-Line', 'Allspace', 'R', 'eHybrid', 'Black Edition'] },
+      { name: 'Sharan', yearStart: 1995, yearEnd: 2022, variants: ['S', 'SE', 'SEL', 'Highline'] },
+      { name: 'Up!', yearStart: 2011, yearEnd: 2024, variants: ['Take Up', 'Move Up', 'High Up', 'GTI', 'e-up!'] },
+    ]
+  },
+
+  {
+    id: 'volvo',
+    name: 'Volvo',
+    type: 'car',
+    country: 'Sweden',
+    models: [
+      { name: 'C30', yearStart: 2006, yearEnd: 2013, variants: ['S', 'SE', 'SE Sport', 'R-Design', 'Electric'] },
+      { name: 'S60', yearStart: 2000, yearEnd: 2025, variants: ['S', 'SE', 'SE Sport', 'R-Design', 'T6 AWD', 'Polestar', 'T8 Twin Engine'] },
+      { name: 'V60', yearStart: 2010, yearEnd: 2025, variants: ['S', 'SE', 'SE Sport', 'R-Design', 'Cross Country', 'Polestar', 'T8 Twin Engine', 'Recharge'] },
+      { name: 'S90', yearStart: 2016, yearEnd: 2025, variants: ['Momentum', 'Inscription', 'R-Design', 'Polestar Engineered', 'Recharge'] },
+      { name: 'V90', yearStart: 2016, yearEnd: 2025, variants: ['Momentum', 'Inscription', 'R-Design', 'Cross Country', 'Polestar Engineered', 'Recharge'] },
+      { name: 'XC40', yearStart: 2017, yearEnd: 2025, variants: ['Momentum', 'Inscription', 'R-Design', 'Recharge Pure Electric', 'Recharge T5', 'Ultimate'] },
+      { name: 'XC60', yearStart: 2008, yearEnd: 2025, variants: ['Momentum', 'Inscription', 'R-Design', 'Polestar Engineered', 'Recharge T8', 'Ultimate'] },
+      { name: 'XC90', yearStart: 2002, yearEnd: 2025, variants: ['Momentum', 'Inscription', 'R-Design', 'Excellence', 'Polestar Engineered', 'Recharge T8', 'Ultimate'] },
+      { name: 'P1800', yearStart: 1961, yearEnd: 1973, variants: ['P1800', 'P1800S', 'P1800E', 'P1800ES'] },
+      { name: '240', yearStart: 1974, yearEnd: 1993, variants: ['DL', 'GL', 'GLE', 'Turbo', 'Estate'] },
+      { name: '850', yearStart: 1991, yearEnd: 1996, variants: ['Base', 'GLT', 'Turbo', 'T5', 'T5-R', 'Estate'] },
+    ]
+  },
+
+  // ─── MOTORCYCLES ────────────────────────────────────────
+
+  {
+    id: 'aprilia',
+    name: 'Aprilia',
+    type: 'motorcycle',
+    country: 'Italy',
+    models: [
+      { name: 'RSV4', yearStart: 2009, yearEnd: 2025, variants: ['Factory', 'R', 'RR', 'RF', '1100 Factory', '1100 RF', 'Factory Works', 'X Trenta'] },
+      { name: 'RS 660', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Extrema', 'Trophy', 'Trofeo'] },
+      { name: 'Tuono V4', yearStart: 2011, yearEnd: 2025, variants: ['R', 'APRC', 'RR', 'Factory', '1100', '1100 Factory', '1100 RR'] },
+      { name: 'Tuono 660', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Factory', 'Pikes Peak'] },
+      { name: 'Dorsoduro', yearStart: 2008, yearEnd: 2018, variants: ['750', '900', '1200'] },
+      { name: 'Shiver', yearStart: 2007, yearEnd: 2021, variants: ['750', '900', 'GT', 'SL'] },
+      { name: 'Pegaso', yearStart: 1992, yearEnd: 2011, variants: ['650', '650 i.e.', '650 Trail', 'Factory'] },
+      { name: 'Mana', yearStart: 2007, yearEnd: 2016, variants: ['850', '850 GT', 'GT ABS'] },
+      { name: 'RST 1000', yearStart: 2001, yearEnd: 2004, variants: ['Futura'] },
+      { name: 'SXV / RXV', yearStart: 2006, yearEnd: 2012, variants: ['450', '550', '5.5'] },
+    ]
+  },
+
+  {
+    id: 'bmw_motorrad',
+    name: 'BMW Motorrad',
+    type: 'motorcycle',
+    country: 'Germany',
+    models: [
+      { name: 'S 1000 RR', yearStart: 2009, yearEnd: 2025, variants: ['Base', 'Sport', 'Race', 'HP4', 'HP4 Race', 'M', 'M Competition'] },
+      { name: 'S 1000 R', yearStart: 2013, yearEnd: 2025, variants: ['Base', 'Sport', 'Pro', 'M Sport', 'M Competition'] },
+      { name: 'S 1000 XR', yearStart: 2015, yearEnd: 2025, variants: ['Base', 'Sport', 'Pro', 'M Sport'] },
+      { name: 'R 1250 GS', yearStart: 2018, yearEnd: 2025, variants: ['Base', 'TE', 'HP', 'Adventure', 'Adventure TE', 'Adventure HP', 'Trophy', 'Triple Black', '40 Years GS'] },
+      { name: 'R 1200 GS', yearStart: 2004, yearEnd: 2018, variants: ['Base', 'Adventure', 'TE', 'HP2', 'HP2 Enduro', 'HP2 Megamoto', 'Rallye'] },
+      { name: 'M 1000 RR', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Competition', '50 Years M'] },
+      { name: 'M 1000 R', yearStart: 2023, yearEnd: 2025, variants: ['Base', 'Competition'] },
+      { name: 'R 18', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Classic', 'Bagger', 'Transcontinental', 'Roctane', 'B'] },
+      { name: 'F 900 R', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Sport', 'M Sport'] },
+      { name: 'F 900 XR', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Sport', 'M Sport'] },
+      { name: 'G 310 R', yearStart: 2016, yearEnd: 2025, variants: ['Base'] },
+      { name: 'G 310 GS', yearStart: 2017, yearEnd: 2025, variants: ['Base'] },
+      { name: 'K 1600 GT', yearStart: 2011, yearEnd: 2025, variants: ['Base', 'GTL', 'Grand America'] },
+      { name: 'CE 04', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Premium'] },
+    ]
+  },
+
+  {
+    id: 'ducati',
+    name: 'Ducati',
+    type: 'motorcycle',
+    country: 'Italy',
+    models: [
+      { name: 'Panigale', yearStart: 2012, yearEnd: 2025, variants: ['899', '959', '959 Corse', '1199', '1199 S', '1199 R', '1299', '1299 S', '1299 R FE', 'V2', 'V2 S', 'V2 Bayliss', 'V4', 'V4 S', 'V4 R', 'V4 SP', 'V4 SP2', 'V4 Speciale'] },
+      { name: 'Monster', yearStart: 1993, yearEnd: 2025, variants: ['620', '695', '696', '750', '796', '800', '821', '821 Stealth', '900', '900 S', '1000', '1100', '1100 S', 'S4R', 'S4RS', 'S2R', 'Plus', '+', 'SP', 'Stripe'] },
+      { name: 'Streetfighter', yearStart: 2009, yearEnd: 2025, variants: ['848', 'S', 'V2', 'V4', 'V4 S', 'V4 SP', 'V4 SP2', 'V4 Lamborghini'] },
+      { name: 'Multistrada', yearStart: 2003, yearEnd: 2025, variants: ['620', '1000', '1000 S', '1100', '1100 S', '1200', '1200 S', '1200 GT', '1260', '1260 S', '1260 Enduro', 'V2', 'V4', 'V4 S', 'V4 Rally', 'V4 Pikes Peak', 'V4 Grand Tour'] },
+      { name: 'Scrambler', yearStart: 2015, yearEnd: 2025, variants: ['Icon', 'Icon Dark', 'Full Throttle', 'Cafe Racer', 'Desert Sled', 'Desert Sled Fasthouse', 'Nightshift', 'Urban Motard', 'Urban Enduro', '1100', '1100 Sport', '1100 PRO', 'Tribute PRO'] },
+      { name: 'SuperSport', yearStart: 2017, yearEnd: 2025, variants: ['Base', 'S', '950', '950 S'] },
+      { name: 'Hypermotard', yearStart: 2007, yearEnd: 2025, variants: ['796', '821', '821 SP', '939', '939 SP', '950', '950 SP', '950 RVE'] },
+      { name: 'Diavel', yearStart: 2010, yearEnd: 2025, variants: ['Base', 'Carbon', 'AMG Special Edition', '1260', '1260 S', 'Lamborghini', 'V4', 'V4 S', 'V4 Black Steel'] },
+      { name: 'XDiavel', yearStart: 2016, yearEnd: 2025, variants: ['Base', 'S', 'Dark', 'Black Star', 'Nera'] },
+      { name: 'Superbike 916', yearStart: 1994, yearEnd: 1998, variants: ['916', '916 SP', '916 SPS', 'Fogarty Replica'] },
+      { name: 'Superbike 996', yearStart: 1998, yearEnd: 2001, variants: ['996', '996 S', '996 SPS', '996 R', 'Bostrom Replica'] },
+      { name: 'Superbike 998', yearStart: 2002, yearEnd: 2004, variants: ['998', '998 S', '998 R', 'Bayliss Replica', 'Matrix Edition'] },
+      { name: 'Superbike 1098', yearStart: 2007, yearEnd: 2009, variants: ['1098', '1098 S', '1098 R', 'Troy Bayliss Replica'] },
+      { name: 'Superbike 1198', yearStart: 2009, yearEnd: 2012, variants: ['1198', '1198 S', '1198 SP', '1198 R Corse Special Edition'] },
+    ]
+  },
+
+  {
+    id: 'harley_davidson',
+    name: 'Harley-Davidson',
+    type: 'motorcycle',
+    country: 'USA',
+    models: [
+      { name: 'Sportster', yearStart: 1957, yearEnd: 2022, variants: ['883', '883 Custom', '883 Iron', '883 Low', '1200 Custom', '1200 Forty-Eight', '1200 Seventy-Two', '1200 Nightster', 'S', 'Iron 883', 'XL 1200X', 'XL 1200NS', 'XL 1200T Superlow'] },
+      { name: 'Nightster', yearStart: 2022, yearEnd: 2025, variants: ['Base', 'Special', 'S'] },
+      { name: 'Softail', yearStart: 1984, yearEnd: 2025, variants: ['Standard', 'Slim', 'Fat Boy', 'Fat Bob', 'Street Bob', 'Heritage Classic', 'Deluxe', 'Breakout', 'Low Rider', 'Low Rider S', 'Low Rider ST', 'Softail Springer'] },
+      { name: 'Dyna', yearStart: 1991, yearEnd: 2017, variants: ['Street Bob', 'Low Rider', 'Fat Bob', 'Super Glide', 'Wide Glide', 'Switchback', 'CVO'] },
+      { name: 'Touring', yearStart: 1980, yearEnd: 2025, variants: ['Road King', 'Road King Classic', 'Road King Special', 'Road Glide', 'Road Glide Special', 'Street Glide', 'Street Glide Special', 'Electra Glide', 'Electra Glide Ultra Classic', 'Ultra Limited', 'Tri Glide Ultra'] },
+      { name: 'CVO', yearStart: 2001, yearEnd: 2025, variants: ['Road Glide', 'Street Glide', 'Ultra Limited', 'Softail Breakout', 'Pro Street Breakout', 'Electra Glide Ultra Classic', 'Limited'] },
+      { name: 'Pan America', yearStart: 2021, yearEnd: 2025, variants: ['1250', '1250 Special', 'S'] },
+      { name: 'LiveWire', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'One', 'Del Mar', 'S2 Mulholland'] },
+      { name: 'VRSC', yearStart: 2001, yearEnd: 2017, variants: ['V-Rod', 'V-Rod Muscle', 'Night Rod', 'Night Rod Special', 'Street Rod'] },
+    ]
+  },
+
+  {
+    id: 'honda_moto',
+    name: 'Honda',
+    type: 'motorcycle',
+    country: 'Japan',
+    models: [
+      { name: 'CBR1000RR', yearStart: 2004, yearEnd: 2025, variants: ['Base', 'ABS', 'SP', 'SP2', 'Fireblade', 'Fireblade SP', 'Fireblade SP2', 'R'] },
+      { name: 'CBR600RR', yearStart: 2003, yearEnd: 2024, variants: ['Base', 'ABS', 'C-ABS', 'Repsol Edition'] },
+      { name: 'CB1000R', yearStart: 2008, yearEnd: 2025, variants: ['Base', 'ABS', 'SC80', 'Plus', 'Black Edition'] },
+      { name: 'CB650R', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'E Clutch'] },
+      { name: 'CB500F', yearStart: 2013, yearEnd: 2025, variants: ['Base', 'ABS'] },
+      { name: 'CB500X', yearStart: 2013, yearEnd: 2025, variants: ['Base', 'ABS'] },
+      { name: 'Africa Twin', yearStart: 1988, yearEnd: 2025, variants: ['RD04', 'RD07', '1000L', '1000L DCT', '1100L', '1100L DCT', 'Adventure Sports', 'Adventure Sports DCT', 'ES DCT'] },
+      { name: 'Gold Wing', yearStart: 1974, yearEnd: 2025, variants: ['GL1000', 'GL1100', 'GL1200', 'GL1500', 'GL1800', 'GL1800 DCT', 'Tour', 'Tour DCT', 'Tour Airbag DCT'] },
+      { name: 'CB750', yearStart: 1969, yearEnd: 2025, variants: ['K0', 'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'F', 'F2', 'Nighthawk', 'Hornet'] },
+      { name: 'CB400 Super Four', yearStart: 1992, yearEnd: 2013, variants: ['Version S', 'Version R', 'Hyper VTEC', 'Hyper VTEC Spec 2', 'Revo'] },
+      { name: 'CBR400RR', yearStart: 1988, yearEnd: 1999, variants: ['NC23', 'NC29', 'Gull Arm'] },
+      { name: 'VFR800', yearStart: 1997, yearEnd: 2021, variants: ['Fi', 'VTEC', 'ABS', 'F', 'Interceptor'] },
+      { name: 'RC213V-S', yearStart: 2015, yearEnd: 2016, variants: ['Base', 'Sport Kit'] },
+      { name: 'NSR250R', yearStart: 1987, yearEnd: 1999, variants: ['MC16', 'MC18', 'MC21', 'MC28', 'SE', 'Special Edition'] },
+    ]
+  },
+
+  {
+    id: 'kawasaki',
+    name: 'Kawasaki',
+    type: 'motorcycle',
+    country: 'Japan',
+    models: [
+      { name: 'Ninja ZX-10R', yearStart: 2004, yearEnd: 2025, variants: ['Base', 'ABS', 'SE', 'RR', 'KRT Edition', 'Winter Test Edition'] },
+      { name: 'Ninja ZX-6R', yearStart: 1995, yearEnd: 2025, variants: ['Base', 'ABS', 'KRT Edition', '636', '636 ABS', 'ZX636F', 'ZX636G'] },
+      { name: 'Ninja H2', yearStart: 2015, yearEnd: 2025, variants: ['H2', 'H2R', 'H2 SX', 'H2 SX SE', 'H2 Carbon', 'H2 SX SE+'] },
+      { name: 'Z1000', yearStart: 2003, yearEnd: 2021, variants: ['Base', 'ABS', 'SX', 'SX ABS', 'R Performance'] },
+      { name: 'Z900', yearStart: 2017, yearEnd: 2025, variants: ['Base', 'ABS', 'RS', 'RS Cafe', 'SE', 'Performance'] },
+      { name: 'Z650', yearStart: 2017, yearEnd: 2025, variants: ['Base', 'ABS', 'RS'] },
+      { name: 'Versys 1000', yearStart: 2012, yearEnd: 2025, variants: ['Base', 'ABS', 'SE', 'SE+'] },
+      { name: 'Versys 650', yearStart: 2006, yearEnd: 2025, variants: ['Base', 'ABS', 'Grand Tourer'] },
+      { name: 'W800', yearStart: 2010, yearEnd: 2025, variants: ['Base', 'Cafe', 'Street'] },
+      { name: 'Z1 900', yearStart: 1972, yearEnd: 1977, variants: ['Z1', 'Z1-A', 'Z1-B', 'Z900', 'Z900-A4'] },
+      { name: 'GPZ 900R', yearStart: 1984, yearEnd: 2003, variants: ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'US Spec'] },
+      { name: 'KX', yearStart: 1974, yearEnd: 2025, variants: ['65', '85', '100', '112', '250', '250F', '450', '450F', '450SR', '450X'] },
+    ]
+  },
+
+  {
+    id: 'ktm',
+    name: 'KTM',
+    type: 'motorcycle',
+    country: 'Austria',
+    models: [
+      { name: '1290 Super Duke R', yearStart: 2014, yearEnd: 2025, variants: ['Base', 'EVO', 'RR'] },
+      { name: '1290 Super Adventure', yearStart: 2015, yearEnd: 2025, variants: ['S', 'R', 'X'] },
+      { name: '890 Duke R', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'GP Edition'] },
+      { name: '890 Adventure', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'R', 'Rally', 'L'] },
+      { name: 'RC 390', yearStart: 2014, yearEnd: 2025, variants: ['Base', 'Cup Edition', 'R'] },
+      { name: '390 Duke', yearStart: 2013, yearEnd: 2025, variants: ['Base', 'GP Edition'] },
+      { name: '690 Duke', yearStart: 2008, yearEnd: 2025, variants: ['Base', 'R', 'L'] },
+      { name: 'RC8', yearStart: 2008, yearEnd: 2016, variants: ['Base', 'R', 'Track'] },
+      { name: 'EXC', yearStart: 1990, yearEnd: 2025, variants: ['125', '150', '200', '250', '300', '350', '450', '500', 'TPI', 'TPI Erzbergrodeo', 'Factory Edition'] },
+      { name: '450 Rally', yearStart: 2011, yearEnd: 2025, variants: ['Factory', 'Replica'] },
+    ]
+  },
+
+  {
+    id: 'moto_guzzi',
+    name: 'Moto Guzzi',
+    type: 'motorcycle',
+    country: 'Italy',
+    models: [
+      { name: 'V7', yearStart: 1967, yearEnd: 2025, variants: ['V7 I', 'V7 II', 'V7 III', 'V7 Classic', 'V7 Special', 'V7 Racer', 'V7 Stone', 'V7 Stone Night Pack', 'V7 Anniversary', 'Centenario'] },
+      { name: 'V9', yearStart: 2016, yearEnd: 2025, variants: ['Bobber', 'Roamer', 'Bobber Sport'] },
+      { name: 'V100 Mandello', yearStart: 2022, yearEnd: 2025, variants: ['Base', 'S'] },
+      { name: 'V85 TT', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'Travel', 'Adventure'] },
+      { name: 'California', yearStart: 1971, yearEnd: 2016, variants: ['1400', '1400 Custom', '1400 Touring', '1400 Eldorado', 'Custom', 'Touring', 'Vintage'] },
+      { name: 'Le Mans', yearStart: 1976, yearEnd: 1993, variants: ['850 Le Mans', '850 Le Mans II', '850 Le Mans III', '1000 Le Mans IV', '1000 Le Mans V'] },
+      { name: 'Griso', yearStart: 2005, yearEnd: 2016, variants: ['850', '1100', '1200 8V'] },
+    ]
+  },
+
+  {
+    id: 'mv_agusta',
+    name: 'MV Agusta',
+    type: 'motorcycle',
+    country: 'Italy',
+    models: [
+      { name: 'F4', yearStart: 1999, yearEnd: 2019, variants: ['750 S', '750 S Serie Oro', '1000', '1000 S', '1000 Tamburini', '1000 R', 'RR', '1000 Senna', '1000 Claudio', 'RC', 'RC 20th Anniversary'] },
+      { name: 'F3', yearStart: 2012, yearEnd: 2023, variants: ['675', '675 RC', '800', '800 AGO', '800 RC', '800 RR', '800 Rosso', 'Serie Oro'] },
+      { name: 'Brutale', yearStart: 2001, yearEnd: 2025, variants: ['750', '910', '920', '989', '990R', '1078RR', '675', '800', '800 RR', '1090RR', 'Dragster', 'Dragster RR', 'Dragster 800 RC', '1000 RR', 'Serie Oro'] },
+      { name: 'Turismo Veloce', yearStart: 2015, yearEnd: 2025, variants: ['800', '800 Lusso', '800 RC', '800 Rosso', '800 Gold'] },
+      { name: 'Superveloce', yearStart: 2019, yearEnd: 2025, variants: ['800', '800 S', '800 Serie Oro', 'Alpine'] },
+      { name: 'Rush', yearStart: 2020, yearEnd: 2025, variants: ['1000', 'RR'] },
+    ]
+  },
+
+  {
+    id: 'norton',
+    name: 'Norton',
+    type: 'motorcycle',
+    country: 'UK',
+    models: [
+      { name: 'Commando', yearStart: 1967, yearEnd: 2025, variants: ['750', '850', 'Fastback', 'Roadster', 'Interstate', 'Hi Rider', 'Combat', 'John Player Replica', 'Cafe Racer', '961 Sport', '961 SE', '961 Cafe Racer', '961 Commando'] },
+      { name: 'V4CR', yearStart: 2023, yearEnd: 2025, variants: ['Base'] },
+      { name: 'V4SV', yearStart: 2023, yearEnd: 2025, variants: ['Base'] },
+      { name: 'Dominator', yearStart: 1949, yearEnd: 1968, variants: ['88', '99', 'Wideline', 'Slimline', 'SS', 'N15CS', 'Manxman'] },
+      { name: 'Atlas', yearStart: 1962, yearEnd: 1968, variants: ['Base'] },
+      { name: 'Manx', yearStart: 1950, yearEnd: 1962, variants: ['350', '500', '30M', '40M'] },
+    ]
+  },
+
+  {
+    id: 'royal_enfield',
+    name: 'Royal Enfield',
+    type: 'motorcycle',
+    country: 'India/UK',
+    models: [
+      { name: 'Meteor 350', yearStart: 2020, yearEnd: 2025, variants: ['Fireball', 'Stellar', 'Supernova'] },
+      { name: 'Classic 350', yearStart: 2009, yearEnd: 2025, variants: ['Single Channel ABS', 'Dual Channel ABS', 'Halcyon Black', 'Halcyon Green', 'Dark', 'Signals'] },
+      { name: 'Bullet 350', yearStart: 1955, yearEnd: 2025, variants: ['ES', 'Standard', 'Military', 'Classic', 'Chrome', 'Trials'] },
+      { name: 'Himalayan', yearStart: 2016, yearEnd: 2025, variants: ['Base', 'A', 'B', 'Rock Red', 'Granite Black', '450'] },
+      { name: 'Interceptor 650', yearStart: 2018, yearEnd: 2025, variants: ['Base', 'Orange Crush', 'Baker Express', 'Ventura Blue', 'Ravishing Red', 'Mark 2', 'Chrome'] },
+      { name: 'Continental GT 650', yearStart: 2018, yearEnd: 2025, variants: ['Base', 'Ice Queen', 'Rocker Red', 'Slipstream Blue', 'Dux Deluxe', 'Chrome', 'Mark 2'] },
+      { name: 'Super Meteor 650', yearStart: 2023, yearEnd: 2025, variants: ['Base', 'Celestial', 'Interstellar Grey', 'Astral Black'] },
+      { name: 'Shotgun 650', yearStart: 2024, yearEnd: 2025, variants: ['Base', 'Matte Barrelled Black', 'Chrome Red'] },
+    ]
+  },
+
+  {
+    id: 'suzuki_moto',
+    name: 'Suzuki',
+    type: 'motorcycle',
+    country: 'Japan',
+    models: [
+      { name: 'GSX-R1000', yearStart: 2001, yearEnd: 2025, variants: ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'L0', 'L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7', 'R', 'RX', 'L8 R'] },
+      { name: 'GSX-R750', yearStart: 1985, yearEnd: 2017, variants: ['W', 'X', 'Y', 'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'L0', 'L1'] },
+      { name: 'GSX-R600', yearStart: 1992, yearEnd: 2022, variants: ['W', 'X', 'Y', 'K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8', 'K9', 'L0', 'L1'] },
+      { name: 'Hayabusa', yearStart: 1999, yearEnd: 2025, variants: ['Gen 1', 'Gen 2', 'Gen 3', 'WVA1', 'EX', 'Limited Edition', 'Anniversary Edition'] },
+      { name: 'GSX-S1000', yearStart: 2015, yearEnd: 2025, variants: ['Base', 'F', 'GT', 'A', 'GX'] },
+      { name: 'SV650', yearStart: 1999, yearEnd: 2025, variants: ['Base', 'S', 'A', 'ABS', 'MotoGP Edition'] },
+      { name: 'V-Strom 1050', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'XT', 'DE'] },
+      { name: 'V-Strom 650', yearStart: 2004, yearEnd: 2025, variants: ['Base', 'XT', 'ABS', 'Adventure'] },
+      { name: 'Katana', yearStart: 1981, yearEnd: 2025, variants: ['GSX1100S', 'GSX750S', 'GSX400S', '2019 Base', 'Katana 3.0'] },
+      { name: 'Bandit', yearStart: 1989, yearEnd: 2015, variants: ['400', '600', '600S', '600F', '650', '650S', '1200', '1200S', '1250', '1250S', '1250F'] },
+      { name: 'DR-Z400', yearStart: 2000, yearEnd: 2025, variants: ['S', 'SM', 'E'] },
+    ]
+  },
+
+  {
+    id: 'triumph',
+    name: 'Triumph',
+    type: 'motorcycle',
+    country: 'UK',
+    models: [
+      { name: 'Bonneville', yearStart: 1959, yearEnd: 2025, variants: ['T100', 'T120', 'T100 Black', 'T120 Black', 'SE', 'SE T100', 'Chrome Edition', 'Gold Line', '60th Anniversary', 'Speedmaster', 'Bobber', 'Bobber Black', 'Bobber TFC'] },
+      { name: 'Speed Twin', yearStart: 2019, yearEnd: 2025, variants: ['900', '1200', '1200 RS', 'Chrome Edition'] },
+      { name: 'Thruxton', yearStart: 2004, yearEnd: 2025, variants: ['900', '1200', '1200 R', 'TFC', 'Ace', 'RS', 'Chrome Edition'] },
+      { name: 'Street Twin', yearStart: 2015, yearEnd: 2025, variants: ['Base', 'Gold Line'] },
+      { name: 'Street Scrambler', yearStart: 2017, yearEnd: 2025, variants: ['Base', 'Chrome Edition'] },
+      { name: 'Scrambler 1200', yearStart: 2019, yearEnd: 2025, variants: ['XC', 'XE', 'Bond Edition', 'Steve McQueen Edition'] },
+      { name: 'Tiger', yearStart: 1993, yearEnd: 2025, variants: ['900', '900 Rally', '900 GT', '900 GT Pro', '900 Rally Pro', '1200', '1200 XR', '1200 XCA', '1200 XCX', '1200 Alpine Edition', '1200 XRT'] },
+      { name: 'Speed Triple', yearStart: 1994, yearEnd: 2025, variants: ['885i', '955i', '1050', '1050 R', '1050 S', '1050 SE', '1200 RS', '1200 RR', '1200 RR Moto2 Edition'] },
+      { name: 'Daytona', yearStart: 1992, yearEnd: 2025, variants: ['750', '900', '1000', '1200', 'T595', '955i', '675', '675 SE', '675R', '675 Moto2 LE', '660', 'Moto2 765', '765 Moto2 Limited Edition'] },
+      { name: 'Rocket III', yearStart: 2004, yearEnd: 2025, variants: ['Classic', 'Touring', 'Roadster', 'TFC', 'R', 'GT', 'Storm'] },
+      { name: 'Tiger 660', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Sport'] },
+      { name: 'Trident 660', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Chrome Edition'] },
+    ]
+  },
+
+  {
+    id: 'yamaha_moto',
+    name: 'Yamaha',
+    type: 'motorcycle',
+    country: 'Japan',
+    models: [
+      { name: 'YZF-R1', yearStart: 1998, yearEnd: 2025, variants: ['Base', 'M', 'S', 'SP', 'GYTR', 'LE', 'R1M', '60th Anniversary', 'World GP 60th Anniversary', 'Icon', 'Race Blue'] },
+      { name: 'YZF-R6', yearStart: 1999, yearEnd: 2023, variants: ['Base', 'S', 'R', 'SP', 'Race', '60th Anniversary', 'World GP 60th Anniversary'] },
+      { name: 'YZF-R7', yearStart: 2021, yearEnd: 2025, variants: ['Base', 'Icon Blue', 'Icon Black'] },
+      { name: 'MT-10', yearStart: 2016, yearEnd: 2025, variants: ['Base', 'SP', 'Tourer Edition', 'Anniversary Edition'] },
+      { name: 'MT-09', yearStart: 2013, yearEnd: 2025, variants: ['Base', 'SP', 'Tracer', 'Tracer GT', 'Tracer GT+'] },
+      { name: 'MT-07', yearStart: 2014, yearEnd: 2025, variants: ['Base', 'Tracer', 'Tracer GT'] },
+      { name: 'NMAX 125', yearStart: 2015, yearEnd: 2025, variants: ['Base', 'Connected', 'Tech Max'] },
+      { name: 'T-MAX', yearStart: 2001, yearEnd: 2025, variants: ['500', '530', '530 SX', '530 DX', '560', '560 Tech Max', '560 Sport Max'] },
+      { name: 'Ténéré 700', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'Rally', 'World Raid', 'Explorer', 'Extreme'] },
+      { name: 'XSR900', yearStart: 2016, yearEnd: 2025, variants: ['Base', 'GP'] },
+      { name: 'XSR700', yearStart: 2016, yearEnd: 2025, variants: ['Base', 'Xtribute'] },
+      { name: 'VMAX', yearStart: 1985, yearEnd: 2020, variants: ['1200 V4', '1700 V4', 'Carbon Edition'] },
+      { name: 'V-Max', yearStart: 1985, yearEnd: 1992, variants: ['1200 Original'] },
+      { name: 'RD350', yearStart: 1973, yearEnd: 1980, variants: ['Base', 'LC', 'YPVS'] },
+      { name: 'RZV500R', yearStart: 1984, yearEnd: 1987, variants: ['Base'] },
+    ]
+  },
+
+  {
+    id: 'zero',
+    name: 'Zero Motorcycles',
+    type: 'motorcycle',
+    country: 'USA',
+    models: [
+      { name: 'SR/F', yearStart: 2019, yearEnd: 2025, variants: ['Base', 'Premium'] },
+      { name: 'SR/S', yearStart: 2020, yearEnd: 2025, variants: ['Base', 'Premium'] },
+      { name: 'SR', yearStart: 2012, yearEnd: 2025, variants: ['Base', 'ZF12.5', 'ZF14.4'] },
+      { name: 'S', yearStart: 2010, yearEnd: 2025, variants: ['Base', 'ZF12.5', 'ZF14.4'] },
+      { name: 'DS', yearStart: 2010, yearEnd: 2025, variants: ['Base', 'ZF12.5', 'ZF14.4'] },
+      { name: 'DSR', yearStart: 2014, yearEnd: 2025, variants: ['Base', 'ZF14.4', 'Black Forest'] },
+      { name: 'FX', yearStart: 2012, yearEnd: 2025, variants: ['Base', 'ZF7.2', 'ZF3.6'] },
+      { name: 'FXE', yearStart: 2021, yearEnd: 2025, variants: ['Base'] },
+    ]
+  },
+
+  // ─── CLASSIC & SPECIALIST ──────────────────────────────
+
+  {
+    id: 'ac',
+    name: 'AC Cars',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'Cobra', yearStart: 1962, yearEnd: 2025, variants: ['260', '289', '427', 'MkII', 'MkIII', 'MkIV', 'Superblower', 'Superblower MkIV', '212', 'GT Coupe'] },
+      { name: 'Ace', yearStart: 1954, yearEnd: 1963, variants: ['Bristol', 'Ford', '2.0L', 'Ruddspeed'] },
+      { name: 'Aceca', yearStart: 1954, yearEnd: 1963, variants: ['Bristol', 'Ford'] },
+    ]
+  },
+
+  {
+    id: 'bsa',
+    name: 'BSA',
+    type: 'motorcycle',
+    country: 'UK',
+    models: [
+      { name: 'Gold Star', yearStart: 1938, yearEnd: 1963, variants: ['350', '500', 'Clubmans', 'DBD34', 'DBD32'] },
+      { name: 'A65', yearStart: 1962, yearEnd: 1973, variants: ['Lightning', 'Thunderbolt', 'Spitfire', 'Hornet', 'Firebird Scrambler'] },
+      { name: 'A10', yearStart: 1950, yearEnd: 1963, variants: ['Golden Flash', 'Road Rocket', 'Super Rocket', 'Rocket Gold Star', 'Spitfire Scrambler'] },
+      { name: 'Bantam', yearStart: 1948, yearEnd: 1971, variants: ['D1', 'D3', 'D5', 'D7', 'D10', 'D14'] },
+      { name: 'B50', yearStart: 1971, yearEnd: 1973, variants: ['SS', 'T', 'MX'] },
+      { name: 'Gold Star 650', yearStart: 2021, yearEnd: 2025, variants: ['Base'] },
+    ]
+  },
+
+  {
+    id: 'ginetta',
+    name: 'Ginetta',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'G40', yearStart: 2007, yearEnd: 2020, variants: ['Junior', 'GT5', 'GT5 S'] },
+      { name: 'G55', yearStart: 2012, yearEnd: 2020, variants: ['GT4', 'Supercup'] },
+      { name: 'G56', yearStart: 2017, yearEnd: 2022, variants: ['GT4', 'GTA'] },
+      { name: 'G57', yearStart: 2019, yearEnd: 2025, variants: ['GT4'] },
+      { name: 'G60', yearStart: 2018, yearEnd: 2025, variants: ['GT4'] },
+      { name: 'G4', yearStart: 1961, yearEnd: 1969, variants: ['Mk1', 'Mk2', 'Mk3'] },
+    ]
+  },
+
+  {
+    id: 'westfield',
+    name: 'Westfield',
+    type: 'car',
+    country: 'UK',
+    models: [
+      { name: 'SEi', yearStart: 1982, yearEnd: 2025, variants: ['Ford Kent', 'Ford Zetec', '2.0 Zetec', 'Turbo'] },
+      { name: 'Sport 250', yearStart: 2007, yearEnd: 2025, variants: ['Base', 'Race'] },
+      { name: 'Sport 2000', yearStart: 2001, yearEnd: 2025, variants: ['Base', 'Race', 'R'] },
+      { name: 'Megabusa', yearStart: 2000, yearEnd: 2018, variants: ['Base', 'Turbo'] },
+      { name: 'iRacer', yearStart: 2013, yearEnd: 2020, variants: ['Base'] },
+    ]
+  },
+
 ]
+
+// Helper functions
+
+export function getMakesByType(type: 'car' | 'motorcycle' | 'all'): VehicleMake[] {
+  if (type === 'all') return VEHICLE_DATABASE
+  if (type === 'motorcycle') return VEHICLE_DATABASE.filter(m => m.type === 'motorcycle')
+  return VEHICLE_DATABASE.filter(m => m.type === 'car' || m.type === 'both')
+}
+
+export function getMakeById(id: string): VehicleMake | undefined {
+  return VEHICLE_DATABASE.find(m => m.id === id)
+}
+
+export function getModelsByMake(makeId: string): VehicleModel[] {
+  return getMakeById(makeId)?.models || []
+}
+
+export function getModelByName(makeId: string, modelName: string): VehicleModel | undefined {
+  return getModelsByMake(makeId).find(m => m.name === modelName)
+}
+
+export function getVariantsByModel(makeId: string, modelName: string): string[] {
+  return getModelByName(makeId, modelName)?.variants || []
+}
+
+export function getYearsByModel(makeId: string, modelName: string): number[] {
+  const model = getModelByName(makeId, modelName)
+  if (!model) return []
+  const years: number[] = []
+  for (let y = model.yearEnd; y >= model.yearStart; y--) {
+    years.push(y)
+  }
+  return years
+}
+
+export function searchMakes(query: string, type: 'car' | 'motorcycle' | 'all' = 'all'): VehicleMake[] {
+  const makes = getMakesByType(type)
+  const q = query.toLowerCase().trim()
+  return makes.filter(m => m.name.toLowerCase().includes(q))
+}
+
+export function searchModels(makeId: string, query: string): VehicleModel[] {
+  const models = getModelsByMake(makeId)
+  const q = query.toLowerCase().trim()
+  return models.filter(m => m.name.toLowerCase().includes(q))
+}
