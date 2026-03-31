@@ -177,67 +177,51 @@ const Home = () => {
     return () => { supabase.removeChannel(channel); };
   }, [refreshPins]);
 
-  // Friend live location tracking
+  // Friend live location tracking via RPC + realtime
   useEffect(() => {
     if (!authUser?.id) return;
 
-    let channels: any[] = [];
-
-    const setupFriendTracking = async () => {
-      const { data: friends } = await supabase
-        .from('friends')
-        .select('user_id, friend_id')
-        .or(`user_id.eq.${authUser.id},friend_id.eq.${authUser.id}`)
-        .eq('status', 'accepted');
-
-      if (!friends?.length) return;
-
-      const friendIds = friends.map(f =>
-        f.user_id === authUser.id ? f.friend_id : f.user_id
-      );
-
-      channels = friendIds.map(friendId => {
-        const channel = supabase.channel(`live-location:${friendId}`);
-        channel
-          .on('broadcast', { event: 'location_update' }, ({ payload }) => {
-            setFriendLocations(prev => ({
-              ...prev,
-              [payload.user_id]: {
-                ...payload,
-                receivedAt: Date.now(),
-              },
-            }));
-          })
-          .subscribe();
-        return channel;
-      });
+    const loadFriendLocations = async () => {
+      const { data } = await supabase.rpc('get_friend_locations', { p_user_id: authUser.id });
+      if (data) {
+        const locations: Record<string, FriendLocation> = {};
+        data.forEach((f: any) => {
+          locations[f.user_id] = {
+            user_id: f.user_id,
+            username: f.username,
+            display_name: f.display_name,
+            avatar_url: f.avatar_url,
+            lat: f.lat,
+            lng: f.lng,
+            heading: f.heading || 0,
+            receivedAt: Date.now(),
+            destination_title: f.destination_title,
+          };
+        });
+        setFriendLocations(locations);
+      }
     };
 
-    setupFriendTracking();
+    loadFriendLocations();
+
+    const channel = supabase
+      .channel('discovery-friend-locations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'live_location_sessions',
+      }, () => {
+        loadFriendLocations();
+      })
+      .subscribe();
+
+    const interval = setInterval(loadFriendLocations, 10000);
 
     return () => {
-      channels.forEach(c => supabase.removeChannel(c));
+      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [authUser?.id]);
-
-  // Remove stale friend locations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      setFriendLocations(prev => {
-        const updated = { ...prev };
-        let changed = false;
-        Object.keys(updated).forEach(id => {
-          if (now - updated[id].receivedAt > 10000) {
-            delete updated[id];
-            changed = true;
-          }
-        });
-        return changed ? updated : prev;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Render friend markers on map
   useEffect(() => {
