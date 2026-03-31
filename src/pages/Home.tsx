@@ -44,6 +44,7 @@ interface FriendLocation {
   lng: number;
   heading: number;
   receivedAt: number;
+  destination_title?: string | null;
 }
 
 const PIN_COLORS: Record<string, string> = {
@@ -177,117 +178,116 @@ const Home = () => {
     return () => { supabase.removeChannel(channel); };
   }, [refreshPins]);
 
-  // Friend live location tracking
+  // Friend live location tracking via RPC + realtime
   useEffect(() => {
     if (!authUser?.id) return;
 
-    let channels: any[] = [];
-
-    const setupFriendTracking = async () => {
-      const { data: friends } = await supabase
-        .from('friends')
-        .select('user_id, friend_id')
-        .or(`user_id.eq.${authUser.id},friend_id.eq.${authUser.id}`)
-        .eq('status', 'accepted');
-
-      if (!friends?.length) return;
-
-      const friendIds = friends.map(f =>
-        f.user_id === authUser.id ? f.friend_id : f.user_id
-      );
-
-      channels = friendIds.map(friendId => {
-        const channel = supabase.channel(`live-location:${friendId}`);
-        channel
-          .on('broadcast', { event: 'location_update' }, ({ payload }) => {
-            setFriendLocations(prev => ({
-              ...prev,
-              [payload.user_id]: {
-                ...payload,
-                receivedAt: Date.now(),
-              },
-            }));
-          })
-          .subscribe();
-        return channel;
-      });
+    const loadFriendLocations = async () => {
+      const { data } = await supabase.rpc('get_friend_locations', { p_user_id: authUser.id });
+      if (data) {
+        const locations: Record<string, FriendLocation> = {};
+        data.forEach((f: any) => {
+          locations[f.user_id] = {
+            user_id: f.user_id,
+            username: f.username,
+            display_name: f.display_name,
+            avatar_url: f.avatar_url,
+            lat: f.lat,
+            lng: f.lng,
+            heading: f.heading || 0,
+            receivedAt: Date.now(),
+            destination_title: f.destination_title,
+          };
+        });
+        setFriendLocations(locations);
+      }
     };
 
-    setupFriendTracking();
+    loadFriendLocations();
+
+    const channel = supabase
+      .channel('discovery-friend-locations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'live_location_sessions',
+      }, () => {
+        loadFriendLocations();
+      })
+      .subscribe();
+
+    const interval = setInterval(loadFriendLocations, 10000);
 
     return () => {
-      channels.forEach(c => supabase.removeChannel(c));
+      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [authUser?.id]);
-
-  // Remove stale friend locations
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = Date.now();
-      setFriendLocations(prev => {
-        const updated = { ...prev };
-        let changed = false;
-        Object.keys(updated).forEach(id => {
-          if (now - updated[id].receivedAt > 10000) {
-            delete updated[id];
-            changed = true;
-          }
-        });
-        return changed ? updated : prev;
-      });
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Render friend markers on map
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
 
-    const activeFriendIds = new Set(Object.keys(friendLocations));
+    const renderFriends = () => {
+      const activeFriendIds = new Set(Object.keys(friendLocations));
 
-    // Remove markers for friends no longer sharing
-    Object.keys(friendMarkersRef.current).forEach(id => {
-      if (!activeFriendIds.has(id)) {
-        friendMarkersRef.current[id].remove();
-        delete friendMarkersRef.current[id];
-      }
-    });
+      Object.keys(friendMarkersRef.current).forEach(id => {
+        if (!activeFriendIds.has(id)) {
+          friendMarkersRef.current[id].remove();
+          delete friendMarkersRef.current[id];
+        }
+      });
 
-    // Update or create markers
-    Object.values(friendLocations).forEach((friend) => {
-      if (friendMarkersRef.current[friend.user_id]) {
-        friendMarkersRef.current[friend.user_id].setLngLat([friend.lng, friend.lat]);
-      } else {
-        const el = document.createElement('div');
-        el.className = 'friend-location-marker';
-        el.style.cssText = `
-          width: 36px; height: 36px; border-radius: 50%;
-          border: 3px solid hsl(var(--primary)); overflow: hidden;
-          background: hsl(var(--muted)); cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          position: relative;
-        `;
-        if (friend.avatar_url) {
-          el.style.backgroundImage = `url(${friend.avatar_url})`;
-          el.style.backgroundSize = 'cover';
-        } else {
-          el.innerText = (friend.display_name || friend.username || '?')[0].toUpperCase();
-          el.style.display = 'flex';
-          el.style.alignItems = 'center';
-          el.style.justifyContent = 'center';
-          el.style.fontSize = '14px';
-          el.style.fontWeight = '600';
-          el.style.color = 'hsl(var(--primary))';
+      Object.values(friendLocations).forEach((friend) => {
+        if (friendMarkersRef.current[friend.user_id]) {
+          friendMarkersRef.current[friend.user_id].setLngLat([friend.lng, friend.lat]);
+          return;
         }
 
-        const marker = new mapboxgl.Marker({ element: el, rotation: friend.heading || 0 })
+        const el = document.createElement('div');
+        el.style.cssText = 'width:40px;height:40px;border-radius:50%;border:3px solid #3B6D11;overflow:visible;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#3B6D11;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.3);position:relative;';
+
+        const inner = document.createElement('div');
+        inner.style.cssText = 'width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;';
+        if (friend.avatar_url) {
+          const img = document.createElement('img');
+          img.src = friend.avatar_url;
+          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+          inner.appendChild(img);
+        } else {
+          inner.innerText = (friend.display_name || friend.username || '?')[0].toUpperCase();
+        }
+        el.appendChild(inner);
+
+        const label = document.createElement('div');
+        label.style.cssText = 'position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;';
+        label.innerText = friend.display_name || friend.username || 'Friend';
+        el.appendChild(label);
+
+        if (friend.destination_title) {
+          const dest = document.createElement('div');
+          dest.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#185FA5;color:white;font-size:8px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;';
+          dest.innerText = `→ ${friend.destination_title}`;
+          el.appendChild(dest);
+        }
+
+        el.addEventListener('click', () => {
+          if (mapRef.current) mapRef.current.flyTo({ center: [friend.lng, friend.lat], zoom: 15, duration: 800 });
+        });
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([friend.lng, friend.lat])
           .addTo(m);
-
         friendMarkersRef.current[friend.user_id] = marker;
-      }
-    });
+      });
+    };
+
+    if (m.loaded()) {
+      renderFriends();
+    } else {
+      m.once('load', renderFriends);
+    }
   }, [friendLocations]);
 
   // Re-fetch pins when category changes
