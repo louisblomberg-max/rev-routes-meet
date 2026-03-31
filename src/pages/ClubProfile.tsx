@@ -1,203 +1,432 @@
-import { useState, useEffect } from 'react';
-import { Users, Share2, Heart, MessageCircle, Pin, Calendar, MapPin, Image, Info, Bell, Globe, Shield, Instagram, ExternalLink, Flag, UserCheck, Clock, AlertTriangle } from 'lucide-react';
-import BackButton from '@/components/BackButton';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useState, useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { supabase } from '@/integrations/supabase/client'
+import { useAuth } from '@/contexts/AuthContext'
+import { toast } from 'sonner'
+import { Share2, Settings, ChevronLeft } from 'lucide-react'
+import { format } from 'date-fns'
+import ClubFeed from '@/components/clubs/ClubFeed'
+import ClubMembers from '@/components/clubs/ClubMembers'
+import ClubEvents from '@/components/clubs/ClubEvents'
+import ClubLeaderboard from '@/components/clubs/ClubLeaderboard'
 
-const ClubProfile = () => {
-  const navigate = useNavigate();
-  const { id } = useParams();
-  const { user: authUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('feed');
-  const [newPost, setNewPost] = useState('');
-  const [club, setClub] = useState<any>(null);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [members, setMembers] = useState<any[]>([]);
-  const [membership, setMembership] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const TABS = [
+  { id: 'feed', label: 'Feed', icon: '📝' },
+  { id: 'events', label: 'Events', icon: '📅' },
+  { id: 'members', label: 'Members', icon: '👥' },
+  { id: 'leaderboard', label: 'Top', icon: '🏆' },
+  { id: 'about', label: 'About', icon: 'ℹ️' },
+]
 
-  const fetchData = async () => {
-    if (!id) return;
-    setIsLoading(true); setError(null);
-    const [clubRes, postsRes, membersRes, myMemberRes] = await Promise.all([
-      supabase.from('clubs').select('*').eq('id', id).single(),
-      supabase.from('club_posts').select('*, profiles(username, avatar_url, display_name)').eq('club_id', id).order('created_at', { ascending: false }).limit(20),
-      supabase.from('club_memberships').select('*, profiles(username, avatar_url, display_name)').eq('club_id', id).limit(20),
-      authUser?.id ? supabase.from('club_memberships').select('role').eq('club_id', id).eq('user_id', authUser.id).maybeSingle() : Promise.resolve({ data: null }),
-    ]);
-    if (clubRes.error) { setError(clubRes.error.message); setIsLoading(false); return; }
-    setClub(clubRes.data); setPosts(postsRes.data || []); setMembers(membersRes.data || []);
-    setMembership((myMemberRes as any).data);
-    setIsLoading(false);
-  };
+export default function ClubProfile() {
+  const { id: clubId } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [club, setClub] = useState<any>(null)
+  const [membership, setMembership] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('feed')
+  const [joining, setJoining] = useState(false)
+  const [mutualFriends, setMutualFriends] = useState<any[]>([])
 
-  useEffect(() => { fetchData(); }, [id, authUser?.id]);
+  useEffect(() => {
+    if (!clubId) return
+    loadClub()
+  }, [clubId, user?.id])
 
-  const isJoined = !!membership;
-  const isOwner = club?.created_by === authUser?.id;
-  const isAdmin = isOwner || membership?.role === 'owner' || membership?.role === 'admin';
+  const loadClub = async () => {
+    setLoading(true)
+    try {
+      const { data } = await supabase
+        .from('clubs')
+        .select('*, profiles!created_by(id, username, display_name, avatar_url, plan)')
+        .eq('id', clubId)
+        .single()
+      setClub(data)
+
+      if (user?.id) {
+        const { data: mem } = await supabase
+          .from('club_memberships')
+          .select('*')
+          .eq('club_id', clubId)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        setMembership(mem)
+
+        // Find mutual friends in club
+        const { data: friends } = await supabase
+          .from('friends')
+          .select('user_id, friend_id')
+          .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+          .eq('status', 'accepted')
+
+        if (friends?.length) {
+          const friendIds = friends.map(f => f.user_id === user.id ? f.friend_id : f.user_id)
+          const { data: mutual } = await supabase
+            .from('club_memberships')
+            .select('user_id')
+            .eq('club_id', clubId!)
+            .in('user_id', friendIds)
+            .limit(3)
+          
+          if (mutual?.length) {
+            const mutualIds = mutual.map(m => m.user_id)
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, username, display_name, avatar_url')
+              .in('id', mutualIds)
+            setMutualFriends(profiles || [])
+          }
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleJoin = async () => {
-    if (!authUser?.id || !id) return;
-    await supabase.from('club_memberships').insert({ user_id: authUser.id, club_id: id, role: 'member' });
-    toast.success(`Joined ${club?.name}!`); fetchData();
-  };
+    if (!user?.id) { navigate('/auth'); return }
+    setJoining(true)
+    try {
+      if (club.join_mode === 'approval') {
+        await supabase.from('club_join_requests').upsert({
+          club_id: clubId, user_id: user.id, status: 'pending'
+        })
+        toast.success('Join request sent')
+      } else {
+        await supabase.from('club_memberships').insert({
+          club_id: clubId, user_id: user.id, role: 'member'
+        })
+        if (club.created_by) {
+          await supabase.rpc('send_notification', {
+            p_user_id: club.created_by,
+            p_type: 'club_join',
+            p_title: 'New member joined',
+            p_body: `Someone joined ${club.name}`,
+            p_data: { club_id: clubId }
+          })
+        }
+        toast.success(`Welcome to ${club.name}!`)
+        loadClub()
+      }
+    } finally {
+      setJoining(false)
+    }
+  }
 
   const handleLeave = async () => {
-    if (!authUser?.id || !id) return;
-    await supabase.from('club_memberships').delete().eq('user_id', authUser.id).eq('club_id', id);
-    toast.success('Left club'); fetchData();
-  };
-
-  const handlePost = async () => {
-    if (!authUser?.id || !newPost.trim() || !id) return;
-    await supabase.from('club_posts').insert({ club_id: id, user_id: authUser.id, body: newPost.trim() });
-    setNewPost(''); toast.success('Post shared!'); fetchData();
-  };
-
-  if (isLoading) {
-    return (
-      <div className="mobile-container bg-background min-h-screen">
-        <div className="h-44 bg-gradient-to-br from-clubs to-clubs/60" />
-        <div className="px-4 -mt-10 space-y-4"><Skeleton className="w-20 h-20 rounded-2xl" /><Skeleton className="h-6 w-48" /><Skeleton className="h-4 w-32" /></div>
-      </div>
-    );
+    if (membership?.role === 'owner') {
+      toast.error('Transfer ownership before leaving')
+      return
+    }
+    await supabase.from('club_memberships').delete()
+      .eq('club_id', clubId!).eq('user_id', user?.id!)
+    setMembership(null)
+    toast.success('Left club')
   }
 
-  if (error || !club) {
-    return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-4">
-        <AlertTriangle className="w-10 h-10 text-destructive mb-3" />
-        <p className="font-semibold text-foreground mb-1">{error || 'Club not found'}</p>
-        <Button variant="outline" onClick={fetchData} className="mt-3">Retry</Button>
-      </div>
-    );
+  const handleShare = async () => {
+    const text = `Join ${club.name} on RevNet! Use invite code: ${club.invite_code}`
+    if (navigator.share) {
+      try { await navigator.share({ title: club.name, text, url: window.location.href }) } catch {}
+    } else {
+      await navigator.clipboard.writeText(text)
+      toast.success('Invite link copied!')
+    }
   }
 
-  const visibilityLabel = club.visibility === 'invite_only' ? 'Invite Only' : club.visibility === 'members_only' ? 'Private' : 'Public';
+  const isAdmin = membership?.role === 'owner' || membership?.role === 'admin'
+  const isMember = !!membership
 
-  const tabs = [
-    { id: 'feed', label: 'Feed', icon: MessageCircle },
-    { id: 'about', label: 'About', icon: Info },
-    { id: 'members', label: 'Members', icon: Users },
-  ];
+  if (loading) return (
+    <div className="mobile-container bg-background min-h-screen">
+      <div className="h-44 bg-muted animate-pulse" />
+    </div>
+  )
+
+  if (!club) return (
+    <div className="mobile-container bg-background min-h-screen flex items-center justify-center">
+      <p className="text-muted-foreground">Club not found</p>
+    </div>
+  )
+
+  const socialLinks = club.social_links as Record<string, string> | null
 
   return (
     <div className="mobile-container bg-background min-h-screen">
-      <div className="relative h-44 bg-gradient-to-br from-clubs to-clubs/60">
-        <BackButton className="absolute top-4 left-4 w-10 h-10 rounded-xl bg-black/30 backdrop-blur-sm z-10 hover:bg-black/40 safe-top" iconClassName="text-white" />
-        <div className="absolute top-4 right-4 flex gap-2 safe-top">
-          <button onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }}
-            className="w-10 h-10 rounded-xl bg-black/30 backdrop-blur-sm flex items-center justify-center z-10 hover:bg-black/40 transition-colors active:scale-95">
-            <Share2 className="w-5 h-5 text-white" />
-          </button>
-        </div>
-      </div>
-      <div className="px-4 -mt-10 relative z-10">
-        <div className="flex items-end gap-4">
-          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-clubs to-clubs/80 flex items-center justify-center border-4 border-background shadow-lg">
-            <span className="text-2xl font-bold text-white">{club.name?.split(' ').map((w: string) => w[0]).join('').slice(0, 2)}</span>
-          </div>
-          <div className="flex-1 pb-1">
-            <h1 className="text-xl font-bold text-foreground">{club.name}</h1>
-            {club.handle && <p className="text-xs text-muted-foreground">@{club.handle}</p>}
-          </div>
-        </div>
-        <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
-          <span className="flex items-center gap-1"><Users className="w-4 h-4" />{(club.member_count || 0).toLocaleString()} members</span>
-          <span className="flex items-center gap-1 text-xs"><Shield className="w-3.5 h-3.5" />{visibilityLabel}</span>
-        </div>
-        <div className="mt-4">
-          {isJoined ? (
-            <div className="flex gap-2">
-              <Button variant="outline" className="flex-1 border-clubs text-clubs" onClick={handleLeave}><UserCheck className="w-4 h-4 mr-1.5" />Joined</Button>
-              <Button variant="outline" size="icon" onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }}><Share2 className="w-4 h-4" /></Button>
-            </div>
-          ) : (
-            <Button className="w-full bg-clubs hover:bg-clubs/90 text-white" onClick={handleJoin}>Join Club</Button>
-          )}
-        </div>
-      </div>
-      <div className="mt-6 border-b border-border">
-        <div className="flex px-2 overflow-x-auto">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex flex-col items-center gap-1 py-2.5 text-xs font-medium border-b-2 transition-colors whitespace-nowrap min-w-0 ${activeTab === tab.id ? 'border-clubs text-clubs' : 'border-transparent text-muted-foreground hover:text-foreground'}`}>
-                <Icon className="w-4 h-4" />{tab.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <div className="px-4 py-4 pb-8">
-        {activeTab === 'feed' && (
-          <div className="space-y-4">
-            {isJoined && (
-              <div className="bg-card rounded-xl p-4 border border-border/50">
-                <Textarea placeholder="Share something with the club..." value={newPost} onChange={(e) => setNewPost(e.target.value)} className="resize-none border-0 p-0 focus-visible:ring-0 bg-transparent" rows={2} />
-                <div className="flex justify-end mt-3"><Button size="sm" className="bg-clubs hover:bg-clubs/90" disabled={!newPost.trim()} onClick={handlePost}>Post</Button></div>
-              </div>
-            )}
-            {posts.length === 0 && (
-              <div className="text-center py-12"><MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" /><p className="text-muted-foreground">No posts yet</p></div>
-            )}
-            {posts.map((post) => (
-              <div key={post.id} className="bg-card rounded-xl p-4 border border-border/50">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <span className="text-sm font-medium text-muted-foreground">{(post.profiles?.display_name || post.profiles?.username || 'U').charAt(0)}</span>
-                  </div>
-                  <div><p className="font-medium text-foreground text-sm">{post.profiles?.display_name || post.profiles?.username || 'Member'}</p><p className="text-xs text-muted-foreground">{new Date(post.created_at).toLocaleDateString()}</p></div>
-                </div>
-                <p className="text-foreground text-sm leading-relaxed">{post.body}</p>
-                <div className="flex items-center gap-4 mt-4 pt-3 border-t border-border/50">
-                  <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"><Heart className="w-4 h-4" />{post.likes || 0}</button>
-                </div>
-              </div>
-            ))}
+      {/* Cover image header */}
+      <div className="relative w-full h-44">
+        {club.cover_url ? (
+          <img src={club.cover_url} className="w-full h-full object-cover" alt={club.name} />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center">
+            <span className="text-5xl">🏎</span>
           </div>
         )}
-        {activeTab === 'about' && (
-          <div className="space-y-6">
-            {club.description && <div><h3 className="font-semibold text-foreground mb-2">About</h3><p className="text-sm text-muted-foreground leading-relaxed">{club.description}</p></div>}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-card rounded-xl p-3 border border-border/50"><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Visibility</p><p className="text-sm font-semibold text-foreground mt-0.5">{visibilityLabel}</p></div>
-              <div className="bg-card rounded-xl p-3 border border-border/50"><p className="text-[10px] text-muted-foreground uppercase tracking-wide">Joining</p><p className="text-sm font-semibold text-foreground mt-0.5">{club.join_mode === 'admin_approval' ? 'Approval' : 'Auto'}</p></div>
-            </div>
-            {club.tags && club.tags.length > 0 && (
-              <div><h3 className="font-semibold text-foreground mb-2">Tags</h3><div className="flex flex-wrap gap-1.5">{club.tags.map((t: string) => <span key={t} className="px-2.5 py-1 bg-clubs/10 text-clubs text-xs font-medium rounded-lg">{t}</span>)}</div></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+
+        {/* Back and actions */}
+        <div className="absolute top-4 left-4 right-4 flex justify-between safe-top">
+          <button
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <div className="flex gap-2">
+            <button onClick={handleShare} className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white">
+              <Share2 className="w-4 h-4" />
+            </button>
+            {isAdmin && (
+              <button
+                onClick={() => toast.info('Club settings coming soon')}
+                className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
             )}
-            <button onClick={() => toast.info('Report submitted')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors"><Flag className="w-4 h-4" />Report this club</button>
           </div>
+        </div>
+      </div>
+
+      {/* Club identity */}
+      <div className="px-4 -mt-8 relative z-10 space-y-4">
+        <div className="flex items-end gap-3">
+          <div className="w-18 h-18 rounded-2xl border-4 border-background overflow-hidden flex-shrink-0 bg-card shadow-lg" style={{ width: 72, height: 72 }}>
+            {club.logo_url ? (
+              <img src={club.logo_url} className="w-full h-full object-cover" alt="" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center text-2xl font-bold text-muted-foreground">
+                {club.name?.[0]?.toUpperCase()}
+              </div>
+            )}
+          </div>
+          <div className="pb-1">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-bold text-foreground">{club.name}</h1>
+              {club.is_verified && <span className="text-blue-500 text-xs font-bold">✓</span>}
+            </div>
+            <p className="text-xs text-muted-foreground">@{club.handle}</p>
+          </div>
+        </div>
+
+        {/* Stats row */}
+        <div className="flex gap-4">
+          <div className="text-center">
+            <p className="text-base font-bold text-foreground">{club.member_count}</p>
+            <p className="text-[10px] text-muted-foreground">Members</p>
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-foreground">{club.post_count}</p>
+            <p className="text-[10px] text-muted-foreground">Posts</p>
+          </div>
+          <div className="text-center">
+            <p className="text-base font-bold text-foreground capitalize">{club.club_type?.replace(/_/g, ' ')}</p>
+            <p className="text-[10px] text-muted-foreground">Type</p>
+          </div>
+        </div>
+
+        {/* Mutual friends */}
+        {mutualFriends.length > 0 && (
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-2">
+              {mutualFriends.map((friend: any) => (
+                <div key={friend.id} className="w-6 h-6 rounded-full bg-muted border-2 border-background overflow-hidden">
+                  {friend.avatar_url ? (
+                    <img src={friend.avatar_url} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-muted-foreground">
+                      {(friend.display_name || friend.username || '?')[0].toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] text-muted-foreground">
+              {mutualFriends.length} friend{mutualFriends.length > 1 ? 's' : ''} in this club
+            </p>
+          </div>
+        )}
+
+        {/* Join / Leave button */}
+        {!isMember ? (
+          <button
+            onClick={handleJoin}
+            disabled={joining}
+            className="w-full py-3 rounded-2xl bg-foreground text-background text-sm font-bold disabled:opacity-50"
+          >
+            {joining ? 'Joining...' : club.join_mode === 'approval' ? 'Request to Join' : 'Join Club'}
+          </button>
+        ) : (
+          <div className="flex gap-2">
+            <div className="flex-1 py-2.5 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-center text-xs font-semibold border border-green-200 dark:border-green-800 flex items-center justify-center gap-1.5">
+              <span>✓</span>
+              {membership.role === 'owner' ? 'Owner' : membership.role === 'admin' ? 'Admin' : 'Member'}
+            </div>
+            {membership.role !== 'owner' && (
+              <button
+                onClick={handleLeave}
+                className="px-4 py-2.5 rounded-xl border border-border text-xs text-muted-foreground font-medium"
+              >
+                Leave
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Tab bar */}
+      <div className="mt-4 border-b border-border/50">
+        <div className="flex px-2 overflow-x-auto scrollbar-none">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-3 text-xs font-semibold border-b-2 transition-all ${
+                activeTab === tab.id
+                  ? 'border-foreground text-foreground'
+                  : 'border-transparent text-muted-foreground'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tab content */}
+      <div className="px-4 py-4 pb-24">
+        {activeTab === 'feed' && (
+          <ClubFeed clubId={clubId!} isMember={isMember} isAdmin={isAdmin} club={club} />
+        )}
+        {activeTab === 'events' && (
+          <ClubEvents clubId={clubId!} isMember={isMember} isAdmin={isAdmin} />
         )}
         {activeTab === 'members' && (
-          <div className="space-y-3">
-            {members.map((m) => (
-              <div key={`${m.user_id}-${m.club_id}`} className="bg-card rounded-xl p-4 border border-border/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <span className="text-sm font-medium text-muted-foreground">{(m.profiles?.display_name || m.profiles?.username || 'M').charAt(0)}</span>
-                  </div>
-                  <div className="flex-1"><p className="font-medium text-foreground text-sm">{m.profiles?.display_name || m.profiles?.username || 'Member'}</p><p className="text-xs text-muted-foreground">@{m.profiles?.username || 'user'}</p></div>
-                  {m.role === 'owner' && <span className="text-[10px] font-semibold text-clubs bg-clubs/10 px-2 py-0.5 rounded-full">Owner</span>}
-                  {m.role === 'admin' && <span className="text-[10px] font-semibold text-clubs bg-clubs/10 px-2 py-0.5 rounded-full">Admin</span>}
+          <ClubMembers clubId={clubId!} isAdmin={isAdmin} currentUserId={user?.id} />
+        )}
+        {activeTab === 'leaderboard' && (
+          <ClubLeaderboard clubId={clubId!} currentUserId={user?.id} />
+        )}
+        {activeTab === 'about' && (
+          <div className="space-y-4">
+            {club.description && (
+              <div className="bg-card rounded-2xl border border-border/50 p-4">
+                <h3 className="text-sm font-bold text-foreground mb-2">About</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{club.description}</p>
+              </div>
+            )}
+
+            <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-3">
+              <h3 className="text-sm font-bold text-foreground">Details</h3>
+              {club.location && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>📍</span>
+                  {club.location}
+                </div>
+              )}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>📅</span>
+                Founded {format(new Date(club.created_at), 'MMMM yyyy')}
+              </div>
+              {club.join_mode && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>{club.join_mode === 'auto' ? '🌐' : club.join_mode === 'approval' ? '✅' : '🔒'}</span>
+                  {club.join_mode === 'auto' ? 'Open to join' : club.join_mode === 'approval' ? 'Approval required' : 'Invite only'}
+                </div>
+              )}
+            </div>
+
+            {Array.isArray(club.rules) && club.rules.length > 0 && (
+              <div className="bg-card rounded-2xl border border-border/50 p-4">
+                <h3 className="text-sm font-bold text-foreground mb-3">Club Rules</h3>
+                <div className="space-y-2">
+                  {(club.rules as string[]).map((rule: string, i: number) => (
+                    <div key={i} className="flex gap-2.5 items-start">
+                      <span className="text-xs font-bold text-muted-foreground mt-0.5 w-5 text-center">{i + 1}</span>
+                      <p className="text-sm text-foreground flex-1">{rule}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-            ))}
-            {members.length === 0 && <div className="text-center py-12"><Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" /><p className="text-muted-foreground">No members yet</p></div>}
+            )}
+
+            {(socialLinks?.instagram || socialLinks?.facebook) && (
+              <div className="bg-card rounded-2xl border border-border/50 p-4">
+                <h3 className="text-sm font-bold text-foreground mb-3">Social</h3>
+                {socialLinks?.instagram && (
+                  <a
+                    href={`https://instagram.com/${socialLinks.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-500 mb-2"
+                  >
+                    📸 @{socialLinks.instagram}
+                  </a>
+                )}
+                {socialLinks?.facebook && (
+                  <a
+                    href={socialLinks.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm text-blue-500"
+                  >
+                    👥 Facebook page
+                  </a>
+                )}
+              </div>
+            )}
+
+            {/* Invite code for members */}
+            {isMember && club.invite_code && (
+              <div className="bg-card rounded-2xl border border-border/50 p-4 space-y-2">
+                <h3 className="text-sm font-bold text-foreground">Invite Code</h3>
+                <p className="text-xs text-muted-foreground">Share this code to invite others directly</p>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-muted rounded-xl px-4 py-3 text-center">
+                    <span className="text-lg font-mono font-bold text-foreground tracking-widest">
+                      {club.invite_code?.toUpperCase()}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(club.invite_code?.toUpperCase())
+                      toast.success('Code copied!')
+                    }}
+                    className="px-4 py-3 rounded-xl bg-foreground text-background text-sm font-semibold"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Organiser info */}
+            {club.profiles && (
+              <button
+                onClick={() => navigate(`/profile/${club.profiles?.id}`)}
+                className="w-full bg-card rounded-2xl border border-border/50 p-4 flex items-center gap-3 text-left"
+              >
+                <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                  {club.profiles?.avatar_url ? (
+                    <img src={club.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
+                      {(club.profiles?.display_name || club.profiles?.username || '?')[0].toUpperCase()}
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] text-muted-foreground">Founded by</p>
+                  <p className="text-sm font-semibold text-foreground">{club.profiles?.display_name || club.profiles?.username}</p>
+                </div>
+                <span className="text-muted-foreground">›</span>
+              </button>
+            )}
           </div>
         )}
       </div>
     </div>
-  );
-};
-
-export default ClubProfile;
+  )
+}
