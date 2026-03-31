@@ -1619,6 +1619,7 @@ export type Database = {
           user_id: string | null
           variant: string | null
           vehicle_type: string | null
+          vehicle_type_category: string | null
           visibility: string | null
           year: string | null
         }
@@ -1642,6 +1643,7 @@ export type Database = {
           user_id?: string | null
           variant?: string | null
           vehicle_type?: string | null
+          vehicle_type_category?: string | null
           visibility?: string | null
           year?: string | null
         }
@@ -1665,6 +1667,7 @@ export type Database = {
           user_id?: string | null
           variant?: string | null
           vehicle_type?: string | null
+          vehicle_type_category?: string | null
           visibility?: string | null
           year?: string | null
         }
