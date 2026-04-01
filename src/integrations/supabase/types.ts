@@ -888,6 +888,8 @@ export type Database = {
           entry_fee: number | null
           event_rules: string | null
           id: string
+          invited_club_id: string | null
+          invited_friends: string[] | null
           is_first_come_first_serve: boolean | null
           is_free: boolean | null
           is_recurring: boolean | null
@@ -927,6 +929,8 @@ export type Database = {
           entry_fee?: number | null
           event_rules?: string | null
           id?: string
+          invited_club_id?: string | null
+          invited_friends?: string[] | null
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
           is_recurring?: boolean | null
@@ -966,6 +970,8 @@ export type Database = {
           entry_fee?: number | null
           event_rules?: string | null
           id?: string
+          invited_club_id?: string | null
+          invited_friends?: string[] | null
           is_first_come_first_serve?: boolean | null
           is_free?: boolean | null
           is_recurring?: boolean | null
@@ -998,6 +1004,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "events_invited_club_id_fkey"
+            columns: ["invited_club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
             referencedColumns: ["id"]
           },
         ]
