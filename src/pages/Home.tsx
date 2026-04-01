@@ -231,65 +231,100 @@ const Home = () => {
     const m = mapRef.current;
     if (!m) return;
 
-    const renderFriends = () => {
-      const activeFriendIds = new Set(Object.keys(friendLocations));
-
-      Object.keys(friendMarkersRef.current).forEach(id => {
-        if (!activeFriendIds.has(id)) {
-          friendMarkersRef.current[id].remove();
-          delete friendMarkersRef.current[id];
+    const render = () => {
+      // Remove stale markers
+      Object.keys(friendMarkersRef.current).forEach(uid => {
+        if (!friendLocations[uid]) {
+          friendMarkersRef.current[uid].remove();
+          delete friendMarkersRef.current[uid];
         }
       });
 
       Object.values(friendLocations).forEach((friend) => {
+        if (!friend.lat || !friend.lng) return;
+
         if (friendMarkersRef.current[friend.user_id]) {
           friendMarkersRef.current[friend.user_id].setLngLat([friend.lng, friend.lat]);
+          const el = friendMarkersRef.current[friend.user_id].getElement();
+          const inner = el.querySelector('.friend-inner') as HTMLElement;
+          if (inner) inner.style.transform = `rotate(${(friend as any).bearing || friend.heading || 0}deg)`;
           return;
         }
 
         const el = document.createElement('div');
-        el.style.cssText = 'width:40px;height:40px;border-radius:50%;border:3px solid #3B6D11;overflow:visible;background:#EAF3DE;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#3B6D11;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,0.3);position:relative;';
+        el.style.cssText = 'position: relative; cursor: pointer;';
 
-        const inner = document.createElement('div');
-        inner.style.cssText = 'width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;';
-        if (friend.avatar_url) {
-          const img = document.createElement('img');
-          img.src = friend.avatar_url;
-          img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-          inner.appendChild(img);
-        } else {
-          inner.innerText = (friend.display_name || friend.username || '?')[0].toUpperCase();
-        }
-        el.appendChild(inner);
+        // Pulse ring
+        const pulse = document.createElement('div');
+        pulse.style.cssText = `
+          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 52px; height: 52px; border-radius: 50%; border: 2px solid #22C55E;
+          animation: friend-pulse 2s ease-out infinite; pointer-events: none;
+        `;
+        el.appendChild(pulse);
 
-        const label = document.createElement('div');
-        label.style.cssText = 'position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:white;font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;white-space:nowrap;pointer-events:none;';
-        label.innerText = friend.display_name || friend.username || 'Friend';
-        el.appendChild(label);
-
+        // Destination bubble
         if (friend.destination_title) {
           const dest = document.createElement('div');
-          dest.style.cssText = 'position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:#185FA5;color:white;font-size:8px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;max-width:100px;overflow:hidden;text-overflow:ellipsis;pointer-events:none;';
-          dest.innerText = `→ ${friend.destination_title}`;
+          dest.style.cssText = `
+            position: absolute; bottom: 56px; left: 50%; transform: translateX(-50%);
+            background: #185FA5; color: white; font-size: 8px; font-weight: 700;
+            padding: 2px 7px; border-radius: 5px; white-space: nowrap;
+            max-width: 100px; overflow: hidden; text-overflow: ellipsis;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          `;
+          dest.textContent = `→ ${friend.destination_title}`;
           el.appendChild(dest);
         }
 
+        // Avatar
+        const avatar = document.createElement('div');
+        avatar.className = 'friend-inner';
+        avatar.style.cssText = `
+          width: 40px; height: 40px; border-radius: 50%; border: 3px solid #22C55E;
+          overflow: hidden; background: #052e16;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+          position: relative; z-index: 2; transition: transform 0.3s ease;
+        `;
+
+        if (friend.avatar_url) {
+          const img = document.createElement('img');
+          img.src = friend.avatar_url;
+          img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+          avatar.appendChild(img);
+        } else {
+          const init = document.createElement('span');
+          init.style.cssText = 'color: #22C55E; font-size: 14px; font-weight: 800;';
+          init.textContent = (friend.display_name || friend.username || '?')[0].toUpperCase();
+          avatar.appendChild(init);
+        }
+        el.appendChild(avatar);
+
+        // Name label
+        const label = document.createElement('div');
+        label.style.cssText = `
+          position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
+          background: rgba(0,0,0,0.75); color: white; font-size: 9px; font-weight: 700;
+          padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+        `;
+        label.textContent = friend.display_name || friend.username || 'Friend';
+        el.appendChild(label);
+
         el.addEventListener('click', () => {
-          if (mapRef.current) mapRef.current.flyTo({ center: [friend.lng, friend.lat], zoom: 15, duration: 800 });
+          mapRef.current?.flyTo({ center: [friend.lng, friend.lat], zoom: 15, duration: 800 });
         });
 
         const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([friend.lng, friend.lat])
           .addTo(m);
+
         friendMarkersRef.current[friend.user_id] = marker;
       });
     };
 
-    if (m.loaded()) {
-      renderFriends();
-    } else {
-      m.once('load', renderFriends);
-    }
+    if (m.loaded()) render();
+    else m.once('load', render);
   }, [friendLocations]);
 
   // Re-fetch pins when category changes
