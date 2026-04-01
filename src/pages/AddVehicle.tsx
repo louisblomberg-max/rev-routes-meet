@@ -153,7 +153,7 @@ const AddVehicle = () => {
 
       const { data, error } = await supabase
         .from('vehicles')
-        .insert(payload)
+        .insert(payload as any)
         .select()
         .single();
 
