@@ -1,23 +1,100 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Switch } from '@/components/ui/switch';
+import { format, addSeconds } from 'date-fns';
 
-if (!import.meta.env.VITE_MAPBOX_TOKEN) {
-  console.error('VITE_MAPBOX_TOKEN environment variable is not set');
+// ─── Types ──────────────────────────────────────────────────────────────────
+
+interface NavStep {
+  maneuver: {
+    type: string;
+    modifier?: string;
+    instruction: string;
+    location: [number, number];
+  };
+  distance: number;
+  duration: number;
+  name: string;
+  driving_side?: string;
+  intersections?: any[];
 }
 
-type Mode = 'preview' | 'active' | 'arrived';
+interface FriendLocation {
+  user_id: string;
+  username: string;
+  display_name: string;
+  avatar_url: string;
+  lat: number;
+  lng: number;
+  heading: number;
+  bearing: number;
+  last_updated: string;
+  destination_title: string;
+  dest_lat: number;
+  dest_lng: number;
+  current_speed_mph: number;
+  is_navigating: boolean;
+  is_convoy_leader: boolean;
+  convoy_id: string;
+}
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const MANEUVER_ARROWS: Record<string, string> = {
+  'turn-left': '↰',
+  'turn-right': '↱',
+  'turn-slight left': '↖',
+  'turn-slight right': '↗',
+  'turn-sharp left': '↩',
+  'turn-sharp right': '↪',
+  'uturn': '↩',
+  'straight': '↑',
+  'merge': '⬆',
+  'on ramp-left': '↖',
+  'on ramp-right': '↗',
+  'off ramp-left': '↙',
+  'off ramp-right': '↘',
+  'fork-left': '↖',
+  'fork-right': '↗',
+  'roundabout': '↻',
+  'rotary': '↻',
+  'roundabout turn-left': '↺',
+  'roundabout turn-right': '↻',
+  'arrive': '◎',
+  'arrive-left': '◎',
+  'arrive-right': '◎',
+  'depart': '↑',
+  'end of road-left': '↰',
+  'end of road-right': '↱',
+  'continue': '↑',
+  'new name': '↑',
+  'notification': '↑',
+};
+
+const MANEUVER_COLORS: Record<string, string> = {
+  'turn-left': '#3B82F6',
+  'turn-right': '#3B82F6',
+  'turn-sharp left': '#EF4444',
+  'turn-sharp right': '#EF4444',
+  'uturn': '#EF4444',
+  'roundabout': '#8B5CF6',
+  'rotary': '#8B5CF6',
+  'arrive': '#22C55E',
+  'depart': '#22C55E',
+};
+
+const DISTANCE_ANNOUNCEMENTS = [800, 400, 200, 50];
 
 export default function Navigation() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // ─── Refs ───────────────────────────────────────────────────────────────
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const userMarkerRef = useRef<mapboxgl.Marker | null>(null);
@@ -25,178 +102,466 @@ export default function Navigation() {
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
   const watchIdRef = useRef<number | null>(null);
   const shareIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const rerouteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const announcedDistancesRef = useRef<Set<number>>(new Set());
+  const lastPositionRef = useRef<GeolocationCoordinates | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const isFollowingRef = useRef(true);
-  const lastLocationRef = useRef<[number, number] | null>(null);
+  const offRouteCountRef = useRef(0);
 
-  const [mode, setMode] = useState<Mode>('preview');
-  const [steps, setSteps] = useState<any[]>([]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [distanceRemaining, setDistanceRemaining] = useState(0);
+  // ─── Navigation state ───────────────────────────────────────────────────
+  const [mode, setMode] = useState<'preview' | 'active' | 'arrived'>('preview');
+  const [steps, setSteps] = useState<NavStep[]>([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [distanceToNextTurn, setDistanceToNextTurn] = useState(0);
+  const [totalDistanceRemaining, setTotalDistanceRemaining] = useState(0);
   const [etaMinutes, setEtaMinutes] = useState(0);
   const [arrivalTime, setArrivalTime] = useState('');
-  const [currentSpeed, setCurrentSpeed] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
+  const [currentSpeedMph, setCurrentSpeedMph] = useState(0);
+  const [speedLimitMph, setSpeedLimitMph] = useState<number | null>(null);
   const [isFollowing, setIsFollowing] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isRerouting, setIsRerouting] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [currentHeading, setCurrentHeading] = useState(0);
   const [totalDistanceDriven, setTotalDistanceDriven] = useState(0);
-  const [routeLoading, setRouteLoading] = useState(false);
+  const [journeyStartTime, setJourneyStartTime] = useState<Date | null>(null);
+  const [showConvoyPanel, setShowConvoyPanel] = useState(false);
 
+  // ─── Location sharing state ─────────────────────────────────────────────
   const [isSharingLocation, setIsSharingLocation] = useState(false);
-  const [friendLocations, setFriendLocations] = useState<Record<string, any>>({});
+  const [sharedWithFriends, setSharedWithFriends] = useState<string[]>([]);
+  const [showFriendPicker, setShowFriendPicker] = useState(false);
+  const [allFriends, setAllFriends] = useState<any[]>([]);
+  const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const [canShare, setCanShare] = useState(false);
+  const [selectedFriendInfo, setSelectedFriendInfo] = useState<FriendLocation | null>(null);
 
+  // ─── Destination from route state ───────────────────────────────────────
   const destLat = state?.destLat as number | undefined;
   const destLng = state?.destLng as number | undefined;
   const destTitle = (state?.destTitle as string) || 'Destination';
   const routeGeometry = state?.geometry;
+  const routeId = state?.routeId as string | undefined;
 
-  useEffect(() => {
-    if (!user?.id) return;
-    const checkPlan = async () => {
-      const { data } = await supabase.from('profiles').select('plan').eq('id', user.id).single();
-      const plan = data?.plan || 'free';
-      setCanShare(plan === 'pro' || plan === 'organiser' || plan === 'club');
-    };
-    checkPlan();
-  }, [user?.id]);
+  // ─── Helpers ────────────────────────────────────────────────────────────
 
-  const haversineDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const haversineDistance = useCallback((lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371000;
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLng = (lng2 - lng1) * Math.PI / 180;
     const a = Math.sin(dLat / 2) ** 2 +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  };
+  }, []);
 
-  const formatDistance = (metres: number): string => {
-    if (metres < 1000) return `${Math.round(metres)}m`;
-    return `${(metres / 1609.34).toFixed(1)}mi`;
-  };
+  const formatDistance = useCallback((metres: number): string => {
+    if (metres < 50) return 'Now';
+    if (metres < 1000) return `${Math.round(metres / 10) * 10}m`;
+    const miles = metres / 1609.34;
+    if (miles < 0.1) return `${Math.round(metres)}m`;
+    if (miles < 10) return `${miles.toFixed(1)} mi`;
+    return `${Math.round(miles)} mi`;
+  }, []);
 
-  const formatSpeed = (mps: number): number => Math.round(mps * 2.237);
+  const formatTime = useCallback((seconds: number): string => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    const mins = Math.round(seconds / 60);
+    if (mins < 60) return `${mins} min`;
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return `${hrs}h ${rem}m`;
+  }, []);
+
+  const getManeuverKey = useCallback((step: NavStep): string => {
+    const type = step.maneuver.type || '';
+    const modifier = step.maneuver.modifier || '';
+    return modifier ? `${type}-${modifier}` : type;
+  }, []);
+
+  const getManeuverArrow = useCallback((step: NavStep): string => {
+    const key = getManeuverKey(step);
+    return MANEUVER_ARROWS[key] || MANEUVER_ARROWS[step.maneuver.type] || '↑';
+  }, [getManeuverKey]);
+
+  const getManeuverColor = useCallback((step: NavStep): string => {
+    const key = getManeuverKey(step);
+    return MANEUVER_COLORS[key] || MANEUVER_COLORS[step.maneuver.type] || '#185FA5';
+  }, [getManeuverKey]);
 
   const speak = useCallback((text: string) => {
     if (isMuted || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
     utterance.lang = 'en-GB';
+    const voices = window.speechSynthesis.getVoices();
+    const ukVoice = voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en'));
+    if (ukVoice) utterance.voice = ukVoice;
     window.speechSynthesis.speak(utterance);
   }, [isMuted]);
 
-  const getManeuverArrow = (type: string, modifier?: string): string => {
-    if (type === 'turn') {
-      if (modifier?.includes('sharp left')) return '↩';
-      if (modifier?.includes('sharp right')) return '↪';
-      if (modifier?.includes('slight left')) return '↖';
-      if (modifier?.includes('slight right')) return '↗';
-      if (modifier?.includes('left')) return '↰';
-      if (modifier?.includes('right')) return '↱';
+  const buildVoiceInstruction = useCallback((step: NavStep, distMetres: number): string => {
+    const instruction = step.maneuver.instruction || '';
+    if (distMetres > 100) {
+      return `In ${formatDistance(distMetres)}, ${instruction}`;
     }
-    if (type === 'roundabout' || type === 'rotary') return '↻';
-    if (type === 'uturn') return '↩';
-    if (type === 'arrive') return '◎';
-    if (type === 'merge') return '⬆';
-    if (type === 'fork') {
-      if (modifier?.includes('left')) return '↖';
-      if (modifier?.includes('right')) return '↗';
-    }
-    return '↑';
-  };
+    return instruction;
+  }, [formatDistance]);
+
+  const speedColor = useMemo(() => {
+    if (!speedLimitMph) return 'text-white';
+    if (currentSpeedMph > speedLimitMph + 5) return 'text-red-500';
+    if (currentSpeedMph > speedLimitMph - 5) return 'text-amber-400';
+    return 'text-white';
+  }, [currentSpeedMph, speedLimitMph]);
+
+  // ─── Load user data ──────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('plan')
+        .eq('id', user.id)
+        .single();
+      setCanShare(profile?.plan === 'pro' || profile?.plan === 'organiser');
+
+      const { data: friendsData } = await supabase
+        .from('friends')
+        .select(`
+          user_id, friend_id, status,
+          friend_profile:profiles!friends_friend_id_fkey(id, username, display_name, avatar_url),
+          user_profile:profiles!friends_user_id_fkey(id, username, display_name, avatar_url)
+        `)
+        .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+        .eq('status', 'accepted');
+
+      const friends = friendsData?.map((f: any) => {
+        const isRequester = f.user_id === user.id;
+        const profile = isRequester ? f.friend_profile : f.user_profile;
+        return {
+          id: isRequester ? f.friend_id : f.user_id,
+          username: profile?.username,
+          display_name: profile?.display_name,
+          avatar_url: profile?.avatar_url,
+        };
+      }) || [];
+      setAllFriends(friends);
+    };
+    load();
+  }, [user?.id]);
+
+  // ─── Subscribe to friend locations ──────────────────────────────────────
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const loadFriendLocations = async () => {
+      try {
+        const { data } = await supabase.rpc('get_friend_locations', { p_user_id: user.id });
+        if (data) {
+          const locations: Record<string, FriendLocation> = {};
+          (data as any[]).forEach((f: FriendLocation) => { locations[f.user_id] = f; });
+          setFriendLocations(locations);
+        }
+      } catch (err) {
+        console.error('[Nav] Friend locations error:', err);
+      }
+    };
+
+    loadFriendLocations();
+    const pollInterval = setInterval(loadFriendLocations, 5000);
+
+    const channel = supabase
+      .channel(`nav-friend-locations-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'live_location_sessions',
+      }, () => loadFriendLocations())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(pollInterval);
+    };
+  }, [user?.id]);
+
+  // ─── Render friend markers on map ────────────────────────────────────────
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const render = () => {
+      Object.keys(friendMarkersRef.current).forEach(uid => {
+        if (!friendLocations[uid]) {
+          friendMarkersRef.current[uid].remove();
+          delete friendMarkersRef.current[uid];
+        }
+      });
+
+      Object.values(friendLocations).forEach((friend: FriendLocation) => {
+        if (!friend.lat || !friend.lng) return;
+
+        const existingMarker = friendMarkersRef.current[friend.user_id];
+        if (existingMarker) {
+          existingMarker.setLngLat([friend.lng, friend.lat]);
+          const el = existingMarker.getElement();
+          const markerInner = el.querySelector('.friend-marker-inner') as HTMLElement;
+          if (markerInner) {
+            markerInner.style.transform = `rotate(${friend.bearing || friend.heading || 0}deg)`;
+          }
+          const speedEl = el.querySelector('.friend-speed') as HTMLElement;
+          if (speedEl && friend.is_navigating) {
+            speedEl.textContent = `${Math.round(friend.current_speed_mph || 0)} mph`;
+          }
+          return;
+        }
+
+        const el = document.createElement('div');
+        el.style.cssText = 'position: relative; cursor: pointer;';
+        el.className = 'friend-marker-container';
+
+        if (friend.destination_title) {
+          const destBubble = document.createElement('div');
+          destBubble.style.cssText = `
+            position: absolute; bottom: 68px; left: 50%; transform: translateX(-50%);
+            background: #185FA5; color: white; font-size: 9px; font-weight: 700;
+            padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+            max-width: 120px; overflow: hidden; text-overflow: ellipsis;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          `;
+          destBubble.textContent = `→ ${friend.destination_title}`;
+          el.appendChild(destBubble);
+        }
+
+        const pulseRing = document.createElement('div');
+        pulseRing.style.cssText = `
+          position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+          width: 56px; height: 56px; border-radius: 50%; border: 2px solid #22C55E;
+          animation: friend-pulse 2s ease-out infinite; pointer-events: none;
+        `;
+        el.appendChild(pulseRing);
+
+        const markerOuter = document.createElement('div');
+        markerOuter.style.cssText = `
+          width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
+          border: 3px solid #22C55E; background: #052e16;
+          display: flex; align-items: center; justify-content: center;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.4); position: relative; z-index: 2;
+        `;
+        markerOuter.className = 'friend-marker-inner';
+
+        if (friend.avatar_url) {
+          const img = document.createElement('img');
+          img.src = friend.avatar_url;
+          img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 50%;';
+          markerOuter.appendChild(img);
+        } else {
+          const initial = document.createElement('span');
+          initial.style.cssText = 'color: #22C55E; font-size: 16px; font-weight: 800;';
+          initial.textContent = (friend.display_name || friend.username || '?')[0].toUpperCase();
+          markerOuter.appendChild(initial);
+        }
+
+        if (friend.is_convoy_leader) {
+          const crown = document.createElement('div');
+          crown.style.cssText = `position: absolute; top: -12px; left: 50%; transform: translateX(-50%); font-size: 14px;`;
+          crown.textContent = '👑';
+          el.appendChild(crown);
+        }
+
+        el.appendChild(markerOuter);
+
+        const nameLabel = document.createElement('div');
+        nameLabel.style.cssText = `
+          position: absolute; top: 50px; left: 50%; transform: translateX(-50%);
+          background: rgba(0,0,0,0.8); color: white; font-size: 9px; font-weight: 700;
+          padding: 2px 7px; border-radius: 4px; white-space: nowrap;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        `;
+        nameLabel.textContent = friend.display_name || friend.username || 'Friend';
+        el.appendChild(nameLabel);
+
+        if (friend.is_navigating) {
+          const speedLabel = document.createElement('div');
+          speedLabel.className = 'friend-speed';
+          speedLabel.style.cssText = `
+            position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
+            background: #185FA5; color: white; font-size: 8px; font-weight: 700;
+            padding: 1px 6px; border-radius: 3px; white-space: nowrap;
+          `;
+          speedLabel.textContent = `${Math.round(friend.current_speed_mph || 0)} mph`;
+          el.appendChild(speedLabel);
+        }
+
+        el.addEventListener('click', () => {
+          setSelectedFriendInfo(friend);
+        });
+
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([friend.lng, friend.lat])
+          .addTo(map);
+
+        friendMarkersRef.current[friend.user_id] = marker;
+      });
+    };
+
+    if (map.loaded()) render();
+    else map.once('load', render);
+  }, [friendLocations]);
+
+  // ─── Draw route on map ───────────────────────────────────────────────────
 
   const drawRoute = useCallback((map: mapboxgl.Map, geometry: any) => {
-    const geoData = geometry.type === 'Feature' ? geometry : { type: 'Feature', properties: {}, geometry };
-    const source = map.getSource('route') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData(geoData);
+    const geojson = geometry.type === 'Feature' ? geometry : {
+      type: 'Feature',
+      properties: {},
+      geometry,
+    };
+
+    if (map.getSource('route')) {
+      (map.getSource('route') as mapboxgl.GeoJSONSource).setData(geojson as any);
     } else {
-      map.addSource('route', { type: 'geojson', data: geoData });
+      map.addSource('route', { type: 'geojson', data: geojson as any });
+
       map.addLayer({
-        id: 'route-casing', type: 'line', source: 'route',
-        paint: { 'line-color': '#0A4A8A', 'line-width': 9, 'line-opacity': 0.8 },
+        id: 'route-shadow', type: 'line', source: 'route',
+        paint: { 'line-color': '#000000', 'line-width': 12, 'line-opacity': 0.15, 'line-blur': 3 },
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+      });
+      map.addLayer({
+        id: 'route-outline', type: 'line', source: 'route',
+        paint: { 'line-color': '#0A3D6B', 'line-width': 11 },
         layout: { 'line-join': 'round', 'line-cap': 'round' },
       });
       map.addLayer({
         id: 'route-fill', type: 'line', source: 'route',
-        paint: { 'line-color': '#185FA5', 'line-width': 6, 'line-opacity': 1 },
+        paint: { 'line-color': '#185FA5', 'line-width': 7 },
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+      });
+
+      map.addSource('route-travelled', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } as any,
+      });
+      map.addLayer({
+        id: 'route-travelled', type: 'line', source: 'route-travelled',
+        paint: { 'line-color': '#64748B', 'line-width': 7 },
         layout: { 'line-join': 'round', 'line-cap': 'round' },
       });
     }
   }, []);
 
-  const fetchRoute = useCallback(async (map: mapboxgl.Map, originLng: number, originLat: number) => {
-    if (destLat == null || destLng == null) return;
-    setRouteLoading(true);
+  // ─── Fetch route ─────────────────────────────────────────────────────────
+
+  const fetchRoute = useCallback(async (
+    map: mapboxgl.Map,
+    originLng: number,
+    originLat: number,
+    silent = false
+  ) => {
+    if (!destLat || !destLng) return;
+    if (!silent) setRouteLoading(true);
+
     try {
       const res = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving/${originLng},${originLat};${destLng},${destLat}?steps=true&geometries=geojson&overview=full&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
+        `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${originLng},${originLat};${destLng},${destLat}` +
+        `?steps=true&geometries=geojson&overview=full&voice_instructions=true&banner_instructions=true` +
+        `&voice_units=imperial&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
       );
       const data = await res.json();
-      if (!data.routes?.length) { toast.error('Could not find a route'); return; }
+
+      if (!data.routes?.length) {
+        toast.error('Could not find a route to this location');
+        return;
+      }
+
       const route = data.routes[0];
       drawRoute(map, { type: 'Feature', properties: {}, geometry: route.geometry });
-      setSteps(route.legs[0]?.steps || []);
-      setDistanceRemaining(route.distance);
-      const eta = Math.ceil(route.duration / 60);
-      setEtaMinutes(eta);
-      const arrival = new Date(Date.now() + route.duration * 1000);
-      setArrivalTime(arrival.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-      const coords = route.geometry.coordinates;
-      if (coords.length > 1) {
+
+      const navSteps: NavStep[] = route.legs[0]?.steps || [];
+      setSteps(navSteps);
+      setTotalDistanceRemaining(route.distance);
+      const etaMins = Math.ceil(route.duration / 60);
+      setEtaMinutes(etaMins);
+      const arrival = addSeconds(new Date(), route.duration);
+      setArrivalTime(format(arrival, 'HH:mm'));
+
+      if (!silent && mode === 'preview') {
+        const coords = route.geometry.coordinates;
         const bounds = coords.reduce(
           (b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c),
           new mapboxgl.LngLatBounds(coords[0], coords[0])
         );
-        map.fitBounds(bounds, { padding: { top: 80, bottom: 280, left: 40, right: 40 }, duration: 1000 });
+        map.fitBounds(bounds, {
+          padding: { top: 100, bottom: 300, left: 40, right: 40 },
+          duration: 1000,
+          maxZoom: 16,
+        });
       }
-    } catch (err) {
-      console.error('[Navigation] Route error:', err);
-      toast.error('Could not load route');
-    } finally {
-      setRouteLoading(false);
-    }
-  }, [destLat, destLng, drawRoute]);
 
-  // Init map
+      announcedDistancesRef.current = new Set();
+    } catch (err) {
+      console.error('[Nav] Route error:', err);
+      if (!silent) toast.error('Could not load route');
+    } finally {
+      if (!silent) setRouteLoading(false);
+    }
+  }, [destLat, destLng, drawRoute, mode]);
+
+  // ─── Initialise map ──────────────────────────────────────────────────────
+
   useEffect(() => {
-    if (!mapContainerRef.current || mapRef.current) return;
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
+    if (!mapContainerRef.current) return;
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
+
+    const hour = new Date().getHours();
+    const isNight = hour < 6 || hour >= 20;
+    const mapStyle = isNight
+      ? 'mapbox://styles/mapbox/navigation-night-v1'
+      : 'mapbox://styles/mapbox/navigation-day-v1';
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [destLng || -0.1278, destLat || 51.5074],
+      style: mapStyle,
+      center: [destLng || -1.5, destLat || 52.5],
       zoom: 13,
       attributionControl: false,
+      logoPosition: 'bottom-left',
     });
+
     mapRef.current = map;
 
     map.on('load', () => {
-      if (destLat != null && destLng != null) {
+      if (destLat && destLng) {
         const destEl = document.createElement('div');
-        destEl.innerHTML = '<div style="width:20px;height:20px;background:#CC2222;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4);"></div>';
-        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'center' })
+        destEl.innerHTML = `
+          <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:20px;height:20px;background:#EF4444;border:3px solid white;border-radius:50%;box-shadow:0 3px 10px rgba(239,68,68,0.5);"></div>
+          </div>
+        `;
+        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'bottom' })
           .setLngLat([destLng, destLat])
           .addTo(map);
       }
 
-      if (routeGeometry?.coordinates) {
-        drawRoute(map, { type: 'Feature', properties: {}, geometry: routeGeometry });
-      }
-
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { longitude, latitude } = pos.coords;
-          setUserLocation([longitude, latitude]);
-          fetchRoute(map, longitude, latitude);
+        pos => {
+          fetchRoute(map, pos.coords.longitude, pos.coords.latitude);
+          map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 });
         },
         () => {
-          if (destLat != null && destLng != null) map.flyTo({ center: [destLng, destLat], zoom: 14 });
+          if (destLng && destLat) fetchRoute(map, destLng - 0.01, destLat - 0.01);
         },
-        { enableHighAccuracy: true, timeout: 8000 }
+        { timeout: 8000, enableHighAccuracy: false }
       );
     });
 
@@ -206,235 +571,320 @@ export default function Navigation() {
     });
 
     return () => {
-      if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
-      if (shareIntervalRef.current) clearInterval(shareIntervalRef.current);
       map.remove();
-      mapRef.current = null;
+      if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+      if (shareIntervalRef.current) clearInterval(shareIntervalRef.current);
+      if (rerouteTimeoutRef.current) clearTimeout(rerouteTimeoutRef.current);
+      stopSharing();
     };
   }, []);
 
-  // Friend locations via RPC + realtime
-  useEffect(() => {
-    if (!user?.id) return;
+  // ─── Location sharing ─────────────────────────────────────────────────────
 
-    const loadFriends = async () => {
-      const { data } = await supabase.rpc('get_friend_locations', { p_user_id: user.id });
-      if (data) {
-        const locs: Record<string, any> = {};
-        data.forEach((f: any) => { locs[f.user_id] = f; });
-        setFriendLocations(locs);
-      }
-    };
-    loadFriends();
+  const startSharing = async (friendIds: string[]) => {
+    if (!user?.id || !canShare || friendIds.length === 0) return;
 
-    const channel = supabase
-      .channel('friend-locations-nav')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_location_sessions' }, () => {
-        loadFriends();
-      })
-      .subscribe();
-
-    const interval = setInterval(loadFriends, 10000);
-    return () => { supabase.removeChannel(channel); clearInterval(interval); };
-  }, [user?.id]);
-
-  // Render friend markers
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.loaded()) return;
-
-    Object.keys(friendMarkersRef.current).forEach(uid => {
-      if (!friendLocations[uid]) {
-        friendMarkersRef.current[uid].remove();
-        delete friendMarkersRef.current[uid];
-      }
-    });
-
-    Object.values(friendLocations).forEach((friend: any) => {
-      if (!friend.lat || !friend.lng) return;
-      if (friendMarkersRef.current[friend.user_id]) {
-        friendMarkersRef.current[friend.user_id].setLngLat([friend.lng, friend.lat]);
-        return;
-      }
-
-      const el = document.createElement('div');
-      el.style.cssText = 'width:44px;height:44px;border-radius:50%;border:3px solid #3B6D11;overflow:visible;background:#EAF3DE;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#3B6D11;position:relative;';
-
-      const inner = document.createElement('div');
-      inner.style.cssText = 'width:100%;height:100%;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;';
-      if (friend.avatar_url) {
-        const img = document.createElement('img');
-        img.src = friend.avatar_url;
-        img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
-        inner.appendChild(img);
-      } else {
-        inner.innerText = (friend.display_name || friend.username || '?')[0].toUpperCase();
-      }
-      el.appendChild(inner);
-
-      const label = document.createElement('div');
-      label.style.cssText = 'position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.75);color:white;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;white-space:nowrap;pointer-events:none;';
-      label.innerText = friend.display_name || friend.username || 'Friend';
-      el.appendChild(label);
-
-      el.addEventListener('click', () => { map.flyTo({ center: [friend.lng, friend.lat], zoom: 15, duration: 800 }); });
-
-      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-        .setLngLat([friend.lng, friend.lat])
-        .addTo(map);
-      friendMarkersRef.current[friend.user_id] = marker;
-    });
-  }, [friendLocations]);
-
-  // Location sharing
-  const startSharing = async () => {
-    if (!user?.id) return;
-    if (!canShare) { toast.error('Live location sharing requires a paid plan'); return; }
     try {
       await supabase.from('live_location_sessions').upsert({
-        user_id: user.id, is_active: true,
-        started_at: new Date().toISOString(), ended_at: null,
-        destination_title: destTitle, dest_lat: destLat, dest_lng: destLng,
+        user_id: user.id,
+        is_active: true,
+        started_at: new Date().toISOString(),
+        ended_at: null,
+        destination_title: destTitle,
+        dest_lat: destLat,
+        dest_lng: destLng,
         session_type: 'navigation',
+        shared_with: friendIds,
+        is_navigating: mode === 'active',
+        current_speed_mph: currentSpeedMph,
       });
+
+      const interval = mode === 'active' ? 3000 : 10000;
       shareIntervalRef.current = setInterval(async () => {
-        const loc = lastLocationRef.current;
-        if (!loc) return;
+        if (!userLocation) return;
+        const [lng, lat] = userLocation;
         await supabase.from('live_location_sessions').update({
-          last_lat: loc[1], last_lng: loc[0],
+          last_lat: lat,
+          last_lng: lng,
           last_heading: currentHeading,
+          bearing: currentHeading,
           last_updated: new Date().toISOString(),
+          current_speed_mph: currentSpeedMph,
+          is_navigating: mode === 'active',
+          shared_with: sharedWithFriends,
         }).eq('user_id', user.id);
-      }, 3000);
+      }, interval);
+
       setIsSharingLocation(true);
-      toast.success('Sharing location with friends');
-    } catch {
+    } catch (err) {
+      console.error('[Nav] Share error:', err);
       toast.error('Could not start location sharing');
     }
   };
 
   const stopSharing = async () => {
+    if (!user?.id) return;
     if (shareIntervalRef.current) clearInterval(shareIntervalRef.current);
-    shareIntervalRef.current = null;
-    if (user?.id) {
-      try {
-        await supabase.from('live_location_sessions')
-          .update({ is_active: false, ended_at: new Date().toISOString() })
-          .eq('user_id', user.id);
-      } catch {}
-    }
+    try {
+      await supabase.from('live_location_sessions').update({
+        is_active: false,
+        ended_at: new Date().toISOString(),
+        is_navigating: false,
+      }).eq('user_id', user.id);
+    } catch { /* ignore */ }
     setIsSharingLocation(false);
+    setSharedWithFriends([]);
   };
 
-  const toggleSharing = () => {
-    if (isSharingLocation) stopSharing();
-    else startSharing();
+  const toggleFriendSharing = async (friendId: string) => {
+    const newSharedWith = sharedWithFriends.includes(friendId)
+      ? sharedWithFriends.filter(id => id !== friendId)
+      : [...sharedWithFriends, friendId];
+
+    setSharedWithFriends(newSharedWith);
+
+    if (newSharedWith.length === 0) {
+      await stopSharing();
+    } else {
+      if (!isSharingLocation) {
+        await startSharing(newSharedWith);
+      } else {
+        await supabase.from('live_location_sessions').update({
+          shared_with: newSharedWith,
+        }).eq('user_id', user?.id);
+      }
+    }
   };
 
-  // Start active navigation
+  // ─── Start active navigation ──────────────────────────────────────────────
+
   const startNavigation = async () => {
     setMode('active');
+    setJourneyStartTime(new Date());
     isFollowingRef.current = true;
     setIsFollowing(true);
 
-    if (user?.id && destLat != null && destLng != null) {
+    if (user?.id) {
       try {
-        const { data: session } = await supabase.from('navigation_sessions').insert({
-          user_id: user.id, destination_title: destTitle,
-          dest_lat: destLat, dest_lng: destLng, started_at: new Date().toISOString(),
-        }).select('id').single();
+        const { data: session } = await supabase
+          .from('navigation_sessions')
+          .insert({
+            user_id: user.id,
+            destination_title: destTitle,
+            dest_lat: destLat,
+            dest_lng: destLng,
+            started_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
         if (session) sessionIdRef.current = session.id;
-      } catch {}
+      } catch (err) {
+        console.error('[Nav] Session error:', err);
+      }
+    }
+
+    if (isSharingLocation && user?.id) {
+      await supabase.from('live_location_sessions').update({
+        is_navigating: true,
+      }).eq('user_id', user.id);
+    }
+
+    if (steps[0]?.maneuver?.instruction) {
+      setTimeout(() => speak(`Starting navigation. ${steps[0].maneuver.instruction}`), 800);
     }
 
     watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        const { latitude, longitude, heading, speed } = pos.coords;
-        const newLoc: [number, number] = [longitude, latitude];
-        setUserLocation(newLoc);
-        lastLocationRef.current = newLoc;
-        setCurrentHeading(heading || 0);
-        setCurrentSpeed(speed ? formatSpeed(speed) : 0);
-
-        const map = mapRef.current;
-        if (!map) return;
-
-        if (userMarkerRef.current) {
-          userMarkerRef.current.setLngLat(newLoc);
-        } else {
-          const el = document.createElement('div');
-          el.style.cssText = 'width:22px;height:22px;background:#185FA5;border:3px solid white;border-radius:50%;box-shadow:0 3px 12px rgba(24,95,165,0.5);';
-          userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
-            .setLngLat(newLoc).addTo(map);
-        }
-
-        if (isFollowingRef.current) {
-          map.easeTo({ center: newLoc, bearing: heading || 0, pitch: 50, zoom: 16, duration: 600 });
-        }
-
-        // Track distance driven
-        const prev = lastLocationRef.current;
-        if (prev && (prev[0] !== longitude || prev[1] !== latitude)) {
-          const seg = haversineDistance(prev[1], prev[0], latitude, longitude);
-          if (seg < 500) setTotalDistanceDriven(d => d + seg);
-        }
-
-        if (destLat != null && destLng != null) {
-          const dist = haversineDistance(latitude, longitude, destLat, destLng);
-          setDistanceRemaining(dist);
-          if (speed && speed > 0) {
-            const secs = dist / speed;
-            setEtaMinutes(Math.ceil(secs / 60));
-            setArrivalTime(new Date(Date.now() + secs * 1000).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
-          }
-          if (dist < 40) { handleArrival(); return; }
-        }
-
-        if (steps.length > 0 && currentStep < steps.length - 1) {
-          const nextStep = steps[currentStep + 1];
-          if (nextStep?.maneuver?.location) {
-            const [sLng, sLat] = nextStep.maneuver.location;
-            if (haversineDistance(latitude, longitude, sLat, sLng) < 25) {
-              const nextIdx = currentStep + 1;
-              setCurrentStep(nextIdx);
-              if (!isMuted && steps[nextIdx]?.maneuver?.instruction) {
-                speak(steps[nextIdx].maneuver.instruction);
-              }
-            }
-          }
-        }
-      },
-      (err) => console.error('[Navigation] GPS error:', err),
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      handlePositionUpdate,
+      err => console.error('[Nav] GPS error:', err),
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
-
-    if (steps[0]?.maneuver?.instruction) {
-      setTimeout(() => speak(steps[0].maneuver.instruction), 1000);
-    }
   };
 
+  // ─── Handle GPS position update ───────────────────────────────────────────
+
+  const handlePositionUpdate = useCallback(async (pos: GeolocationPosition) => {
+    const { latitude, longitude, heading, speed } = pos.coords;
+    const newLoc: [number, number] = [longitude, latitude];
+    setUserLocation(newLoc);
+    setCurrentHeading(heading || 0);
+
+    const speedMph = speed ? Math.round(speed * 2.237) : 0;
+    setCurrentSpeedMph(speedMph);
+
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.setLngLat(newLoc);
+      const el = userMarkerRef.current.getElement();
+      const arrow = el.querySelector('.user-arrow') as HTMLElement;
+      if (arrow) arrow.style.transform = `rotate(${heading || 0}deg)`;
+    } else {
+      const el = document.createElement('div');
+      el.style.cssText = 'position: relative; display: flex; align-items: center; justify-content: center;';
+
+      const accuracyCircle = document.createElement('div');
+      accuracyCircle.style.cssText = `
+        position: absolute; width: 60px; height: 60px; border-radius: 50%;
+        background: rgba(24,95,165,0.15); border: 1px solid rgba(24,95,165,0.3);
+      `;
+      el.appendChild(accuracyCircle);
+
+      const arrow = document.createElement('div');
+      arrow.className = 'user-arrow';
+      arrow.style.cssText = `
+        width: 0; height: 0;
+        border-left: 8px solid transparent; border-right: 8px solid transparent;
+        border-bottom: 20px solid #185FA5;
+        position: absolute; top: -14px;
+        transform: rotate(${heading || 0}deg);
+        transform-origin: center 20px;
+        transition: transform 0.3s ease;
+      `;
+      el.appendChild(arrow);
+
+      const dot = document.createElement('div');
+      dot.style.cssText = `
+        width: 20px; height: 20px; background: #185FA5;
+        border: 3px solid white; border-radius: 50%;
+        box-shadow: 0 3px 12px rgba(24,95,165,0.6);
+        position: relative; z-index: 2;
+      `;
+      el.appendChild(dot);
+
+      userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(newLoc)
+        .addTo(map);
+    }
+
+    if (isFollowingRef.current) {
+      map.easeTo({
+        center: newLoc,
+        bearing: heading || 0,
+        pitch: 55,
+        zoom: 17,
+        duration: 500,
+      });
+    }
+
+    if (destLat && destLng) {
+      const distToDest = haversineDistance(latitude, longitude, destLat, destLng);
+      if (distToDest < 30) {
+        handleArrival();
+        return;
+      }
+    }
+
+    if (steps.length > 0) {
+      const nextStepIdx = currentStepIndex + 1;
+
+      if (nextStepIdx < steps.length) {
+        const nextStep = steps[nextStepIdx];
+        const [stepLng, stepLat] = nextStep.maneuver.location;
+        const distToNext = haversineDistance(latitude, longitude, stepLat, stepLng);
+        setDistanceToNextTurn(distToNext);
+
+        for (const threshold of DISTANCE_ANNOUNCEMENTS) {
+          if (
+            distToNext <= threshold + 25 &&
+            distToNext >= threshold - 25 &&
+            !announcedDistancesRef.current.has(threshold)
+          ) {
+            announcedDistancesRef.current.add(threshold);
+            speak(buildVoiceInstruction(nextStep, distToNext));
+            break;
+          }
+        }
+
+        if (distToNext < 20) {
+          setCurrentStepIndex(nextStepIdx);
+          announcedDistancesRef.current = new Set();
+          if (nextStepIdx + 1 < steps.length) {
+            setTimeout(() => speak(steps[nextStepIdx].maneuver.instruction), 500);
+          }
+        }
+      }
+
+      let remaining = 0;
+      for (let i = currentStepIndex; i < steps.length; i++) {
+        remaining += steps[i].distance;
+      }
+      setTotalDistanceRemaining(remaining);
+
+      if (speed && speed > 0.5) {
+        const etaSecs = remaining / speed;
+        setEtaMinutes(Math.ceil(etaSecs / 60));
+        const arrival = addSeconds(new Date(), etaSecs);
+        setArrivalTime(format(arrival, 'HH:mm'));
+      }
+    }
+
+    if (steps.length > 0 && currentStepIndex < steps.length) {
+      const curStep = steps[currentStepIndex];
+      const [stepLng, stepLat] = curStep.maneuver.location;
+      const distFromStep = haversineDistance(latitude, longitude, stepLat, stepLng);
+
+      if (distFromStep > 80) {
+        offRouteCountRef.current++;
+        if (offRouteCountRef.current >= 3) {
+          offRouteCountRef.current = 0;
+          setIsRerouting(true);
+          speak('Rerouting');
+          await fetchRoute(map, longitude, latitude, true);
+          setIsRerouting(false);
+        }
+      } else {
+        offRouteCountRef.current = 0;
+      }
+    }
+
+    if (lastPositionRef.current) {
+      const driven = haversineDistance(
+        lastPositionRef.current.latitude,
+        lastPositionRef.current.longitude,
+        latitude,
+        longitude
+      );
+      setTotalDistanceDriven(prev => prev + driven);
+    }
+    lastPositionRef.current = pos.coords;
+  }, [
+    steps, currentStepIndex, destLat, destLng,
+    haversineDistance, speak, buildVoiceInstruction, fetchRoute
+  ]);
+
+  // ─── Arrival handler ──────────────────────────────────────────────────────
+
   const handleArrival = async () => {
-    if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
+    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
     window.speechSynthesis?.cancel();
-    speak(`You have arrived at ${destTitle}`);
+    speak(`You have arrived at ${destTitle}. Well driven!`);
     setMode('arrived');
+
     if (sessionIdRef.current) {
       await supabase.from('navigation_sessions').update({
-        ended_at: new Date().toISOString(), completed: true, distance_meters: Math.round(totalDistanceDriven),
+        ended_at: new Date().toISOString(),
+        completed: true,
+        distance_driven_meters: totalDistanceDriven,
       }).eq('id', sessionIdRef.current);
     }
+
     await stopSharing();
   };
 
   const handleStopNavigation = async () => {
-    if (watchIdRef.current != null) navigator.geolocation.clearWatch(watchIdRef.current);
+    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
     window.speechSynthesis?.cancel();
     await stopSharing();
+
     if (sessionIdRef.current) {
       await supabase.from('navigation_sessions').update({
-        ended_at: new Date().toISOString(), completed: false, distance_meters: Math.round(totalDistanceDriven),
+        ended_at: new Date().toISOString(),
+        completed: false,
+        distance_driven_meters: totalDistanceDriven,
       }).eq('id', sessionIdRef.current);
     }
+
     navigate(-1);
   };
 
@@ -442,231 +892,327 @@ export default function Navigation() {
     if (!userLocation || !mapRef.current) return;
     isFollowingRef.current = true;
     setIsFollowing(true);
-    mapRef.current.easeTo({ center: userLocation, bearing: currentHeading, pitch: mode === 'active' ? 50 : 0, zoom: 16, duration: 600 });
+    mapRef.current.easeTo({
+      center: userLocation,
+      bearing: currentHeading,
+      pitch: mode === 'active' ? 55 : 0,
+      zoom: 17,
+      duration: 600,
+    });
   };
 
   const handleOverview = () => {
     isFollowingRef.current = false;
     setIsFollowing(false);
-    const m = mapRef.current;
-    if (!m || destLat == null || destLng == null) return;
+    const map = mapRef.current;
+    if (!map || !destLat || !destLng) return;
     const bounds = new mapboxgl.LngLatBounds();
     if (userLocation) bounds.extend(userLocation);
     bounds.extend([destLng, destLat]);
-    m.fitBounds(bounds, { padding: 80, duration: 800, pitch: 0 });
+    Object.values(friendLocations).forEach(f => {
+      if (f.lat && f.lng) bounds.extend([f.lng, f.lat]);
+    });
+    map.fitBounds(bounds, { padding: 80, duration: 800, pitch: 0, bearing: 0 });
   };
 
-  const activeFriendCount = Object.values(friendLocations).filter((f: any) => f.lat && f.lng).length;
+  const currentStep = steps[currentStepIndex];
+  const nextStep = steps[currentStepIndex + 1];
+  const activeFriendCount = Object.keys(friendLocations).length;
+  const journeyTime = journeyStartTime
+    ? Math.round((Date.now() - journeyStartTime.getTime()) / 60000)
+    : 0;
+
+  // ─── JSX ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="mobile-container relative bg-background">
-      <style>{`@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.7); opacity: 0; } }`}</style>
+    <div className="fixed inset-0 z-50 bg-black">
+      <style>{`
+        @keyframes friend-pulse {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+          100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+        @keyframes reroute-flash {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+      `}</style>
 
+      {/* Map */}
       <div ref={mapContainerRef} className="absolute inset-0" />
 
-      {routeLoading && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-card/95 backdrop-blur-xl rounded-2xl px-6 py-4 shadow-lg border border-border/50 flex items-center gap-3">
-          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-medium text-foreground">Finding route...</span>
+      {/* Rerouting overlay */}
+      {isRerouting && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-black/80 text-white px-6 py-3 rounded-2xl font-bold text-sm" style={{ animation: 'reroute-flash 1s infinite' }}>
+          Rerouting...
         </div>
       )}
 
-      {/* PREVIEW MODE */}
+      {/* Route loading */}
+      {routeLoading && !isRerouting && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 bg-black/70 backdrop-blur text-white px-6 py-4 rounded-2xl flex flex-col items-center gap-2">
+          <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          <span className="text-xs font-semibold">Finding best route...</span>
+        </div>
+      )}
+
+      {/* ═══ PREVIEW MODE ═══════════════════════════════════════════════════ */}
       {mode === 'preview' && (
-        <div className="absolute bottom-0 left-0 right-0 z-40 safe-bottom">
-          <div className="mx-3 mb-3 bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-xl">📍</div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground truncate">{destTitle}</p>
-                <p className="text-xs text-muted-foreground">Navigate to destination</p>
-              </div>
-            </div>
-
-            {(distanceRemaining > 0 || etaMinutes > 0) && (
-              <div className="grid grid-cols-3 gap-2">
-                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
-                  <p className="text-sm font-bold text-foreground">{formatDistance(distanceRemaining)}</p>
-                  <p className="text-[10px] text-muted-foreground">Distance</p>
-                </div>
-                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
-                  <p className="text-sm font-bold text-foreground">{etaMinutes} min</p>
-                  <p className="text-[10px] text-muted-foreground">Est. time</p>
-                </div>
-                <div className="bg-muted/50 rounded-xl p-2.5 text-center">
-                  <p className="text-sm font-bold text-foreground">{arrivalTime || '--:--'}</p>
-                  <p className="text-[10px] text-muted-foreground">Arrival</p>
-                </div>
-              </div>
-            )}
-
-            {activeFriendCount > 0 && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#3B6D11]/10 border border-[#3B6D11]/20">
-                <span className="text-sm">👥</span>
-                <span className="text-xs font-medium text-[#3B6D11]">
-                  {activeFriendCount} friend{activeFriendCount > 1 ? 's' : ''} sharing location nearby
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
-              <div className="flex items-center gap-2">
-                <span className="text-base">📡</span>
-                <div>
-                  <p className="text-xs font-medium text-foreground">Share location with friends</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {canShare ? 'Friends will see you on their map' : 'Requires paid plan'}
-                  </p>
-                </div>
-              </div>
-              <Switch
-                checked={isSharingLocation}
-                onCheckedChange={toggleSharing}
-                disabled={!canShare}
-              />
-            </div>
-
-            <button
-              onClick={startNavigation}
-              className="w-full h-12 rounded-2xl bg-primary text-primary-foreground text-base font-semibold flex items-center justify-center gap-2"
-            >
-              ▶ Start Navigation
-            </button>
-            <button
-              onClick={() => navigate(-1)}
-              className="w-full h-11 border border-border/50 rounded-2xl text-muted-foreground text-sm font-medium"
-            >
-              Back
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ACTIVE MODE */}
-      {mode === 'active' && (
         <>
-          {/* Turn instruction bar */}
-          <div className="absolute top-0 left-0 right-0 z-50 safe-top">
-            <div className="mx-3 mt-2 bg-foreground rounded-2xl p-4 shadow-lg">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl bg-background/20 flex items-center justify-center shrink-0 text-3xl text-background">
-                  {steps[currentStep]?.maneuver
-                    ? getManeuverArrow(steps[currentStep].maneuver.type, steps[currentStep].maneuver.modifier)
-                    : '↑'}
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 safe-top z-20 w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg text-lg font-bold"
+          >
+            ‹
+          </button>
+
+          <div className="absolute bottom-0 left-0 right-0 z-20">
+            <div className="w-10 h-1 bg-white/30 rounded-full mx-auto mb-2" />
+            <div className="bg-white rounded-t-3xl px-5 pb-6 pt-4 space-y-4 shadow-2xl max-h-[55vh] overflow-y-auto">
+              {/* Destination */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-lg flex-shrink-0">
+                  📍
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-bold text-background leading-tight truncate">
-                    {steps[currentStep]?.maneuver?.instruction || 'Continue straight'}
-                  </p>
-                  {steps[currentStep + 1]?.maneuver?.instruction && (
-                    <p className="text-xs text-background/50 mt-1 truncate">
-                      Then: {steps[currentStep + 1].maneuver.instruction}
-                    </p>
-                  )}
+                  <p className="font-bold text-sm text-gray-900 truncate">{destTitle}</p>
+                  <p className="text-[10px] text-gray-500">Tap Start to begin navigation</p>
                 </div>
-                {steps[currentStep + 1]?.maneuver?.location && userLocation && (
-                  <div className="bg-background/20 rounded-lg px-2 py-1 shrink-0">
-                    <p className="text-xs font-bold text-background">
-                      {formatDistance(haversineDistance(
-                        userLocation[1], userLocation[0],
-                        steps[currentStep + 1].maneuver.location[1],
-                        steps[currentStep + 1].maneuver.location[0]
-                      ))}
+              </div>
+
+              {/* Route stats */}
+              {totalDistanceRemaining > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Distance', value: formatDistance(totalDistanceRemaining) },
+                    { label: 'Est. time', value: `${etaMinutes} min` },
+                    { label: 'Arrival', value: arrivalTime || '--:--' },
+                  ].map(stat => (
+                    <div key={stat.label} className="bg-gray-50 rounded-xl p-3 text-center">
+                      <p className="text-sm font-bold text-gray-900">{stat.value}</p>
+                      <p className="text-[10px] text-gray-500 mt-0.5">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Friend locations indicator */}
+              {activeFriendCount > 0 && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-xl">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs font-medium text-green-700">
+                    {activeFriendCount} friend{activeFriendCount > 1 ? 's' : ''} currently sharing location
+                  </span>
+                </div>
+              )}
+
+              {/* Share location row */}
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-lg">📡</span>
+                  <div>
+                    <p className="text-xs font-semibold text-gray-900">Share location with friends</p>
+                    <p className="text-[10px] text-gray-500">
+                      {canShare
+                        ? isSharingLocation
+                          ? `Sharing with ${sharedWithFriends.length} friend${sharedWithFriends.length !== 1 ? 's' : ''}`
+                          : 'Choose who sees your location'
+                        : 'Pro plan required'}
                     </p>
                   </div>
-                )}
+                </div>
+                <button
+                  onClick={() => {
+                    if (!canShare) {
+                      navigate('/upgrade');
+                      return;
+                    }
+                    setShowFriendPicker(true);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                    isSharingLocation
+                      ? 'bg-green-500 text-white'
+                      : canShare
+                      ? 'bg-gray-200 text-gray-700'
+                      : 'bg-gray-100 text-gray-400'
+                  }`}
+                >
+                  {isSharingLocation ? 'Sharing ✓' : canShare ? 'Choose friends' : 'Upgrade'}
+                </button>
               </div>
+
+              {/* Start button */}
+              <button onClick={startNavigation} className="w-full h-14 bg-[#185FA5] text-white rounded-2xl font-bold text-base flex items-center justify-center gap-2 shadow-lg">
+                <span>▶</span>
+                <span>Start Navigation</span>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ═══ ACTIVE NAVIGATION MODE ══════════════════════════════════════════ */}
+      {mode === 'active' && (
+        <>
+          {/* Turn instruction panel — top */}
+          <div className="absolute top-0 left-0 right-0 z-20 safe-top">
+            <div className="bg-gray-900/95 backdrop-blur-xl mx-3 mt-2 rounded-2xl overflow-hidden shadow-2xl">
+              {/* Current manoeuvre */}
+              <div className="flex items-center gap-4 p-4">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl font-bold text-white flex-shrink-0"
+                  style={{ backgroundColor: currentStep ? getManeuverColor(currentStep) : '#185FA5' }}
+                >
+                  {currentStep ? getManeuverArrow(currentStep) : '↑'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-2xl font-black text-white leading-tight">
+                    {distanceToNextTurn > 0 ? formatDistance(distanceToNextTurn) : '--'}
+                  </p>
+                  <p className="text-sm text-white/70 truncate mt-0.5">
+                    {currentStep?.name || currentStep?.maneuver?.instruction || 'Continue on route'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Next manoeuvre preview */}
+              {nextStep && (
+                <div className="flex items-center gap-3 px-4 py-2.5 bg-white/5 border-t border-white/10">
+                  <span className="text-lg text-white/50">
+                    {getManeuverArrow(nextStep)}
+                  </span>
+                  <p className="text-xs text-white/50 flex-1 truncate">
+                    Then: {nextStep.maneuver.instruction}
+                  </p>
+                  <span className="text-xs text-white/40 font-semibold">
+                    {formatDistance(nextStep.distance)}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Speed badge */}
-          <div className="absolute top-28 left-4 z-40 bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-4 py-3 text-center">
-            <p className="text-2xl font-bold text-foreground">{currentSpeed}</p>
-            <p className="text-[10px] text-muted-foreground font-medium">mph</p>
+          {/* Speed badge — right side */}
+          <div className="absolute right-4 top-44 z-10">
+            <div className="bg-gray-900/90 backdrop-blur rounded-2xl px-4 py-3 text-center shadow-lg">
+              <p className={`text-3xl font-black leading-none ${speedColor}`}>
+                {currentSpeedMph}
+              </p>
+              <p className="text-[9px] text-white/50 font-semibold mt-1">mph</p>
+              {speedLimitMph && (
+                <div className="mt-1.5 pt-1.5 border-t border-white/10">
+                  <p className="text-xs text-white/40 font-bold">{speedLimitMph}</p>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Friends on map badge */}
+          {activeFriendCount > 0 && (
+            <button
+              onClick={() => setShowConvoyPanel(true)}
+              className="absolute left-4 top-40 z-10 bg-green-500 text-white rounded-xl px-3 py-2 shadow-lg"
+            >
+              <p className="text-xs font-bold">{activeFriendCount} friends</p>
+              <p className="text-[9px] opacity-80">on map</p>
+            </button>
+          )}
 
           {/* Recenter button */}
           {!isFollowing && (
-            <button
-              onClick={handleRecenter}
-              className="absolute top-28 right-4 z-40 w-11 h-11 rounded-xl bg-card/95 backdrop-blur-xl shadow-lg border border-border/50 flex items-center justify-center text-lg"
-            >
+            <button onClick={handleRecenter} className="absolute right-4 bottom-56 z-10 w-12 h-12 bg-white rounded-full shadow-lg flex items-center justify-center text-xl">
               ◎
             </button>
           )}
 
-          {/* Friend count badge */}
-          {activeFriendCount > 0 && (
-            <div className="absolute top-44 right-4 z-40 bg-[#3B6D11]/90 backdrop-blur rounded-xl px-3 py-2 text-center">
-              <p className="text-xs font-bold text-white">{activeFriendCount} friends</p>
-              <p className="text-[10px] text-white/70">on map</p>
-            </div>
-          )}
-
           {/* Bottom panel */}
-          <div className="absolute bottom-0 left-0 right-0 z-50 safe-bottom">
-            <div className="mx-3 mb-3 bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 p-4 space-y-3">
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center">
-                  <p className="text-sm font-bold text-foreground">{formatDistance(distanceRemaining)}</p>
-                  <p className="text-[10px] text-muted-foreground">Remaining</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-foreground">{etaMinutes}</p>
-                  <p className="text-[10px] text-muted-foreground">Minutes</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-foreground">{arrivalTime || '--:--'}</p>
-                  <p className="text-[10px] text-muted-foreground">Arrival</p>
-                </div>
+          <div className="absolute bottom-0 left-0 right-0 z-20">
+            <div className="bg-gray-900/95 backdrop-blur-xl rounded-t-3xl px-5 pb-6 pt-4 space-y-3 shadow-2xl">
+              {/* ETA stats row */}
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: 'Remaining', value: formatDistance(totalDistanceRemaining) },
+                  { label: 'ETA', value: `${etaMinutes} min` },
+                  { label: 'Arrival', value: arrivalTime || '--:--' },
+                ].map(stat => (
+                  <div key={stat.label} className="text-center">
+                    <p className="text-sm font-bold text-white">{stat.value}</p>
+                    <p className="text-[9px] text-white/40 mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
               </div>
 
+              {/* Control buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setIsMuted(!isMuted)}
-                  className={`flex-1 h-11 rounded-xl flex items-center justify-center text-base border transition-all ${
-                    isMuted ? 'bg-destructive/10 border-destructive/20 text-destructive' : 'bg-muted border-border/50 text-foreground'
+                  className={`flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 border transition-all ${
+                    isMuted
+                      ? 'bg-red-900/50 border-red-700 text-red-400'
+                      : 'bg-white/10 border-white/20 text-white'
                   }`}
                 >
-                  {isMuted ? '🔇' : '🔊'}
+                  <span className="text-sm">{isMuted ? '🔇' : '🔊'}</span>
+                  <span className="text-[9px] font-semibold">{isMuted ? 'Muted' : 'Voice'}</span>
                 </button>
-                <button onClick={handleOverview} className="flex-1 h-11 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-base">
-                  🗺
+
+                <button onClick={handleOverview} className="flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-white/10 border border-white/20 text-white">
+                  <span className="text-sm">🗺</span>
+                  <span className="text-[9px] font-semibold">Overview</span>
                 </button>
+
                 <button
-                  onClick={toggleSharing}
-                  className={`flex-1 h-11 rounded-xl flex items-center justify-center text-base border transition-all ${
-                    isSharingLocation ? 'bg-[#3B6D11]/10 border-[#3B6D11]/30 text-[#3B6D11]' : 'bg-muted border-border/50 text-foreground'
+                  onClick={() => {
+                    if (!canShare) {
+                      toast.error('Upgrade to Pro to share location');
+                      return;
+                    }
+                    setShowFriendPicker(true);
+                  }}
+                  className={`flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 border transition-all ${
+                    isSharingLocation
+                      ? 'bg-green-900/50 border-green-600 text-green-400'
+                      : canShare
+                      ? 'bg-white/10 border-white/20 text-white'
+                      : 'bg-white/5 border-white/10 text-white/30'
                   }`}
                 >
-                  📡
+                  <span className="text-sm">{isSharingLocation ? '📡' : '👥'}</span>
+                  <span className="text-[9px] font-semibold">
+                    {isSharingLocation ? `${sharedWithFriends.length} sharing` : 'Convoy'}
+                  </span>
                 </button>
-                <button onClick={handleRecenter} className="flex-1 h-11 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-base">
-                  ◎
+
+                <button onClick={handleRecenter} className="flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 bg-white/10 border border-white/20 text-white">
+                  <span className="text-sm">◎</span>
+                  <span className="text-[9px] font-semibold">Centre</span>
                 </button>
               </div>
 
+              {/* Sharing active indicator */}
               {isSharingLocation && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[#3B6D11]/10 border border-[#3B6D11]/20">
-                  <div className="w-2 h-2 rounded-full bg-[#3B6D11] animate-pulse" />
-                  <p className="text-xs font-medium text-[#3B6D11] flex-1">Sharing location with friends</p>
-                  <button onClick={stopSharing} className="text-[10px] font-semibold text-[#3B6D11] underline">Stop</button>
+                <div className="flex items-center justify-between px-3 py-2 bg-green-900/30 rounded-xl border border-green-800/50">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-xs text-green-400 font-medium">
+                      Sharing with {sharedWithFriends.length} friend{sharedWithFriends.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <button onClick={stopSharing} className="text-[10px] text-red-400 font-semibold">Stop</button>
                 </div>
               )}
 
+              {/* Pro upgrade prompt */}
               {!canShare && (
                 <button
-                  onClick={() => navigate('/choose-plan')}
-                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary to-[#3B6D11] text-white text-xs font-semibold"
+                  onClick={() => navigate('/upgrade')}
+                  className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#185FA5] to-[#3B6D11] text-white text-xs font-bold"
                 >
-                  ⭐ Upgrade to share location with friends
+                  ⭐ Upgrade to Pro — Share location with friends
                 </button>
               )}
 
-              <button
-                onClick={handleStopNavigation}
-                className="w-full h-11 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold"
-              >
+              {/* Stop navigation */}
+              <button onClick={handleStopNavigation} className="w-full py-3.5 rounded-2xl bg-red-600 text-white font-bold text-sm">
                 Stop Navigation
               </button>
             </div>
@@ -674,25 +1220,42 @@ export default function Navigation() {
         </>
       )}
 
-      {/* ARRIVED MODE */}
+      {/* ═══ ARRIVED MODE ════════════════════════════════════════════════════ */}
       {mode === 'arrived' && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="mx-6 bg-card rounded-2xl shadow-lg border border-border/50 p-8 text-center space-y-4 max-w-sm w-full">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto text-3xl">✓</div>
-            <h2 className="text-xl font-bold text-foreground">You have arrived!</h2>
-            <p className="text-sm text-muted-foreground">{destTitle}</p>
-            <p className="text-xs text-muted-foreground">{formatDistance(totalDistanceDriven)} driven</p>
-            {state?.routeId && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl p-6 mx-6 w-full max-w-sm space-y-5 shadow-2xl">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <span className="text-3xl text-green-600 font-bold">✓</span>
+            </div>
+
+            <div className="text-center">
+              <p className="text-lg font-black text-gray-900">You have arrived!</p>
+              <p className="text-sm text-gray-500 mt-1">{destTitle}</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                <p className="text-sm font-bold text-gray-900">{formatDistance(totalDistanceDriven)}</p>
+                <p className="text-[10px] text-gray-500">Distance driven</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                <p className="text-sm font-bold text-gray-900">{journeyTime} min</p>
+                <p className="text-[10px] text-gray-500">Journey time</p>
+              </div>
+            </div>
+
+            {routeId && (
               <button
-                onClick={() => navigate(`/route/${state.routeId}/rate`)}
-                className="w-full py-3 rounded-xl bg-[#3B6D11]/10 border border-[#3B6D11]/20 text-[#3B6D11] text-sm font-semibold"
+                onClick={() => navigate(`/route/${routeId}`)}
+                className="w-full py-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 text-sm font-bold"
               >
-                Rate this route ⭐
+                ⭐ Rate this route
               </button>
             )}
+
             <button
               onClick={() => navigate('/', { replace: true })}
-              className="w-full py-3 rounded-xl bg-foreground text-background text-sm font-semibold"
+              className="w-full py-3.5 rounded-2xl bg-gray-900 text-white text-sm font-bold"
             >
               Back to map
             </button>
@@ -700,14 +1263,243 @@ export default function Navigation() {
         </div>
       )}
 
-      {/* Back button (preview) */}
-      {mode === 'preview' && (
-        <button
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 z-40 safe-top w-10 h-10 rounded-xl bg-card/90 backdrop-blur-md shadow-md border border-border/50 flex items-center justify-center text-foreground"
-        >
-          ←
-        </button>
+      {/* ═══ FRIEND PICKER SHEET ══════════════════════════════════════════════ */}
+      {showFriendPicker && (
+        <div className="fixed inset-0 z-50 flex flex-col">
+          <div
+            className="flex-1 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowFriendPicker(false)}
+          />
+          <div className="bg-white rounded-t-3xl max-h-[75vh] flex flex-col animate-slide-up shadow-2xl">
+            {/* Header */}
+            <div className="px-5 pt-5 pb-3 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-base text-gray-900">Share your location</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {sharedWithFriends.length === 0
+                      ? 'Select friends to share your location with'
+                      : `Sharing with ${sharedWithFriends.length} friend${sharedWithFriends.length !== 1 ? 's' : ''}`}
+                  </p>
+                </div>
+                {sharedWithFriends.length > 0 && (
+                  <div className="bg-green-100 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                    {sharedWithFriends.length} selected
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Friend list */}
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
+              {allFriends.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-3xl mb-2">👥</p>
+                  <p className="text-sm font-semibold text-gray-600">No friends yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Add friends to share your location with them</p>
+                </div>
+              ) : (
+                allFriends.map((friend: any) => {
+                  const isSelected = sharedWithFriends.includes(friend.id);
+                  const isFriendSharing = !!friendLocations[friend.id];
+                  return (
+                    <button
+                      key={friend.id}
+                      onClick={() => toggleFriendSharing(friend.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition-all text-left ${
+                        isSelected
+                          ? 'bg-green-50 border-green-400'
+                          : 'bg-gray-50 border-gray-200'
+                      }`}
+                    >
+                      <div className="relative">
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200">
+                          {friend.avatar_url ? (
+                            <img src={friend.avatar_url} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-500">
+                              {(friend.display_name || friend.username || '?')[0].toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        {isFriendSharing && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-900 truncate">
+                          {friend.display_name || friend.username}
+                        </p>
+                        <p className="text-[10px] text-gray-500 truncate">
+                          {isFriendSharing
+                            ? `🟢 Sharing location${friendLocations[friend.id]?.destination_title ? ` · → ${friendLocations[friend.id].destination_title}` : ''}`
+                            : 'Not currently sharing'}
+                        </p>
+                      </div>
+
+                      <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                        isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                      }`}>
+                        {isSelected && <span className="text-white text-xs font-bold">✓</span>}
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="px-5 py-4 border-t border-gray-100 space-y-2 safe-bottom">
+              {sharedWithFriends.length > 0 ? (
+                <>
+                  <button
+                    onClick={() => setShowFriendPicker(false)}
+                    className="w-full py-3.5 rounded-2xl bg-green-500 text-white font-bold text-sm"
+                  >
+                    ✓ Sharing with {sharedWithFriends.length} friend{sharedWithFriends.length !== 1 ? 's' : ''}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await stopSharing();
+                      setShowFriendPicker(false);
+                    }}
+                    className="w-full py-3 rounded-2xl bg-gray-100 text-gray-600 font-semibold text-sm"
+                  >
+                    Stop sharing
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setShowFriendPicker(false)}
+                  className="w-full py-3.5 rounded-2xl bg-gray-900 text-white font-bold text-sm"
+                >
+                  Done
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ FRIEND INFO CARD ════════════════════════════════════════════════ */}
+      {selectedFriendInfo && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setSelectedFriendInfo(null)}
+          />
+          <div className="relative bg-white rounded-t-3xl w-full max-w-md p-5 space-y-4 shadow-2xl safe-bottom animate-slide-up">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto" />
+
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-200 border-2 border-green-500 flex-shrink-0">
+                {selectedFriendInfo.avatar_url ? (
+                  <img src={selectedFriendInfo.avatar_url} className="w-full h-full object-cover" alt="" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xl font-bold text-gray-500">
+                    {(selectedFriendInfo.display_name || selectedFriendInfo.username || '?')[0].toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="font-bold text-base text-gray-900">
+                  {selectedFriendInfo.display_name || selectedFriendInfo.username}
+                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-xs text-green-600 font-medium">Live location</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                <p className="text-lg font-black text-gray-900">
+                  {Math.round(selectedFriendInfo.current_speed_mph || 0)}
+                </p>
+                <p className="text-[10px] text-gray-500">mph</p>
+              </div>
+              <div className="bg-gray-50 rounded-xl p-3 text-center">
+                <p className="text-xs font-bold text-gray-900 truncate">
+                  {selectedFriendInfo.destination_title || 'No destination'}
+                </p>
+                <p className="text-[10px] text-gray-500">Heading to</p>
+              </div>
+            </div>
+
+            {userLocation && selectedFriendInfo.lat && selectedFriendInfo.lng && (
+              <div className="bg-blue-50 rounded-xl p-3 text-center">
+                <p className="text-xs font-semibold text-blue-700">
+                  {formatDistance(haversineDistance(
+                    userLocation[1], userLocation[0],
+                    selectedFriendInfo.lat, selectedFriendInfo.lng
+                  ))} away from you
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={() => {
+                setSelectedFriendInfo(null);
+                if (selectedFriendInfo.lat && selectedFriendInfo.lng) {
+                  mapRef.current?.flyTo({
+                    center: [selectedFriendInfo.lng, selectedFriendInfo.lat],
+                    zoom: 15,
+                    duration: 800,
+                  });
+                }
+              }}
+              className="w-full py-3 rounded-2xl bg-[#185FA5] text-white font-bold text-sm"
+            >
+              Show on map
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ═══ CONVOY PANEL ═══════════════════════════════════════════════════ */}
+      {showConvoyPanel && activeFriendCount > 0 && (
+        <div className="absolute left-3 top-44 z-30 bg-gray-900/90 backdrop-blur rounded-2xl p-3 shadow-xl max-w-[200px]">
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-bold text-white">👥 Convoy</p>
+            <button onClick={() => setShowConvoyPanel(false)} className="text-white/50 text-xs">✕</button>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {Object.values(friendLocations).map((friend: FriendLocation) => (
+              <button
+                key={friend.user_id}
+                onClick={() => {
+                  setSelectedFriendInfo(friend);
+                  setShowConvoyPanel(false);
+                }}
+                className="flex flex-col items-center gap-1.5 flex-shrink-0"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-500 bg-gray-800">
+                    {friend.avatar_url ? (
+                      <img src={friend.avatar_url} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xs font-bold text-green-400">
+                        {(friend.display_name || friend.username || '?')[0].toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  {friend.is_convoy_leader && (
+                    <span className="absolute -top-2 -right-1 text-[10px]">👑</span>
+                  )}
+                </div>
+                <span className="text-[9px] text-white/70 font-medium truncate max-w-[60px]">
+                  {friend.display_name || friend.username}
+                </span>
+                <span className="text-[8px] text-green-400 font-bold">
+                  {Math.round(friend.current_speed_mph || 0)} mph
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
