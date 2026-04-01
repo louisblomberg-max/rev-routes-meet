@@ -190,14 +190,19 @@ export default function Clubs() {
             >
               Join with code
             </button>
-            {userPlan === 'organiser' && (
-              <button
-                onClick={() => navigate('/add/club')}
-                className="h-9 w-9 rounded-xl bg-clubs flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4 text-white" />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (userPlan === 'club') {
+                  navigate('/add/club')
+                } else {
+                  navigate('/upgrade')
+                }
+              }}
+              className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Club
+            </button>
           </div>
         </div>
 
@@ -335,16 +340,33 @@ export default function Clubs() {
             </p>
             <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">
               {activeTab === 'my'
-                ? 'Discover and join clubs to see them here'
+                ? 'Join a club or create your own'
                 : 'Try a different search or category'}
             </p>
             {activeTab === 'my' && (
-              <button
-                onClick={() => setActiveTab('discover')}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-semibold"
-              >
-                Discover Clubs
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('discover')}
+                  className="mt-4 px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-semibold"
+                >
+                  Discover Clubs
+                </button>
+                {userPlan === 'club' ? (
+                  <button
+                    onClick={() => navigate('/add/club')}
+                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
+                  >
+                    Create a club
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate('/upgrade')}
+                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
+                  >
+                    ⭐ Create a club — Club / Business plan
+                  </button>
+                )}
+              </>
             )}
           </div>
         ) : (

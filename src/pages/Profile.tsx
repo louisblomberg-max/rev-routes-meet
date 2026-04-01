@@ -60,6 +60,24 @@ const Profile = () => {
 
   useEffect(() => { fetchData(); }, [authUser?.id]);
 
+  // Realtime vehicle subscription - auto-updates when vehicles change
+  useEffect(() => {
+    if (!authUser?.id) return;
+    const channel = supabase
+      .channel(`profile-vehicles-${authUser.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'vehicles',
+        filter: `user_id=eq.${authUser.id}`
+      }, async () => {
+        const { data } = await supabase.from('vehicles').select('*').eq('user_id', authUser.id);
+        setVehicles(data || []);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [authUser?.id]);
+
   const displayName = profile?.display_name || authUser?.displayName || 'New User';
   const username = profile?.username || authUser?.username || 'user';
   const avatar = profile?.avatar_url || authUser?.avatar || null;
