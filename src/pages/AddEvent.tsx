@@ -1049,37 +1049,20 @@ const AddEvent = () => {
           </div>
         </div>
 
-        {/* SECTION 8 — Entry and tickets */}
+        {/* SECTION 8 — Tickets */}
         <div className="bg-card rounded-2xl border border-border/50 p-5">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
               <Ticket className="w-4 h-4 text-events" />
             </div>
-            <h2 className="text-base font-bold">Entry & Tickets</h2>
+            <h2 className="text-base font-bold">Tickets</h2>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
-            <p className="text-xs font-medium">Free entry</p>
-            <Switch checked={isFree} onCheckedChange={v => { setIsFree(v); if (v) setEntryFee('') }} />
-          </div>
-
-          {!isFree && (
-            <div className="mb-3">
-              <label className="text-xs text-muted-foreground mb-1.5 block">Entry fee (£) — cash on door</label>
-              <input
-                type="number"
-                value={entryFee}
-                onChange={e => setEntryFee(e.target.value)}
-                placeholder="5.00"
-                className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
-              />
-            </div>
-          )}
-
+          {/* Ticketing toggle */}
           <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
             <div>
               <p className="text-xs font-medium">Sell tickets through RevNet</p>
-              <p className="text-[10px] text-muted-foreground">5% commission — you keep 95%</p>
+              <p className="text-[10px] text-muted-foreground">Attendees buy tickets in the app</p>
             </div>
             <Switch checked={isTicketed} onCheckedChange={setIsTicketed} />
           </div>
@@ -1130,10 +1113,7 @@ const AddEvent = () => {
                 <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
                   <p className="text-xs font-semibold text-green-800 dark:text-green-200 mb-1">Potential revenue</p>
                   <p className="text-xs text-green-700 dark:text-green-300">
-                    {maxTickets} tickets × £{Number(ticketPrice).toFixed(2)} = £{(Number(maxTickets) * Number(ticketPrice)).toFixed(2)} gross
-                  </p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
-                    You receive: £{(Number(maxTickets) * Number(ticketPrice) * 0.95).toFixed(2)} after 5% RevNet fee
+                    {maxTickets} tickets × £{Number(ticketPrice).toFixed(2)} = £{(Number(maxTickets) * Number(ticketPrice)).toFixed(2)}
                   </p>
                 </div>
               )}
