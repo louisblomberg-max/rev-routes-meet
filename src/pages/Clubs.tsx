@@ -190,14 +190,19 @@ export default function Clubs() {
             >
               Join with code
             </button>
-            {userPlan === 'organiser' && (
-              <button
-                onClick={() => navigate('/add/club')}
-                className="h-9 w-9 rounded-xl bg-clubs flex items-center justify-center"
-              >
-                <Plus className="w-4 h-4 text-white" />
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (userPlan === 'club') {
+                  navigate('/add/club')
+                } else {
+                  navigate('/upgrade')
+                }
+              }}
+              className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Club
+            </button>
           </div>
         </div>
 
