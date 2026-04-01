@@ -594,25 +594,6 @@ const Home = () => {
         </div>
       )}
 
-      {/* Map legend */}
-      {!isNavigating && (
-        <div className="absolute bottom-28 left-3 bg-white/95 backdrop-blur-md rounded-xl px-3 py-2 z-20 shadow-sm border border-border/30">
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#CC2222', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-              <span className="text-[11px] text-muted-foreground">Events</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#185FA5', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-              <span className="text-[11px] text-muted-foreground">Routes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: '#C2700A', border: '1.5px solid white', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
-              <span className="text-[11px] text-muted-foreground">Services</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
