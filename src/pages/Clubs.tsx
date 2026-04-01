@@ -62,6 +62,15 @@ export default function Clubs() {
   }, [user?.id])
 
   useEffect(() => {
+    if (!user?.id) return
+    const loadSuggested = async () => {
+      const { data } = await supabase.rpc('suggest_clubs_for_user', { p_user_id: user.id })
+      setSuggestedClubs(data || [])
+    }
+    loadSuggested()
+  }, [user?.id])
+
+  useEffect(() => {
     fetchClubs()
   }, [activeType, sortBy, searchQuery, activeTab, user?.id])
 
