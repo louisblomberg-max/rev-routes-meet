@@ -39,6 +39,7 @@ export default function Clubs() {
   const [userPlan, setUserPlan] = useState('free')
   const [inviteCode, setInviteCode] = useState('')
   const [showInviteInput, setShowInviteInput] = useState(false)
+  const [suggestedClubs, setSuggestedClubs] = useState<any[]>([])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
