@@ -1149,8 +1149,8 @@ const AddEvent = () => {
           <div className="grid grid-cols-3 gap-2">
             {([
               { value: 'public' as const, label: 'Public', sub: 'Everyone', icon: Globe },
-              { value: 'club' as const, label: 'Club', sub: 'Club only', icon: UsersRound },
-              { value: 'friends' as const, label: 'Friends', sub: 'Friends only', icon: Users },
+              { value: 'club' as const, label: 'Club', sub: 'Club members', icon: UsersRound },
+              { value: 'friends' as const, label: 'Friends', sub: 'Your friends', icon: Users },
             ]).map(opt => {
               const Icon = opt.icon
               return (
@@ -1171,19 +1171,99 @@ const AddEvent = () => {
             })}
           </div>
 
-          {visibility === 'club' && myClubs.length > 0 && (
+          {/* Club selection */}
+          {visibility === 'club' && (
             <div className="mt-3">
-              <label className="text-xs text-muted-foreground mb-1.5 block">Select club</label>
-              <select
-                value={clubId}
-                onChange={e => setClubId(e.target.value)}
-                className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
-              >
-                <option value="">Choose a club...</option>
-                {myClubs.map(club => (
-                  <option key={club.id} value={club.id}>{club.name}</option>
-                ))}
-              </select>
+              <label className="text-xs text-muted-foreground mb-1.5 block">Select club *</label>
+              {myOwnedClubs.length === 0 ? (
+                <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <p className="text-xs text-muted-foreground">You need to be a club owner or admin to post club events</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {myOwnedClubs.map(club => (
+                    <button
+                      key={club.id}
+                      onClick={() => setClubId(club.id)}
+                      className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all ${
+                        clubId === club.id ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'
+                      }`}
+                    >
+                      <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
+                        {club.logo_url ? (
+                          <img src={club.logo_url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-clubs to-clubs/60 flex items-center justify-center text-white font-bold text-xs">
+                            {club.name[0].toUpperCase()}
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-sm font-medium flex-1 text-left">{club.name}</p>
+                      <div className={`w-4 h-4 rounded-full border-2 ${clubId === club.id ? 'bg-events border-events' : 'border-muted-foreground'}`} />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Friends selection */}
+          {visibility === 'friends' && (
+            <div className="mt-3 space-y-3">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFriendsMode('all')}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                    friendsMode === 'all' ? 'bg-foreground text-background border-foreground' : 'bg-muted/30 border-border/50 text-muted-foreground'
+                  }`}
+                >
+                  All friends
+                </button>
+                <button
+                  onClick={() => setFriendsMode('specific')}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                    friendsMode === 'specific' ? 'bg-foreground text-background border-foreground' : 'bg-muted/30 border-border/50 text-muted-foreground'
+                  }`}
+                >
+                  Specific friends
+                </button>
+              </div>
+
+              {friendsMode === 'specific' && (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {allFriends.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No friends yet</p>
+                  ) : (
+                    allFriends.map((friend: any) => (
+                      <button
+                        key={friend.id}
+                        onClick={() => setSelectedFriends(prev =>
+                          prev.includes(friend.id) ? prev.filter((id: string) => id !== friend.id) : [...prev, friend.id]
+                        )}
+                        className={`w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all ${
+                          selectedFriends.includes(friend.id) ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/30'
+                        }`}
+                      >
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                          {friend.avatar_url ? (
+                            <img src={friend.avatar_url} className="w-full h-full object-cover" alt="" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs font-bold text-muted-foreground">
+                              {(friend.display_name || friend.username || '?')[0].toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm font-medium flex-1 text-left">{friend.display_name || friend.username}</p>
+                        <div className={`w-4 h-4 rounded-full border-2 ${selectedFriends.includes(friend.id) ? 'bg-events border-events' : 'border-muted-foreground'}`} />
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {friendsMode === 'specific' && selectedFriends.length > 0 && (
+                <p className="text-xs text-muted-foreground">{selectedFriends.length} friend{selectedFriends.length > 1 ? 's' : ''} selected</p>
+              )}
             </div>
           )}
         </div>
