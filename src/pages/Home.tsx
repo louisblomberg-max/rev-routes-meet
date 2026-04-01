@@ -81,6 +81,8 @@ const Home = () => {
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
+    filterEventTypes: [], filterVehicleFocus: 'all', filterMeetStyles: [], filterFreeOnly: false,
+    filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null,
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25, types: [], difficulty: [], duration: null, surface: [],
