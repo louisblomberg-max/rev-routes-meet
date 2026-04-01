@@ -8,10 +8,11 @@ import { addWeeks, addMonths, format } from 'date-fns'
 import BackButton from '@/components/BackButton'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import mapboxgl from 'mapbox-gl'
 import {
   Camera, Plus, X, Calendar, MapPin, Users, Ticket,
   ImagePlus, RefreshCw, Info, Banknote,
-  CreditCard, Eye, Globe, UsersRound, Tag
+  CreditCard, Eye, Globe, UsersRound, Tag, Map
 } from 'lucide-react'
 import CreationPaywallSheet from '@/components/CreationPaywallSheet'
 
