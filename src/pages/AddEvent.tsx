@@ -140,6 +140,29 @@ const AddEvent = () => {
           name: d.clubs?.name || 'Unknown Club'
         })))
       }
+
+      // Load owned clubs for visibility section
+      const { data: ownedClubs } = await supabase
+        .from('club_memberships')
+        .select('club_id, clubs(id, name, logo_url)')
+        .eq('user_id', user.id)
+        .in('role', ['owner', 'admin'])
+      setMyOwnedClubs(ownedClubs?.map((c: any) => ({
+        id: c.clubs?.id || c.club_id,
+        name: c.clubs?.name || 'Unknown',
+        logo_url: c.clubs?.logo_url || null
+      })) || [])
+
+      // Load friends for visibility section
+      const { data: friendsData } = await supabase
+        .from('friends')
+        .select('user_id, friend_id, profiles!friend_id(id, username, display_name, avatar_url)')
+        .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`)
+        .eq('status', 'accepted')
+      setAllFriends(friendsData?.map((f: any) => ({
+        id: f.user_id === user.id ? f.friend_id : f.user_id,
+        ...f.profiles
+      })) || [])
     }
     load()
   }, [user?.id])
