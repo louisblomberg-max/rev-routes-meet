@@ -896,17 +896,18 @@ const AddEvent = () => {
             <h2 className="text-base font-bold">Location *</h2>
           </div>
 
+          {/* Address search */}
           <div className="relative" ref={locationRef}>
             <input
               value={locationQuery}
               onChange={e => {
                 setLocationQuery(e.target.value)
-                setLocation('')
+                setLocation(e.target.value)
                 setLocationLat(null)
                 setLocationLng(null)
               }}
-              placeholder="Search for event location..."
-              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
+              placeholder="Search for exact address or venue..."
+              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background pr-10"
             />
             {locationLat && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">✓</div>
@@ -927,13 +928,36 @@ const AddEvent = () => {
             )}
           </div>
 
+          {/* Selected location display */}
+          {locationLat && locationLng && (
+            <div className="mt-2 flex items-center gap-2 p-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
+              <p className="text-xs text-green-700 dark:text-green-300 flex-1 truncate">{location}</p>
+              <button
+                onClick={() => { setLocation(''); setLocationQuery(''); setLocationLat(null); setLocationLng(null) }}
+                className="text-green-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Pick on map button */}
+          <button
+            onClick={() => setShowMapPicker(true)}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border/50 bg-muted/30 text-sm font-medium text-muted-foreground hover:border-events/50 transition-colors mt-3"
+          >
+            <Map className="w-4 h-4" />
+            {locationLat ? 'Move pin on map' : 'Pick location on map'}
+          </button>
+
           {/* What3Words */}
           <div className="mt-3">
             <label className="text-xs text-muted-foreground mb-1.5 block">
               What3Words <span className="text-muted-foreground/60">(optional — precise meetup point)</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-red-500 font-bold text-sm">///</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-destructive font-bold text-sm">///</span>
               <input
                 value={what3words}
                 onChange={e => setWhat3words(e.target.value.replace(/^\/\/\//, ''))}
@@ -944,6 +968,49 @@ const AddEvent = () => {
             <p className="text-[10px] text-muted-foreground mt-1">Find yours at what3words.com</p>
           </div>
         </div>
+
+        {/* Map picker modal */}
+        {showMapPicker && (
+          <div className="fixed inset-0 z-50 bg-background">
+            <div className="absolute top-4 left-4 right-4 z-10 flex items-center gap-3 safe-top">
+              <button
+                onClick={() => setShowMapPicker(false)}
+                className="w-10 h-10 rounded-xl bg-muted/80 flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="flex-1">
+                <p className="text-sm font-bold">Pick Location</p>
+                <p className="text-[10px] text-muted-foreground">Tap anywhere on the map to set location</p>
+              </div>
+              {locationLat && (
+                <button
+                  onClick={() => setShowMapPicker(false)}
+                  className="px-4 py-2 rounded-xl bg-foreground text-background text-sm font-semibold"
+                >
+                  Confirm
+                </button>
+              )}
+            </div>
+
+            <div ref={mapPickerRef} className="w-full h-full" />
+
+            {locationLat && location && (
+              <div className="absolute bottom-6 left-4 right-4 z-10 bg-card/95 backdrop-blur-xl rounded-2xl p-4 border border-border/50 shadow-lg safe-bottom">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 text-events flex-shrink-0" />
+                  <p className="text-sm font-medium truncate">{location}</p>
+                </div>
+                <button
+                  onClick={() => setShowMapPicker(false)}
+                  className="w-full mt-2 py-3 rounded-xl bg-events text-events-foreground font-semibold text-sm"
+                >
+                  Use this location
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* SECTION 7 — Capacity */}
         <div className="bg-card rounded-2xl border border-border/50 p-5">
