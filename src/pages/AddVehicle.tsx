@@ -129,27 +129,31 @@ const AddVehicle = () => {
 
     setSaving(true);
     try {
-      // Build insert payload using only confirmed existing columns
-      const payload: Record<string, unknown> = {
+      // year is stored as TEXT in the database — do not convert to number
+      const payload: Record<string, any> = {
         user_id: user.id,
         make: selectedMake.name,
         model: selectedModel.name,
-        year: selectedYear,
+        year: String(selectedYear),
         vehicle_type: vehicleType || 'car',
+        visibility: visibility || 'public',
+        is_primary: isPrimary || false,
+        photos: [],
+        tags: [],
       };
 
-      // Only add optional fields if they have values
-      if (selectedVariant) payload.variant = selectedVariant;
+      // Only add optional columns if they have values
+      // These are the ONLY optional columns that exist in the vehicles table:
+      // variant, engine, transmission, drivetrain, colour, number_plate, details, mods_text
+      if (selectedVariant?.trim()) payload.variant = selectedVariant.trim();
       if (engine?.trim()) payload.engine = engine.trim();
-      if (transmission) payload.transmission = transmission;
-      if (drivetrain) payload.drivetrain = drivetrain;
+      if (transmission?.trim()) payload.transmission = transmission.trim();
+      if (drivetrain?.trim()) payload.drivetrain = drivetrain.trim();
       if (colour?.trim()) payload.colour = colour.trim();
       if (numberPlate?.trim()) payload.number_plate = numberPlate.trim();
       if (details?.trim()) payload.details = details.trim();
-      if (visibility) payload.visibility = visibility;
-      if (typeof isPrimary === 'boolean') payload.is_primary = isPrimary;
 
-      console.log('[AddVehicle] Inserting:', payload);
+      console.log('[AddVehicle] Inserting payload:', JSON.stringify(payload, null, 2));
 
       const { data, error } = await supabase
         .from('vehicles')
@@ -158,12 +162,14 @@ const AddVehicle = () => {
         .single();
 
       if (error) {
-        console.error('[AddVehicle] Insert error:', error);
-        toast.error('Could not save vehicle: ' + error.message);
+        console.error('[AddVehicle] Insert error code:', error.code);
+        console.error('[AddVehicle] Insert error message:', error.message);
+        console.error('[AddVehicle] Insert error details:', error.details);
+        toast.error('Could not save: ' + error.message);
         return;
       }
 
-      console.log('[AddVehicle] Success:', data);
+      console.log('[AddVehicle] Vehicle saved successfully:', data);
       toast.success(`${selectedMake.name} ${selectedModel.name} added to your garage!`);
       navigate(-1);
     } catch (err: any) {
