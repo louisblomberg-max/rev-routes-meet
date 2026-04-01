@@ -594,6 +594,12 @@ const Home = () => {
 
   return (
     <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+      <style>{`
+        @keyframes friend-pulse {
+          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+          100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+      `}</style>
       <MapView
         onMapTap={(lngLat) => {
           // Check if we clicked near a marker — if so, ignore
