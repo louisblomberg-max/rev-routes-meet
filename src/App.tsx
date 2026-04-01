@@ -34,6 +34,8 @@ import CreateForumPost from "./pages/CreateForumPost";
 import ForumThread from "./pages/ForumThread";
 import Clubs from "./pages/Clubs";
 import MyClubs from "./pages/MyClubs";
+import ClubSettings from "./pages/ClubSettings";
+import ClubJoinRequest from "./pages/ClubJoinRequest";
 import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
 import Messages from "./pages/Messages";
