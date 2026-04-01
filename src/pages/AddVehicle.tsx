@@ -125,30 +125,35 @@ const AddVehicle = () => {
     if (!selectedMake) { toast.error('Please select a make'); return; }
     if (!selectedModel) { toast.error('Please select a model'); return; }
     if (!selectedYear) { toast.error('Please select a year'); return; }
-    if (!user) { toast.error('Please sign in'); return; }
+    if (!user?.id) { toast.error('Please sign in'); return; }
 
     setSaving(true);
     try {
+      // Build insert payload using only confirmed existing columns
+      const payload: Record<string, unknown> = {
+        user_id: user.id,
+        make: selectedMake.name,
+        model: selectedModel.name,
+        year: selectedYear,
+        vehicle_type: vehicleType || 'car',
+      };
+
+      // Only add optional fields if they have values
+      if (selectedVariant) payload.variant = selectedVariant;
+      if (engine?.trim()) payload.engine = engine.trim();
+      if (transmission) payload.transmission = transmission;
+      if (drivetrain) payload.drivetrain = drivetrain;
+      if (colour?.trim()) payload.colour = colour.trim();
+      if (numberPlate?.trim()) payload.number_plate = numberPlate.trim();
+      if (details?.trim()) payload.details = details.trim();
+      if (visibility) payload.visibility = visibility;
+      if (typeof isPrimary === 'boolean') payload.is_primary = isPrimary;
+
+      console.log('[AddVehicle] Inserting:', payload);
+
       const { data, error } = await supabase
         .from('vehicles')
-        .insert({
-          user_id: user.id,
-          vehicle_type: vehicleType,
-          make: selectedMake.name,
-          model: selectedModel.name,
-          variant: selectedVariant || null,
-          year: selectedYear,
-          engine: engine?.trim() || null,
-          transmission: transmission || null,
-          drivetrain: drivetrain || null,
-          colour: colour?.trim() || null,
-          number_plate: numberPlate?.trim() || null,
-          details: details?.trim() || null,
-          visibility,
-          is_primary: isPrimary,
-          photos: [],
-          tags: [],
-        })
+        .insert(payload)
         .select()
         .single();
 
@@ -158,11 +163,11 @@ const AddVehicle = () => {
         return;
       }
 
-      console.log('[AddVehicle] Vehicle saved:', data);
+      console.log('[AddVehicle] Success:', data);
       toast.success(`${selectedMake.name} ${selectedModel.name} added to your garage!`);
       navigate(-1);
     } catch (err: any) {
-      console.error('[AddVehicle] Error:', err);
+      console.error('[AddVehicle] Unexpected error:', err);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setSaving(false);
