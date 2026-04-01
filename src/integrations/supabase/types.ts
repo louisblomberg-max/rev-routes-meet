@@ -1520,6 +1520,7 @@ export type Database = {
           bio: string | null
           country: string | null
           created_at: string | null
+          date_of_birth: string | null
           discovery_radius_miles: number | null
           display_name: string | null
           event_credits: number | null
@@ -1530,6 +1531,7 @@ export type Database = {
           location: string | null
           onboarding_complete: boolean | null
           onboarding_step: number | null
+          phone: string | null
           plan: string | null
           profile_visibility: string | null
           route_credits: number | null
@@ -1540,6 +1542,7 @@ export type Database = {
           stripe_connect_account_id: string | null
           updated_at: string | null
           username: string | null
+          website: string | null
           who_can_message: string | null
         }
         Insert: {
@@ -1551,6 +1554,7 @@ export type Database = {
           bio?: string | null
           country?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           discovery_radius_miles?: number | null
           display_name?: string | null
           event_credits?: number | null
@@ -1561,6 +1565,7 @@ export type Database = {
           location?: string | null
           onboarding_complete?: boolean | null
           onboarding_step?: number | null
+          phone?: string | null
           plan?: string | null
           profile_visibility?: string | null
           route_credits?: number | null
@@ -1571,6 +1576,7 @@ export type Database = {
           stripe_connect_account_id?: string | null
           updated_at?: string | null
           username?: string | null
+          website?: string | null
           who_can_message?: string | null
         }
         Update: {
@@ -1582,6 +1588,7 @@ export type Database = {
           bio?: string | null
           country?: string | null
           created_at?: string | null
+          date_of_birth?: string | null
           discovery_radius_miles?: number | null
           display_name?: string | null
           event_credits?: number | null
@@ -1592,6 +1599,7 @@ export type Database = {
           location?: string | null
           onboarding_complete?: boolean | null
           onboarding_step?: number | null
+          phone?: string | null
           plan?: string | null
           profile_visibility?: string | null
           route_credits?: number | null
@@ -1602,6 +1610,7 @@ export type Database = {
           stripe_connect_account_id?: string | null
           updated_at?: string | null
           username?: string | null
+          website?: string | null
           who_can_message?: string | null
         }
         Relationships: []
