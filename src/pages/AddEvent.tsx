@@ -40,6 +40,9 @@ const AddEvent = () => {
   const photosInputRef = useRef<HTMLInputElement>(null)
   const makeSearchRef = useRef<HTMLDivElement>(null)
   const locationRef = useRef<HTMLDivElement>(null)
+  const mapPickerRef = useRef<HTMLDivElement>(null)
+  const pickerMapRef = useRef<mapboxgl.Map | null>(null)
+  const pickerMarkerRef = useRef<mapboxgl.Marker | null>(null)
 
   const [saving, setSaving] = useState(false)
   const [showPaywall, setShowPaywall] = useState(false)
