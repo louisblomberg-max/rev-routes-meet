@@ -299,18 +299,54 @@ const Home = () => {
     }
   }, [activeCategory, refreshPins]);
 
+  // Event filter function
+  const applyEventFilters = useCallback((pin: any): boolean => {
+    if (pin.type !== 'events') return true;
+    const d = pin;
+
+    const ef = eventsFilters;
+    if (ef.filterEventTypes.length > 0 && !ef.filterEventTypes.includes(d.type)) return false;
+    if (ef.filterVehicleFocus !== 'all') {
+      if (ef.filterVehicleFocus === 'cars_only' && d.vehicle_focus !== 'cars_only') return false;
+      if (ef.filterVehicleFocus === 'motorcycles_only' && d.vehicle_focus !== 'motorcycles_only') return false;
+    }
+    if (ef.filterMeetStyles.length > 0) {
+      const eventTags: string[] = d.meet_style_tags || [];
+      if (!ef.filterMeetStyles.some((tag: string) => eventTags.includes(tag))) return false;
+    }
+    if (ef.filterFreeOnly && !d.is_free) return false;
+    if (ef.filterDateFrom && d.date_start) {
+      if (new Date(d.date_start) < new Date(ef.filterDateFrom)) return false;
+    }
+    if (ef.filterDateTo && d.date_start) {
+      if (new Date(d.date_start) > new Date(ef.filterDateTo + 'T23:59:59')) return false;
+    }
+    if (ef.filterGarageVehicle) {
+      const vf = d.vehicle_focus || 'all_welcome';
+      if (vf === 'all_welcome') return true;
+      if (vf === 'cars_only' && ef.filterGarageVehicle.vehicle_type !== 'car') return false;
+      if (vf === 'motorcycles_only' && ef.filterGarageVehicle.vehicle_type !== 'motorcycle') return false;
+      if (vf === 'specific_makes') {
+        const eventMakes: string[] = (d.vehicle_brands || []).map((m: string) => m.toLowerCase());
+        if (!eventMakes.includes(ef.filterGarageVehicle.make.toLowerCase())) return false;
+      }
+    }
+    return true;
+  }, [eventsFilters]);
+
   // Render DOM markers for pins
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
 
     const doRender = () => {
-      console.log('[Map] Rendering', pins.length, 'pins as DOM markers');
-
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
-      pins.forEach(pin => {
+      const visiblePins = pins.filter(pin => applyEventFilters(pin));
+      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins as DOM markers');
+
+      visiblePins.forEach(pin => {
         const lat = Number(pin.lat);
         const lng = Number(pin.lng);
         if (isNaN(lat) || isNaN(lng)) return;
@@ -355,7 +391,7 @@ const Home = () => {
     } else {
       m.once('load', doRender);
     }
-  }, [pins]);
+  }, [pins, applyEventFilters]);
 
   // Center map on newly published item
   useEffect(() => {
