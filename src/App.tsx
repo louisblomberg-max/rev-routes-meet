@@ -34,6 +34,8 @@ import CreateForumPost from "./pages/CreateForumPost";
 import ForumThread from "./pages/ForumThread";
 import Clubs from "./pages/Clubs";
 import MyClubs from "./pages/MyClubs";
+import ClubSettings from "./pages/ClubSettings";
+import ClubJoinRequest from "./pages/ClubJoinRequest";
 import ClubProfile from "./pages/ClubProfile";
 import Marketplace from "./pages/Marketplace";
 import Messages from "./pages/Messages";
@@ -135,8 +137,9 @@ const App = () => (
           <Route path="/forums/thread/:id" element={<ProtectedRoute><ForumThread /></ProtectedRoute>} />
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/my-clubs" element={<ProtectedRoute><MyClubs /></ProtectedRoute>} />
-          <Route path="/club/:id" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
+          <Route path="/club/:clubId/settings" element={<ProtectedRoute><ClubSettings /></ProtectedRoute>} />
+          <Route path="/club/:clubId/join" element={<ProtectedRoute><ClubJoinRequest /></ProtectedRoute>} />
           <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/messages/:id" element={<ProtectedRoute><Conversation /></ProtectedRoute>} />
