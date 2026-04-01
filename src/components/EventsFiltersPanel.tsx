@@ -1,13 +1,12 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { useGarage } from '@/contexts/GarageContext';
-import { Slider } from '@/components/ui/slider';
-import { Switch } from '@/components/ui/switch';
-import { Calendar } from '@/components/ui/calendar';
+import { useState, useEffect, useMemo } from 'react';
+import { SlidersHorizontal, X, Plus, CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, SlidersHorizontal, X, Plus, Search, ChevronDown } from 'lucide-react';
-import { format } from 'date-fns';
+import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface EventsFilterState {
   distance: number | 'national' | 'international';
@@ -21,6 +20,15 @@ export interface EventsFilterState {
   eventSize: string | null;
   entryFee: string | null;
   clubHosted: boolean;
+  // New fields matching AddEvent
+  filterEventTypes: string[];
+  filterVehicleFocus: string;
+  filterMeetStyles: string[];
+  filterFreeOnly: boolean;
+  filterDateFrom: string;
+  filterDateTo: string;
+  filterGarageVehicleId: string | null;
+  filterGarageVehicle: any | null;
 }
 
 interface EventsFiltersPanelProps {
@@ -28,239 +36,115 @@ interface EventsFiltersPanelProps {
   onFiltersChange: (filters: EventsFilterState) => void;
 }
 
-const CAR_BRANDS = [
-  'Abarth','Alfa Romeo','Alpine','Aston Martin','Audi','Bentley','BMW','Bugatti',
-  'Cadillac','Chevrolet','Chrysler','Citroën','Cupra','Dacia','Dodge','Ferrari',
-  'Fiat','Ford','Genesis','GMC','Honda','Hyundai','Infiniti','Jaguar','Jeep',
-  'Kia','Koenigsegg','Lamborghini','Land Rover','Lexus','Lotus','Maserati',
-  'Mazda','McLaren','Mercedes-Benz','Mini','Mitsubishi','Nissan','Pagani',
-  'Peugeot','Polestar','Porsche','Renault','Rolls Royce','Seat','Skoda',
-  'Subaru','Suzuki','Tesla','Toyota','Vauxhall','Volkswagen','Volvo',
+// Constants matching AddEvent exactly
+const EVENT_TYPES = [
+  { id: 'Meets', label: 'Meets', emoji: '🚗' },
+  { id: 'Shows', label: 'Shows', emoji: '🏆' },
+  { id: 'Drive', label: 'Drive Out', emoji: '🛣' },
+  { id: 'Track Day', label: 'Track Day', emoji: '🏁' },
+  { id: 'Motorsport', label: 'Motorsport', emoji: '🏎' },
+  { id: 'Autojumble', label: 'Autojumble', emoji: '🔧' },
+  { id: 'Off-Road', label: 'Off-Road', emoji: '🌿' },
+  { id: 'Other', label: 'Other', emoji: '📍' },
 ];
 
-const BIKE_BRANDS = [
-  'Aprilia','Benelli','BMW Motorrad','CFMoto','Ducati','Harley-Davidson','Honda',
-  'Husqvarna','Indian','Kawasaki','KTM','Moto Guzzi','MV Agusta','Royal Enfield',
-  'Suzuki','Triumph','Yamaha','Zero Motorcycles',
+const VEHICLE_FOCUS_OPTIONS = [
+  { id: 'all', label: 'All welcome' },
+  { id: 'cars_only', label: 'Cars only' },
+  { id: 'motorcycles_only', label: 'Motorcycles only' },
+  { id: 'specific_makes', label: 'Specific makes' },
 ];
 
-const POPULAR_CAR_BRANDS = ['BMW','Porsche','Mercedes-Benz','Audi','Ford','Ferrari','Lamborghini','Nissan'];
-const POPULAR_BIKE_BRANDS = ['Ducati','Harley-Davidson','Honda','Kawasaki','Yamaha','Triumph','KTM','BMW Motorrad'];
+const MEET_STYLE_TAGS = [
+  'JDM', 'Supercars', 'Muscle Car', 'American', 'European',
+  '4x4', 'Classics', 'Vintage', 'Modified', 'Show & Shine',
+  'Track Focus', 'Charity', 'Family Friendly', 'Electric', 'Stance',
+];
 
 const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
-  const { vehicles } = useGarage();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [brandSearch, setBrandSearch] = useState('');
-  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
-  const brandRef = useRef<HTMLDivElement>(null);
+  const [myGarageVehicles, setMyGarageVehicles] = useState<any[]>([]);
 
+  // Load user garage vehicles for filter
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (brandRef.current && !brandRef.current.contains(e.target as Node)) {
-        setIsBrandDropdownOpen(false);
-      }
+    if (!user?.id) return;
+    const loadGarage = async () => {
+      const { data } = await supabase
+        .from('vehicles')
+        .select('id, make, model, year, variant, vehicle_type, photos, is_primary')
+        .eq('user_id', user.id)
+        .order('is_primary', { ascending: false });
+      setMyGarageVehicles(data || []);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
+    loadGarage();
 
-  const availableBrands = useMemo(() => {
-    if (filters.vehicleTypes.length === 0) return [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
-    const brands = new Set<string>();
-    for (const vt of filters.vehicleTypes) {
-      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') CAR_BRANDS.forEach(b => brands.add(b));
-      else if (vt === 'bikes') BIKE_BRANDS.forEach(b => brands.add(b));
-    }
-    return brands.size > 0 ? [...brands] : [...CAR_BRANDS, ...BIKE_BRANDS.filter(b => !CAR_BRANDS.includes(b))];
-  }, [filters.vehicleTypes]);
+    const channel = supabase
+      .channel('garage-filter-vehicles')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'vehicles',
+        filter: `user_id=eq.${user.id}`,
+      }, () => loadGarage())
+      .subscribe();
 
-  const popularBrands = useMemo(() => {
-    if (filters.vehicleTypes.length === 0) return [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
-    const pBrands = new Set<string>();
-    for (const vt of filters.vehicleTypes) {
-      if (vt === 'cars' || vt === 'big_stuff' || vt === 'military') POPULAR_CAR_BRANDS.forEach(b => pBrands.add(b));
-      else if (vt === 'bikes') POPULAR_BIKE_BRANDS.forEach(b => pBrands.add(b));
-    }
-    return pBrands.size > 0 ? [...pBrands] : [...POPULAR_CAR_BRANDS, ...POPULAR_BIKE_BRANDS.filter(b => !POPULAR_CAR_BRANDS.includes(b))];
-  }, [filters.vehicleTypes]);
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id]);
 
-  const filteredBrands = useMemo(() => {
-    const query = brandSearch.trim().toLowerCase();
-    if (!query) {
-      const rest = availableBrands.filter(b => !popularBrands.includes(b));
-      return [...popularBrands, ...rest].filter(b => !filters.vehicleBrands.includes(b)).slice(0, 8);
-    }
-    return availableBrands
-      .filter(b => b.toLowerCase().includes(query) && !filters.vehicleBrands.includes(b))
-      .slice(0, 8);
-  }, [brandSearch, availableBrands, popularBrands, filters.vehicleBrands]);
+  // Count active filters for badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (filters.filterEventTypes?.length > 0) count++;
+    if (filters.filterVehicleFocus && filters.filterVehicleFocus !== 'all') count++;
+    if (filters.filterMeetStyles?.length > 0) count++;
+    if (filters.filterFreeOnly) count++;
+    if (filters.filterDateFrom || filters.filterDateTo) count++;
+    if (filters.filterGarageVehicleId) count++;
+    return count;
+  }, [filters]);
 
-  const distancePresets = [
-    { id: 'national', label: 'National' },
-    { id: 'international', label: 'International' },
-  ];
-
-  // These IDs match EventType values in the model exactly
-  const typeOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'meets', label: 'Meets' },
-    { id: 'shows', label: 'Shows' },
-    { id: 'drive', label: 'Drive' },
-    { id: 'track-day', label: 'Track Day' },
-    { id: 'motorsport', label: 'Motorsport' },
-    { id: 'autojumble', label: 'Autojumble' },
-    { id: 'off-road', label: 'Off-Road' },
-  ];
-
-  const dateOptions = [
-    { id: 'today', label: 'Today' },
-    { id: 'this-week', label: 'This Week' },
-    { id: 'this-month', label: 'This Month' },
-  ];
-
-  const vehicleTypeOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'cars', label: 'Cars' },
-    { id: 'bikes', label: 'Bikes' },
-    { id: 'big_stuff', label: 'Big Stuff' },
-    { id: 'military', label: 'Military' },
-  ];
-
-  // IDs match the structured vehicleCategories values
-  const vehicleCategoryOptions = [
-    { id: 'jdm', label: 'JDM' },
-    { id: 'supercars', label: 'Supercars' },
-    { id: 'muscle-car', label: 'Muscle Car' },
-    { id: 'american', label: 'American' },
-    { id: 'european', label: 'European' },
-    { id: '4x4', label: '4x4' },
-    { id: 'row', label: 'ROW' },
-    { id: 'modern', label: 'Modern' },
-    { id: 'classics', label: 'Classics' },
-    { id: 'vintage', label: 'Vintage' },
-  ];
-
-  // IDs match the structured vehicleAge values
-  const vehicleAgeOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'pre_2000', label: "Pre 00's" },
-    { id: 'pre_1990', label: "Pre 90's" },
-    { id: 'pre_1980', label: "Pre 80's" },
-    { id: 'pre_1970', label: "Pre 70's" },
-    { id: 'pre_1960', label: "Pre 60's" },
-    { id: 'pre_1950', label: "Pre 50's" },
-  ];
-
-  const eventSizeOptions = [
-    { id: 'small', label: '< 20' },
-    { id: 'medium', label: '20-50' },
-    { id: 'large', label: '50-100' },
-    { id: 'massive', label: '100+' },
-  ];
-
-  const entryFeeOptions = [
-    { id: 'free', label: 'Free' },
-    { id: 'paid', label: 'Paid' },
-  ];
-
-  const toggleType = (typeId: string) => {
-    if (typeId === 'all') {
-      onFiltersChange({ ...filters, types: [] });
-      return;
-    }
-    const newTypes = filters.types.includes(typeId)
-      ? filters.types.filter(t => t !== typeId)
-      : [...filters.types.filter(t => t !== 'all'), typeId];
-    onFiltersChange({ ...filters, types: newTypes });
-  };
-
-  const toggleVehicleType = (vehicleTypeId: string) => {
-    if (vehicleTypeId === 'all') {
-      onFiltersChange({ ...filters, vehicleTypes: [], vehicleBrands: [] });
-      setBrandSearch('');
-      return;
-    }
-    const isAlreadySelected = filters.vehicleTypes.includes(vehicleTypeId);
-    const newTypes = isAlreadySelected
-      ? filters.vehicleTypes.filter(t => t !== vehicleTypeId)
-      : [...filters.vehicleTypes, vehicleTypeId];
+  const clearAllFilters = () => {
     onFiltersChange({
       ...filters,
-      vehicleTypes: newTypes,
-      vehicleBrands: newTypes.length === 0 ? [] : filters.vehicleBrands,
-    });
-    setBrandSearch('');
-  };
-
-  const toggleVehicleCategory = (catId: string) => {
-    const isSelected = filters.vehicleCategories.includes(catId);
-    onFiltersChange({
-      ...filters,
-      vehicleCategories: isSelected
-        ? filters.vehicleCategories.filter(c => c !== catId)
-        : [...filters.vehicleCategories, catId],
-    });
-  };
-
-  const toggleVehicleAge = (ageId: string) => {
-    if (ageId === 'all') {
-      onFiltersChange({ ...filters, vehicleAges: [] });
-      return;
-    }
-    const isSelected = filters.vehicleAges.includes(ageId);
-    onFiltersChange({
-      ...filters,
-      vehicleAges: isSelected
-        ? filters.vehicleAges.filter(a => a !== ageId)
-        : [...filters.vehicleAges, ageId],
-    });
-  };
-
-  const addBrand = (brand: string) => {
-    onFiltersChange({ ...filters, vehicleBrands: [...filters.vehicleBrands, brand] });
-    setBrandSearch('');
-  };
-
-  const removeBrand = (brand: string) => {
-    onFiltersChange({ ...filters, vehicleBrands: filters.vehicleBrands.filter(b => b !== brand) });
-  };
-
-  const handleDistanceChange = (value: number[]) => {
-    onFiltersChange({ ...filters, distance: value[0] });
-  };
-
-  const handleDistancePreset = (preset: 'national' | 'international') => {
-    onFiltersChange({
-      ...filters,
-      distance: filters.distance === preset ? 25 : preset,
-    });
-  };
-
-  const handleDateFilter = (dateId: string) => {
-    onFiltersChange({
-      ...filters,
-      dateFilter: filters.dateFilter === dateId ? null : dateId,
+      filterEventTypes: [],
+      filterVehicleFocus: 'all',
+      filterMeetStyles: [],
+      filterFreeOnly: false,
+      filterDateFrom: '',
+      filterDateTo: '',
+      filterGarageVehicleId: null,
+      filterGarageVehicle: null,
+      // Also clear legacy filters
+      types: [],
+      dateFilter: null,
       specificDate: undefined,
+      vehicleTypes: [],
+      vehicleBrands: [],
+      vehicleCategories: [],
+      vehicleAges: [],
+      eventSize: null,
+      entryFee: null,
+      clubHosted: false,
     });
   };
 
-  const handleSpecificDate = (date: Date | undefined) => {
-    onFiltersChange({
-      ...filters,
-      dateFilter: date ? 'specific' : null,
-      specificDate: date,
-    });
-    if (date) setIsDatePickerOpen(false);
+  const toggleEventType = (typeId: string) => {
+    const current = filters.filterEventTypes || [];
+    const newTypes = current.includes(typeId)
+      ? current.filter(t => t !== typeId)
+      : [...current, typeId];
+    onFiltersChange({ ...filters, filterEventTypes: newTypes });
   };
 
-  const isDistanceNumeric = typeof filters.distance === 'number';
-  const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
-  const getDistanceLabel = () => {
-    if (isDistanceNumeric) return `${filters.distance} miles`;
-    const preset = filters.distance as string;
-    return preset.charAt(0).toUpperCase() + preset.slice(1);
+  const toggleMeetStyle = (tag: string) => {
+    const current = filters.filterMeetStyles || [];
+    const newStyles = current.includes(tag)
+      ? current.filter(t => t !== tag)
+      : [...current, tag];
+    onFiltersChange({ ...filters, filterMeetStyles: newStyles });
   };
 
   return (
@@ -272,7 +156,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
           <PopoverTrigger asChild>
             <button
               className={`h-10 flex items-center gap-1.5 px-3 rounded-xl border transition-all duration-300 ${
-                filters.dateFilter === 'specific'
+                filters.specificDate
                   ? 'bg-events/80 text-white border-events/80 shadow-lg'
                   : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-events/50 hover:bg-events/10'
               }`}
@@ -289,17 +173,24 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             <Calendar
               mode="single"
               selected={filters.specificDate}
-              onSelect={handleSpecificDate}
+              onSelect={(date) => {
+                onFiltersChange({
+                  ...filters,
+                  dateFilter: date ? 'specific' : null,
+                  specificDate: date || undefined,
+                });
+                if (date) setIsDatePickerOpen(false);
+              }}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
         </Popover>
 
-        {/* Filter Button */}
+        {/* Filter Button with badge */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+          className={`relative h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
             isOpen
               ? 'bg-events/80 text-white border-events/80 shadow-lg'
               : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-events/50 hover:bg-events/10'
@@ -307,6 +198,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
         >
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-events text-white text-[10px] font-bold flex items-center justify-center shadow-sm">
+              {activeFilterCount}
+            </span>
+          )}
         </button>
 
         {/* Add Event Button */}
@@ -321,20 +217,19 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
 
       {/* Filter Panel */}
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[60vh] overflow-y-auto">
-          {/* Header with close */}
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-5 animate-fade-up max-h-[65vh] overflow-y-auto">
+          {/* Header with active count and clear */}
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Events</h3>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => onFiltersChange({
-                  distance: 25, types: [], dateFilter: null, specificDate: undefined,
-                  vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
-                })}
-                className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
-              >
-                Clear All
-              </button>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearAllFilters}
+                  className="text-[10px] font-medium text-events hover:text-events/70 transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
               <button
                 onClick={() => setIsOpen(false)}
                 className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
@@ -344,277 +239,231 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
             </div>
           </div>
 
-          {/* Distance Filter */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-foreground">Distance</p>
-              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+          {activeFilterCount > 0 && (
+            <div className="flex items-center justify-between bg-events/5 rounded-lg px-3 py-2 border border-events/20">
+              <span className="text-[11px] font-semibold text-events">
+                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
+              </span>
             </div>
-            <Slider
-              variant="events"
-              value={[isDistanceNumeric ? distanceValue : 25]}
-              onValueChange={handleDistanceChange}
-              min={1}
-              max={50}
-              step={1}
-              className="w-full"
-              disabled={!isDistanceNumeric}
-            />
-            <div className="flex gap-1.5 mt-2">
-              {distancePresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.distance === preset.id
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {preset.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
-          {/* Event Type Filter */}
-          <div className="space-y-2">
+          {/* EVENT TYPE */}
+          <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Event Type</p>
-            <div className="flex flex-wrap gap-1.5">
-              {typeOptions.map((type) => (
+            <div className="grid grid-cols-4 gap-1.5">
+              {EVENT_TYPES.map(type => (
                 <button
                   key={type.id}
-                  onClick={() => toggleType(type.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (type.id === 'all' && filters.types.length === 0) || filters.types.includes(type.id)
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  onClick={() => toggleEventType(type.id)}
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border transition-all ${
+                    (filters.filterEventTypes || []).includes(type.id)
+                      ? 'bg-events/10 border-events text-events'
+                      : 'bg-muted/30 border-border/30 text-muted-foreground'
                   }`}
                 >
-                  {type.label}
+                  <span className="text-base">{type.emoji}</span>
+                  <span className="text-[9px] font-semibold">{type.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Vehicle Type Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Vehicle Type</p>
-            <div className="flex flex-wrap gap-1.5">
-              {vehicleTypeOptions.map((vehicle) => (
+          {/* VEHICLE FOCUS */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-medium text-foreground">Vehicle Focus</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {VEHICLE_FOCUS_OPTIONS.map(opt => (
                 <button
-                  key={vehicle.id}
-                  onClick={() => toggleVehicleType(vehicle.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (vehicle.id === 'all' && filters.vehicleTypes.length === 0) || filters.vehicleTypes.includes(vehicle.id)
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  key={opt.id}
+                  onClick={() => onFiltersChange({
+                    ...filters,
+                    filterVehicleFocus: (filters.filterVehicleFocus || 'all') === opt.id ? 'all' : opt.id,
+                  })}
+                  className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
+                    (filters.filterVehicleFocus || 'all') === opt.id
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'bg-muted/30 text-muted-foreground border-border/30'
                   }`}
                 >
-                  {vehicle.label}
+                  {opt.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Vehicle Brand Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">
-              Specific Vehicle Brand
-            </p>
+          {/* MEET STYLE */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-medium text-foreground">Meet Style</p>
+            <div className="flex flex-wrap gap-1.5">
+              {MEET_STYLE_TAGS.map(tag => (
+                <button
+                  key={tag}
+                  onClick={() => toggleMeetStyle(tag)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                    (filters.filterMeetStyles || []).includes(tag)
+                      ? 'bg-events text-events-foreground border-events'
+                      : 'bg-muted/30 text-muted-foreground border-border/30'
+                  }`}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          </div>
 
-            {(
-              <div ref={brandRef} className="relative">
-                {filters.vehicleBrands.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5 mb-2">
-                    {filters.vehicleBrands.map((brand) => (
-                      <span
-                        key={brand}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-events/15 text-events text-[10px] font-semibold border border-events/30"
-                      >
-                        {brand}
-                        <button
-                          onClick={() => removeBrand(brand)}
-                          className="w-3.5 h-3.5 rounded-full bg-events/20 hover:bg-events/40 flex items-center justify-center transition-colors"
-                        >
-                          <X className="w-2.5 h-2.5" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
+          {/* FREE ENTRY ONLY */}
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-xs font-medium text-foreground">Free entry only</p>
+              <p className="text-[10px] text-muted-foreground">Only show free events</p>
+            </div>
+            <button
+              onClick={() => onFiltersChange({ ...filters, filterFreeOnly: !filters.filterFreeOnly })}
+              className={`w-12 h-6 rounded-full transition-all relative flex-shrink-0 ${
+                filters.filterFreeOnly ? 'bg-foreground' : 'bg-muted border border-border/50'
+              }`}
+            >
+              <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-background shadow-sm transition-all ${
+                filters.filterFreeOnly ? 'left-[26px]' : 'left-0.5'
+              }`} />
+            </button>
+          </div>
 
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={brandSearch}
-                    onChange={(e) => {
-                      setBrandSearch(e.target.value);
-                      setIsBrandDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsBrandDropdownOpen(true)}
-                    placeholder="Search vehicle brand..."
-                    className="w-full h-9 pl-8 pr-3 rounded-lg border border-border/60 bg-background text-xs text-foreground placeholder:text-muted-foreground outline-none focus:border-events/50 focus:ring-1 focus:ring-events/30 transition-all"
-                  />
-                </div>
-
-                {isBrandDropdownOpen && filteredBrands.length > 0 && (
-                  <div className="absolute left-0 right-0 mt-1 bg-card border border-border/60 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto">
-                    {!brandSearch.trim() && (
-                      <p className="px-3 pt-2 pb-1 text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Popular</p>
-                    )}
-                    {filteredBrands.map((brand) => (
-                      <button
-                        key={brand}
-                        onClick={() => {
-                          addBrand(brand);
-                          setIsBrandDropdownOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-xs text-foreground hover:bg-events/10 transition-colors"
-                      >
-                        {brand}
-                      </button>
-                    ))}
-                  </div>
-                )}
+          {/* DATE RANGE */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-medium text-foreground">Date Range</p>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] text-muted-foreground mb-1 block">From</label>
+                <input
+                  type="date"
+                  value={filters.filterDateFrom || ''}
+                  onChange={(e) => onFiltersChange({ ...filters, filterDateFrom: e.target.value })}
+                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-xs bg-background"
+                />
               </div>
+              <div>
+                <label className="text-[10px] text-muted-foreground mb-1 block">To</label>
+                <input
+                  type="date"
+                  value={filters.filterDateTo || ''}
+                  onChange={(e) => onFiltersChange({ ...filters, filterDateTo: e.target.value })}
+                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-xs bg-background"
+                />
+              </div>
+            </div>
+            {(filters.filterDateFrom || filters.filterDateTo) && (
+              <button
+                onClick={() => onFiltersChange({ ...filters, filterDateFrom: '', filterDateTo: '' })}
+                className="text-xs text-muted-foreground mt-1.5"
+              >
+                Clear dates
+              </button>
             )}
           </div>
 
-          {/* Vehicle Category Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Specific Vehicle Category</p>
-            <div className="flex flex-wrap gap-1.5">
-              {vehicleCategoryOptions.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => toggleVehicleCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.vehicleCategories.includes(cat.id)
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* MY GARAGE VEHICLES */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-medium text-foreground">My Garage</p>
+            <p className="text-[10px] text-muted-foreground -mt-1">
+              Filter events that your vehicle can attend
+            </p>
 
-          {/* Vehicle Age Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Vehicle Age</p>
-            <div className="flex flex-wrap gap-1.5">
-              {vehicleAgeOptions.map((age) => (
+            {myGarageVehicles.length === 0 ? (
+              <div className="text-center py-3">
+                <p className="text-[11px] text-muted-foreground">Add vehicles to My Garage to use this filter</p>
                 <button
-                  key={age.id}
-                  onClick={() => toggleVehicleAge(age.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (age.id === 'all' && filters.vehicleAges.length === 0) || filters.vehicleAges.includes(age.id)
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
+                  onClick={() => navigate('/garage/add')}
+                  className="mt-2 text-xs font-semibold text-events"
+                >
+                  Add a vehicle →
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {/* Any vehicle option */}
+                <button
+                  onClick={() => onFiltersChange({
+                    ...filters,
+                    filterGarageVehicleId: null,
+                    filterGarageVehicle: null,
+                  })}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                    !filters.filterGarageVehicleId
+                      ? 'bg-muted/50 border-border/50'
+                      : 'bg-muted/20 border-border/20'
                   }`}
                 >
-                  {age.label}
+                  <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center text-lg">
+                    🚗
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-foreground">Any vehicle</p>
+                    <p className="text-[10px] text-muted-foreground">Show all events</p>
+                  </div>
+                  {!filters.filterGarageVehicleId && (
+                    <div className="w-5 h-5 rounded-full bg-foreground flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-background" />
+                    </div>
+                  )}
                 </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Date Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Date</p>
-            <div className="flex flex-wrap gap-1.5">
-              {dateOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => handleDateFilter(option.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.dateFilter === option.id
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
+                {/* Individual garage vehicles */}
+                {myGarageVehicles.map(vehicle => (
                   <button
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all flex items-center gap-1 ${
-                      filters.dateFilter === 'specific'
-                        ? 'bg-events/80 text-white'
-                        : 'bg-muted text-muted-foreground hover:bg-events/10'
+                    key={vehicle.id}
+                    onClick={() => {
+                      if (filters.filterGarageVehicleId === vehicle.id) {
+                        onFiltersChange({
+                          ...filters,
+                          filterGarageVehicleId: null,
+                          filterGarageVehicle: null,
+                        });
+                      } else {
+                        onFiltersChange({
+                          ...filters,
+                          filterGarageVehicleId: vehicle.id,
+                          filterGarageVehicle: vehicle,
+                        });
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
+                      filters.filterGarageVehicleId === vehicle.id
+                        ? 'bg-events/10 border-events'
+                        : 'bg-muted/20 border-border/20'
                     }`}
                   >
-                    <CalendarIcon className="w-3 h-3" />
-                    {filters.specificDate
-                      ? format(filters.specificDate, 'MMM d, yyyy')
-                      : 'Pick Date'}
+                    <div className="w-10 h-10 rounded-lg bg-muted/30 overflow-hidden flex items-center justify-center">
+                      {vehicle.photos?.[0] ? (
+                        <img src={vehicle.photos[0]} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-lg">
+                          {vehicle.vehicle_type === 'motorcycle' ? '🏍' : '🚗'}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-foreground">
+                        {vehicle.make} {vehicle.model}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {vehicle.year}
+                        {vehicle.variant && ` · ${vehicle.variant}`}
+                      </p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                      filters.filterGarageVehicleId === vehicle.id
+                        ? 'bg-events border-events'
+                        : 'border-border/50'
+                    }`}>
+                      {filters.filterGarageVehicleId === vehicle.id && (
+                        <div className="w-2 h-2 rounded-full bg-white" />
+                      )}
+                    </div>
                   </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={filters.specificDate}
-                    onSelect={handleSpecificDate}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          {/* Event Size Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Event Size</p>
-            <div className="flex gap-1.5">
-              {eventSizeOptions.map((size) => (
-                <button
-                  key={size.id}
-                  onClick={() => onFiltersChange({ ...filters, eventSize: filters.eventSize === size.id ? null : size.id })}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.eventSize === size.id
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {size.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Entry Fee Filter */}
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Entry Fee</p>
-            <div className="flex gap-1.5">
-              {entryFeeOptions.map((fee) => (
-                <button
-                  key={fee.id}
-                  onClick={() => onFiltersChange({ ...filters, entryFee: filters.entryFee === fee.id ? null : fee.id })}
-                  className={`flex-1 px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.entryFee === fee.id
-                      ? 'bg-events/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-events/10'
-                  }`}
-                >
-                  {fee.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Club Hosted Toggle */}
-          <div className="flex items-center justify-between py-1">
-            <p className="text-xs font-medium text-foreground">Club Hosted Only</p>
-            <Switch
-              checked={filters.clubHosted}
-              onCheckedChange={(checked) => onFiltersChange({ ...filters, clubHosted: checked })}
-              className="data-[state=checked]:bg-events"
-            />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Apply Button */}
