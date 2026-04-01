@@ -39,6 +39,7 @@ export default function Clubs() {
   const [userPlan, setUserPlan] = useState('free')
   const [inviteCode, setInviteCode] = useState('')
   const [showInviteInput, setShowInviteInput] = useState(false)
+  const [suggestedClubs, setSuggestedClubs] = useState<any[]>([])
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -58,6 +59,15 @@ export default function Clubs() {
       setMyClubIds(memberships?.map(m => m.club_id) || [])
     }
     load()
+  }, [user?.id])
+
+  useEffect(() => {
+    if (!user?.id) return
+    const loadSuggested = async () => {
+      const { data } = await supabase.rpc('suggest_clubs_for_user', { p_user_id: user.id })
+      setSuggestedClubs(data || [])
+    }
+    loadSuggested()
   }, [user?.id])
 
   useEffect(() => {
@@ -294,6 +304,25 @@ export default function Clubs() {
 
       {/* Club list */}
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+        {/* Suggested clubs */}
+        {activeTab === 'discover' && suggestedClubs.length > 0 && !searchQuery && activeType === 'all' && (
+          <div className="space-y-3 mb-4">
+            <p className="text-sm font-bold text-foreground">Suggested for you</p>
+            {suggestedClubs.slice(0, 3).map((club: any) => (
+              <div key={club.id} className="space-y-1">
+                <ClubDiscoveryCard
+                  club={club}
+                  isMember={myClubIds.includes(club.id)}
+                  onJoin={() => handleJoin(club)}
+                  onView={() => navigate(`/club/${club.id}`)}
+                />
+                <p className="text-[10px] text-muted-foreground px-2">
+                  ✨ {club.match_reason}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
         {loading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="w-full h-52 rounded-2xl" />

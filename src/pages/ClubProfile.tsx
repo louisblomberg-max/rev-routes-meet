@@ -9,17 +9,21 @@ import ClubFeed from '@/components/clubs/ClubFeed'
 import ClubMembers from '@/components/clubs/ClubMembers'
 import ClubEvents from '@/components/clubs/ClubEvents'
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard'
+import ClubGarage from '@/components/clubs/ClubGarage'
+import ClubRoutes from '@/components/clubs/ClubRoutes'
 
 const TABS = [
   { id: 'feed', label: 'Feed', icon: '📝' },
   { id: 'events', label: 'Events', icon: '📅' },
+  { id: 'garage', label: 'Garage', icon: '🚗' },
+  { id: 'routes', label: 'Routes', icon: '🗺' },
   { id: 'members', label: 'Members', icon: '👥' },
   { id: 'leaderboard', label: 'Top', icon: '🏆' },
   { id: 'about', label: 'About', icon: 'ℹ️' },
 ]
 
 export default function ClubProfile() {
-  const { id: clubId } = useParams()
+  const { clubId } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [club, setClub] = useState<any>(null)
@@ -28,6 +32,7 @@ export default function ClubProfile() {
   const [activeTab, setActiveTab] = useState('feed')
   const [joining, setJoining] = useState(false)
   const [mutualFriends, setMutualFriends] = useState<any[]>([])
+  const [inviteCodeInput, setInviteCodeInput] = useState('')
 
   useEffect(() => {
     if (!clubId) return
@@ -86,29 +91,49 @@ export default function ClubProfile() {
 
   const handleJoin = async () => {
     if (!user?.id) { navigate('/auth'); return }
+
+    // Check if user is blocked
+    if (club.blocked_users?.includes(user.id)) {
+      toast.error('You cannot join this club')
+      return
+    }
+
+    if (club.join_mode === 'approval') {
+      navigate(`/club/${clubId}/join`)
+      return
+    }
+
+    if (club.join_mode === 'invite_only') {
+      toast.error('This club is invite only — you need an invite code to join')
+      return
+    }
+
     setJoining(true)
     try {
-      if (club.join_mode === 'approval') {
-        await supabase.from('club_join_requests').upsert({
-          club_id: clubId, user_id: user.id, status: 'pending'
-        })
-        toast.success('Join request sent')
-      } else {
-        await supabase.from('club_memberships').insert({
-          club_id: clubId, user_id: user.id, role: 'member'
-        })
-        if (club.created_by) {
-          await supabase.rpc('send_notification', {
-            p_user_id: club.created_by,
-            p_type: 'club_join',
-            p_title: 'New member joined',
-            p_body: `Someone joined ${club.name}`,
-            p_data: { club_id: clubId }
-          })
-        }
-        toast.success(`Welcome to ${club.name}!`)
-        loadClub()
+      await supabase.from('club_memberships').insert({
+        club_id: clubId, user_id: user.id, role: 'member'
+      })
+
+      // Check founding member
+      if (club.member_count < 10) {
+        await supabase.from('club_memberships').update({
+          is_founding_member: true,
+          points: 20,
+          badges: ['founding_member']
+        }).eq('club_id', clubId!).eq('user_id', user.id)
       }
+
+      if (club.created_by) {
+        await supabase.rpc('send_notification', {
+          p_user_id: club.created_by,
+          p_type: 'club_join',
+          p_title: 'New member joined',
+          p_body: `Someone joined ${club.name}`,
+          p_data: { club_id: clubId }
+        })
+      }
+      toast.success(`Welcome to ${club.name}!`)
+      loadClub()
     } finally {
       setJoining(false)
     }
@@ -150,6 +175,73 @@ export default function ClubProfile() {
     </div>
   )
 
+  // Private club locked preview
+  if (club.is_private && !isMember) {
+    return (
+      <div className="mobile-container bg-background min-h-screen">
+        <div className="relative w-full h-44">
+          {club.cover_url ? (
+            <img src={club.cover_url} className="w-full h-full object-cover" alt="" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          <button
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white safe-top"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-4 -mt-8 relative z-10 space-y-4">
+          <div className="w-[72px] h-[72px] rounded-2xl border-4 border-background overflow-hidden bg-card shadow-lg">
+            {club.logo_url ? (
+              <img src={club.logo_url} className="w-full h-full object-cover" alt="" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center text-2xl font-bold text-muted-foreground">
+                {club.name?.[0]?.toUpperCase()}
+              </div>
+            )}
+          </div>
+          <h1 className="text-xl font-bold text-foreground">{club.name}</h1>
+          <p className="text-xs text-muted-foreground">@{club.handle}</p>
+          <p className="text-sm text-muted-foreground">{club.member_count} members</p>
+
+          <div className="bg-card rounded-2xl border border-border/50 p-6 text-center space-y-3">
+            <p className="text-3xl">🔒</p>
+            <p className="font-bold text-foreground">Private Club</p>
+            <p className="text-sm text-muted-foreground">
+              This club is private. You need an invite code to join.
+            </p>
+            <div className="flex gap-2">
+              <input
+                value={inviteCodeInput}
+                onChange={e => setInviteCodeInput(e.target.value)}
+                placeholder="Enter invite code"
+                className="flex-1 border border-border/50 rounded-xl px-4 py-3 text-sm bg-background uppercase tracking-widest"
+                maxLength={8}
+              />
+              <button
+                onClick={async () => {
+                  if (!inviteCodeInput.trim() || !user?.id) return
+                  const { data } = await supabase.from('clubs').select('id').eq('id', clubId!).eq('invite_code', inviteCodeInput.trim().toLowerCase()).single()
+                  if (!data) { toast.error('Invalid code'); return }
+                  await supabase.from('club_memberships').insert({ club_id: clubId, user_id: user.id, role: 'member' })
+                  toast.success('Joined!')
+                  loadClub()
+                }}
+                className="px-4 py-3 rounded-xl bg-foreground text-background text-sm font-semibold"
+              >
+                Join
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const socialLinks = club.social_links as Record<string, string> | null
 
   return (
@@ -179,7 +271,7 @@ export default function ClubProfile() {
             </button>
             {isAdmin && (
               <button
-                onClick={() => toast.info('Club settings coming soon')}
+                onClick={() => navigate(`/club/${clubId}/settings`)}
                 className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"
               >
                 <Settings className="w-4 h-4" />
@@ -303,6 +395,12 @@ export default function ClubProfile() {
         {activeTab === 'events' && (
           <ClubEvents clubId={clubId!} isMember={isMember} isAdmin={isAdmin} />
         )}
+        {activeTab === 'garage' && (
+          <ClubGarage clubId={clubId!} isMember={isMember} />
+        )}
+        {activeTab === 'routes' && (
+          <ClubRoutes clubId={clubId!} isMember={isMember} />
+        )}
         {activeTab === 'members' && (
           <ClubMembers clubId={clubId!} isAdmin={isAdmin} currentUserId={user?.id} />
         )}
@@ -405,7 +503,7 @@ export default function ClubProfile() {
             {/* Organiser info */}
             {club.profiles && (
               <button
-                onClick={() => navigate(`/profile/${club.profiles?.id}`)}
+                onClick={() => navigate(`/user/${club.profiles?.username}`)}
                 className="w-full bg-card rounded-2xl border border-border/50 p-4 flex items-center gap-3 text-left"
               >
                 <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
