@@ -340,16 +340,33 @@ export default function Clubs() {
             </p>
             <p className="text-sm text-muted-foreground mt-1 max-w-[240px]">
               {activeTab === 'my'
-                ? 'Discover and join clubs to see them here'
+                ? 'Join a club or create your own'
                 : 'Try a different search or category'}
             </p>
             {activeTab === 'my' && (
-              <button
-                onClick={() => setActiveTab('discover')}
-                className="mt-4 px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-semibold"
-              >
-                Discover Clubs
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('discover')}
+                  className="mt-4 px-6 py-2.5 rounded-xl bg-foreground text-background text-sm font-semibold"
+                >
+                  Discover Clubs
+                </button>
+                {userPlan === 'club' ? (
+                  <button
+                    onClick={() => navigate('/add/club')}
+                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
+                  >
+                    Create a club
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => navigate('/upgrade')}
+                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
+                  >
+                    ⭐ Create a club — Club / Business plan
+                  </button>
+                )}
+              </>
             )}
           </div>
         ) : (
