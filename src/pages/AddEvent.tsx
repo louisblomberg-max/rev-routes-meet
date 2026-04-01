@@ -189,6 +189,59 @@ const AddEvent = () => {
     return () => document.removeEventListener('mousedown', handler)
   }, [])
 
+  // Map picker initialisation
+  useEffect(() => {
+    if (!showMapPicker || !mapPickerRef.current) return
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN
+
+    const map = new mapboxgl.Map({
+      container: mapPickerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: locationLng && locationLat ? [locationLng, locationLat] : [-1.5, 52.5],
+      zoom: locationLat ? 14 : 6,
+      attributionControl: false,
+    })
+    pickerMapRef.current = map
+
+    if (locationLat && locationLng) {
+      pickerMarkerRef.current = new mapboxgl.Marker({ color: '#CC2222' })
+        .setLngLat([locationLng, locationLat])
+        .addTo(map)
+    }
+
+    map.on('click', async (e) => {
+      const { lng, lat } = e.lngLat
+      if (pickerMarkerRef.current) {
+        pickerMarkerRef.current.setLngLat([lng, lat])
+      } else {
+        pickerMarkerRef.current = new mapboxgl.Marker({ color: '#CC2222' })
+          .setLngLat([lng, lat])
+          .addTo(map)
+      }
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&types=address,poi,place`
+        )
+        const data = await res.json()
+        const placeName = data.features?.[0]?.place_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        setLocation(placeName)
+        setLocationQuery(placeName)
+        setLocationLat(lat)
+        setLocationLng(lng)
+      } catch {
+        setLocation(`${lat.toFixed(5)}, ${lng.toFixed(5)}`)
+        setLocationLat(lat)
+        setLocationLng(lng)
+      }
+    })
+
+    return () => {
+      map.remove()
+      pickerMapRef.current = null
+      pickerMarkerRef.current = null
+    }
+  }, [showMapPicker])
+
   // Location search
   useEffect(() => {
     if (locationQuery.length < 3) { setLocationSuggestions([]); return }
