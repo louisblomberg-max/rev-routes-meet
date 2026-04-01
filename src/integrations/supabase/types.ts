@@ -678,6 +678,50 @@ export type Database = {
         }
         Relationships: []
       }
+      convoys: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          dest_lat: number | null
+          dest_lng: number | null
+          destination_title: string | null
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          member_ids: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          member_ids?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          dest_lat?: number | null
+          dest_lng?: number | null
+          destination_title?: string | null
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          member_ids?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convoys_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_tokens: {
         Row: {
           created_at: string | null
@@ -1202,47 +1246,71 @@ export type Database = {
       }
       live_location_sessions: {
         Row: {
+          accuracy: number | null
+          bearing: number | null
+          convoy_id: string | null
+          current_speed_mph: number | null
           dest_lat: number | null
           dest_lng: number | null
           destination_title: string | null
           ended_at: string | null
           id: string
           is_active: boolean | null
+          is_convoy_leader: boolean | null
+          is_navigating: boolean | null
           last_heading: number | null
           last_lat: number | null
           last_lng: number | null
           last_updated: string | null
+          route_geometry: Json | null
           session_type: string | null
+          shared_with: string[] | null
           started_at: string | null
           user_id: string | null
         }
         Insert: {
+          accuracy?: number | null
+          bearing?: number | null
+          convoy_id?: string | null
+          current_speed_mph?: number | null
           dest_lat?: number | null
           dest_lng?: number | null
           destination_title?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_convoy_leader?: boolean | null
+          is_navigating?: boolean | null
           last_heading?: number | null
           last_lat?: number | null
           last_lng?: number | null
           last_updated?: string | null
+          route_geometry?: Json | null
           session_type?: string | null
+          shared_with?: string[] | null
           started_at?: string | null
           user_id?: string | null
         }
         Update: {
+          accuracy?: number | null
+          bearing?: number | null
+          convoy_id?: string | null
+          current_speed_mph?: number | null
           dest_lat?: number | null
           dest_lng?: number | null
           destination_title?: string | null
           ended_at?: string | null
           id?: string
           is_active?: boolean | null
+          is_convoy_leader?: boolean | null
+          is_navigating?: boolean | null
           last_heading?: number | null
           last_lat?: number | null
           last_lng?: number | null
           last_updated?: string | null
+          route_geometry?: Json | null
           session_type?: string | null
+          shared_with?: string[] | null
           started_at?: string | null
           user_id?: string | null
         }
@@ -2330,11 +2398,16 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: {
           avatar_url: string
+          bearing: number
+          convoy_id: string
+          current_speed_mph: number
           dest_lat: number
           dest_lng: number
           destination_title: string
           display_name: string
           heading: number
+          is_convoy_leader: boolean
+          is_navigating: boolean
           last_updated: string
           lat: number
           lng: number
