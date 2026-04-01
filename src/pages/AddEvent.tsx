@@ -52,6 +52,11 @@ const AddEvent = () => {
   const [userPlan, setUserPlan] = useState('free')
   const [hasStripeConnect, setHasStripeConnect] = useState(false)
   const [myClubs, setMyClubs] = useState<{ id: string; name: string }[]>([])
+  const [showMapPicker, setShowMapPicker] = useState(false)
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([])
+  const [allFriends, setAllFriends] = useState<any[]>([])
+  const [friendsMode, setFriendsMode] = useState<'all' | 'specific'>('all')
+  const [myOwnedClubs, setMyOwnedClubs] = useState<{ id: string; name: string; logo_url: string | null }[]>([])
 
   // Section 1 — Details
   const [title, setTitle] = useState('')
