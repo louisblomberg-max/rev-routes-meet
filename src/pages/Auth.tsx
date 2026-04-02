@@ -95,7 +95,7 @@ const Auth = () => {
             ))}
           </div>
 
-          <div className="w-full flex flex-col gap-3 mt-4">
+          <div className="w-full flex flex-col gap-3 mt-1">
             <Button onClick={() => setMode('signup')} className="w-full h-12 rounded-2xl text-sm font-semibold">
               Create Account
             </Button>
