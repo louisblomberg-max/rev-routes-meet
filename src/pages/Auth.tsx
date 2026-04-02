@@ -77,10 +77,10 @@ const Auth = () => {
 
   if (mode === 'landing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#f3f3e8' }}>
-        <div className="w-full max-w-sm flex flex-col items-center gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-4" style={{ backgroundColor: '#f3f3e8' }}>
+        <div className="w-full max-w-sm flex flex-col items-center gap-3">
           <div className="flex flex-col items-center">
-            <img src={LOGO_URL} alt="RevNet logo" className="w-80 h-80 rounded-2xl object-contain" />
+            <img src={LOGO_URL} alt="RevNet logo" className="w-48 h-48 rounded-2xl object-contain" />
             <p className="text-muted-foreground text-sm">Everything for drivers and riders</p>
           </div>
 
@@ -95,7 +95,7 @@ const Auth = () => {
             ))}
           </div>
 
-          <div className="w-full flex flex-col gap-3 mt-4">
+          <div className="w-full flex flex-col gap-3 mt-1">
             <Button onClick={() => setMode('signup')} className="w-full h-12 rounded-2xl text-sm font-semibold">
               Create Account
             </Button>
