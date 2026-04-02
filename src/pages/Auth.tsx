@@ -84,16 +84,6 @@ const Auth = () => {
             <p className="text-muted-foreground text-sm">Everything for drivers and riders</p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-2">
-            {FEATURE_PILLS.map(pill => (
-              <span
-                key={pill}
-                className="px-3 py-1 rounded-full text-xs font-medium bg-card text-foreground border border-border/50"
-              >
-                {pill}
-              </span>
-            ))}
-          </div>
 
           <div className="w-full flex flex-col gap-3 mt-1">
             <Button onClick={() => setMode('signup')} className="w-full h-12 rounded-2xl text-sm font-semibold">
