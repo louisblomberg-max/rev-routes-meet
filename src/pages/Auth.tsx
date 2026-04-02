@@ -81,7 +81,7 @@ const Auth = () => {
         <div className="w-full max-w-sm flex flex-col items-center gap-6">
           <img src={LOGO_URL} alt="RevNet logo" className="w-20 h-20 rounded-2xl object-contain" />
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">RevNet</h1>
+            <h1 className="text-2xl font-bold text-foreground">​</h1>
             <p className="text-muted-foreground text-sm mt-1">Everything for drivers and riders</p>
           </div>
 
