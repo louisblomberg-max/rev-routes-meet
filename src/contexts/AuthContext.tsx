@@ -14,6 +14,22 @@ export interface NotificationPrefs {
 export type BillingCycle = 'monthly' | 'yearly';
 export type SubscriptionStatus = 'active' | 'inactive' | 'selected';
 
+export interface Profile {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  location: string | null;
+  plan: string | null;
+  free_event_credits: number | null;
+  onboarding_complete: boolean | null;
+  profile_visibility: string | null;
+  stripe_connect_account_id: string | null;
+  created_at: string | null;
+}
+
+// Backward-compatible AuthUser shape used by existing pages
 export interface AuthUser {
   id: string;
   email?: string;
@@ -41,6 +57,7 @@ export interface AuthUser {
   };
   vehicleTypes: string[];
   vehicleTags: string[];
+  vehicles: any[];
   discoveryRadiusMiles: number;
   discoveryScope: 'local' | 'national' | 'continental' | 'global';
   notificationPrefs: NotificationPrefs;
@@ -70,10 +87,20 @@ export interface AuthUser {
   eventCredits: number;
   routeCredits: number;
   createdAt: string;
-  vehicles: any[];
 }
 
 interface AuthContextType {
+  // New clean exports
+  profile: Profile | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+
+  // Backward-compatible exports used by existing pages
   user: AuthUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -100,64 +127,100 @@ const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
+
+async function fetchProfileWithRetry(userId: string, retries = 5, delayMs = 800): Promise<any> {
+  for (let i = 0; i < retries; i++) {
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    if (data) return data;
+    if (i < retries - 1) await delay(delayMs);
+  }
+  return null;
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const initialized = useRef(false);
 
+  const buildAuthUser = useCallback((userId: string, email: string | undefined, p: any, s: any): AuthUser => {
+    return {
+      id: userId,
+      email,
+      displayName: p?.display_name || email?.split('@')[0] || 'User',
+      username: p?.username || undefined,
+      avatar: p?.avatar_url || null,
+      bio: p?.bio || '',
+      location: p?.location || '',
+      country: p?.country || 'GB',
+      membershipPlan: (p?.plan as PlanId) || 'free',
+      billingCycle: (s?.billing_cycle as BillingCycle) || 'monthly',
+      subscriptionStatus: (s?.status as SubscriptionStatus) || 'active',
+      isProfileComplete: p?.onboarding_complete || false,
+      isVerified: true,
+      onboardingComplete: p?.onboarding_complete || false,
+      onboardingStep: p?.onboarding_step || 0,
+      interests: { events: [], routes: [], services: [], clubs: false, marketplace: false },
+      vehicleTypes: [],
+      vehicleTags: [],
+      vehicles: [],
+      discoveryRadiusMiles: p?.discovery_radius_miles || 25,
+      discoveryScope: 'local',
+      notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
+      preferences: {
+        mapStyle: 'standard',
+        availableToHelp: p?.available_to_help || false,
+        helpDistanceMiles: p?.help_radius_miles || 10,
+        locationSharingEnabled: p?.live_location_sharing || false,
+        notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
+      },
+      liveFeatures: { locationSharingEnabled: p?.live_location_sharing || false, groupDrivesCount: 0, breakdownHelpCount: 0 },
+      eventCredits: p?.event_credits ?? 2,
+      routeCredits: p?.route_credits ?? 2,
+      createdAt: p?.created_at || new Date().toISOString(),
+    };
+  }, []);
+
+  const buildProfile = useCallback((p: any): Profile => ({
+    id: p.id,
+    username: p.username,
+    display_name: p.display_name,
+    avatar_url: p.avatar_url,
+    bio: p.bio,
+    location: p.location,
+    plan: p.plan,
+    free_event_credits: p.free_event_credits,
+    onboarding_complete: p.onboarding_complete,
+    profile_visibility: p.profile_visibility,
+    stripe_connect_account_id: p.stripe_connect_account_id,
+    created_at: p.created_at,
+  }), []);
+
   const loadUserProfile = useCallback(async (userId: string, email?: string) => {
     try {
-      const [profileRes, subRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+      const [p, subRes] = await Promise.all([
+        fetchProfileWithRetry(userId),
         supabase.from('subscriptions').select('*').eq('user_id', userId).maybeSingle(),
       ]);
 
-      const p = profileRes.data;
       const s = subRes.data;
-
-      const authUser: AuthUser = {
-        id: userId,
-        email: email,
-        displayName: p?.display_name || email?.split('@')[0] || 'User',
-        username: p?.username || undefined,
-        avatar: p?.avatar_url || null,
-        bio: p?.bio || '',
-        location: p?.location || '',
-        country: p?.country || 'GB',
-        membershipPlan: (p?.plan as PlanId) || 'free',
-        billingCycle: (s?.billing_cycle as BillingCycle) || 'monthly',
-        subscriptionStatus: (s?.status as SubscriptionStatus) || 'active',
-        isProfileComplete: p?.onboarding_complete || false,
-        isVerified: true,
-        onboardingComplete: p?.onboarding_complete || false,
-        onboardingStep: p?.onboarding_step || 0,
-        interests: { events: [], routes: [], services: [], clubs: false, marketplace: false },
-        vehicleTypes: [],
-        vehicleTags: [],
-        vehicles: [],
-        discoveryRadiusMiles: p?.discovery_radius_miles || 25,
-        discoveryScope: 'local',
-        notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS },
-        preferences: {
-          mapStyle: 'standard',
-          availableToHelp: p?.available_to_help || false,
-          helpDistanceMiles: p?.help_radius_miles || 10,
-          locationSharingEnabled: p?.live_location_sharing || false,
-          notifications: { messages: true, events: true, clubs: true, forums: true, marketplace: true },
-        },
-        liveFeatures: { locationSharingEnabled: p?.live_location_sharing || false, groupDrivesCount: 0, breakdownHelpCount: 0 },
-        eventCredits: p?.event_credits ?? 2,
-        routeCredits: p?.route_credits ?? 2,
-        createdAt: p?.created_at || new Date().toISOString(),
-      };
-
+      const authUser = buildAuthUser(userId, email, p, s);
       setUser(authUser);
+
+      if (p) {
+        setProfile(buildProfile(p));
+      }
     } catch (err) {
       console.error('Failed to load profile:', err);
     }
-  }, []);
+  }, [buildAuthUser, buildProfile]);
 
-  // Auth state listener
+  const refreshProfile = useCallback(async () => {
+    if (!user?.id) return;
+    await loadUserProfile(user.id, user.email);
+  }, [user?.id, user?.email, loadUserProfile]);
+
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -175,30 +238,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             console.error('Profile load failed — signing out:', profileError);
             await supabase.auth.signOut();
             setUser(null);
+            setProfile(null);
           }
         }
       } catch (error) {
         console.error('Auth init error:', error);
       } finally {
-        if (mounted) {
-          setIsLoading(false);
-        }
+        if (mounted) setIsLoading(false);
       }
     };
 
-    // Set up listener BEFORE getSession (per Supabase docs)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return;
 
       if (event === 'SIGNED_IN' && session?.user) {
         await loadUserProfile(session.user.id, session.user.email ?? undefined);
+        setIsLoading(false);
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
+        setProfile(null);
         setIsLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         await loadUserProfile(session.user.id, session.user.email ?? undefined);
       } else if (!session) {
         setUser(null);
+        setProfile(null);
         setIsLoading(false);
       }
     });
@@ -211,66 +275,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [loadUserProfile]);
 
-  const login = useCallback(async (email: string, password: string): Promise<void> => {
+  // ── New auth methods ──
+
+  const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim().toLowerCase(),
       password,
     });
     if (error) throw error;
-    // Profile loading is handled by onAuthStateChange listener
   }, []);
 
-  const loginPhone = useCallback(async (phone: string) => {
-    setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone });
-    if (error) { setIsLoading(false); throw error; }
-    setIsLoading(false);
-  }, []);
-
-  const register = useCallback(async (email: string, password: string, displayName: string) => {
-    setIsLoading(true);
+  const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     const { error } = await supabase.auth.signUp({
-      email,
+      email: email.trim().toLowerCase(),
       password,
-      options: { data: { display_name: displayName } }
+      options: { data: { display_name: displayName } },
     });
-    if (error) { setIsLoading(false); throw error; }
+    if (error) throw error;
   }, []);
 
-  const registerPhone = useCallback(async (phone: string) => {
-    setIsLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ phone });
-    if (error) { setIsLoading(false); throw error; }
-    setIsLoading(false);
+  const signInWithGoogle = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
   }, []);
 
-  const logout = useCallback(async () => {
+  const signInWithApple = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) throw error;
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
+  }, []);
+
+  // ── Backward-compatible methods ──
+
+  const login = signIn;
+
+  const loginPhone = useCallback(async (phone: string) => {
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) throw error;
+  }, []);
+
+  const register = signUp;
+
+  const registerPhone = useCallback(async (phone: string) => {
+    const { error } = await supabase.auth.signInWithOtp({ phone });
+    if (error) throw error;
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
-    setIsLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) { setIsLoading(false); throw error; }
-    setIsLoading(false);
+    if (error) throw error;
   }, []);
 
   const requestVerificationCode = useCallback(async (destination: string) => {
-    setIsLoading(true);
     const { error } = await supabase.auth.resend({ type: 'signup', email: destination });
-    if (error) { setIsLoading(false); throw error; }
-    setIsLoading(false);
+    if (error) throw error;
   }, []);
 
   const verifyCode = useCallback(async (code: string) => {
-    setIsLoading(true);
     const { error } = await supabase.auth.verifyOtp({
       token: code,
       type: 'email',
-      email: user?.email || ''
+      email: user?.email || '',
     });
-    setIsLoading(false);
     return !error;
   }, [user?.email]);
 
@@ -279,7 +356,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (!user?.id) return;
 
-    // Sync relevant fields to Supabase profiles table
     const profileUpdates: Record<string, unknown> = {};
     if (updates.username !== undefined) profileUpdates.username = updates.username;
     if (updates.displayName !== undefined) profileUpdates.display_name = updates.displayName;
@@ -287,8 +363,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (updates.bio !== undefined) profileUpdates.bio = updates.bio;
     if (updates.location !== undefined) profileUpdates.location = updates.location;
     if (updates.country !== undefined) profileUpdates.country = updates.country;
-    // SECURITY: plan, event_credits, route_credits, free_event_credits must never be written from the client
-    // These are only modified via server-side webhooks/RPCs
+    if (updates.onboardingComplete !== undefined) profileUpdates.onboarding_complete = updates.onboardingComplete;
     if (updates.discoveryRadiusMiles !== undefined) profileUpdates.discovery_radius_miles = updates.discoveryRadiusMiles;
     if (updates.preferences?.availableToHelp !== undefined) profileUpdates.available_to_help = updates.preferences.availableToHelp;
     if (updates.preferences?.helpDistanceMiles !== undefined) profileUpdates.help_radius_miles = updates.preferences.helpDistanceMiles;
@@ -297,8 +372,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (Object.keys(profileUpdates).length > 0) {
       const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', user.id);
       if (error) console.error('Profile update error:', error);
+      else {
+        // Refresh profile state
+        const { data: refreshed } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+        if (refreshed) setProfile(buildProfile(refreshed));
+      }
     }
-  }, [user?.id]);
+  }, [user?.id, buildProfile]);
 
   const completeOnboarding = useCallback(async () => {
     setUser(prev => prev ? { ...prev, onboardingComplete: true, isProfileComplete: true } : null);
@@ -310,6 +390,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) {
         toast.error('Failed to save onboarding status');
         console.error(error);
+      } else {
+        setProfile(prev => prev ? { ...prev, onboarding_complete: true } : null);
       }
     }
   }, [user?.id]);
@@ -323,6 +405,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider value={{
+      // New exports
+      profile,
+      loading: isLoading,
+      signIn,
+      signUp,
+      signInWithGoogle,
+      signInWithApple,
+      signOut: handleSignOut,
+      refreshProfile,
+
+      // Backward-compatible exports
       user,
       isLoading,
       isAuthenticated: !!user,
@@ -330,7 +423,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       loginPhone,
       register,
       registerPhone,
-      logout,
+      logout: handleSignOut,
       resetPassword,
       requestVerificationCode,
       verifyCode,

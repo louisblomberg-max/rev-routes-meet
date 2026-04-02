@@ -1,63 +1,62 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { supabase } from '@/integrations/supabase/client'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+
+const delay = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export default function AuthCallback() {
-  const navigate = useNavigate()
-  const [message, setMessage] = useState('Signing you in...')
+  const navigate = useNavigate();
+  const [message, setMessage] = useState('Signing you in…');
 
   useEffect(() => {
     const handle = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await delay(1000);
 
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error || !session?.user) {
-          console.error('[AuthCallback] No session:', error)
-          setMessage('Something went wrong')
-          setTimeout(() => navigate('/auth', { replace: true }), 1500)
-          return
+          console.error('[AuthCallback] No session:', error);
+          setMessage('Something went wrong');
+          setTimeout(() => navigate('/auth', { replace: true }), 1500);
+          return;
         }
 
-        const userId = session.user.id
-        console.log('[AuthCallback] Got session for user:', userId)
+        const userId = session.user.id;
 
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('onboarding_complete')
-          .eq('id', userId)
-          .maybeSingle()
-
-        console.log('[AuthCallback] Profile result:', profile, profileError)
-
-        if (profileError || !profile) {
-          console.log('[AuthCallback] No profile — sending to onboarding')
-          navigate('/onboarding', { replace: true })
-          return
+        // Retry profile fetch up to 5 times to allow trigger to create it
+        let profile: any = null;
+        for (let i = 0; i < 5; i++) {
+          const { data } = await supabase
+            .from('profiles')
+            .select('onboarding_complete')
+            .eq('id', userId)
+            .maybeSingle();
+          if (data) {
+            profile = data;
+            break;
+          }
+          if (i < 4) await delay(800);
         }
 
-        if (profile.onboarding_complete === true) {
-          console.log('[AuthCallback] Complete — sending to map')
-          navigate('/', { replace: true })
+        if (!profile || !profile.onboarding_complete) {
+          navigate('/onboarding', { replace: true });
         } else {
-          console.log('[AuthCallback] Incomplete — sending to onboarding')
-          navigate('/onboarding', { replace: true })
+          navigate('/', { replace: true });
         }
-
       } catch (err) {
-        console.error('[AuthCallback] Caught error:', err)
-        navigate('/auth', { replace: true })
+        console.error('[AuthCallback] Error:', err);
+        navigate('/auth', { replace: true });
       }
-    }
+    };
 
-    handle()
-  }, [])
+    handle();
+  }, [navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       <p className="mt-4 text-muted-foreground">{message}</p>
     </div>
-  )
+  );
 }
