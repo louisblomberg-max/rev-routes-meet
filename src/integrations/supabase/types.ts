@@ -2312,18 +2312,17 @@ export type Database = {
         Row: {
           colour: string | null
           created_at: string | null
-          details: string | null
           drivetrain: string | null
           engine: string | null
           id: string | null
           is_primary: boolean | null
           make: string | null
           model: string | null
-          mods_text: string | null
           photos: string[] | null
           tags: string[] | null
           transmission: string | null
           user_id: string | null
+          variant: string | null
           vehicle_type: string | null
           visibility: string | null
           year: string | null
@@ -2331,18 +2330,17 @@ export type Database = {
         Insert: {
           colour?: string | null
           created_at?: string | null
-          details?: string | null
           drivetrain?: string | null
           engine?: string | null
           id?: string | null
           is_primary?: boolean | null
           make?: string | null
           model?: string | null
-          mods_text?: string | null
           photos?: string[] | null
           tags?: string[] | null
           transmission?: string | null
           user_id?: string | null
+          variant?: string | null
           vehicle_type?: string | null
           visibility?: string | null
           year?: string | null
@@ -2350,18 +2348,17 @@ export type Database = {
         Update: {
           colour?: string | null
           created_at?: string | null
-          details?: string | null
           drivetrain?: string | null
           engine?: string | null
           id?: string | null
           is_primary?: boolean | null
           make?: string | null
           model?: string | null
-          mods_text?: string | null
           photos?: string[] | null
           tags?: string[] | null
           transmission?: string | null
           user_id?: string | null
+          variant?: string | null
           vehicle_type?: string | null
           visibility?: string | null
           year?: string | null
