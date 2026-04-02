@@ -425,8 +425,8 @@ const Home = () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
-      const visiblePins = pins.filter(pin => applyEventFilters(pin));
-      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins as DOM markers');
+      const visiblePins = pins.filter(pin => applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin));
+      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins as DOM markers (event+route+service filters)');
 
       visiblePins.forEach(pin => {
         const lat = Number(pin.lat);
