@@ -79,10 +79,9 @@ const Auth = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#f3f3e8' }}>
         <div className="w-full max-w-sm flex flex-col items-center gap-6">
-          <img src={LOGO_URL} alt="RevNet logo" className="w-80 h-80 rounded-2xl object-contain" />
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-foreground">​</h1>
-            <p className="text-muted-foreground text-sm mt-1">Everything for drivers and riders</p>
+          <div className="flex flex-col items-center">
+            <img src={LOGO_URL} alt="RevNet logo" className="w-80 h-80 rounded-2xl object-contain" />
+            <p className="text-muted-foreground text-sm">Everything for drivers and riders</p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-2">
