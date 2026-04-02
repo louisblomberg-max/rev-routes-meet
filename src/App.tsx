@@ -59,22 +59,16 @@ import ServicesList from "./pages/ServicesList";
 import MySavedServices from "./pages/MySavedServices";
 
 // Auth + Onboarding screens
-import AuthEntry from "./pages/AuthEntry";
-import AuthSignup from "./pages/AuthSignup";
-import AuthLogin from "./pages/AuthLogin";
-import AuthForgot from "./pages/AuthForgot";
-import AuthVerify from "./pages/AuthVerify";
-import OnboardingFeatures from "./pages/OnboardingFeatures";
-import OnboardingVehicle from "./pages/OnboardingVehicle";
-import OnboardingNotifications from "./pages/OnboardingNotifications";
+import Auth from "./pages/Auth";
+import AuthCallback from "./pages/AuthCallback";
 import Onboarding from "./pages/Onboarding";
 import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
-import AuthCallback from "./pages/AuthCallback";
 import NavigationPage from "./pages/Navigation";
+import You from "./pages/You";
 
 const queryClient = new QueryClient();
 
@@ -92,28 +86,26 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           {/* Auth (not protected) */}
-          <Route path="/auth" element={<AuthEntry />} />
-          <Route path="/auth/signup" element={<AuthSignup />} />
-          <Route path="/auth/login" element={<AuthLogin />} />
-          <Route path="/auth/forgot" element={<AuthForgot />} />
-          <Route path="/auth/verify" element={<AuthVerify />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding (not protected) */}
           <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/onboarding/features" element={<OnboardingFeatures />} />
-          <Route path="/onboarding/vehicle" element={<OnboardingVehicle />} />
-          <Route path="/onboarding/notifications" element={<OnboardingNotifications />} />
 
-          {/* Legacy auth routes (not protected) */}
-          <Route path="/login" element={<AuthLogin />} />
-          <Route path="/register" element={<AuthSignup />} />
-          <Route path="/forgot-password" element={<AuthForgot />} />
+          {/* Legacy auth routes redirect to /auth */}
+          <Route path="/auth/signup" element={<Auth />} />
+          <Route path="/auth/login" element={<Auth />} />
+          <Route path="/auth/forgot" element={<Auth />} />
+          <Route path="/auth/verify" element={<Auth />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/register" element={<Auth />} />
+          <Route path="/forgot-password" element={<Auth />} />
 
           {/* Protected routes */}
           <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/you" element={<ProtectedRoute><You /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/settings/privacy" element={<ProtectedRoute><PrivacySafetySettings /></ProtectedRoute>} />
           <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
