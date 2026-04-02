@@ -473,7 +473,7 @@ const Home = () => {
     } else {
       m.once('load', doRender);
     }
-  }, [pins, applyEventFilters]);
+  }, [pins, applyEventFilters, applyRouteFilters, applyServiceFilters]);
 
   // Center map on newly published item
   useEffect(() => {
