@@ -338,9 +338,12 @@ const Home = () => {
   const applyEventFilters = useCallback((pin: any): boolean => {
     if (pin.type !== 'events') return true;
     const d = pin;
+    // The event sub-type (meets, shows, etc.) is spread from pin.data into the pin object as 'event_type' or 'type' from the RPC data.
+    // pin.type is always 'events' (the category). The actual sub-type comes from the RPC data field.
+    const eventSubType = d.event_type || d.subtype || '';
 
     const ef = eventsFilters;
-    if (ef.filterEventTypes.length > 0 && !ef.filterEventTypes.includes(d.type)) return false;
+    if (ef.filterEventTypes.length > 0 && eventSubType && !ef.filterEventTypes.includes(eventSubType)) return false;
     if (ef.filterVehicleFocus !== 'all') {
       if (ef.filterVehicleFocus === 'cars_only' && d.vehicle_focus !== 'cars_only') return false;
       if (ef.filterVehicleFocus === 'motorcycles_only' && d.vehicle_focus !== 'motorcycles_only') return false;
@@ -368,6 +371,50 @@ const Home = () => {
     }
     return true;
   }, [eventsFilters]);
+
+  // Route filter function
+  const applyRouteFilters = useCallback((pin: any): boolean => {
+    if (pin.type !== 'routes') return true;
+    const rf = routesFilters;
+    // Type filter
+    if (rf.types.length > 0) {
+      const routeType = pin.route_type || pin.subtype || '';
+      if (routeType && !rf.types.includes(routeType)) return false;
+    }
+    // Difficulty filter
+    if (rf.difficulty.length > 0) {
+      const diff = pin.difficulty || '';
+      if (diff && !rf.difficulty.includes(diff)) return false;
+    }
+    // Duration filter
+    if (rf.duration) {
+      const mins = pin.duration_minutes || 0;
+      if (rf.duration === 'under-30' && mins >= 30) return false;
+      if (rf.duration === '30-60' && (mins < 30 || mins > 60)) return false;
+      if (rf.duration === '1-2h' && (mins < 60 || mins > 120)) return false;
+      if (rf.duration === '2h+' && mins < 120) return false;
+    }
+    // Surface filter
+    if (rf.surface.length > 0) {
+      const surfaceType = pin.surface_type || '';
+      if (surfaceType && !rf.surface.includes(surfaceType)) return false;
+    }
+    return true;
+  }, [routesFilters]);
+
+  // Service filter function
+  const applyServiceFilters = useCallback((pin: any): boolean => {
+    if (pin.type !== 'services') return true;
+    const sf = servicesFilters;
+    // Type filter
+    if (sf.types.length > 0) {
+      const serviceType = pin.service_type || pin.subtype || '';
+      if (serviceType && !sf.types.includes(serviceType)) return false;
+    }
+    // Open now filter — only apply if the pin has opening hours data
+    if (sf.openNow && pin.is_24_7 === false && !pin.is_open) return false;
+    return true;
+  }, [servicesFilters]);
 
   // Render DOM markers for pins
   useEffect(() => {
