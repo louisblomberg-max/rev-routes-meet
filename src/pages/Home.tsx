@@ -692,6 +692,10 @@ const Home = () => {
     }
   };
 
+  /* ── Bug 2 fix — stable ref for handlePinClick so marker listeners never go stale ── */
+  const handlePinClickRef = useRef(handlePinClick);
+  handlePinClickRef.current = handlePinClick;
+
   const handleCloseDetail = () => setSelectedDetail(null);
 
   const handleViewFull = (type: string, id: string) => {
