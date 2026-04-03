@@ -146,6 +146,61 @@ export type Database = {
           },
         ]
       }
+      club_leaderboard: {
+        Row: {
+          club_id: string | null
+          events_attended: number | null
+          id: string
+          points: number | null
+          posts_made: number | null
+          routes_shared: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          club_id?: string | null
+          events_attended?: number | null
+          id?: string
+          points?: number | null
+          posts_made?: number | null
+          routes_shared?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          club_id?: string | null
+          events_attended?: number | null
+          id?: string
+          points?: number | null
+          posts_made?: number | null
+          routes_shared?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_leaderboard_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_leaderboard_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_memberships: {
         Row: {
           badges: string[] | null
@@ -583,6 +638,7 @@ export type Database = {
           join_mode: string | null
           join_questions: string[] | null
           lat: number | null
+          leaderboard_enabled: boolean | null
           lng: number | null
           location: string | null
           logo_url: string | null
@@ -619,6 +675,7 @@ export type Database = {
           join_mode?: string | null
           join_questions?: string[] | null
           lat?: number | null
+          leaderboard_enabled?: boolean | null
           lng?: number | null
           location?: string | null
           logo_url?: string | null
@@ -655,6 +712,7 @@ export type Database = {
           join_mode?: string | null
           join_questions?: string[] | null
           lat?: number | null
+          leaderboard_enabled?: boolean | null
           lng?: number | null
           location?: string | null
           logo_url?: string | null
@@ -1761,6 +1819,7 @@ export type Database = {
           updated_at: string | null
           username: string | null
           website: string | null
+          website_url: string | null
           who_can_message: string | null
         }
         Insert: {
@@ -1796,6 +1855,7 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
           website?: string | null
+          website_url?: string | null
           who_can_message?: string | null
         }
         Update: {
@@ -1831,6 +1891,7 @@ export type Database = {
           updated_at?: string | null
           username?: string | null
           website?: string | null
+          website_url?: string | null
           who_can_message?: string | null
         }
         Relationships: []
