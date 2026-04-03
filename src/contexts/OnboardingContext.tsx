@@ -78,9 +78,7 @@ function persistState(step: number, data: OnboardingData) {
       avatarUrl: data.avatarUrl?.startsWith('http') ? data.avatarUrl : null,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data: safeData }));
-  } catch (e) {
-    console.warn('[OnboardingContext] persist failed:', e);
-  }
+  } catch {}
 }
 
 interface OnboardingContextType {
@@ -131,7 +129,6 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
       const merged = { ...prev, ...updates };
       // Always ensure vehicles is an array
       if (!Array.isArray(merged.vehicles)) merged.vehicles = [];
-      console.log('[OnboardingContext] updateData:', Object.keys(updates), 'Vehicles count:', merged.vehicles.length);
       return merged;
     });
   }, []);
@@ -145,7 +142,6 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
         isPrimary: currentVehicles.length === 0,
       };
       const updated = [...currentVehicles, newVehicle];
-      console.log('[OnboardingContext] addVehicle:', newVehicle.make, newVehicle.model, '| Total:', updated.length);
       return { ...prev, vehicles: updated };
     });
   }, []);
@@ -157,7 +153,6 @@ export const OnboardingProvider = ({ children }: { children: ReactNode }) => {
       if (updated.length > 0 && !updated.some(v => v.isPrimary)) {
         updated[0].isPrimary = true;
       }
-      console.log('[OnboardingContext] removeVehicle:', vehicleId, '| Remaining:', updated.length);
       return { ...prev, vehicles: updated };
     });
   }, []);

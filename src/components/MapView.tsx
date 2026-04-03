@@ -4,9 +4,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { MapStyle } from '@/components/MapStyleButton';
 
-if (!import.meta.env.VITE_MAPBOX_TOKEN) {
-  console.error('VITE_MAPBOX_TOKEN environment variable is not set');
-}
+
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 const MAP_STYLE_URLS: Record<MapStyle, string> = {
@@ -54,7 +52,6 @@ const MapView = ({
     map.current.addControl(new mapboxgl.AttributionControl({ compact: true }), 'bottom-left');
 
     map.current.on('load', () => {
-      console.log('[MapView] Map loaded');
       setMapLoaded(true);
       onMapReady?.(map.current!);
     });

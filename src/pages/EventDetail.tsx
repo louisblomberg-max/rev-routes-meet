@@ -119,9 +119,8 @@ const EventDetail = () => {
         user_id: authUser.id,
         status: 'attending',
       });
-    } catch (err) {
+    } catch {
       toast.error('Failed to purchase ticket');
-      console.error(err);
     } finally {
       setPurchasingTicket(false);
     }

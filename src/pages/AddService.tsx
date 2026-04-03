@@ -167,7 +167,7 @@ const AddService = () => {
         return { lat, lng };
       }
     } catch (err) {
-      console.error('[AddService] Geocoding error:', err);
+      // geocoding failed
     }
     return null;
   };
@@ -212,8 +212,6 @@ const AddService = () => {
         visibility: 'public',
       };
 
-      console.log('[AddService] Inserting payload:', payload);
-
       const { data, error } = await supabase
         .from('services')
         .insert(payload)
@@ -221,16 +219,13 @@ const AddService = () => {
         .single();
 
       if (error) {
-        console.error('[AddService] Insert error:', error);
         toast.error('Could not create listing: ' + error.message);
         return;
       }
 
-      console.log('[AddService] Service created:', data);
       toast.success('Service listing created!', { description: `${formData.name} is now listed.` });
       navigate('/', { replace: true, state: { refreshMap: true, centerOn: { lat: Number(lat), lng: Number(lng) } } });
     } catch (err: any) {
-      console.error('[AddService] Error:', err);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -253,7 +248,6 @@ const AddService = () => {
         .eq('id', currentUser.id)
         .single();
 
-      console.log('[AddService] Profile plan:', profile?.plan);
       const isOrganiser = profile?.plan === 'club' || profile?.plan === 'organiser';
 
       if (!isOrganiser) {
@@ -264,7 +258,6 @@ const AddService = () => {
 
       await saveService();
     } catch (err) {
-      console.error('[AddService] handleSubmit error:', err);
       toast.error('Something went wrong.');
       setIsSubmitting(false);
     }

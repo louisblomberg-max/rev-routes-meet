@@ -211,9 +211,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (p) {
         setProfile(buildProfile(p));
       }
-    } catch (err) {
-      console.error('Failed to load profile:', err);
-    }
+    } catch {}
   }, [buildAuthUser, buildProfile]);
 
   const refreshProfile = useCallback(async () => {
@@ -234,16 +232,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           try {
             await loadUserProfile(session.user.id, session.user.email ?? undefined);
-          } catch (profileError) {
-            console.error('Profile load failed — signing out:', profileError);
+          } catch {
             await supabase.auth.signOut();
             setUser(null);
             setProfile(null);
           }
         }
-      } catch (error) {
-        console.error('Auth init error:', error);
-      } finally {
+      } catch {} finally {
         if (mounted) setIsLoading(false);
       }
     };
@@ -371,8 +366,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (Object.keys(profileUpdates).length > 0) {
       const { error } = await supabase.from('profiles').update(profileUpdates).eq('id', user.id);
-      if (error) console.error('Profile update error:', error);
-      else {
+      if (error) {
+        toast.error('Failed to update profile');
+      } else {
         // Refresh profile state
         const { data: refreshed } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
         if (refreshed) setProfile(buildProfile(refreshed));
@@ -389,7 +385,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }).eq('id', user.id);
       if (error) {
         toast.error('Failed to save onboarding status');
-        console.error(error);
       } else {
         setProfile(prev => prev ? { ...prev, onboarding_complete: true } : null);
       }
@@ -399,7 +394,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const setOnboardingStep = useCallback(async (step: number) => {
     setUser(prev => prev ? { ...prev, onboardingStep: step } : null);
     if (user?.id) {
-      await supabase.from('profiles').update({ onboarding_step: step }).eq('id', user.id);
+      const { error } = await supabase.from('profiles').update({ onboarding_step: step }).eq('id', user.id);
+      if (error) { /* silently ignore */ }
     }
   }, [user?.id]);
 

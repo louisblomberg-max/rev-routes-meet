@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface RouteRatingSectionProps {
   routeId: string;
@@ -9,13 +11,26 @@ interface RouteRatingSectionProps {
 }
 
 const RouteRatingSection = ({ routeId, currentRating }: RouteRatingSectionProps) => {
+  const { user } = useAuth();
   const [userRating, setUserRating] = useState<number>(0);
   const [hoveredStar, setHoveredStar] = useState<number>(0);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (userRating === 0) {
       toast.error('Please select a rating');
+      return;
+    }
+    if (!user) {
+      toast.error('You must be signed in to rate a route');
+      return;
+    }
+    const { error } = await supabase.from('route_ratings').upsert(
+      { route_id: routeId, user_id: user.id, rating: userRating },
+      { onConflict: 'route_id,user_id' }
+    );
+    if (error) {
+      toast.error('Failed to save rating');
       return;
     }
     setSubmitted(true);

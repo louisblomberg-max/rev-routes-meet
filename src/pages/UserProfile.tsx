@@ -140,7 +140,7 @@ const UserProfile = () => {
       toast.error(fnData?.error?.includes('privacy') ? 'This user has restricted who can message them' : 'Failed to start conversation');
       return;
     }
-    navigate(`/messages/${conv.id}`);
+    navigate(`/messages/${profile.id}`);
   };
 
   if (isLoading) {

@@ -65,7 +65,6 @@ const AccountSettings = () => {
       toast.success('Account deleted');
       navigate('/auth', { replace: true });
     } catch (err) {
-      console.error('[AccountSettings] Delete error:', err);
       toast.error('Could not delete account. Please contact support.');
     } finally {
       setIsDeleting(false);

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface ViewportBounds {
   north: number;
@@ -59,8 +60,8 @@ export const MapProvider = ({ children }: { children: ReactNode }) => {
           ...pin.data,
         })));
       }
-    } catch (err) {
-      console.error('Error fetching pins:', err);
+    } catch {
+      toast.error('Failed to load map pins');
     }
     setIsLoadingPins(false);
   }, []);

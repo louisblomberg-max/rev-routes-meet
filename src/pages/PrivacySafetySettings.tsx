@@ -99,7 +99,7 @@ const PrivacySafetySettings = () => {
         setBlockedUsers([]);
       }
     } catch (err) {
-      console.error('[Privacy] Blocked users error:', err);
+      toast.error('Failed to load blocked users');
     } finally {
       setLoadingBlocked(false);
     }

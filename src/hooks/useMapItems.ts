@@ -37,7 +37,6 @@ export function useMapItems() {
       });
 
       if (error) {
-        console.error('[useMapItems] RPC error:', error);
         return;
       }
 
@@ -56,8 +55,7 @@ export function useMapItems() {
         });
         setPins(pins);
       }
-    } catch (err) {
-      console.error('[useMapItems] Fetch error:', err);
+    } catch {
     } finally {
       setIsLoadingPins(false);
     }

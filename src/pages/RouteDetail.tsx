@@ -6,9 +6,11 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import NavigateButton from '@/components/NavigateButton';
 import RouteRatingSection from '@/components/discovery/RouteRatingSection';
 
@@ -18,7 +20,23 @@ const RouteDetail = () => {
   const { state, routes: routesRepo } = useData();
   const { user: authUser } = useAuth();
 
-  const route = state.routes.find(r => r.id === id);
+  const [fetchedRoute, setFetchedRoute] = useState<any>(null);
+  const [routeLoading, setRouteLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setRouteLoading(false); return; }
+    setRouteLoading(true);
+    supabase.from('routes').select('*').eq('id', id).single()
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error('Failed to load route');
+        }
+        setFetchedRoute(data);
+        setRouteLoading(false);
+      });
+  }, [id]);
+
+  const route = state.routes.find(r => r.id === id) || fetchedRoute;
   const isSavedInitial = state.savedRoutes.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
   const isCreator = route?.createdBy === authUser?.id;
@@ -97,6 +115,19 @@ const RouteDetail = () => {
       miniMapRef.current = null;
     };
   }, [route?.polyline]);
+
+  if (routeLoading) {
+    return (
+      <div className="mobile-container bg-background min-h-screen">
+        <Skeleton className="h-56 w-full" />
+        <div className="px-4 mt-4 space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   if (!route) {
     return (

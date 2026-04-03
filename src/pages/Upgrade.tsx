@@ -116,7 +116,6 @@ const Upgrade = () => {
       }
     } catch (err) {
       toast.error('Failed to start checkout');
-      console.error(err);
     } finally {
       setLoading(false);
     }

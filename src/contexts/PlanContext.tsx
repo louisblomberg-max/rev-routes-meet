@@ -79,11 +79,13 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
     if (!user?.id) return;
 
     const loadSub = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      if (error) return;
 
       if (data) {
         setCurrentPlan((data.plan as PlanId) || 'free');

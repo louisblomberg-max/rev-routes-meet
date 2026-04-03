@@ -17,12 +17,8 @@ const EnableNotificationsStep = () => {
       if ('Notification' in window && Notification.requestPermission) {
         const permission = await Notification.requestPermission();
         enabled = permission === 'granted';
-        console.log('[Notifications] Permission result:', permission);
-      } else {
-        console.log('[Notifications] API not available');
       }
-    } catch (err) {
-      console.error('[Notifications] Error:', err);
+    } catch {
     }
 
     updateData({ notificationsEnabled: enabled });
@@ -36,8 +32,7 @@ const EnableNotificationsStep = () => {
           .update({ push_notifications: enabled })
           .eq('user_id', session.user.id);
       }
-    } catch (err) {
-      console.error('[Notifications] Failed to save preference:', err);
+    } catch {
     }
 
     setLoading(false);

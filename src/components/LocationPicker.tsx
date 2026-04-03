@@ -3,9 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import { MapPin, Search, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 
-if (!import.meta.env.VITE_MAPBOX_TOKEN) {
-  console.error('VITE_MAPBOX_TOKEN environment variable is not set');
-}
+
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface LocationPickerProps {

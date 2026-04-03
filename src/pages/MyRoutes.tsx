@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from 'sonner';
 import { useUserRoutes } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const routeTypeColors: Record<string, string> = {
   'Scenic': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -19,12 +20,13 @@ const routeTypeColors: Record<string, string> = {
 
 const MyRoutes = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { saved, created, isLoading } = useUserRoutes();
   const { routes: routesRepo } = useData();
   const [activeTab, setActiveTab] = useState<'saved' | 'created'>('saved');
 
   const handleUnsave = (routeId: string) => {
-    routesRepo.unsaveRoute('user-1', routeId);
+    routesRepo.unsaveRoute(user?.id, routeId);
     toast('Route removed from saved');
   };
 

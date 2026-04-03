@@ -100,7 +100,6 @@ const Onboarding = () => {
     setUploadingAvatar(false);
 
     if (error) {
-      console.error('Avatar upload error:', error);
       toast.error('Failed to upload photo');
       return null;
     }
@@ -158,7 +157,6 @@ const Onboarding = () => {
       navigate('/', { replace: true });
       toast.success('Welcome to RevNet!');
     } catch (err) {
-      console.error('Onboarding complete error:', err);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);

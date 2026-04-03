@@ -20,7 +20,6 @@ const EnableLocationStep = () => {
 
     // Failsafe timeout — always proceed after 12 seconds
     const failsafe = setTimeout(() => {
-      console.log('[Location] Timeout — proceeding anyway');
       updateData({ locationPermissionStatus: 'denied' });
       setLoading(false);
       next();
@@ -29,14 +28,12 @@ const EnableLocationStep = () => {
     navigator.geolocation.getCurrentPosition(
       () => {
         clearTimeout(failsafe);
-        console.log('[Location] Permission granted');
         updateData({ locationPermissionStatus: 'allowed' });
         setLoading(false);
         next();
       },
       (error) => {
         clearTimeout(failsafe);
-        console.log('[Location] Permission denied:', error.message);
         updateData({ locationPermissionStatus: 'denied' });
         setLoading(false);
         next();

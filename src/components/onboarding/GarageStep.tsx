@@ -75,7 +75,6 @@ const GarageStep = () => {
   };
 
   const handleNext = () => {
-    console.log('[GarageStep] Proceeding with vehicles:', vehicles.length, vehicles.map(v => ({ make: v.make, model: v.model })));
     next();
   };
 

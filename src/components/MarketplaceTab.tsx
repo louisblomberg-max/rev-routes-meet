@@ -156,14 +156,14 @@ const MarketplaceTab = () => {
     // Apply sorting
     if (filters.sortBy === 'price-low') {
       results = [...results].sort((a, b) => {
-        const priceA = parseInt(a.price.replace(/[£,]/g, ''));
-        const priceB = parseInt(b.price.replace(/[£,]/g, ''));
+        const priceA = parseInt((a.price || '0').replace(/[£,]/g, ''));
+        const priceB = parseInt((b.price || '0').replace(/[£,]/g, ''));
         return priceA - priceB;
       });
     } else if (filters.sortBy === 'price-high') {
       results = [...results].sort((a, b) => {
-        const priceA = parseInt(a.price.replace(/[£,]/g, ''));
-        const priceB = parseInt(b.price.replace(/[£,]/g, ''));
+        const priceA = parseInt((a.price || '0').replace(/[£,]/g, ''));
+        const priceB = parseInt((b.price || '0').replace(/[£,]/g, ''));
         return priceB - priceA;
       });
     }

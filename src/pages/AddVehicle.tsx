@@ -153,8 +153,6 @@ const AddVehicle = () => {
       if (numberPlate?.trim()) payload.number_plate = numberPlate.trim();
       if (details?.trim()) payload.details = details.trim();
 
-      console.log('[AddVehicle] Inserting payload:', JSON.stringify(payload, null, 2));
-
       const { data, error } = await supabase
         .from('vehicles')
         .insert(payload as any)
@@ -162,18 +160,13 @@ const AddVehicle = () => {
         .single();
 
       if (error) {
-        console.error('[AddVehicle] Insert error code:', error.code);
-        console.error('[AddVehicle] Insert error message:', error.message);
-        console.error('[AddVehicle] Insert error details:', error.details);
         toast.error('Could not save: ' + error.message);
         return;
       }
 
-      console.log('[AddVehicle] Vehicle saved successfully:', data);
       toast.success(`${selectedMake.name} ${selectedModel.name} added to your garage!`);
       navigate(-1);
-    } catch (err: any) {
-      console.error('[AddVehicle] Unexpected error:', err);
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setSaving(false);

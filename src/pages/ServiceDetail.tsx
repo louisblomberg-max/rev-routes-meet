@@ -33,6 +33,7 @@ const ServiceDetail = () => {
         return;
       }
       setService(serviceRes.data);
+      if (reviewsRes.error) { toast.error('Failed to load reviews'); }
       setReviews(reviewsRes.data || []);
 
       if (user?.id) {
@@ -52,11 +53,13 @@ const ServiceDetail = () => {
   const toggleSave = async () => {
     if (!user?.id || !id) return;
     if (isSaved) {
-      await supabase.from('saved_services').delete().eq('user_id', user.id).eq('service_id', id);
+      const { error } = await supabase.from('saved_services').delete().eq('user_id', user.id).eq('service_id', id);
+      if (error) { toast.error('Failed to remove saved service'); return; }
       setIsSaved(false);
       toast.success('Removed from saved');
     } else {
-      await supabase.from('saved_services').insert({ user_id: user.id, service_id: id });
+      const { error } = await supabase.from('saved_services').insert({ user_id: user.id, service_id: id });
+      if (error) { toast.error('Failed to save service'); return; }
       setIsSaved(true);
       toast.success('Service saved');
     }

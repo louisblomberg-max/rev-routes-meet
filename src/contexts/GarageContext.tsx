@@ -83,8 +83,8 @@ export const GarageProvider = ({ children }: { children: ReactNode }) => {
           updatedAt: p.updated_at || new Date().toISOString(),
         });
       }
-    } catch (err) {
-      console.error('Garage load error:', err);
+    } catch {
+      toast.error('Failed to load your garage');
     }
 
     setIsLoading(false);

@@ -16,7 +16,6 @@ export default function AuthCallback() {
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error || !session?.user) {
-          console.error('[AuthCallback] No session:', error);
           setMessage('Something went wrong');
           setTimeout(() => navigate('/auth', { replace: true }), 1500);
           return;
@@ -44,8 +43,7 @@ export default function AuthCallback() {
         } else {
           navigate('/', { replace: true });
         }
-      } catch (err) {
-        console.error('[AuthCallback] Error:', err);
+      } catch {
         navigate('/auth', { replace: true });
       }
     };

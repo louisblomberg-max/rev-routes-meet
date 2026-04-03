@@ -71,7 +71,8 @@ const Profile = () => {
         table: 'vehicles',
         filter: `user_id=eq.${authUser.id}`
       }, async () => {
-        const { data } = await supabase.from('vehicles').select('*').eq('user_id', authUser.id);
+        const { data, error } = await supabase.from('vehicles').select('*').eq('user_id', authUser.id);
+        if (error) { toast.error('Failed to refresh vehicles'); return; }
         setVehicles(data || []);
       })
       .subscribe();
@@ -117,13 +118,14 @@ const Profile = () => {
 
     // Check username uniqueness if changed
     if (editForm.username !== profile?.username) {
-      const { data: existing } = await supabase
+      const { data: existing, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .eq('username', editForm.username.toLowerCase())
         .neq('id', authUser.id)
         .maybeSingle();
 
+      if (checkError) { toast.error('Failed to check username availability'); return; }
       if (existing) {
         toast.error('This username is already taken');
         return;
@@ -151,7 +153,8 @@ const Profile = () => {
     if (uploadErr) { toast.error('Upload failed'); return; }
     const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
     const publicUrl = urlData.publicUrl + '?t=' + Date.now();
-    await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', authUser.id);
+    const { error: updateErr } = await supabase.from('profiles').update({ avatar_url: publicUrl }).eq('id', authUser.id);
+    if (updateErr) { toast.error('Failed to update avatar'); return; }
     updateProfile({ avatar: publicUrl });
     setProfile((p: any) => ({ ...p, avatar_url: publicUrl }));
     toast.success('Avatar updated!');

@@ -20,9 +20,6 @@ import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 
-if (!import.meta.env.VITE_MAPBOX_TOKEN) {
-  console.error('VITE_MAPBOX_TOKEN environment variable is not set');
-}
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
@@ -240,7 +237,6 @@ const AddRoute = () => {
     const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
 
     try {
-      console.log('[AddRoute] Inserting route...');
       const { data: newRoute, error } = await supabase.from('routes').insert({
         created_by: authUser.id,
         name: data.name.trim(),
@@ -261,16 +257,13 @@ const AddRoute = () => {
       }).select().single();
 
       if (error) {
-        console.error('[AddRoute] Insert error:', error);
         toast.error('Could not publish route: ' + error.message);
         return;
       }
 
-      console.log('[AddRoute] Route created:', newRoute);
       toast.success('Route published!', { description: data.name });
       navigate('/', { replace: true, state: { refreshMap: true, centerOn: draft.startLat && draft.startLng ? { lat: draft.startLat, lng: draft.startLng } : undefined } });
     } catch (err: any) {
-      console.error('[AddRoute] Error:', err);
       toast.error('Something went wrong. Please try again.');
     }
   };

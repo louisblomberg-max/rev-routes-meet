@@ -38,7 +38,8 @@ const StolenVehicles = () => {
   }, []);
 
   const handleResolve = async (alertId: string) => {
-    await supabase.from('stolen_vehicle_alerts').update({ status: 'resolved' }).eq('id', alertId).eq('user_id', user?.id);
+    const { error } = await supabase.from('stolen_vehicle_alerts').update({ status: 'resolved' }).eq('id', alertId).eq('user_id', user?.id);
+    if (error) { toast.error('Failed to resolve alert'); return; }
     toast.success('Alert marked as resolved');
     fetchAlerts();
   };

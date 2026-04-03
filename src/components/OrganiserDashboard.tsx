@@ -49,7 +49,6 @@ const OrganiserDashboard = ({ eventId }: OrganiserDashboardProps) => {
       }
     } catch (err) {
       toast.error('Failed to start bank connection');
-      console.error(err);
     } finally {
       setConnecting(false);
     }

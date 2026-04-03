@@ -7,14 +7,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useUserSavedServices } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MySavedServices = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { saved, isLoading } = useUserSavedServices();
   const { services: servicesRepo } = useData();
 
   const handleUnsave = (serviceId: string) => {
-    servicesRepo.unsaveService('user-1', serviceId);
+    servicesRepo.unsaveService(user?.id, serviceId);
     toast('Service removed from saved');
   };
 
