@@ -461,9 +461,6 @@ const Home = () => {
     return true;
   }, [servicesFilters]);
 
-  /* ── Bug 2 fix — stable ref for handlePinClick so marker listeners never go stale ── */
-  const handlePinClickRef = useRef(handlePinClick);
-  handlePinClickRef.current = handlePinClick;
 
   /* ── Fix 6 — Render DOM markers: apply all filters + category ── */
   useEffect(() => {
