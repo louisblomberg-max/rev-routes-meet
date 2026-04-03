@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Check, Star, Crown, Building2, CreditCard, Calendar, Receipt, ChevronRight, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Sparkles, BarChart3, Ticket, Store, BadgeCheck, Eye, Filter, Lock } from 'lucide-react';
+import { Check, Crown, CreditCard, Calendar, Receipt, ChevronRight, Route, Calendar as CalendarIcon, Users, MessageSquare, Car, MapPin, Shield, Eye, Lock, BarChart3, Ticket, Store, BadgeCheck } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,7 +15,6 @@ import { usePlan, PlanId, FEATURE_REQUIREMENTS } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { getPriceId } from '@/config/stripe';
 
 const PLAN_FEATURES: Record<PlanId, { label: string; icon: any; route?: string; featureId: string }[]> = {
   free: [
@@ -51,12 +50,11 @@ const PlanBillingSettings = () => {
   const { currentPlan, hasAccess, getPlanLabel } = usePlan();
   const [isLoading, setIsLoading] = useState(true);
   const [subData, setSubData] = useState<any>(null);
-  const [upgrading, setUpgrading] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data } = await supabase.from('subscriptions').select('*').eq('user_id', user.id).single();
+      const { data } = await supabase.from('subscriptions').select('*').eq('user_id', user.id).maybeSingle();
       setSubData(data);
       setIsLoading(false);
     })();
@@ -64,11 +62,11 @@ const PlanBillingSettings = () => {
 
   const billingCycle = subData?.billing_cycle || 'monthly';
   const plans = [
-    { id: 'free' as PlanId, name: 'Explorer (Free)', price: { monthly: 0, yearly: 0 }, desc: 'Browse routes, events & services · 1 free event post · Additional events £2.99 each · Join clubs & forums · Basic messaging · Save & bookmark content' },
-    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 3.99, yearly: 43.99 }, desc: 'Everything in Explorer · Unlimited event posts · Create & publish routes · Host unlimited events · Live location sharing · SOS breakdown help · Garage showcase · Priority visibility' },
-    { id: 'club' as PlanId, name: 'Club / Business', price: { monthly: 5.99, yearly: 63.99 }, desc: 'Everything in Pro · Create & manage clubs · Event ticketing with Stripe payouts · Business & service listings · Analytics & insights · Featured placement · Verified badge' },
+    { id: 'free' as PlanId, name: 'Explorer (Free)', price: { monthly: 0, yearly: 0 } },
+    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 3.99, yearly: 43.99 } },
+    { id: 'club' as PlanId, name: 'Organiser', price: { monthly: 5.99, yearly: 63.99 } },
   ];
-  const currentPlanData = plans.find(p => p.id === currentPlan)!;
+  const currentPlanData = plans.find(p => p.id === currentPlan) || plans[0];
   const price = billingCycle === 'monthly' ? currentPlanData.price.monthly : currentPlanData.price.yearly;
 
   const accessibleFeatures = [
@@ -78,23 +76,21 @@ const PlanBillingSettings = () => {
   ];
   const lockedFeatures = currentPlan === 'free' ? [...PLAN_FEATURES.pro, ...PLAN_FEATURES.club] : currentPlan === 'pro' ? PLAN_FEATURES.club : [];
 
-  const handleUpgrade = async () => {
-    const targetPlan = currentPlan === 'free' ? 'pro' : 'club';
-    setUpgrading(true);
+  const formatNextBilling = () => {
+    if (!subData?.current_period_end) return currentPlan === 'free' ? 'N/A (Free plan)' : 'Not set';
     try {
-      const priceId = getPriceId(targetPlan as 'pro' | 'club', billingCycle as 'monthly' | 'yearly');
-      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { price_id: priceId, plan: targetPlan },
-      });
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
-      }
+      return format(new Date(subData.current_period_end), 'dd MMMM yyyy');
     } catch {
-      toast.error('Failed to start checkout');
-    } finally {
-      setUpgrading(false);
+      return 'Unknown';
     }
+  };
+
+  const statusLabel = () => {
+    const s = subData?.status;
+    if (!s || s === 'active') return 'Active';
+    if (s === 'pending_payment') return 'Pending payment';
+    if (s === 'inactive') return 'Inactive';
+    return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
   if (isLoading) {
@@ -133,27 +129,20 @@ const PlanBillingSettings = () => {
                 <div className="flex items-center gap-2 mb-1"><h3 className="text-base font-semibold text-foreground">Your plan</h3></div>
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg font-bold text-foreground">{getPlanLabel(currentPlan)}</span>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{subData?.status === 'active' ? 'Active' : subData?.status || 'Active'}</Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{statusLabel()}</Badge>
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
                   {currentPlan === 'free' && 'Browse, discover & join — upgrade for more'}
                   {currentPlan === 'pro' && 'Create routes, events & live features'}
                   {currentPlan === 'club' && 'Full access including club management & ticketing'}
                 </p>
-                {currentPlan !== 'club' && (
-                  <Button size="sm" className="h-8" onClick={handleUpgrade} disabled={upgrading}>
-                    <Crown className="w-3.5 h-3.5 mr-1.5" />{upgrading ? 'Redirecting…' : 'Upgrade plan'}
-                  </Button>
-                )}
+                <Button size="sm" className="h-8" onClick={() => navigate('/subscription')}>
+                  <Crown className="w-3.5 h-3.5 mr-1.5" />Change plan
+                </Button>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-bold text-foreground">{price === 0 ? 'Free' : `£${price.toFixed(2)}`}</span>
                 {price > 0 && <p className="text-xs text-muted-foreground">/ {billingCycle === 'monthly' ? 'month' : 'year'}</p>}
-                {price > 0 && billingCycle === 'yearly' && (
-                  <Badge variant="secondary" className="text-[9px] px-1.5 py-0 mt-0.5">
-                    {currentPlan === 'pro' ? 'Save 8%' : 'Save 11%'}
-                  </Badge>
-                )}
               </div>
             </div>
           </CardContent>
@@ -188,7 +177,7 @@ const PlanBillingSettings = () => {
                 const Icon = feature.icon;
                 const requiredPlan = FEATURE_REQUIREMENTS[feature.featureId] as PlanId;
                 return (
-                  <button key={`locked-${feature.featureId}-${idx}`} onClick={handleUpgrade} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
+                  <button key={`locked-${feature.featureId}-${idx}`} onClick={() => navigate('/subscription')} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
                     <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center"><Icon className="w-3.5 h-3.5 text-muted-foreground" /></div>
                     <span className="flex-1 text-left text-sm text-muted-foreground">{feature.label}</span>
                     <div className="flex items-center gap-1.5">
@@ -222,7 +211,7 @@ const PlanBillingSettings = () => {
           <div className="flex items-center justify-between px-3 py-3">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center"><Receipt className="w-4 h-4 text-muted-foreground" /></div>
-              <div className="text-left"><p className="text-sm font-medium text-foreground">Next payment</p><p className="text-xs text-muted-foreground">{subData?.current_period_end ? format(new Date(subData.current_period_end), 'dd MMM yyyy') : currentPlan === 'free' ? 'N/A (Free plan)' : 'Not set'}</p></div>
+              <div className="text-left"><p className="text-sm font-medium text-foreground">Next billing date</p><p className="text-xs text-muted-foreground">{formatNextBilling()}</p></div>
             </div>
           </div>
         </div>
@@ -232,6 +221,9 @@ const PlanBillingSettings = () => {
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Manage plan</h2>
         <div className="space-y-2">
+          <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/subscription')}>
+            <Crown className="w-3.5 h-3.5 mr-1.5" />Change plan
+          </Button>
           {currentPlan !== 'free' && (
             <AlertDialog>
               <AlertDialogTrigger asChild><Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">Cancel subscription</Button></AlertDialogTrigger>
@@ -240,12 +232,6 @@ const PlanBillingSettings = () => {
                 <AlertDialogFooter><AlertDialogCancel>Keep my plan</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Cancel subscription</AlertDialogAction></AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          )}
-          {currentPlan === 'free' && (
-            <div className="bg-muted/30 rounded-xl p-4 text-center">
-              <p className="text-sm text-muted-foreground mb-2">You're on the Free plan</p>
-              <Button size="sm" onClick={handleUpgrade} disabled={upgrading}><Crown className="w-3.5 h-3.5 mr-1.5" />Upgrade to Pro</Button>
-            </div>
           )}
         </div>
       </div>

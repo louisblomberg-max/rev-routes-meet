@@ -1,4 +1,4 @@
-import { ChevronRight, Check, AlertCircle, Smartphone, Monitor, Shield, Apple, Mail } from 'lucide-react';
+import { ChevronRight, Check, Smartphone, Apple, Mail } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -24,17 +24,19 @@ const AccountSettings = () => {
   const [phone, setPhone] = useState('');
   const [plan, setPlan] = useState('Free');
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser();
-      const { data: profile } = await supabase.from('profiles').select('display_name, username, avatar_url').eq('id', user.id).single();
+      const { data: profile } = await supabase.from('profiles').select('display_name, username, plan').eq('id', user.id).maybeSingle();
       setDisplayName(profile?.display_name || '');
       setUsername(profile?.username || '');
       setEmail(authUser?.email || '');
       setPhone(authUser?.phone || '');
-      setPlan(user.membershipPlan === 'pro' ? 'Pro Driver' : user.membershipPlan === 'club' ? 'Club / Business' : 'Free');
+      const planMap: Record<string, string> = { free: 'Explorer', pro: 'Pro Driver', club: 'Organiser' };
+      setPlan(planMap[profile?.plan || 'free'] || 'Explorer');
       setIsLoading(false);
     })();
   }, [user?.id]);
@@ -52,9 +54,21 @@ const AccountSettings = () => {
     await supabase.auth.updateUser({ data: { deactivated: true } });
     toast.success('Account deactivated. Log in again to reactivate.');
   };
-  const handleDelete = () => {
-    if (deleteConfirmText === 'DELETE') {
-      toast.info('Account deletion requires a server-side call. Coming soon.');
+
+  const handleDelete = async () => {
+    if (deleteConfirmText !== 'DELETE' || !user?.id) return;
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase.rpc('delete_user', { p_user_id: user.id });
+      if (error) throw error;
+      await supabase.auth.signOut();
+      toast.success('Account deleted');
+      navigate('/auth', { replace: true });
+    } catch (err) {
+      console.error('[AccountSettings] Delete error:', err);
+      toast.error('Could not delete account. Please contact support.');
+    } finally {
+      setIsDeleting(false);
       setDeleteConfirmText('');
     }
   };
@@ -95,7 +109,7 @@ const AccountSettings = () => {
               <span className="text-sm text-foreground">Email</span>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">{email}</span>
-                <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded"><Check className="w-3 h-3" />Verified</span>
+                {email && <span className="flex items-center gap-1 text-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded"><Check className="w-3 h-3" />Verified</span>}
               </div>
             </div>
             <div className="flex items-center justify-between px-4 py-3"><span className="text-sm text-foreground">Phone</span><span className="text-sm text-muted-foreground">{phone || 'Not set'}</span></div>
@@ -179,7 +193,9 @@ const AccountSettings = () => {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} disabled={deleteConfirmText !== 'DELETE'} className="bg-destructive hover:bg-destructive/90 disabled:opacity-50">Delete permanently</AlertDialogAction>
+                  <AlertDialogAction onClick={handleDelete} disabled={deleteConfirmText !== 'DELETE' || isDeleting} className="bg-destructive hover:bg-destructive/90 disabled:opacity-50">
+                    {isDeleting ? 'Deleting...' : 'Delete permanently'}
+                  </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
