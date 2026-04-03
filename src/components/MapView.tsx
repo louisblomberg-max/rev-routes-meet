@@ -44,8 +44,8 @@ const MapView = ({
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: MAP_STYLE_URLS[mapStyle],
-      center: [-1.8, 51.5],
-      zoom: 10,
+      center: [-1.5, 52.5],
+      zoom: 6,
       attributionControl: false,
     });
 

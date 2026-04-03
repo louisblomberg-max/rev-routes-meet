@@ -5,6 +5,7 @@ import { format, parseISO } from 'date-fns';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -39,7 +40,23 @@ const EventDetail = () => {
   const { state, events: eventsRepo } = useData();
   const { user: authUser } = useAuth();
 
-  const event = state.events.find(e => e.id === id);
+  const [fetchedEvent, setFetchedEvent] = useState<any>(null);
+  const [eventLoading, setEventLoading] = useState(true);
+
+  useEffect(() => {
+    if (!id) { setEventLoading(false); return; }
+    setEventLoading(true);
+    supabase.from('events').select('*').eq('id', id).single()
+      .then(({ data, error }) => {
+        if (error) {
+          toast.error('Failed to load event');
+        }
+        setFetchedEvent(data);
+        setEventLoading(false);
+      });
+  }, [id]);
+
+  const event = state.events.find(e => e.id === id) || fetchedEvent;
   const isSavedInitial = state.savedEvents.includes(id || '');
   const isAttendingInitial = state.userAttendingEvents.includes(id || '');
   const [isSaved, setIsSaved] = useState(isSavedInitial);
@@ -62,6 +79,19 @@ const EventDetail = () => {
     supabase.from('event_tickets').select('id').eq('event_id', id).eq('user_id', authUser.id).eq('status', 'confirmed')
       .then(({ data }) => setHasTicket((data?.length || 0) > 0));
   }, [id, authUser?.id]);
+
+  if (eventLoading) {
+    return (
+      <div className="mobile-container bg-background min-h-screen">
+        <Skeleton className="h-52 w-full" />
+        <div className="px-4 pt-4 space-y-4">
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-32 w-full rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   if (!event) {
     return (

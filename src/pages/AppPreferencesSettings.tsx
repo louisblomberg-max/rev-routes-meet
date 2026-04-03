@@ -20,7 +20,7 @@ const AppPreferencesSettings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [theme, setTheme] = useState('system');
+  const [theme, setTheme] = useState(localStorage.getItem('revnet-theme') || 'system');
   const [mapStyle, setMapStyle] = useState('standard');
   const [defaultView, setDefaultView] = useState('last_used');
   const [distanceUnits, setDistanceUnits] = useState('miles');
@@ -61,6 +61,20 @@ const AppPreferencesSettings = () => {
   };
 
   useEffect(() => { fetchPrefs(); }, [user?.id]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else if (theme === 'light') {
+      root.classList.remove('dark');
+    } else {
+      // system
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      root.classList.toggle('dark', prefersDark);
+    }
+    localStorage.setItem('revnet-theme', theme);
+  }, [theme]);
 
   const update = async (field: string, value: unknown) => {
     if (!user?.id) return;

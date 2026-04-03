@@ -141,53 +141,62 @@ const Home = () => {
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
-  /* ── Fix 1 & 2 — refreshPins fetches ALL categories, debounce is on moveEnd ── */
+  /* ── refreshPins fetches ALL categories via direct table queries ── */
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
-    if (!m) return;
-    if (!m.loaded()) {
-      m.once('load', () => refreshPins());
-      return;
-    }
-    const bounds = m.getBounds();
-    if (!bounds) return;
+    if (!m || !m.loaded()) return;
 
-    setIsLoadingPins(true);
+    const bounds = m.getBounds();
+    const north = bounds.getNorthEast().lat;
+    const south = bounds.getSouthWest().lat;
+    const east = bounds.getNorthEast().lng;
+    const west = bounds.getSouthWest().lng;
+
     try {
-      const { data, error } = await supabase.rpc('get_pins_in_bounds', {
-        north: bounds.getNorth(),
-        south: bounds.getSouth(),
-        east: bounds.getEast(),
-        west: bounds.getWest(),
-        categories: ['events', 'routes', 'services'],
-      });
-      if (error) {
-      } else if (data) {
-        const normalizeType = (t: string) => {
-          if (t === 'event') return 'events';
-          if (t === 'route') return 'routes';
-          if (t === 'service') return 'services';
-          return t;
-        };
-        const mapped = data.map((pin: any) => {
-          const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
-          return {
-            id: pin.id,
-            type: normalizeType(pin.type),
-            lat: Number(pin.lat),
-            lng: Number(pin.lng),
-            title: pin.title,
-            ...pinData,
-          };
-        });
-        allPinsRef.current = mapped;
-        setPins(mapped);
-      }
-    } catch (err) {
-    } finally {
-      setIsLoadingPins(false);
+      const [eventsRes, routesRes, servicesRes] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, title, lat, lng, type, date_start, meet_style_tags, vehicle_focus, vehicle_brands')
+          .gte('lat', south).lte('lat', north)
+          .gte('lng', west).lte('lng', east)
+          .limit(200),
+        supabase
+          .from('routes')
+          .select('id, name, lat, lng, type')
+          .gte('lat', south).lte('lat', north)
+          .gte('lng', west).lte('lng', east)
+          .limit(200),
+        supabase
+          .from('services')
+          .select('id, name, lat, lng, service_type')
+          .gte('lat', south).lte('lat', north)
+          .gte('lng', west).lte('lng', east)
+          .limit(200),
+      ]);
+
+      const mapped = [
+        ...(eventsRes.data || []).map(e => ({
+          id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
+          type: 'events', subtype: e.type,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
+          date_start: e.date_start,
+        })),
+        ...(routesRes.data || []).map(r => ({
+          id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
+          type: 'routes', subtype: r.type,
+        })),
+        ...(servicesRes.data || []).map(s => ({
+          id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
+          type: 'services', subtype: s.service_type,
+        })),
+      ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
+
+      allPinsRef.current = mapped;
+      setPins(mapped);
+    } catch {
+      // silently retry on next viewport change
     }
-  }, [setPins, setIsLoadingPins]);
+  }, [setPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {

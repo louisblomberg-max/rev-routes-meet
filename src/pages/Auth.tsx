@@ -52,6 +52,7 @@ const Auth = () => {
     try {
       await signUp(email, password, displayName.trim());
       toast.success('Account created! Check your email to verify.');
+      navigate('/onboarding');
     } catch (err: any) {
       toast.error(err.message || 'Sign up failed');
     } finally {
