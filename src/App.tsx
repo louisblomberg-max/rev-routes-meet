@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,69 +11,74 @@ import { DataProvider } from "@/contexts/DataContext";
 import { GarageProvider } from "@/contexts/GarageContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import Profile from "./pages/Profile";
-import Settings from "./pages/Settings";
-import PrivacySafetySettings from "./pages/PrivacySafetySettings";
-import NotificationSettings from "./pages/NotificationSettings";
-import AppPreferencesSettings from "./pages/AppPreferencesSettings";
-import AccountSettings from "./pages/AccountSettings";
-import SocialDiscoverySettings from "./pages/SocialDiscoverySettings";
-import PlanBillingSettings from "./pages/PlanBillingSettings";
-import FAQSettings from "./pages/FAQSettings";
-import HowToUseSettings from "./pages/HowToUseSettings";
-import SupportLegalSettings from "./pages/SupportLegalSettings";
-import Upgrade from "./pages/Upgrade";
-import MyGarage from "./pages/MyGarage";
-import MyFriends from "./pages/MyFriends";
-import MyEvents from "./pages/MyEvents";
-import MyRoutes from "./pages/MyRoutes";
-import MyDiscussions from "./pages/MyDiscussions";
-import Community from "./pages/Community";
-import Forums from "./pages/Forums";
-import CreateForumPost from "./pages/CreateForumPost";
-import ForumThread from "./pages/ForumThread";
-import Clubs from "./pages/Clubs";
-import MyClubs from "./pages/MyClubs";
-import ClubSettings from "./pages/ClubSettings";
-import ClubJoinRequest from "./pages/ClubJoinRequest";
-import ClubProfile from "./pages/ClubProfile";
-import Marketplace from "./pages/Marketplace";
-import Messages from "./pages/Messages";
-import Conversation from "./pages/Conversation";
-import AddEvent from "./pages/AddEvent";
-import AddRoute from "./pages/AddRoute";
-import AddService from "./pages/AddService";
-import AddClub from "./pages/AddClub";
-import AddVehicle from "./pages/AddVehicle";
 
-import RouteDetail from "./pages/RouteDetail";
-import EventDetail from "./pages/EventDetail";
-import ServiceDetail from "./pages/ServiceDetail";
-import NotFound from "./pages/NotFound";
-import Welcome from "./pages/Welcome";
-import Permissions from "./pages/Permissions";
-import Notifications from "./pages/Notifications";
-import EventsList from "./pages/EventsList";
-import RoutesList from "./pages/RoutesList";
-import ServicesList from "./pages/ServicesList";
-import MySavedServices from "./pages/MySavedServices";
-
-// Auth + Onboarding screens
-import Auth from "./pages/Auth";
-import AuthCallback from "./pages/AuthCallback";
-import Onboarding from "./pages/Onboarding";
-import ChoosePlan from "./pages/ChoosePlan";
-import DevTools from "./pages/DevTools";
-import StolenVehicles from "./pages/StolenVehicles";
-import UserProfile from "./pages/UserProfile";
-import Friends from "./pages/Friends";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import NavigationPage from "./pages/Navigation";
-import You from "./pages/You";
-import Subscription from "./pages/Subscription";
+// Lazy-loaded pages
+const Index = React.lazy(() => import("./pages/Index"));
+const Profile = React.lazy(() => import("./pages/Profile"));
+const Settings = React.lazy(() => import("./pages/Settings"));
+const PrivacySafetySettings = React.lazy(() => import("./pages/PrivacySafetySettings"));
+const NotificationSettings = React.lazy(() => import("./pages/NotificationSettings"));
+const AppPreferencesSettings = React.lazy(() => import("./pages/AppPreferencesSettings"));
+const AccountSettings = React.lazy(() => import("./pages/AccountSettings"));
+const SocialDiscoverySettings = React.lazy(() => import("./pages/SocialDiscoverySettings"));
+const PlanBillingSettings = React.lazy(() => import("./pages/PlanBillingSettings"));
+const FAQSettings = React.lazy(() => import("./pages/FAQSettings"));
+const HowToUseSettings = React.lazy(() => import("./pages/HowToUseSettings"));
+const SupportLegalSettings = React.lazy(() => import("./pages/SupportLegalSettings"));
+const Upgrade = React.lazy(() => import("./pages/Upgrade"));
+const MyGarage = React.lazy(() => import("./pages/MyGarage"));
+const MyFriends = React.lazy(() => import("./pages/MyFriends"));
+const MyEvents = React.lazy(() => import("./pages/MyEvents"));
+const MyRoutes = React.lazy(() => import("./pages/MyRoutes"));
+const MyDiscussions = React.lazy(() => import("./pages/MyDiscussions"));
+const Community = React.lazy(() => import("./pages/Community"));
+const Forums = React.lazy(() => import("./pages/Forums"));
+const CreateForumPost = React.lazy(() => import("./pages/CreateForumPost"));
+const ForumThread = React.lazy(() => import("./pages/ForumThread"));
+const Clubs = React.lazy(() => import("./pages/Clubs"));
+const MyClubs = React.lazy(() => import("./pages/MyClubs"));
+const ClubSettings = React.lazy(() => import("./pages/ClubSettings"));
+const ClubJoinRequest = React.lazy(() => import("./pages/ClubJoinRequest"));
+const ClubProfile = React.lazy(() => import("./pages/ClubProfile"));
+const Marketplace = React.lazy(() => import("./pages/Marketplace"));
+const Messages = React.lazy(() => import("./pages/Messages"));
+const Conversation = React.lazy(() => import("./pages/Conversation"));
+const AddEvent = React.lazy(() => import("./pages/AddEvent"));
+const AddRoute = React.lazy(() => import("./pages/AddRoute"));
+const AddService = React.lazy(() => import("./pages/AddService"));
+const AddClub = React.lazy(() => import("./pages/AddClub"));
+const AddVehicle = React.lazy(() => import("./pages/AddVehicle"));
+const RouteDetail = React.lazy(() => import("./pages/RouteDetail"));
+const EventDetail = React.lazy(() => import("./pages/EventDetail"));
+const ServiceDetail = React.lazy(() => import("./pages/ServiceDetail"));
+const NotFound = React.lazy(() => import("./pages/NotFound"));
+const Welcome = React.lazy(() => import("./pages/Welcome"));
+const Permissions = React.lazy(() => import("./pages/Permissions"));
+const Notifications = React.lazy(() => import("./pages/Notifications"));
+const EventsList = React.lazy(() => import("./pages/EventsList"));
+const RoutesList = React.lazy(() => import("./pages/RoutesList"));
+const ServicesList = React.lazy(() => import("./pages/ServicesList"));
+const MySavedServices = React.lazy(() => import("./pages/MySavedServices"));
+const Auth = React.lazy(() => import("./pages/Auth"));
+const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
+const Onboarding = React.lazy(() => import("./pages/Onboarding"));
+const ChoosePlan = React.lazy(() => import("./pages/ChoosePlan"));
+const DevTools = React.lazy(() => import("./pages/DevTools"));
+const StolenVehicles = React.lazy(() => import("./pages/StolenVehicles"));
+const UserProfile = React.lazy(() => import("./pages/UserProfile"));
+const Friends = React.lazy(() => import("./pages/Friends"));
+const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
+const NavigationPage = React.lazy(() => import("./pages/Navigation"));
+const You = React.lazy(() => import("./pages/You"));
+const Subscription = React.lazy(() => import("./pages/Subscription"));
 
 const queryClient = new QueryClient();
+
+const LoadingSpinner = () => (
+  <div className="w-full h-screen flex items-center justify-center bg-black">
+    <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -86,6 +92,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Auth (not protected) */}
           <Route path="/auth" element={<Auth />} />
@@ -161,6 +168,7 @@ const App = () => (
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
     </NavigationProvider>
