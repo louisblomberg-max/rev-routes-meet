@@ -2614,43 +2614,61 @@ export type Database = {
     Views: {
       profiles_public: {
         Row: {
+          allow_message_requests: boolean | null
           available_to_help: boolean | null
           avatar_url: string | null
           bio: string | null
+          country: string | null
           created_at: string | null
           display_name: string | null
           id: string | null
           location: string | null
           plan: string | null
           profile_visibility: string | null
+          show_events_i_attend: boolean | null
+          show_forum_posts: boolean | null
           show_garage_on_profile: boolean | null
+          show_routes_i_create: boolean | null
           username: string | null
+          who_can_message: string | null
         }
         Insert: {
+          allow_message_requests?: boolean | null
           available_to_help?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
           location?: string | null
           plan?: string | null
           profile_visibility?: string | null
+          show_events_i_attend?: boolean | null
+          show_forum_posts?: boolean | null
           show_garage_on_profile?: boolean | null
+          show_routes_i_create?: boolean | null
           username?: string | null
+          who_can_message?: string | null
         }
         Update: {
+          allow_message_requests?: boolean | null
           available_to_help?: boolean | null
           avatar_url?: string | null
           bio?: string | null
+          country?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
           location?: string | null
           plan?: string | null
           profile_visibility?: string | null
+          show_events_i_attend?: boolean | null
+          show_forum_posts?: boolean | null
           show_garage_on_profile?: boolean | null
+          show_routes_i_create?: boolean | null
           username?: string | null
+          who_can_message?: string | null
         }
         Relationships: []
       }
