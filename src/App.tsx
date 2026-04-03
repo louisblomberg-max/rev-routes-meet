@@ -66,6 +66,7 @@ import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
+import Friends from "./pages/Friends";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NavigationPage from "./pages/Navigation";
 import You from "./pages/You";
@@ -153,6 +154,8 @@ const App = () => (
           <Route path="/settings/devtools" element={<ProtectedRoute><DevTools /></ProtectedRoute>} />
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
           <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
           <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
