@@ -81,10 +81,17 @@ const MarketplaceTab = () => {
     (async () => {
       const { data } = await supabase
         .from('marketplace_listings')
-        .select('*, profiles(username, avatar_url, display_name)')
+        .select('*, profiles!marketplace_listings_user_id_fkey(username, avatar_url, display_name)')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
-      setMarketplaceListings(data || []);
+      // Normalize DB rows: price is numeric, no location/mileage columns
+      const normalized = (data || []).map((l: any) => ({
+        ...l,
+        price: l.price != null ? `£${Number(l.price).toLocaleString()}` : '£0',
+        location: l.lat && l.lng ? 'Nearby' : 'Unknown',
+        mileage: null,
+      }));
+      setMarketplaceListings(normalized);
     })();
   }, []);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);

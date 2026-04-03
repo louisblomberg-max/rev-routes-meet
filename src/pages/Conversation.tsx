@@ -140,10 +140,8 @@ const Conversation = () => {
       const { error: selfPartError } = await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
       if (selfPartError) { toast.error('Failed to join conversation'); return; }
 
-      // Add other user via edge function
-      const { error: addPartError } = await supabase.functions.invoke('add-conversation-participant', {
-        body: { conversation_id: conv.id, participant_user_id: otherUserId },
-      });
+      // Add other user as participant
+      const { error: addPartError } = await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: otherUserId });
       if (addPartError) { toast.error('Failed to add participant'); return; }
 
       activeConvId = conv.id;

@@ -51,7 +51,27 @@ const EventDetail = () => {
         if (error) {
           toast.error('Failed to load event');
         }
-        setFetchedEvent(data);
+        if (data) {
+          // Normalize DB row to match model shape
+          setFetchedEvent({
+            ...data,
+            createdBy: data.created_by,
+            bannerImage: data.banner_url,
+            startDate: data.date_start,
+            endDate: data.date_end,
+            date: data.date_start,
+            eventType: data.type || 'meets',
+            locationName: data.location || '',
+            vehicleTypes: data.vehicle_types || [],
+            vehicleBrands: data.vehicle_brands || [],
+            vehicleCategories: data.vehicle_categories || [],
+            vehicleAges: data.vehicle_ages || [],
+            maxAttendees: data.max_attendees,
+            entryFee: data.is_free ? 'Free' : `£${data.entry_fee || 0}`,
+            entryFeeType: data.is_free ? 'free' : 'paid',
+            entryFeeAmount: data.entry_fee,
+          });
+        }
         setEventLoading(false);
       });
   }, [id]);

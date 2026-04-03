@@ -31,7 +31,20 @@ const RouteDetail = () => {
         if (error) {
           toast.error('Failed to load route');
         }
-        setFetchedRoute(data);
+        if (data) {
+          // Normalize DB row to match model shape
+          setFetchedRoute({
+            ...data,
+            createdBy: data.created_by,
+            polyline: data.geometry ? JSON.stringify(data.geometry) : null,
+            durationMinutes: data.duration_minutes,
+            elevationGain: data.elevation_gain,
+            surfaceType: data.surface_type,
+            safetyTags: data.safety_tags || [],
+            vehicleType: data.vehicle_type || '',
+            distance: data.distance_meters ? `${(data.distance_meters / 1000).toFixed(1)} km` : '',
+          });
+        }
         setRouteLoading(false);
       });
   }, [id]);

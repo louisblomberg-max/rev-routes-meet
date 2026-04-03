@@ -138,7 +138,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     update: (id, updates) => {
       setLocalEvents(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
       const dbUpdates: Record<string, unknown> = {};
-      if (updates.attendees !== undefined) dbUpdates.max_attendees = updates.maxAttendees;
+      if (updates.maxAttendees !== undefined) dbUpdates.max_attendees = updates.maxAttendees;
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       (async () => { if (Object.keys(dbUpdates).length > 0) await supabase.from('events').update(dbUpdates).eq('id', id); })();
       return { id, ...updates } as RevEvent;
@@ -180,7 +180,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       (async () => {
         const { error } = await supabase.from('services').insert({
           created_by: service.createdBy, name: service.name, tagline: service.tagline,
-          description: service.category, types: service.serviceTypes || [],
+          description: service.description, service_types: service.serviceTypes || [],
           lat: service.lat, lng: service.lng, address: service.address,
           service_type: service.serviceMode === 'mobile' ? 'mobile' : 'fixed',
           phone: service.phone, website: service.website,
@@ -266,11 +266,13 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       return { id: crypto.randomUUID(), userId, friendUserId: targetUserId, username: '', displayName: '', avatar: null, mutualFriends: 0, status: 'pending_sent' as const };
     },
     acceptRequest: (friendId) => {
-      (async () => { await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', friendId); })();
+      (async () => { await supabase.from('friends').update({ status: 'accepted' }).eq('friend_id', friendId).eq('status', 'pending'); })();
       return { id: friendId, userId: '', friendUserId: '', username: '', displayName: '', avatar: null, mutualFriends: 0, status: 'accepted' as const };
     },
     removeFriend: (friendId) => {
-      (async () => { await supabase.from('friends').delete().eq('user_id', friendId); })();
+      (async () => {
+        await supabase.from('friends').delete().or(`user_id.eq.${friendId},friend_id.eq.${friendId}`);
+      })();
     },
   }), []);
 

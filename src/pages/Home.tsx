@@ -156,19 +156,21 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, meet_style_tags, vehicle_focus, vehicle_brands')
+          .select('id, title, lat, lng, type, date_start, meet_style_tags, vehicle_focus, vehicle_brands, is_free, entry_fee, status')
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
+          .eq('status', 'published')
           .limit(200),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type')
+          .select('id, name, lat, lng, type, difficulty, duration_minutes, surface_type, status')
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
+          .eq('status', 'published')
           .limit(200),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type')
+          .select('id, name, lat, lng, service_type, service_types, is_24_7')
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
           .limit(200),
@@ -179,15 +181,17 @@ const Home = () => {
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
-          date_start: e.date_start,
+          date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
+          difficulty: r.difficulty, duration_minutes: r.duration_minutes, surface_type: r.surface_type,
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type,
+          service_types: s.service_types, is_24_7: s.is_24_7,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
