@@ -66,6 +66,7 @@ import ChoosePlan from "./pages/ChoosePlan";
 import DevTools from "./pages/DevTools";
 import StolenVehicles from "./pages/StolenVehicles";
 import UserProfile from "./pages/UserProfile";
+import Friends from "./pages/Friends";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NavigationPage from "./pages/Navigation";
 import You from "./pages/You";
