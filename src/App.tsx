@@ -69,6 +69,7 @@ import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NavigationPage from "./pages/Navigation";
 import You from "./pages/You";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -153,6 +154,7 @@ const App = () => (
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
+          <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
