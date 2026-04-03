@@ -461,6 +461,10 @@ const Home = () => {
     return true;
   }, [servicesFilters]);
 
+  /* ── Bug 2 fix — stable ref for handlePinClick so marker listeners never go stale ── */
+  const handlePinClickRef = useRef(handlePinClick);
+  handlePinClickRef.current = handlePinClick;
+
   /* ── Fix 6 — Render DOM markers: apply all filters + category ── */
   useEffect(() => {
     const m = mapRef.current;
@@ -470,17 +474,34 @@ const Home = () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
+      // Bug 1 fix — always filter from allPinsRef (full dataset), not context pins
+      const source = allPinsRef.current.length > 0 ? allPinsRef.current : pins;
+
       // Apply all three filter functions
-      let visiblePins = pins.filter(pin =>
+      let visiblePins = source.filter(pin =>
         applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
       );
 
-      // Fix 1 — category tab filter (client-side, instant, no RPC call)
+      // Category tab filter — activeCategory is plural ("events","routes","services"), pin.type is also plural
       if (activeCategory) {
         visiblePins = visiblePins.filter(p => p.type === activeCategory);
       }
 
-      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins');
+      console.log('[Map] Rendering', visiblePins.length, 'of', source.length, 'pins (category:', activeCategory || 'all', ')');
+
+      // Bug 3 fix — fit bounds on very first load if we have pins
+      if (!initialFitDoneRef.current && visiblePins.length > 0) {
+        initialFitDoneRef.current = true;
+        const bounds = new mapboxgl.LngLatBounds();
+        visiblePins.forEach(pin => {
+          const lat = Number(pin.lat);
+          const lng = Number(pin.lng);
+          if (!isNaN(lat) && !isNaN(lng)) bounds.extend([lng, lat]);
+        });
+        if (!bounds.isEmpty()) {
+          m.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 800 });
+        }
+      }
 
       visiblePins.forEach(pin => {
         const lat = Number(pin.lat);
@@ -507,9 +528,10 @@ const Home = () => {
           el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
         });
 
+        // Bug 2 fix — use ref so the click handler is never stale
         el.addEventListener('click', (e) => {
           e.stopPropagation();
-          handlePinClick(pin);
+          handlePinClickRef.current(pin);
         });
 
         const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
