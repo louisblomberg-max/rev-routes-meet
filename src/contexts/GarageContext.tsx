@@ -14,6 +14,7 @@ interface GarageContextType {
   deleteVehicle: (vehicleId: string) => void;
   setPrimaryVehicle: (vehicleId: string) => void;
   updatePreferences: (patch: Partial<UserPreferences>) => void;
+  refreshVehicles: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -200,6 +201,7 @@ export const GarageProvider = ({ children }: { children: ReactNode }) => {
       vehicles, preferences, primaryVehicle,
       addVehicle, updateVehicle, deleteVehicle,
       setPrimaryVehicle: setPrimary, updatePreferences, isLoading,
+      refreshVehicles: reload,
     }}>
       {children}
     </GarageContext.Provider>

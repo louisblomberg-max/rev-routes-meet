@@ -37,6 +37,21 @@ export default function ClubProfile() {
   useEffect(() => {
     if (!clubId) return
     loadClub()
+
+    // Realtime subscription for club posts
+    const channel = supabase
+      .channel(`club-posts-${clubId}`)
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'club_posts',
+        filter: `club_id=eq.${clubId}`,
+      }, () => {
+        loadClub()
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [clubId, user?.id])
 
   const loadClub = async () => {
