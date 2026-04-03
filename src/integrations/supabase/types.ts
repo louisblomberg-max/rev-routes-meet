@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocked_users: {
+        Row: {
+          blocked_user_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          blocked_user_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          blocked_user_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       club_events: {
         Row: {
           club_id: string | null
@@ -1527,6 +1548,7 @@ export type Database = {
           free_event_credits: number | null
           help_radius_miles: number | null
           id: string
+          is_admin: boolean
           live_location_sharing: boolean | null
           location: string | null
           onboarding_complete: boolean | null
@@ -1561,6 +1583,7 @@ export type Database = {
           free_event_credits?: number | null
           help_radius_miles?: number | null
           id: string
+          is_admin?: boolean
           live_location_sharing?: boolean | null
           location?: string | null
           onboarding_complete?: boolean | null
@@ -1595,6 +1618,7 @@ export type Database = {
           free_event_credits?: number | null
           help_radius_miles?: number | null
           id?: string
+          is_admin?: boolean
           live_location_sharing?: boolean | null
           location?: string | null
           onboarding_complete?: boolean | null
@@ -2399,6 +2423,7 @@ export type Database = {
         Args: { p_club_id: string }
         Returns: undefined
       }
+      delete_user: { Args: { p_user_id: string }; Returns: undefined }
       get_event_ticket_price: { Args: { event_id: string }; Returns: number }
       get_friend_locations: {
         Args: { p_user_id: string }

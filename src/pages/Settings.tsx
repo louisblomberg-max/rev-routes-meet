@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen, FlaskConical, Trash2 } from 'lucide-react';
+import { Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen, FlaskConical, Trash2, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,13 +21,21 @@ const Settings = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [userPlanLabel, setUserPlanLabel] = useState('Free');
 
   useEffect(() => {
+    if (!user?.id) return;
     (async () => {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      setIsAdmin(authUser?.email === 'louisblomberg@gmail.com');
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin, plan')
+        .eq('id', user.id)
+        .maybeSingle();
+      setIsAdmin(profile?.is_admin === true);
+      const planMap: Record<string, string> = { free: 'Explorer', pro: 'Pro Driver', club: 'Organiser' };
+      setUserPlanLabel(planMap[profile?.plan || 'free'] || 'Explorer');
     })();
-  }, []);
+  }, [user?.id]);
 
   const settingsSections = [
     { id: 'privacy', icon: Shield, label: 'Privacy & Safety', description: 'Visibility, location, blocked users', color: 'bg-primary/10', iconColor: 'text-primary' },
@@ -51,17 +59,13 @@ const Settings = () => {
     if (deleteConfirmText !== 'DELETE' || !user?.id) return;
     setIsDeleting(true);
     try {
-      await supabase.from('vehicles').delete().eq('user_id', user.id);
-      await supabase.from('events').delete().eq('created_by', user.id);
-      await supabase.from('routes').delete().eq('created_by', user.id);
-      await supabase.from('club_memberships').delete().eq('user_id', user.id);
-      await supabase.from('friends').delete().or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
-      await supabase.from('notifications').delete().eq('user_id', user.id);
-      await supabase.from('user_preferences').delete().eq('user_id', user.id);
+      const { error } = await supabase.rpc('delete_user', { p_user_id: user.id });
+      if (error) throw error;
       await supabase.auth.signOut();
       toast.success('Account deleted');
       navigate('/auth', { replace: true });
     } catch (err) {
+      console.error('[Settings] Delete error:', err);
       toast.error('Could not delete account. Please contact support.');
     } finally {
       setIsDeleting(false);
@@ -81,6 +85,21 @@ const Settings = () => {
 
       {/* Settings Sections */}
       <div className="px-4 pt-3 flex-1 overflow-y-auto">
+        {/* Subscription row */}
+        <button
+          onClick={() => navigate('/subscription')}
+          className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3 hover:bg-primary/5 transition-colors"
+        >
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Crown className="w-[18px] h-[18px] text-primary" />
+          </div>
+          <div className="flex-1 text-left min-w-0">
+            <p className="text-sm font-medium text-foreground leading-tight">Your Plan</p>
+            <p className="text-xs text-muted-foreground truncate">{userPlanLabel}</p>
+          </div>
+          <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-lg">Manage plan</span>
+        </button>
+
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {settingsSections.map((section) => {
             const Icon = section.icon;
