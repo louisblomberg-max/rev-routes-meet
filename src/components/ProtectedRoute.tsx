@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ReactNode, useState, useEffect } from 'react';
 
@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, isLoading } = useAuth();
+  const location = useLocation();
   const [forceReady, setForceReady] = useState(false);
 
   useEffect(() => {
@@ -29,7 +30,13 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     return <Navigate to="/auth" replace />;
   }
 
-  // User confirmed — render the protected content
+  // User exists but onboarding not complete — redirect to onboarding
+  // (unless they're already on a path that shouldn't redirect)
+  if (!user.onboardingComplete && location.pathname !== '/payment-success') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  // User confirmed and onboarding complete — render the protected content
   return <>{children}</>;
 };
 

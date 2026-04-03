@@ -139,24 +139,37 @@ const Onboarding = () => {
     setIsSubmitting(true);
 
     try {
+      // Refresh session to get a fresh user ID
+      const { data: sessionData } = await supabase.auth.refreshSession();
+      const userId = sessionData?.session?.user?.id || user.id;
+
       let avatarUrl: string | undefined;
       if (avatarFile) {
         const url = await uploadAvatar();
         if (url) avatarUrl = url;
       }
 
+      // Save profile with all onboarding data
       const updates: any = {
         username,
         onboardingComplete: true,
         isProfileComplete: true,
       };
       if (avatarUrl) updates.avatar = avatarUrl;
-
       await updateProfile(updates);
+
+      // Save vehicle interests and meet style preferences
+      if (vehicleInterests.length > 0 || meetStyles.length > 0) {
+        await supabase.from('user_preferences').upsert({
+          user_id: userId,
+          vehicle_interests: vehicleInterests,
+          meet_style_preferences: meetStyles,
+        }, { onConflict: 'user_id' });
+      }
 
       navigate('/', { replace: true });
       toast.success('Welcome to RevNet!');
-    } catch (err) {
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
