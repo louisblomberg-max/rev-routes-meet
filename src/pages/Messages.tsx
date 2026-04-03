@@ -1,21 +1,25 @@
-import { useState, useEffect } from 'react';
-import { Search, MoreVertical, Plus, Users, Pin, BellOff, Trash2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Search, Plus, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import NewConversationSheet from '@/components/messages/NewConversationSheet';
+import { Badge } from '@/components/ui/badge';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import BackButton from '@/components/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
-import { toast } from 'sonner';
 
 interface ConvDisplay {
-  id: string; name: string; lastMessage: string; time: string; unread: boolean;
-  isGroup: boolean; isPinned: boolean; isMuted: boolean;
+  conversationId: string;
+  otherUserId: string;
+  name: string;
+  username: string | null;
+  avatarUrl: string | null;
+  lastMessage: string;
+  lastMessageTime: string | null;
+  unreadCount: number;
 }
 
 const Messages = () => {
@@ -24,75 +28,131 @@ const Messages = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [conversations, setConversations] = useState<ConvDisplay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isNewConversationOpen, setIsNewConversationOpen] = useState(false);
+  const [friendPickerOpen, setFriendPickerOpen] = useState(false);
+  const [friends, setFriends] = useState<any[]>([]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
-    setError(null);
-    const { data: participantRows, error: err } = await supabase
-      .from('conversation_participants').select('conversation_id').eq('user_id', user.id);
-    if (err) { setError(err.message); setIsLoading(false); return; }
-    const convIds = (participantRows || []).map((r: any) => r.conversation_id);
+
+    // Get all conversations I'm part of
+    const { data: myParts } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id')
+      .eq('user_id', user.id);
+
+    const convIds = (myParts || []).map(r => r.conversation_id);
     if (convIds.length === 0) { setConversations([]); setIsLoading(false); return; }
 
-    const { data: convs } = await supabase.from('conversations').select('*').in('id', convIds);
+    // Get other participants for each conversation
+    const { data: allParts } = await supabase
+      .from('conversation_participants')
+      .select('conversation_id, user_id')
+      .in('conversation_id', convIds)
+      .neq('user_id', user.id);
+
+    // Get unique other user IDs
+    const otherUserMap: Record<string, string> = {};
+    (allParts || []).forEach(p => { otherUserMap[p.conversation_id] = p.user_id; });
+
+    const otherUserIds = [...new Set(Object.values(otherUserMap))];
+    if (otherUserIds.length === 0) { setConversations([]); setIsLoading(false); return; }
+
+    // Fetch profiles for other users
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, username, avatar_url')
+      .in('id', otherUserIds);
+    const profileMap: Record<string, any> = {};
+    (profiles || []).forEach(p => { profileMap[p.id] = p; });
+
+    // Fetch last message and unread count for each conversation
     const convDisplays: ConvDisplay[] = [];
-    for (const conv of (convs || [])) {
-      const { data: msgs } = await supabase.from('messages').select('content, created_at, sender_id, read_at')
-        .eq('conversation_id', conv.id).order('created_at', { ascending: false }).limit(1);
-      const lastMsg = msgs?.[0];
+    for (const convId of convIds) {
+      const otherId = otherUserMap[convId];
+      if (!otherId) continue;
+      const profile = profileMap[otherId];
+
+      const { data: lastMsgs } = await supabase
+        .from('messages')
+        .select('content, created_at, sender_id, read_at')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      const lastMsg = lastMsgs?.[0];
+
+      // Count unread messages from the other user
+      const { count: unreadCount } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('conversation_id', convId)
+        .neq('sender_id', user.id)
+        .is('read_at', null);
+
       convDisplays.push({
-        id: conv.id, name: conv.name || 'Conversation',
-        lastMessage: lastMsg?.content || 'No messages yet',
-        time: lastMsg?.created_at ? formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: true }) : '',
-        unread: lastMsg ? lastMsg.sender_id !== user.id && !lastMsg.read_at : false,
-        isGroup: conv.type === 'group', isPinned: false, isMuted: false,
+        conversationId: convId,
+        otherUserId: otherId,
+        name: profile?.display_name || profile?.username || 'User',
+        username: profile?.username,
+        avatarUrl: profile?.avatar_url,
+        lastMessage: lastMsg?.content ? (lastMsg.content.length > 40 ? lastMsg.content.slice(0, 40) + '…' : lastMsg.content) : 'No messages yet',
+        lastMessageTime: lastMsg?.created_at || null,
+        unreadCount: unreadCount || 0,
       });
     }
-    convDisplays.sort((a, b) => (b.unread ? 1 : 0) - (a.unread ? 1 : 0));
+
+    // Sort: unread first, then by time
+    convDisplays.sort((a, b) => {
+      if (a.unreadCount > 0 && b.unreadCount === 0) return -1;
+      if (b.unreadCount > 0 && a.unreadCount === 0) return 1;
+      if (!a.lastMessageTime) return 1;
+      if (!b.lastMessageTime) return -1;
+      return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+    });
+
     setConversations(convDisplays);
     setIsLoading(false);
+  }, [user?.id]);
+
+  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+
+  // Realtime: refresh list on any new message in my conversations
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase.channel('messages-list-rt')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
+        () => { fetchConversations(); })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, fetchConversations]);
+
+  const fetchFriends = async () => {
+    if (!user?.id) return;
+    const [sentRes, receivedRes] = await Promise.all([
+      supabase.from('friends').select('friend_id').eq('user_id', user.id).eq('status', 'accepted'),
+      supabase.from('friends').select('user_id').eq('friend_id', user.id).eq('status', 'accepted'),
+    ]);
+    const friendIds = [
+      ...(sentRes.data || []).map(r => r.friend_id),
+      ...(receivedRes.data || []).map(r => r.user_id),
+    ];
+    if (friendIds.length === 0) { setFriends([]); return; }
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, display_name, username, avatar_url')
+      .in('id', friendIds);
+    setFriends(profiles || []);
   };
 
-  useEffect(() => { fetchConversations(); }, [user?.id]);
-
-  const handleCreateConversation = async (selectedUsers: { id: string; name: string; username: string }[], groupName?: string) => {
-    if (!user?.id) return;
-    // Check for existing direct conversation
-    if (selectedUsers.length === 1) {
-      const { data: myConvs } = await supabase.from('conversation_participants').select('conversation_id').eq('user_id', user.id);
-      const { data: theirConvs } = await supabase.from('conversation_participants').select('conversation_id').eq('user_id', selectedUsers[0].id);
-      const myIds = new Set((myConvs || []).map((r: any) => r.conversation_id));
-      const shared = (theirConvs || []).find((r: any) => myIds.has(r.conversation_id));
-      if (shared) { navigate(`/messages/${shared.conversation_id}`); return; }
-    }
-    const isGroup = selectedUsers.length > 1;
-    const name = groupName || (isGroup ? selectedUsers.map(u => u.name.split(' ')[0]).join(', ') : selectedUsers[0].name);
-    const { data: conv } = await supabase.from('conversations').insert({ name, type: isGroup ? 'group' : 'direct' }).select().single();
-    if (!conv) return;
-    // Add self directly (RLS allows inserting own user_id)
-    await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
-    // Add other participants via Edge Function (service role bypasses RLS)
-    for (const u of selectedUsers) {
-      const { data: fnData, error: fnError } = await supabase.functions.invoke('add-conversation-participant', {
-        body: { conversation_id: conv.id, participant_user_id: u.id },
-      });
-      // Check for privacy restriction (403)
-      if (fnError || (fnData && fnData.error)) {
-        const errorMsg = fnData?.error || fnError?.message || '';
-        if (errorMsg.includes('privacy') || errorMsg.includes('cannot message')) {
-          toast.error('This user has restricted who can message them.');
-          return;
-        }
-      }
-    }
-    navigate(`/messages/${conv.id}`);
+  const handleOpenFriendPicker = () => {
+    fetchFriends();
+    setFriendPickerOpen(true);
   };
 
   const filteredConversations = conversations.filter(conv =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase()) || conv.lastMessage.toLowerCase().includes(searchQuery.toLowerCase())
+    conv.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (conv.username?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -101,15 +161,18 @@ const Messages = () => {
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton className="w-10 h-10 rounded-full bg-card" />
           <h1 className="text-xl font-bold text-foreground flex-1">Messages</h1>
-          <button onClick={() => setIsNewConversationOpen(true)} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center"><Plus className="w-5 h-5 text-primary-foreground" /></button>
+          <button onClick={handleOpenFriendPicker} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+            <Plus className="w-5 h-5 text-primary-foreground" />
+          </button>
         </div>
         <div className="px-4 pb-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Search conversations..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 bg-muted/50 border-0 h-10 rounded-xl" />
+            <Input placeholder="Search conversations..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-muted/50 border-0 h-10 rounded-xl" />
           </div>
         </div>
       </div>
+
       {isLoading ? (
         <div className="divide-y divide-border/30">
           {[1, 2, 3].map(i => (
@@ -119,47 +182,92 @@ const Messages = () => {
             </div>
           ))}
         </div>
-      ) : error ? (
-        <div className="flex flex-col items-center py-16 text-center px-4">
-          <AlertTriangle className="w-10 h-10 text-destructive mb-3" />
-          <p className="font-semibold text-foreground mb-1">Something went wrong</p>
-          <Button variant="outline" onClick={fetchConversations} className="mt-3">Retry</Button>
+      ) : filteredConversations.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <MessageSquare className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="font-semibold text-foreground mb-1">
+            {searchQuery ? 'No conversations found' : 'No messages yet'}
+          </h3>
+          <p className="text-sm text-muted-foreground max-w-[240px]">
+            {searchQuery ? 'Try a different search.' : 'Tap + to start a conversation with a friend.'}
+          </p>
         </div>
       ) : (
-        <>
-          <div className="divide-y divide-border/30">
-            {filteredConversations.map((conversation) => (
-              <div key={conversation.id} className={`flex items-center gap-3 p-4 hover:bg-muted/30 transition-colors`}>
-                <button onClick={() => navigate(`/messages/${conversation.id}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
-                      <AvatarFallback className={`font-semibold ${conversation.isGroup ? 'bg-primary/10 text-primary' : 'bg-muted text-foreground'}`}>
-                        {conversation.isGroup ? <Users className="w-5 h-5" /> : conversation.name.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    {conversation.unread && <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-primary rounded-full border-2 border-background" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className={`font-semibold text-foreground truncate ${conversation.unread ? '' : 'font-medium'}`}>{conversation.name}</span>
-                      <span className="text-xs text-muted-foreground flex-shrink-0">{conversation.time}</span>
-                    </div>
-                    <p className={`text-sm truncate mt-0.5 ${conversation.unread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>{conversation.lastMessage}</p>
-                  </div>
-                </button>
+        <div className="divide-y divide-border/30">
+          {filteredConversations.map(conv => (
+            <button
+              key={conv.conversationId}
+              onClick={() => navigate(`/messages/${conv.otherUserId}`)}
+              className="flex items-center gap-3 p-4 w-full text-left hover:bg-muted/30 transition-colors"
+            >
+              <div className="relative">
+                <Avatar className="w-12 h-12">
+                  <AvatarImage src={conv.avatarUrl || undefined} />
+                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                    {conv.name.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-            ))}
-          </div>
-          {filteredConversations.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4"><Search className="w-8 h-8 text-muted-foreground" /></div>
-              <h3 className="font-semibold text-foreground mb-1">No conversations found</h3>
-              <p className="text-sm text-muted-foreground">Start a new conversation</p>
-            </div>
-          )}
-        </>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`text-sm truncate ${conv.unreadCount > 0 ? 'font-bold text-foreground' : 'font-medium text-foreground'}`}>
+                    {conv.name}
+                  </span>
+                  {conv.lastMessageTime && (
+                    <span className="text-[11px] text-muted-foreground flex-shrink-0">
+                      {formatDistanceToNow(new Date(conv.lastMessageTime), { addSuffix: true })}
+                    </span>
+                  )}
+                </div>
+                <p className={`text-xs truncate mt-0.5 ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                  {conv.lastMessage}
+                </p>
+              </div>
+              {conv.unreadCount > 0 && (
+                <Badge className="bg-primary text-primary-foreground h-5 min-w-[20px] px-1.5 text-[10px] shrink-0">
+                  {conv.unreadCount}
+                </Badge>
+              )}
+            </button>
+          ))}
+        </div>
       )}
-      <NewConversationSheet open={isNewConversationOpen} onOpenChange={setIsNewConversationOpen} onCreateConversation={handleCreateConversation} />
+
+      {/* Friend Picker Sheet */}
+      <Sheet open={friendPickerOpen} onOpenChange={setFriendPickerOpen}>
+        <SheetContent side="bottom" className="rounded-t-2xl max-h-[70vh]">
+          <SheetHeader>
+            <SheetTitle>New Message</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4 space-y-1 overflow-y-auto max-h-[50vh]">
+            {friends.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No friends yet. Add friends from the Community tab.</p>
+            ) : (
+              friends.map(f => {
+                const name = f.display_name || f.username || 'User';
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => { setFriendPickerOpen(false); navigate(`/messages/${f.id}`); }}
+                    className="flex items-center gap-3 p-3 rounded-xl w-full text-left hover:bg-muted/50 transition-colors"
+                  >
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={f.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">{name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{name}</p>
+                      {f.username && <p className="text-xs text-muted-foreground">@{f.username}</p>}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
