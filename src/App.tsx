@@ -69,6 +69,7 @@ import UserProfile from "./pages/UserProfile";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NavigationPage from "./pages/Navigation";
 import You from "./pages/You";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
