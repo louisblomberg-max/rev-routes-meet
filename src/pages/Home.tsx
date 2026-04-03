@@ -125,6 +125,7 @@ const Home = () => {
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const initialFitDoneRef = useRef(false);
 
   // All pins from RPC (unfiltered) kept separately so category switch is instant
   const allPinsRef = useRef<any[]>([]);
