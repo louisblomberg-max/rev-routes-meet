@@ -84,6 +84,8 @@ export default function ClubProfile() {
           }
         }
       }
+    } catch {
+      toast.error('Could not load club')
     } finally {
       setLoading(false)
     }
@@ -110,9 +112,10 @@ export default function ClubProfile() {
 
     setJoining(true)
     try {
-      await supabase.from('club_memberships').insert({
+      const { error: joinError } = await supabase.from('club_memberships').insert({
         club_id: clubId, user_id: user.id, role: 'member'
       })
+      if (joinError) { toast.error('Failed to join club'); return }
 
       // Check founding member
       if (club.member_count < 10) {
@@ -144,8 +147,9 @@ export default function ClubProfile() {
       toast.error('Transfer ownership before leaving')
       return
     }
-    await supabase.from('club_memberships').delete()
+    const { error: leaveError } = await supabase.from('club_memberships').delete()
       .eq('club_id', clubId!).eq('user_id', user?.id!)
+    if (leaveError) { toast.error('Failed to leave club'); return }
     setMembership(null)
     toast.success('Left club')
   }

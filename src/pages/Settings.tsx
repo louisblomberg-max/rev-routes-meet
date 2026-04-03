@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
@@ -22,20 +23,27 @@ const Settings = () => {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [userPlanLabel, setUserPlanLabel] = useState('Free');
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin, plan')
-        .eq('id', user.id)
-        .maybeSingle();
-      setIsAdmin(profile?.is_admin === true);
-      const planMap: Record<string, string> = { free: 'Explorer', pro: 'Pro Driver', club: 'Organiser' };
-      setUserPlanLabel(planMap[profile?.plan || 'free'] || 'Explorer');
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('is_admin, plan')
+          .eq('id', user.id)
+          .maybeSingle();
+        if (error) throw error;
+        setIsAdmin(profile?.is_admin === true);
+        setUserPlanLabel(getPlanLabel((profile?.plan || 'free') as PlanId));
+      } catch {
+        toast.error('Failed to load profile');
+      } finally {
+        setIsLoadingProfile(false);
+      }
     })();
-  }, [user?.id]);
+  }, [user?.id, getPlanLabel]);
 
   const settingsSections = [
     { id: 'privacy', icon: Shield, label: 'Privacy & Safety', description: 'Visibility, location, blocked users', color: 'bg-primary/10', iconColor: 'text-primary' },
@@ -65,7 +73,6 @@ const Settings = () => {
       toast.success('Account deleted');
       navigate('/auth', { replace: true });
     } catch (err) {
-      console.error('[Settings] Delete error:', err);
       toast.error('Could not delete account. Please contact support.');
     } finally {
       setIsDeleting(false);
@@ -86,19 +93,29 @@ const Settings = () => {
       {/* Settings Sections */}
       <div className="px-4 pt-3 flex-1 overflow-y-auto">
         {/* Subscription row */}
-        <button
-          onClick={() => navigate('/subscription')}
-          className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3 hover:bg-primary/5 transition-colors"
-        >
-          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Crown className="w-[18px] h-[18px] text-primary" />
+        {isLoadingProfile ? (
+          <div className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3">
+            <Skeleton className="w-9 h-9 rounded-lg" />
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-3 w-16" />
+            </div>
           </div>
-          <div className="flex-1 text-left min-w-0">
-            <p className="text-sm font-medium text-foreground leading-tight">Your Plan</p>
-            <p className="text-xs text-muted-foreground truncate">{userPlanLabel}</p>
-          </div>
-          <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-lg">Manage plan</span>
-        </button>
+        ) : (
+          <button
+            onClick={() => navigate('/subscription')}
+            className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3 hover:bg-primary/5 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Crown className="w-[18px] h-[18px] text-primary" />
+            </div>
+            <div className="flex-1 text-left min-w-0">
+              <p className="text-sm font-medium text-foreground leading-tight">Your Plan</p>
+              <p className="text-xs text-muted-foreground truncate">{userPlanLabel}</p>
+            </div>
+            <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-lg">Manage plan</span>
+          </button>
+        )}
 
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {settingsSections.map((section) => {

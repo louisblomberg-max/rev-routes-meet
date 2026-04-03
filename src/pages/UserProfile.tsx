@@ -48,6 +48,11 @@ const UserProfile = () => {
       supabase.from('routes').select('id, name, type, difficulty, distance_meters, rating').eq('created_by', id).eq('visibility', 'public').order('created_at', { ascending: false }).limit(5),
     ]);
 
+    if (vehiclesRes.error) toast.error('Failed to load vehicles');
+    if (eventsRes.error) toast.error('Failed to load events');
+    if (routesRes.error) toast.error('Failed to load routes');
+    if (clubsRes.error) toast.error('Failed to load clubs');
+
     setVehicles((vehiclesRes.data as any[]) || []);
     setRoutes(publicRoutesRes.data || []);
     setStats({ events: eventsRes.count || 0, routes: routesRes.count || 0, clubs: clubsRes.count || 0 });
@@ -248,7 +253,7 @@ const UserProfile = () => {
       </div>
 
       {/* Vehicles */}
-      {vehicles.length > 0 && (
+      {(isOwnProfile || profile.show_garage_on_profile) && vehicles.length > 0 && (
         <div className="px-6 mb-6">
           <h2 className="font-semibold text-foreground mb-3">Garage</h2>
           <div className="space-y-2">

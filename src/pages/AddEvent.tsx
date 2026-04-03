@@ -353,8 +353,8 @@ const AddEvent = () => {
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
       return publicUrl
-    } catch (err) {
-      console.error('[AddEvent] Banner upload error:', err)
+    } catch {
+      toast.error('Failed to upload banner image')
       return null
     }
   }
@@ -370,8 +370,8 @@ const AddEvent = () => {
         if (error) throw error
         const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
         urls.push(publicUrl)
-      } catch (err) {
-        console.error('[AddEvent] Photo upload error:', err)
+      } catch {
+        toast.error('Failed to upload photo')
       }
     }
     return urls
@@ -509,7 +509,6 @@ const AddEvent = () => {
         .select()
 
       if (insertError) {
-        console.error('[AddEvent] Insert error:', insertError)
         toast.error('Could not publish: ' + insertError.message)
         return
       }
@@ -540,8 +539,7 @@ const AddEvent = () => {
         }
       })
 
-    } catch (err: any) {
-      console.error('[AddEvent] Error:', err)
+    } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
       clearTimeout(publishTimeout)

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { MessageSquare, Users, HelpCircle, Search, UserPlus, Check, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageSquare, Users, HelpCircle, Search, UserPlus, Check, Clock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,24 +16,49 @@ const Community = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [friendStatuses, setFriendStatuses] = useState<Record<string, string>>({});
   const [isSearching, setIsSearching] = useState(false);
+  const [stats, setStats] = useState({ members: 0, clubs: 0, posts: 0 });
 
   const sections = [
     { icon: MessageSquare, title: 'Forums & Advice', description: 'Get help, share knowledge, discuss all things automotive', color: 'bg-events', route: '/forums' },
     { icon: Users, title: 'Clubs', description: 'Find and join local car & bike clubs', color: 'bg-clubs', route: '/clubs' },
-    { icon: HelpCircle, title: 'Help & Questions', description: 'Quick answers to common questions', color: 'bg-routes', route: '/help' },
+    { icon: HelpCircle, title: 'Help & Support', description: 'Quick answers to common questions', color: 'bg-routes', route: '/settings/support' },
   ];
+
+  // Load real community stats
+  useEffect(() => {
+    const loadStats = async () => {
+      const [membersRes, clubsRes, postsRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('clubs').select('id', { count: 'exact', head: true }),
+        supabase.from('forum_posts').select('id', { count: 'exact', head: true }),
+      ]);
+      setStats({
+        members: membersRes.count || 0,
+        clubs: clubsRes.count || 0,
+        posts: postsRes.count || 0,
+      });
+    };
+    loadStats();
+  }, []);
+
+  const formatStatNumber = (n: number): string => {
+    if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+    return n.toString();
+  };
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     if (query.length < 2) { setSearchResults([]); return; }
     setIsSearching(true);
 
-    const { data: profiles } = await supabase
+    const { data: profiles, error } = await supabase
       .from('profiles')
       .select('id, display_name, username, avatar_url')
       .or(`username.ilike.%${query}%,display_name.ilike.%${query}%`)
       .neq('id', user?.id || '')
       .limit(10);
+
+    if (error) { toast.error('Search failed'); setIsSearching(false); return; }
 
     const results = profiles || [];
     setSearchResults(results);
@@ -87,7 +112,13 @@ const Community = () => {
             className="pl-9"
           />
         </div>
-        {searchResults.length > 0 && (
+        {isSearching && (
+          <div className="flex items-center justify-center py-4 gap-2 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Searching...</span>
+          </div>
+        )}
+        {!isSearching && searchResults.length > 0 && (
           <div className="bg-card rounded-xl border border-border/50 divide-y divide-border/30">
             {searchResults.map(p => {
               const name = p.display_name || p.username || 'User';
@@ -142,9 +173,9 @@ const Community = () => {
         <div className="bg-gradient-to-r from-events/10 to-routes/10 rounded-xl p-6">
           <h3 className="font-semibold text-foreground mb-4">Community Stats</h3>
           <div className="grid grid-cols-3 gap-4 text-center">
-            <div><p className="text-2xl font-bold text-events">12.4K</p><p className="text-xs text-muted-foreground">Members</p></div>
-            <div><p className="text-2xl font-bold text-routes">847</p><p className="text-xs text-muted-foreground">Active Clubs</p></div>
-            <div><p className="text-2xl font-bold text-services">34.2K</p><p className="text-xs text-muted-foreground">Forum Posts</p></div>
+            <div><p className="text-2xl font-bold text-events">{formatStatNumber(stats.members)}</p><p className="text-xs text-muted-foreground">Members</p></div>
+            <div><p className="text-2xl font-bold text-routes">{formatStatNumber(stats.clubs)}</p><p className="text-xs text-muted-foreground">Active Clubs</p></div>
+            <div><p className="text-2xl font-bold text-services">{formatStatNumber(stats.posts)}</p><p className="text-xs text-muted-foreground">Forum Posts</p></div>
           </div>
         </div>
       </div>

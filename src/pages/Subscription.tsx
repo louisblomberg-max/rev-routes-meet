@@ -92,7 +92,6 @@ export default function Subscription() {
       if (data?.url) window.location.href = data.url;
     } catch (err) {
       toast.error('Failed to start checkout');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -131,7 +130,7 @@ export default function Subscription() {
           >
             Yearly
             <span className="absolute -top-2 -right-1 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-              Save 10%
+              Save up to {Math.max(...PLANS.filter(p => p.price.monthly > 0).map(p => Math.round((1 - p.price.yearly / (p.price.monthly * 12)) * 100)))}%
             </span>
           </button>
         </div>

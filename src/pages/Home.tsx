@@ -92,9 +92,12 @@ const Home = () => {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
 
-  /* ── Fix 7 — User location state ── */
+  /* ── User location state ── */
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
+
+  /* ── Search state ── */
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -149,7 +152,6 @@ const Home = () => {
     const bounds = m.getBounds();
     if (!bounds) return;
 
-    console.log('[Map] Fetching pins — all categories');
     setIsLoadingPins(true);
     try {
       const { data, error } = await supabase.rpc('get_pins_in_bounds', {
@@ -160,9 +162,7 @@ const Home = () => {
         categories: ['events', 'routes', 'services'],
       });
       if (error) {
-        console.error('[Map] RPC error:', error);
       } else if (data) {
-        console.log('[Map] Raw pins from RPC:', data.length);
         const normalizeType = (t: string) => {
           if (t === 'event') return 'events';
           if (t === 'route') return 'routes';
@@ -181,11 +181,9 @@ const Home = () => {
           };
         });
         allPinsRef.current = mapped;
-        console.log('[Map] Total pins stored:', mapped.length);
         setPins(mapped);
       }
     } catch (err) {
-      console.error('[Map] fetchPins error:', err);
     } finally {
       setIsLoadingPins(false);
     }
@@ -196,15 +194,12 @@ const Home = () => {
     const channel = supabase
       .channel('map-realtime-inserts')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, () => {
-        console.log('[Map] New event added — refreshing pins');
         refreshPins();
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'routes' }, () => {
-        console.log('[Map] New route added — refreshing pins');
         refreshPins();
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'services' }, () => {
-        console.log('[Map] New service added — refreshing pins');
         refreshPins();
       })
       .subscribe();
@@ -479,12 +474,17 @@ const Home = () => {
         applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
       );
 
-      // Category tab filter — activeCategory is plural ("events","routes","services"), pin.type is also plural
+      // Category tab filter
       if (activeCategory) {
         visiblePins = visiblePins.filter(p => p.type === activeCategory);
       }
 
-      console.log('[Map] Rendering', visiblePins.length, 'of', source.length, 'pins (category:', activeCategory || 'all', ')');
+      // Search filter — match title against search query
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        visiblePins = visiblePins.filter(p => p.title?.toLowerCase().includes(q));
+      }
+
 
       // Bug 3 fix — fit bounds on very first load if we have pins
       if (!initialFitDoneRef.current && visiblePins.length > 0) {
@@ -538,7 +538,6 @@ const Home = () => {
         markersRef.current.push(marker);
       });
 
-      console.log('[Map] Rendered', markersRef.current.length, 'markers');
     };
 
     if (m.loaded()) {
@@ -546,7 +545,7 @@ const Home = () => {
     } else {
       m.once('load', doRender);
     }
-  }, [pins, activeCategory, applyEventFilters, applyRouteFilters, applyServiceFilters]);
+  }, [pins, activeCategory, searchQuery, applyEventFilters, applyRouteFilters, applyServiceFilters]);
 
   // Center map on newly published item
   useEffect(() => {
@@ -753,7 +752,6 @@ const Home = () => {
         isDimmed={false}
         mapStyle={mapStyle}
         onMapReady={(m) => {
-          console.log('[Home] Map ready, fetching pins');
           mapRef.current = m;
           refreshPins();
         }}
@@ -779,8 +777,15 @@ const Home = () => {
                 <input
                   type="text"
                   placeholder="Search events, routes, services..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
                   className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
                 />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="p-0.5">
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="max-w-md mx-auto flex items-center justify-around py-2 px-3">
@@ -797,10 +802,7 @@ const Home = () => {
 
           <div className="px-3 pt-2 flex justify-end gap-2">
             <button
-              onClick={() => {
-                console.log('[Map] Manual refresh triggered');
-                refreshPins();
-              }}
+              onClick={() => refreshPins()}
               className="bg-white/90 backdrop-blur-md border border-border/50 rounded-xl px-3 py-2 text-xs font-medium shadow-sm flex items-center gap-1"
             >
               <RefreshCw className="w-3 h-3" /> Refresh pins

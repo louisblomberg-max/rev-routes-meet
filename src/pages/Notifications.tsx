@@ -36,12 +36,13 @@ const Notifications = () => {
   const fetchNotifications = useCallback(async () => {
     if (!user?.id) return;
     setIsLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('notifications')
       .select('id, user_id, type, title, body, data, read, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(50);
+    if (error) { toast.error('Could not load notifications'); }
     setNotifications((data as Notification[]) || []);
     setIsLoading(false);
   }, [user?.id]);
@@ -70,9 +71,9 @@ const Notifications = () => {
     // Navigate based on data
     const d = notif.data;
     if (d?.route) navigate(d.route);
-    else if (d?.event) navigate(`/events/${d.event}`);
-    else if (d?.club) navigate(`/clubs/${d.club}`);
-    else if (d?.club_id) navigate(`/clubs/${d.club_id}`);
+    else if (d?.event) navigate(`/event/${d.event}`);
+    else if (d?.club) navigate(`/club/${d.club}`);
+    else if (d?.club_id) navigate(`/club/${d.club_id}`);
     else if (d?.url) navigate(d.url);
   };
 

@@ -104,10 +104,28 @@ export default function Navigation() {
   const [canShare, setCanShare] = useState(false)
   const [selectedFriendInfo, setSelectedFriendInfo] = useState<FriendLocation | null>(null)
 
-  const destLat = state?.destLat
-  const destLng = state?.destLng
-  const destTitle = state?.destTitle || 'Destination'
-  const routeId = state?.routeId
+  const destLat = state?.destLat as number | undefined
+  const destLng = state?.destLng as number | undefined
+  const destTitle = (state?.destTitle as string) || 'Destination'
+  const routeId = state?.routeId as string | undefined
+
+  // Guard: if no destination provided, show error screen
+  if (!destLat || !destLng) {
+    return (
+      <div className="fixed inset-0 bg-black z-50 flex items-center justify-center">
+        <div className="text-center px-8">
+          <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">📍</span>
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">No destination set</h2>
+          <p className="text-sm text-white/60 mb-6">Select a location from the map or an event, route, or service to navigate to.</p>
+          <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-2xl bg-white text-black font-bold text-sm">
+            Go back
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const haversineDistance = useCallback((lat1: number, lng1: number, lat2: number, lng2: number): number => {
     const R = 6371000
@@ -186,7 +204,7 @@ export default function Navigation() {
     const load = async () => {
       const { data: profile } = await supabase
         .from('profiles').select('plan').eq('id', user.id).single()
-      setCanShare(profile?.plan === 'pro' || profile?.plan === 'organiser')
+      setCanShare(profile?.plan === 'pro' || profile?.plan === 'club')
 
       const { data: friendsData } = await supabase
         .from('friends')
@@ -217,7 +235,7 @@ export default function Navigation() {
           data.forEach((f: any) => { locations[f.user_id] = f as FriendLocation })
           setFriendLocations(locations)
         }
-      } catch (err) { console.error('[Nav] Friend locations error:', err) }
+      } catch { /* friend locations will retry on next poll */ }
     }
     loadFriendLocations()
     const pollInterval = setInterval(loadFriendLocations, 5000)
@@ -338,7 +356,6 @@ export default function Navigation() {
       }
       announcedDistancesRef.current = new Set()
     } catch (err) {
-      console.error('[Nav] Route error:', err)
       if (!silent) toast.error('Could not load route')
     } finally {
       if (!silent) setRouteLoading(false)
@@ -410,7 +427,7 @@ export default function Navigation() {
         }).eq('user_id', user.id)
       }, interval)
       setIsSharingLocation(true)
-    } catch (err) { console.error('[Nav] Share error:', err); toast.error('Could not start location sharing') }
+    } catch { toast.error('Could not start location sharing') }
   }
 
   const stopSharing = async () => {
@@ -581,7 +598,7 @@ export default function Navigation() {
           .insert({ user_id: user.id, destination_title: destTitle, dest_lat: destLat, dest_lng: destLng, started_at: new Date().toISOString() })
           .select().single()
         if (session) sessionIdRef.current = session.id
-      } catch (err) { console.error('[Nav] Session error:', err) }
+      } catch { toast.error('Could not save navigation session') }
     }
     if (isSharingLocation) {
       await supabase.from('live_location_sessions').update({ is_navigating: true }).eq('user_id', user?.id)
@@ -591,7 +608,7 @@ export default function Navigation() {
     }
     watchIdRef.current = navigator.geolocation.watchPosition(
       handlePositionUpdate,
-      err => console.error('[Nav] GPS error:', err),
+      () => toast.error('GPS signal lost — check location settings'),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     )
   }

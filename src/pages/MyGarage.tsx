@@ -226,9 +226,13 @@ const MyGarage = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
-    deleteVehicle(id);
-    toast.success('Vehicle removed');
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteVehicle(id);
+      toast.success('Vehicle removed');
+    } catch {
+      toast.error('Failed to remove vehicle');
+    }
   };
 
   const recBullets = getRecommendationBullets(vehicles, preferences.styleTags, preferences.vehicleTypes);
@@ -432,7 +436,7 @@ const MyGarage = () => {
                 </div>
               )}
 
-              <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate('/onboarding/vehicle')}>
+              <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate('/add/vehicle')}>
                 Edit Preferences
               </Button>
             </div>

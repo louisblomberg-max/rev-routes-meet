@@ -10,6 +10,7 @@ import BackButton from '@/components/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface ConvDisplay {
   conversationId: string;
@@ -36,20 +37,22 @@ const Messages = () => {
     setIsLoading(true);
 
     // Get all conversations I'm part of
-    const { data: myParts } = await supabase
+    const { data: myParts, error: myPartsError } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
       .eq('user_id', user.id);
+    if (myPartsError) { toast.error('Failed to load conversations'); setIsLoading(false); return; }
 
     const convIds = (myParts || []).map(r => r.conversation_id);
     if (convIds.length === 0) { setConversations([]); setIsLoading(false); return; }
 
     // Get other participants for each conversation
-    const { data: allParts } = await supabase
+    const { data: allParts, error: allPartsError } = await supabase
       .from('conversation_participants')
       .select('conversation_id, user_id')
       .in('conversation_id', convIds)
       .neq('user_id', user.id);
+    if (allPartsError) { toast.error('Failed to load participants'); setIsLoading(false); return; }
 
     // Get unique other user IDs
     const otherUserMap: Record<string, string> = {};
@@ -59,10 +62,11 @@ const Messages = () => {
     if (otherUserIds.length === 0) { setConversations([]); setIsLoading(false); return; }
 
     // Fetch profiles for other users
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, display_name, username, avatar_url')
       .in('id', otherUserIds);
+    if (profilesError) { toast.error('Failed to load profiles'); setIsLoading(false); return; }
     const profileMap: Record<string, any> = {};
     (profiles || []).forEach(p => { profileMap[p.id] = p; });
 
@@ -73,22 +77,24 @@ const Messages = () => {
       if (!otherId) continue;
       const profile = profileMap[otherId];
 
-      const { data: lastMsgs } = await supabase
+      const { data: lastMsgs, error: lastMsgsError } = await supabase
         .from('messages')
         .select('content, created_at, sender_id, read_at')
         .eq('conversation_id', convId)
         .order('created_at', { ascending: false })
         .limit(1);
+      if (lastMsgsError) { toast.error('Failed to load messages'); continue; }
 
       const lastMsg = lastMsgs?.[0];
 
       // Count unread messages from the other user
-      const { count: unreadCount } = await supabase
+      const { count: unreadCount, error: unreadError } = await supabase
         .from('messages')
         .select('id', { count: 'exact', head: true })
         .eq('conversation_id', convId)
         .neq('sender_id', user.id)
         .is('read_at', null);
+      if (unreadError) { toast.error('Failed to count unread messages'); continue; }
 
       convDisplays.push({
         conversationId: convId,
@@ -117,7 +123,10 @@ const Messages = () => {
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
 
-  // Realtime: refresh list on any new message in my conversations
+  // Realtime: refresh list on any new message.
+  // Intentionally listens to all message inserts and refetches all conversations,
+  // since we can't easily filter by a dynamic set of conversation IDs in a
+  // single realtime subscription. The refetch is cheap and keeps the list accurate.
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase.channel('messages-list-rt')
@@ -133,15 +142,17 @@ const Messages = () => {
       supabase.from('friends').select('friend_id').eq('user_id', user.id).eq('status', 'accepted'),
       supabase.from('friends').select('user_id').eq('friend_id', user.id).eq('status', 'accepted'),
     ]);
+    if (sentRes.error || receivedRes.error) { toast.error('Failed to load friends'); return; }
     const friendIds = [
       ...(sentRes.data || []).map(r => r.friend_id),
       ...(receivedRes.data || []).map(r => r.user_id),
     ];
     if (friendIds.length === 0) { setFriends([]); return; }
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profilesErr } = await supabase
       .from('profiles')
       .select('id, display_name, username, avatar_url')
       .in('id', friendIds);
+    if (profilesErr) { toast.error('Failed to load friend profiles'); return; }
     setFriends(profiles || []);
   };
 

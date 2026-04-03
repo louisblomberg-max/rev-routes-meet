@@ -9,6 +9,7 @@ import BackButton from '@/components/BackButton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { toast } from 'sonner';
 
 const Conversation = () => {
   const navigate = useNavigate();
@@ -31,15 +32,17 @@ const Conversation = () => {
     if (!user?.id || !otherUserId) return null;
 
     // Find shared conversation
-    const { data: myConvs } = await supabase
+    const { data: myConvs, error: myConvsError } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
       .eq('user_id', user.id);
+    if (myConvsError) { toast.error('Failed to load conversations'); return null; }
 
-    const { data: theirConvs } = await supabase
+    const { data: theirConvs, error: theirConvsError } = await supabase
       .from('conversation_participants')
       .select('conversation_id')
       .eq('user_id', otherUserId);
+    if (theirConvsError) { toast.error('Failed to load conversations'); return null; }
 
     const myIds = new Set((myConvs || []).map(r => r.conversation_id));
     const shared = (theirConvs || []).find(r => myIds.has(r.conversation_id));
@@ -55,11 +58,12 @@ const Conversation = () => {
     setIsLoading(true);
 
     // Fetch other user's profile
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('id, display_name, username, avatar_url')
       .eq('id', otherUserId)
       .single();
+    if (profileError) { toast.error('Failed to load user profile'); setIsLoading(false); return; }
     setOtherProfile(profile);
 
     // Find existing conversation
@@ -68,20 +72,22 @@ const Conversation = () => {
 
     if (convId) {
       // Load messages
-      const { data: msgs } = await supabase
+      const { data: msgs, error: msgsError } = await supabase
         .from('messages')
         .select('id, sender_id, content, created_at, read_at')
         .eq('conversation_id', convId)
         .order('created_at', { ascending: true });
+      if (msgsError) { toast.error('Failed to load messages'); setIsLoading(false); return; }
       setMessages(msgs || []);
 
       // Mark messages from other user as read
-      await supabase
+      const { error: readError } = await supabase
         .from('messages')
         .update({ read_at: new Date().toISOString() })
         .eq('conversation_id', convId)
         .eq('sender_id', otherUserId)
         .is('read_at', null);
+      if (readError) { toast.error('Failed to mark messages as read'); }
     }
 
     setIsLoading(false);
@@ -97,11 +103,16 @@ const Conversation = () => {
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'messages',
         filter: `conversation_id=eq.${conversationId}`,
-      }, (payload) => {
-        setMessages(prev => [...prev, payload.new]);
+      }, async (payload) => {
+        setMessages(prev => {
+          // Deduplicate: don't append if message already exists (e.g. from optimistic insert)
+          if (prev.some(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
+        });
         // Mark as read if from other user
         if (payload.new.sender_id !== user?.id) {
-          supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', payload.new.id);
+          const { error } = await supabase.from('messages').update({ read_at: new Date().toISOString() }).eq('id', payload.new.id);
+          if (error) toast.error('Failed to mark message as read');
         }
         scrollToBottom();
       })
@@ -112,37 +123,40 @@ const Conversation = () => {
   const handleSend = async () => {
     if (!newMessage.trim() || !user?.id || !otherUserId) return;
     const content = newMessage.trim();
-    setNewMessage('');
 
     let activeConvId = conversationId;
 
     // Create conversation if first message
     if (!activeConvId) {
       const name = otherProfile?.display_name || otherProfile?.username || 'Chat';
-      const { data: conv } = await supabase
+      const { data: conv, error: convError } = await supabase
         .from('conversations')
         .insert({ name, type: 'direct' })
         .select('id')
         .single();
-      if (!conv) return;
+      if (convError || !conv) { toast.error('Failed to create conversation'); return; }
 
       // Add self as participant
-      await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
+      const { error: selfPartError } = await supabase.from('conversation_participants').insert({ conversation_id: conv.id, user_id: user.id });
+      if (selfPartError) { toast.error('Failed to join conversation'); return; }
 
       // Add other user via edge function
-      await supabase.functions.invoke('add-conversation-participant', {
+      const { error: addPartError } = await supabase.functions.invoke('add-conversation-participant', {
         body: { conversation_id: conv.id, participant_user_id: otherUserId },
       });
+      if (addPartError) { toast.error('Failed to add participant'); return; }
 
       activeConvId = conv.id;
       setConversationId(conv.id);
     }
 
-    await supabase.from('messages').insert({
+    const { error: sendError } = await supabase.from('messages').insert({
       conversation_id: activeConvId,
       sender_id: user.id,
       content,
     });
+    if (sendError) { toast.error('Failed to send message'); return; }
+    setNewMessage('');
   };
 
   const formatDateSeparator = (dateStr: string) => {

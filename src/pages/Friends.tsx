@@ -45,13 +45,18 @@ const Friends = () => {
       supabase.from('friends').select('user_id, friend_id, status, created_at').eq('friend_id', user.id).eq('status', 'accepted'),
     ]);
 
+    if (sentRes.error) { toast.error('Failed to load friends'); setIsLoading(false); return; }
+    if (receivedRes.error) { toast.error('Failed to load friends'); setIsLoading(false); return; }
+
     const allFriendRows = [...(sentRes.data || []), ...(receivedRes.data || [])];
     const friendIds = allFriendRows.map(r => r.user_id === user.id ? r.friend_id : r.user_id);
 
     let friendsList: FriendRow[] = [];
     if (friendIds.length > 0) {
-      const { data: profiles } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', friendIds);
-      const { data: vehicles } = await supabase.from('vehicles' as any).select('user_id, make, model, year, is_primary').in('user_id', friendIds).eq('is_primary', true);
+      const { data: profiles, error: profilesErr } = await supabase.from('profiles').select('id, display_name, username, avatar_url').in('id', friendIds);
+      const { data: vehicles, error: vehiclesErr } = await supabase.from('vehicles_public' as any).select('user_id, make, model, year, is_primary').in('user_id', friendIds).eq('is_primary', true);
+      if (profilesErr) toast.error('Failed to load friend profiles');
+      if (vehiclesErr) toast.error('Failed to load friend vehicles');
 
       friendsList = allFriendRows.map(r => {
         const otherId = r.user_id === user.id ? r.friend_id : r.user_id;
@@ -63,7 +68,8 @@ const Friends = () => {
     setFriends(friendsList);
 
     // Incoming requests
-    const { data: reqData } = await supabase.from('friends').select('user_id, friend_id, status, created_at').eq('friend_id', user.id).eq('status', 'pending');
+    const { data: reqData, error: reqErr } = await supabase.from('friends').select('user_id, friend_id, status, created_at').eq('friend_id', user.id).eq('status', 'pending');
+    if (reqErr) { toast.error('Failed to load friend requests'); setIsLoading(false); return; }
     const reqIds = (reqData || []).map(r => r.user_id);
     let requestsList: FriendRow[] = [];
     if (reqIds.length > 0) {
@@ -79,25 +85,46 @@ const Friends = () => {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // Realtime subscription for incoming friend requests / acceptances
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel('friends-realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'friends', filter: `friend_id=eq.${user.id}` },
+        () => fetchAll()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'friends', filter: `friend_id=eq.${user.id}` },
+        () => fetchAll()
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, fetchAll]);
+
   const handleRemoveFriend = async (friendRow: FriendRow) => {
     const otherId = friendRow.profile.id;
     setRemovingId(otherId);
-    // Delete the friendship row (RLS allows if user_id or friend_id matches)
-    await supabase.from('friends').delete().eq('user_id', friendRow.user_id).eq('friend_id', friendRow.friend_id);
+    const { error } = await supabase.from('friends').delete().eq('user_id', friendRow.user_id).eq('friend_id', friendRow.friend_id);
+    if (error) { toast.error('Failed to remove friend'); setRemovingId(null); return; }
     setFriends(prev => prev.filter(f => f.profile.id !== otherId));
     setRemovingId(null);
     toast.success('Friend removed');
   };
 
   const handleAccept = async (req: FriendRow) => {
-    await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', req.user_id).eq('friend_id', req.friend_id);
+    const { error } = await supabase.from('friends').update({ status: 'accepted' }).eq('user_id', req.user_id).eq('friend_id', req.friend_id);
+    if (error) { toast.error('Failed to accept request'); return; }
     setRequests(prev => prev.filter(r => r.user_id !== req.user_id));
     toast.success('Friend request accepted');
     fetchAll();
   };
 
   const handleDecline = async (req: FriendRow) => {
-    await supabase.from('friends').delete().eq('user_id', req.user_id).eq('friend_id', req.friend_id);
+    const { error } = await supabase.from('friends').delete().eq('user_id', req.user_id).eq('friend_id', req.friend_id);
+    if (error) { toast.error('Failed to decline request'); return; }
     setRequests(prev => prev.filter(r => r.user_id !== req.user_id));
     toast('Request declined');
   };
