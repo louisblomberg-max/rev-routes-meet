@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, RefreshCw } from 'lucide-react';
+import { Search, X, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogoNew from '@/assets/revnet-logo-header.png';
@@ -56,6 +56,19 @@ const PIN_COLORS: Record<string, string> = {
   services: '#C2700A',
 };
 
+/* ── Haversine distance in km ── */
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const milesToKm = (miles: number) => miles * 1.60934;
+
 const Home = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -78,6 +91,23 @@ const Home = () => {
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing' || navStatus === 'arrived';
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<DetailItem | null>(null);
+
+  /* ── Fix 7 — User location state ── */
+  const [userLat, setUserLat] = useState<number | null>(null);
+  const [userLng, setUserLng] = useState<number | null>(null);
+
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLng(pos.coords.longitude);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }, []);
+
+  /* ── Filter state ── */
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
@@ -96,6 +126,9 @@ const Home = () => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // All pins from RPC (unfiltered) kept separately so category switch is instant
+  const allPinsRef = useRef<any[]>([]);
+
   // Tap-to-navigate state
   const [tappedLocation, setTappedLocation] = useState<TappedLocation | null>(null);
   const [showLocationPopup, setShowLocationPopup] = useState(false);
@@ -104,6 +137,7 @@ const Home = () => {
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
+  /* ── Fix 1 & 2 — refreshPins fetches ALL categories, debounce is on moveEnd ── */
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
     if (!m) return;
@@ -114,7 +148,7 @@ const Home = () => {
     const bounds = m.getBounds();
     if (!bounds) return;
 
-    console.log('[Map] Fetching pins — activeCategory:', activeCategory || 'all');
+    console.log('[Map] Fetching pins — all categories');
     setIsLoadingPins(true);
     try {
       const { data, error } = await supabase.rpc('get_pins_in_bounds', {
@@ -134,7 +168,7 @@ const Home = () => {
           if (t === 'service') return 'services';
           return t;
         };
-        let mapped = data.map((pin: any) => {
+        const mapped = data.map((pin: any) => {
           const pinData = typeof pin.data === 'string' ? JSON.parse(pin.data) : (pin.data || {});
           return {
             id: pin.id,
@@ -145,11 +179,8 @@ const Home = () => {
             ...pinData,
           };
         });
-        // Client-side category filter
-        if (activeCategory) {
-          mapped = mapped.filter((p: any) => p.type === activeCategory);
-        }
-        console.log('[Map] Filtered pins:', mapped.length);
+        allPinsRef.current = mapped;
+        console.log('[Map] Total pins stored:', mapped.length);
         setPins(mapped);
       }
     } catch (err) {
@@ -157,7 +188,7 @@ const Home = () => {
     } finally {
       setIsLoadingPins(false);
     }
-  }, [activeCategory, setPins, setIsLoadingPins]);
+  }, [setPins, setIsLoadingPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -327,96 +358,109 @@ const Home = () => {
     else m.once('load', render);
   }, [friendLocations]);
 
-  // Re-fetch pins when category changes
-  useEffect(() => {
-    if (mapRef.current) {
-      refreshPins();
-    }
-  }, [activeCategory, refreshPins]);
-
-  // Event filter function
+  /* ── Fix 3 — applyEventFilters ── */
   const applyEventFilters = useCallback((pin: any): boolean => {
     if (pin.type !== 'events') return true;
-    const d = pin;
-    // The event sub-type (meets, shows, etc.) is spread from pin.data into the pin object as 'event_type' or 'type' from the RPC data.
-    // pin.type is always 'events' (the category). The actual sub-type comes from the RPC data field.
-    const eventSubType = d.event_type || d.subtype || '';
-
     const ef = eventsFilters;
+
+    // Event sub-type from RPC data (spread into pin): event_type or type field
+    const eventSubType: string = pin.event_type || pin.subtype || '';
     if (ef.filterEventTypes.length > 0 && eventSubType && !ef.filterEventTypes.includes(eventSubType)) return false;
-    if (ef.filterVehicleFocus !== 'all') {
-      if (ef.filterVehicleFocus === 'cars_only' && d.vehicle_focus !== 'cars_only') return false;
-      if (ef.filterVehicleFocus === 'motorcycles_only' && d.vehicle_focus !== 'motorcycles_only') return false;
+
+    // Vehicle focus
+    if (ef.filterVehicleFocus && ef.filterVehicleFocus !== 'all') {
+      const pinFocus = pin.vehicle_focus || 'all_welcome';
+      if (pinFocus !== 'all_welcome' && pinFocus !== ef.filterVehicleFocus) return false;
     }
+
+    // Meet style tags
     if (ef.filterMeetStyles.length > 0) {
-      const eventTags: string[] = d.meet_style_tags || [];
+      const eventTags: string[] = pin.meet_style_tags || [];
       if (!ef.filterMeetStyles.some((tag: string) => eventTags.includes(tag))) return false;
     }
-    if (ef.filterFreeOnly && !d.is_free) return false;
-    if (ef.filterDateFrom && d.date_start) {
-      if (new Date(d.date_start) < new Date(ef.filterDateFrom)) return false;
+
+    // Free entry only
+    if (ef.filterFreeOnly && !pin.is_free) return false;
+
+    // Date from
+    if (ef.filterDateFrom && pin.date_start) {
+      if (new Date(pin.date_start) < new Date(ef.filterDateFrom)) return false;
     }
-    if (ef.filterDateTo && d.date_start) {
-      if (new Date(d.date_start) > new Date(ef.filterDateTo + 'T23:59:59')) return false;
+
+    // Date to
+    if (ef.filterDateTo && pin.date_start) {
+      if (new Date(pin.date_start) > new Date(ef.filterDateTo + 'T23:59:59')) return false;
     }
+
+    // Garage vehicle compatibility
     if (ef.filterGarageVehicle) {
-      const vf = d.vehicle_focus || 'all_welcome';
-      if (vf === 'all_welcome') return true;
-      if (vf === 'cars_only' && ef.filterGarageVehicle.vehicle_type !== 'car') return false;
-      if (vf === 'motorcycles_only' && ef.filterGarageVehicle.vehicle_type !== 'motorcycle') return false;
-      if (vf === 'specific_makes') {
-        const eventMakes: string[] = (d.vehicle_brands || []).map((m: string) => m.toLowerCase());
-        if (!eventMakes.includes(ef.filterGarageVehicle.make.toLowerCase())) return false;
+      const vf = pin.vehicle_focus || 'all_welcome';
+      if (vf !== 'all_welcome') {
+        if (vf === 'cars_only' && ef.filterGarageVehicle.vehicle_type !== 'car') return false;
+        if (vf === 'motorcycles_only' && ef.filterGarageVehicle.vehicle_type !== 'motorcycle') return false;
+        if (vf === 'specific_makes') {
+          const eventMakes: string[] = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
+          if (!eventMakes.includes(ef.filterGarageVehicle.make?.toLowerCase())) return false;
+        }
       }
     }
+
     return true;
   }, [eventsFilters]);
 
-  // Route filter function
+  /* ── Fix 4 — applyRouteFilters ── */
   const applyRouteFilters = useCallback((pin: any): boolean => {
     if (pin.type !== 'routes') return true;
     const rf = routesFilters;
+
     // Type filter
     if (rf.types.length > 0) {
       const routeType = pin.route_type || pin.subtype || '';
       if (routeType && !rf.types.includes(routeType)) return false;
     }
+
     // Difficulty filter
     if (rf.difficulty.length > 0) {
       const diff = pin.difficulty || '';
       if (diff && !rf.difficulty.includes(diff)) return false;
     }
+
     // Duration filter
     if (rf.duration) {
-      const mins = pin.duration_minutes || 0;
-      if (rf.duration === 'under-30' && mins >= 30) return false;
-      if (rf.duration === '30-60' && (mins < 30 || mins > 60)) return false;
-      if (rf.duration === '1-2h' && (mins < 60 || mins > 120)) return false;
-      if (rf.duration === '2h+' && mins < 120) return false;
+      const mins = Number(pin.duration_minutes) || 0;
+      if (rf.duration === 'lt60' && mins >= 60) return false;
+      if (rf.duration === '60to120' && (mins < 60 || mins > 120)) return false;
+      if (rf.duration === '120to240' && (mins < 120 || mins > 240)) return false;
+      if (rf.duration === 'gt240' && mins < 240) return false;
     }
+
     // Surface filter
     if (rf.surface.length > 0) {
       const surfaceType = pin.surface_type || '';
       if (surfaceType && !rf.surface.includes(surfaceType)) return false;
     }
+
     return true;
   }, [routesFilters]);
 
-  // Service filter function
+  /* ── Fix 5 — applyServiceFilters ── */
   const applyServiceFilters = useCallback((pin: any): boolean => {
     if (pin.type !== 'services') return true;
     const sf = servicesFilters;
-    // Type filter
+
+    // Type filter — check service_types array OR types array
     if (sf.types.length > 0) {
-      const serviceType = pin.service_type || pin.subtype || '';
-      if (serviceType && !sf.types.includes(serviceType)) return false;
+      const pinTypes: string[] = pin.service_types || pin.types || [];
+      if (pinTypes.length > 0 && !sf.types.some((t: string) => pinTypes.includes(t))) return false;
     }
-    // Open now filter — only apply if the pin has opening hours data
-    if (sf.openNow && pin.is_24_7 === false && !pin.is_open) return false;
+
+    // Open now filter
+    if (sf.openNow && !pin.is_24_7) return false;
+
     return true;
   }, [servicesFilters]);
 
-  // Render DOM markers for pins
+  /* ── Fix 6 — Render DOM markers: apply all filters + category ── */
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
@@ -425,8 +469,17 @@ const Home = () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
-      const visiblePins = pins.filter(pin => applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin));
-      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins as DOM markers (event+route+service filters)');
+      // Apply all three filter functions
+      let visiblePins = pins.filter(pin =>
+        applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
+      );
+
+      // Fix 1 — category tab filter (client-side, instant, no RPC call)
+      if (activeCategory) {
+        visiblePins = visiblePins.filter(p => p.type === activeCategory);
+      }
+
+      console.log('[Map] Rendering', visiblePins.length, 'of', pins.length, 'pins');
 
       visiblePins.forEach(pin => {
         const lat = Number(pin.lat);
@@ -473,7 +526,7 @@ const Home = () => {
     } else {
       m.once('load', doRender);
     }
-  }, [pins, applyEventFilters, applyRouteFilters, applyServiceFilters]);
+  }, [pins, activeCategory, applyEventFilters, applyRouteFilters, applyServiceFilters]);
 
   // Center map on newly published item
   useEffect(() => {
@@ -525,13 +578,15 @@ const Home = () => {
   const handleLocateUser = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        setUserLat(pos.coords.latitude);
+        setUserLng(pos.coords.longitude);
         mapRef.current?.flyTo({
           center: [pos.coords.longitude, pos.coords.latitude],
           zoom: 14, duration: 1500,
         });
       },
       () => {},
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000 },
     );
   };
 
@@ -541,7 +596,7 @@ const Home = () => {
 
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=1&types=address,poi,place`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&limit=1&types=address,poi,place`,
       );
       const data = await response.json();
       const placeName = data.features?.[0]?.place_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
@@ -624,9 +679,29 @@ const Home = () => {
     navigate(`/${type}/${id}`);
   };
 
+  /* ── Fix 8 — Filter badge count ── */
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    // Events
+    if (eventsFilters.filterEventTypes.length > 0) count++;
+    if (eventsFilters.filterVehicleFocus && eventsFilters.filterVehicleFocus !== 'all') count++;
+    if (eventsFilters.filterMeetStyles.length > 0) count++;
+    if (eventsFilters.filterFreeOnly) count++;
+    if (eventsFilters.filterDateFrom || eventsFilters.filterDateTo) count++;
+    if (eventsFilters.filterGarageVehicleId) count++;
+    // Routes
+    if (routesFilters.types.length > 0) count++;
+    if (routesFilters.difficulty.length > 0) count++;
+    if (routesFilters.duration) count++;
+    if (routesFilters.surface.length > 0) count++;
+    // Services
+    if (servicesFilters.types.length > 0) count++;
+    if (servicesFilters.openNow) count++;
+    return count;
+  }, [eventsFilters, routesFilters, servicesFilters]);
+
   const selectedRouteId = selectedDetail?.type === 'route' ? selectedDetail.data.id : null;
   const selectedRoutePolyline = selectedDetail?.type === 'route' ? (selectedDetail.data.polyline || null) : null;
-  const activeCategories = activeCategory ? [activeCategory] : [];
 
   if (activeTab !== 'discovery') {
     return (
@@ -649,8 +724,6 @@ const Home = () => {
       `}</style>
       <MapView
         onMapTap={(lngLat) => {
-          // Check if we clicked near a marker — if so, ignore
-          // The marker click handlers use stopPropagation so this only fires for empty areas
           handleMapTap(lngLat);
         }}
         isDimmed={false}
@@ -661,8 +734,9 @@ const Home = () => {
           refreshPins();
         }}
         onMoveEnd={() => {
+          /* Fix 2 — 400ms debounce */
           if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
-          moveTimerRef.current = setTimeout(() => refreshPins(), 500);
+          moveTimerRef.current = setTimeout(() => refreshPins(), 400);
         }}
       />
 
@@ -690,13 +764,12 @@ const Home = () => {
             </div>
           </div>
 
-          {activeCategory && (
-            <div className="px-3 pt-2">
-              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
-              {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
-              {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
-            </div>
-          )}
+          {/* Filter panels — show relevant panel per active category, or all when no category */}
+          <div className="px-3 pt-2">
+            {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+            {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+            {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
+          </div>
 
           <div className="px-3 pt-2 flex justify-end gap-2">
             <button
@@ -719,7 +792,6 @@ const Home = () => {
           <LocationButton onClick={handleLocateUser} />
         </div>
       )}
-
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
