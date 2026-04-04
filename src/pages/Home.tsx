@@ -48,12 +48,18 @@ interface FriendLocation {
 }
 
 const PIN_COLORS: Record<string, string> = {
-  event: '#E97A2B',
-  events: '#E97A2B',
-  route: '#185FA5',
-  routes: '#185FA5',
-  service: '#22C55E',
-  services: '#22C55E',
+  event: '#d30d37',
+  events: '#d30d37',
+  route: '#4f7fff',
+  routes: '#4f7fff',
+  service: '#ff8000',
+  services: '#ff8000',
+};
+
+const PIN_ICONS: Record<string, string> = {
+  events: '<path d="M11 5h2v2h-2V5zm0 4h2v6h-2V9z" fill="white" transform="translate(6,6) scale(0.5)"/><rect x="9" y="10" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="9" y="14" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="9" y="18" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="12" y="7" width="12" height="1.5" rx="0.75" fill="white"/>',
+  routes: '<path d="M18 11c0-1.1-.4-2.1-1-2.8L18 7l-1-1-1.2 1.2C15.1 6.4 14.1 6 13 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6z" fill="none" stroke="white" stroke-width="1.5" transform="translate(5,5) scale(0.55)"/><path d="M10 18L14 11L18 15L22 9" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(2,2) scale(0.7)"/>',
+  services: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(6,6) scale(0.65)"/>',
 };
 
 /* ── Haversine distance in km ── */
@@ -151,27 +157,27 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
-          .limit(500),
+          .limit(300),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty')
+          .select('id, name, lat, lng, type, difficulty, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
-          .limit(500),
+          .limit(300),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type')
+          .select('id, name, lat, lng, service_type, address, rating, review_count, visibility')
           .eq('visibility', 'public')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
-          .limit(500),
+          .limit(300),
       ]);
 
       const mapped = [
@@ -179,16 +185,21 @@ const Home = () => {
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
-          date_start: e.date_start,
+          date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
+          is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty,
+          difficulty: r.difficulty, distance_meters: r.distance_meters,
+          duration_minutes: r.duration_minutes, rating: r.rating,
+          saves: r.saves, drives: r.drives,
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type,
+          address: s.address, rating: s.rating, review_count: s.review_count,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -228,33 +239,33 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .limit(500),
+          .limit(300),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty')
+          .select('id, name, lat, lng, type, difficulty, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .limit(500),
+          .limit(300),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type')
+          .select('id, name, lat, lng, service_type, address, rating, review_count, visibility')
           .eq('visibility', 'public')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .limit(500),
+          .limit(300),
       ]);
 
       const mapped = [
@@ -262,16 +273,21 @@ const Home = () => {
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
-          date_start: e.date_start,
+          date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
+          is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty,
+          difficulty: r.difficulty, distance_meters: r.distance_meters,
+          duration_minutes: r.duration_minutes, rating: r.rating,
+          saves: r.saves, drives: r.drives,
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type,
+          address: s.address, rating: s.rating, review_count: s.review_count,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -599,36 +615,48 @@ const Home = () => {
         if (isNaN(lat) || isNaN(lng)) return;
 
         const type = String(pin.type || '').toLowerCase().trim();
-        const color = PIN_COLORS[type] || '#E97A2B';
-        const letter = type === 'events' ? 'E' : type === 'routes' ? 'R' : type === 'services' ? 'S' : '?';
+        const color = PIN_COLORS[type] || '#d30d37';
+        const iconSvg = PIN_ICONS[type] || '';
+        const label = (pin.title || '').slice(0, 14);
 
         const el = document.createElement('div');
-        el.style.cssText = `
-          width: 32px; height: 32px;
-          background-color: ${color}; border: 2.5px solid white;
-          border-radius: 50%; cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          display: flex; align-items: center; justify-content: center;
-          color: white; font-size: 13px; font-weight: 700;
-          line-height: 1;
-        `;
-        el.textContent = letter;
+        el.style.cssText = 'position: relative; cursor: pointer; transition: transform 0.15s ease;';
 
-        el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)';
-          el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
-        });
-        el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)';
-          el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
-        });
+        // SVG map pin
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '36');
+        svg.setAttribute('height', '44');
+        svg.setAttribute('viewBox', '0 0 36 44');
+        svg.innerHTML = `
+          <path d="M18 0C8.059 0 0 8.059 0 18C0 31.5 18 44 18 44C18 44 36 31.5 36 18C36 8.059 27.941 0 18 0Z" fill="${color}"/>
+          <circle cx="18" cy="18" r="10" fill="rgba(255,255,255,0.2)"/>
+          ${iconSvg}
+        `;
+        el.appendChild(svg);
+
+        // Name label pill below
+        if (label) {
+          const pill = document.createElement('div');
+          pill.style.cssText = `
+            position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
+            background: white; font-size: 10px; font-weight: 600; color: #111;
+            padding: 2px 6px; border-radius: 4px; white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15); max-width: 100px;
+            overflow: hidden; text-overflow: ellipsis;
+          `;
+          pill.textContent = label;
+          el.appendChild(pill);
+        }
+
+        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.15)'; });
+        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           handlePinClickRef.current(pin);
         });
 
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([lng, lat])
           .addTo(m);
 
@@ -853,9 +881,8 @@ const Home = () => {
           refreshPins();
         }}
         onMoveEnd={() => {
-          /* Fix 2 — 400ms debounce */
           if (moveTimerRef.current) clearTimeout(moveTimerRef.current);
-          moveTimerRef.current = setTimeout(() => refreshPins(), 400);
+          moveTimerRef.current = setTimeout(() => refreshPins(), 500);
         }}
       />
 

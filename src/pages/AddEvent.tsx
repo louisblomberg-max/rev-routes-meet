@@ -413,8 +413,17 @@ const AddEvent = () => {
     }, 15000)
 
     try {
+      // Refresh session first
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession()
+      if (sessionError || !sessionData?.session) {
+        toast.error('Session expired. Please sign in again.')
+        navigate('/auth', { replace: true })
+        return
+      }
+      const userId = sessionData.session.user.id
+
       const validDatesList = dates.filter(d => d.date)
-      const isPaid = userPlan === 'pro' || userPlan === 'organiser'
+      const isPaid = userPlan === 'pro' || userPlan === 'organiser' || userPlan === 'club'
 
       // Check credits for free users
       if (!isPaid) {
@@ -432,7 +441,7 @@ const AddEvent = () => {
         // Deduct credits via RPC (server-side protected)
         if (creditsNeeded > 0) {
           for (let i = 0; i < creditsNeeded; i++) {
-            await supabase.rpc('use_event_credit', { p_user_id: user.id })
+            await supabase.rpc('use_event_credit', { p_user_id: userId })
           }
         }
       }
@@ -449,7 +458,7 @@ const AddEvent = () => {
         const { data: series, error: seriesError } = await supabase
           .from('event_series')
           .insert({
-            created_by: user.id,
+            created_by: userId,
             title: title.trim(),
             description: description.trim(),
             event_count: validDatesList.length,
@@ -464,7 +473,7 @@ const AddEvent = () => {
         const dateStart = new Date(`${d.date}T${d.startTime}:00`)
         const dateEnd = new Date(`${d.date}T${d.endTime}:00`)
         return {
-          created_by: user.id,
+          created_by: userId,
           title: title.trim(),
           description: description.trim(),
           banner_url: bannerUrl,
@@ -516,7 +525,7 @@ const AddEvent = () => {
       // Self-notification (best-effort)
       try {
         await supabase.rpc('send_notification', {
-          p_user_id: user.id,
+          p_user_id: userId,
           p_type: 'event_published',
           p_title: 'Your event is live!',
           p_body: `${title} is now visible on the map`,

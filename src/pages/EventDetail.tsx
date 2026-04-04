@@ -77,10 +77,17 @@ const EventDetail = () => {
   }, [id]);
 
   const event = state.events.find(e => e.id === id) || fetchedEvent;
-  const isSavedInitial = state.savedEvents.includes(id || '');
-  const isAttendingInitial = state.userAttendingEvents.includes(id || '');
-  const [isSaved, setIsSaved] = useState(isSavedInitial);
-  const [isAttending, setIsAttending] = useState(isAttendingInitial);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isAttending, setIsAttending] = useState(false);
+
+  // Check saved and attending state from DB
+  useEffect(() => {
+    if (!id || !authUser?.id) return;
+    supabase.from('saved_events').select('id').eq('user_id', authUser.id).eq('event_id', id).maybeSingle()
+      .then(({ data }) => setIsSaved(!!data));
+    supabase.from('event_attendees').select('id').eq('user_id', authUser.id).eq('event_id', id).maybeSingle()
+      .then(({ data }) => setIsAttending(!!data));
+  }, [id, authUser?.id]);
   const [purchasingTicket, setPurchasingTicket] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
   const isHost = event?.createdBy === authUser?.id;
@@ -127,26 +134,45 @@ const EventDetail = () => {
   const isTicketed = eventRaw?.is_ticketed === true;
   const ticketPrice = eventRaw?.ticket_price || 0;
 
-  const handleSave = () => {
-    if (isSaved) {
-      eventsRepo.unsaveEvent(authUser?.id || '', event.id);
+  const handleSave = async () => {
+    if (!authUser?.id || !event?.id) return;
+    const newSaved = !isSaved;
+    setIsSaved(newSaved);
+    if (newSaved) {
+      const { error } = await supabase.from('saved_events').upsert({ user_id: authUser.id, event_id: event.id });
+      if (error) { setIsSaved(!newSaved); toast.error('Failed to save'); return; }
+      toast.success('Event saved!');
     } else {
-      eventsRepo.saveEvent(authUser?.id || '', event.id);
+      const { error } = await supabase.from('saved_events').delete().eq('user_id', authUser.id).eq('event_id', event.id);
+      if (error) { setIsSaved(!newSaved); toast.error('Failed to unsave'); return; }
+      toast.success('Event unsaved');
     }
-    setIsSaved(!isSaved);
-    toast.success(isSaved ? 'Event unsaved' : 'Event saved!');
   };
 
-  const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success('Link copied to clipboard!');
+  const handleShare = async () => {
+    const shareData = { title: event.title, text: (event.description || '').slice(0, 100), url: window.location.href };
+    try {
+      if (navigator.share) { await navigator.share(shareData); }
+      else { await navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }
+    } catch {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied!');
+    }
   };
 
-  const handleRSVP = () => {
-    setIsAttending(!isAttending);
-    toast.success(isAttending ? 'RSVP cancelled' : 'RSVP confirmed!', {
-      description: isAttending ? 'You are no longer attending' : `See you at ${event.title}!`,
-    });
+  const handleRSVP = async () => {
+    if (!authUser?.id || !event?.id) return;
+    if (isAttending) {
+      setIsAttending(false);
+      await supabase.from('event_attendees').delete().eq('event_id', event.id).eq('user_id', authUser.id);
+      await supabase.from('events').update({ attendee_count: Math.max(0, (event.attendeeCount || event.attendees || 1) - 1) }).eq('id', event.id);
+      toast.success("You've left the event");
+    } else {
+      setIsAttending(true);
+      await supabase.from('event_attendees').upsert({ event_id: event.id, user_id: authUser.id, status: 'attending' });
+      await supabase.from('events').update({ attendee_count: (event.attendeeCount || event.attendees || 0) + 1 }).eq('id', event.id);
+      toast.success("You're attending!");
+    }
   };
 
   const handleBuyTicket = async () => {
@@ -332,9 +358,40 @@ const EventDetail = () => {
           </div>
         )}
 
-        {/* Location Map placeholder */}
+        {/* Meet Style Tags */}
+        {(event.meetStyleTags || event.meet_style_tags || []).length > 0 && (
+          <div className="bg-card rounded-2xl border border-border/30 p-5">
+            <h2 className="font-semibold text-foreground mb-2">Meet Style</h2>
+            <div className="flex flex-wrap gap-1.5">
+              {(event.meetStyleTags || event.meet_style_tags || []).map((tag: string) => (
+                <span key={tag} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: '#fce8ed', color: '#d30d37' }}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Event Rules */}
+        {(event.eventRules || event.event_rules) && (
+          <div className="bg-muted/50 rounded-2xl border border-border/30 p-5">
+            <h2 className="font-semibold text-foreground mb-2">Event Rules</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{event.eventRules || event.event_rules}</p>
+          </div>
+        )}
+
+        {/* What3Words */}
+        {(event.what3words || event.what3words_code) && (
+          <div className="bg-card rounded-2xl border border-border/30 p-4 flex items-center gap-3">
+            <span className="text-lg">///</span>
+            <span className="text-sm font-medium" style={{ color: '#d30d37' }}>{event.what3words || event.what3words_code}</span>
+          </div>
+        )}
+
+        {/* Location */}
         <div className="bg-card rounded-2xl border border-border/30 p-5">
           <h2 className="font-semibold text-foreground mb-2">Location</h2>
+          <p className="text-sm text-muted-foreground mb-2">{event.locationName || event.location}</p>
           <div className="h-40 bg-muted rounded-xl flex items-center justify-center">
             <MapPin className="w-8 h-8 text-muted-foreground/30" />
           </div>

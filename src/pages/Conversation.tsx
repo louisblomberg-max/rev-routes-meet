@@ -1,4 +1,4 @@
-import { Send, MessageSquare } from 'lucide-react';
+import { Send, MessageSquare, ImagePlus } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -22,6 +22,7 @@ const Conversation = () => {
   const [isLoading, setIsLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
@@ -163,6 +164,33 @@ const Conversation = () => {
     setNewMessage('');
   };
 
+  const handleImageSend = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.id) return;
+    if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB'); return; }
+
+    let activeConvId = conversationId;
+    if (!activeConvId) {
+      activeConvId = await findOrCreateConversation();
+      if (!activeConvId) return;
+    }
+
+    const ext = file.name.split('.').pop() || 'jpg';
+    const path = `${activeConvId}/${Date.now()}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from('messages').upload(path, file);
+    if (uploadError) { toast.error('Failed to upload image'); return; }
+    const { data: urlData } = supabase.storage.from('messages').getPublicUrl(path);
+
+    const { error: sendError } = await supabase.from('messages').insert({
+      conversation_id: activeConvId,
+      sender_id: user.id,
+      content: '',
+      image_url: urlData.publicUrl,
+    });
+    if (sendError) toast.error('Failed to send image');
+    e.target.value = '';
+  };
+
   const formatDateSeparator = (dateStr: string) => {
     const date = new Date(dateStr);
     if (isToday(date)) return 'Today';
@@ -242,12 +270,15 @@ const Conversation = () => {
                   </div>
                 )}
                 <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
-                  <div className={`max-w-[78%] rounded-2xl px-4 py-2.5 ${
+                  <div className={`max-w-[72%] px-3.5 py-2.5 ${
                     isMe
-                      ? 'bg-[hsl(var(--primary))] text-primary-foreground rounded-br-md'
-                      : 'bg-muted text-foreground rounded-bl-md'
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                      ? 'text-white rounded-[18px_18px_4px_18px]'
+                      : 'bg-white border border-[#e8e8e0] text-[#111111] rounded-[18px_18px_18px_4px]'
+                  }`} style={isMe ? { backgroundColor: '#d30d37' } : undefined}>
+                    {msg.image_url && (
+                      <img src={msg.image_url} alt="" className="rounded-lg max-h-[200px] w-full object-cover mb-1" loading="lazy" />
+                    )}
+                    {msg.content && <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>}
                     <p className={`text-[10px] mt-1 ${isMe ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                       {format(msgDate, 'HH:mm')}
                     </p>
@@ -262,7 +293,11 @@ const Conversation = () => {
 
       {/* Input */}
       <div className="sticky bottom-0 bg-background border-t border-border/50 p-3 safe-bottom">
+        <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSend} />
         <div className="flex items-center gap-2">
+          <button onClick={() => imageInputRef.current?.click()} className="p-2 text-muted-foreground hover:text-foreground transition-colors">
+            <ImagePlus className="w-5 h-5" />
+          </button>
           <Input
             placeholder="Type a message..."
             value={newMessage}
@@ -270,7 +305,8 @@ const Conversation = () => {
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             className="flex-1 bg-muted/50 border-0 rounded-full h-10"
           />
-          <Button size="icon" onClick={handleSend} disabled={!newMessage.trim()} className="rounded-full h-10 w-10">
+          <Button size="icon" onClick={handleSend} disabled={!newMessage.trim()}
+            className="rounded-full h-10 w-10" style={{ backgroundColor: newMessage.trim() ? '#d30d37' : undefined }}>
             <Send className="w-4 h-4" />
           </Button>
         </div>

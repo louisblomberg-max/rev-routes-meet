@@ -24,7 +24,13 @@ const Auth = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user) navigate('/', { replace: true });
+    if (user) {
+      if (!user.onboardingComplete) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/', { replace: true });
+      }
+    }
   }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
