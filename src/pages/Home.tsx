@@ -48,12 +48,12 @@ interface FriendLocation {
 }
 
 const PIN_COLORS: Record<string, string> = {
-  event: '#CC2222',
-  events: '#CC2222',
+  event: '#E97A2B',
+  events: '#E97A2B',
   route: '#185FA5',
   routes: '#185FA5',
-  service: '#C2700A',
-  services: '#C2700A',
+  service: '#22C55E',
+  services: '#22C55E',
 };
 
 /* ── Haversine distance in km ── */
@@ -129,6 +129,7 @@ const Home = () => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const initialFitDoneRef = useRef(false);
+  const initialLoadDoneRef = useRef(false);
 
   // All pins from RPC (unfiltered) kept separately so category switch is instant
   const allPinsRef = useRef<any[]>([]);
@@ -141,10 +142,81 @@ const Home = () => {
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
-  /* ── refreshPins fetches ALL categories via direct table queries ── */
+  // Empty state
+  const [showEmptyState, setShowEmptyState] = useState(false);
+
+  /* ── fetchAllPins: initial load without bounds filter ── */
+  const fetchAllPins = useCallback(async () => {
+    try {
+      const [eventsRes, routesRes, servicesRes] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+        supabase
+          .from('routes')
+          .select('id, name, lat, lng, type, difficulty')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+        supabase
+          .from('services')
+          .select('id, name, lat, lng, service_type')
+          .eq('visibility', 'public')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+      ]);
+
+      const mapped = [
+        ...(eventsRes.data || []).map(e => ({
+          id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
+          type: 'events', subtype: e.type,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          date_start: e.date_start,
+        })),
+        ...(routesRes.data || []).map(r => ({
+          id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
+          type: 'routes', subtype: r.type,
+          difficulty: r.difficulty,
+        })),
+        ...(servicesRes.data || []).map(s => ({
+          id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
+          type: 'services', subtype: s.service_type,
+        })),
+      ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
+
+      allPinsRef.current = mapped;
+      setPins(mapped);
+
+      // Show empty state only if query succeeded but returned nothing
+      if (mapped.length === 0) {
+        setShowEmptyState(true);
+      } else {
+        setShowEmptyState(false);
+      }
+    } catch {
+      // Don't show empty state on error
+    }
+  }, [setPins]);
+
+  /* ── refreshPins: bounds-filtered refresh after initial load ── */
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
     if (!m || !m.loaded()) return;
+
+    // On very first call, do unbounded fetch
+    if (!initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true;
+      await fetchAllPins();
+      return;
+    }
 
     const bounds = m.getBounds();
     const north = bounds.getNorthEast().lat;
@@ -156,42 +228,50 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, meet_style_tags, vehicle_focus, vehicle_brands, is_free, entry_fee, status')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .eq('status', 'published')
-          .limit(200),
+          .limit(500),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty, duration_minutes, surface_type, status')
+          .select('id, name, lat, lng, type, difficulty')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .eq('status', 'published')
-          .limit(200),
+          .limit(500),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type, service_types, is_24_7')
+          .select('id, name, lat, lng, service_type')
+          .eq('visibility', 'public')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .limit(200),
+          .limit(500),
       ]);
 
       const mapped = [
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
-          date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          date_start: e.date_start,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty, duration_minutes: r.duration_minutes, surface_type: r.surface_type,
+          difficulty: r.difficulty,
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type,
-          service_types: s.service_types, is_24_7: s.is_24_7,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -200,7 +280,7 @@ const Home = () => {
     } catch {
       // silently retry on next viewport change
     }
-  }, [setPins]);
+  }, [setPins, fetchAllPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
@@ -519,26 +599,30 @@ const Home = () => {
         if (isNaN(lat) || isNaN(lng)) return;
 
         const type = String(pin.type || '').toLowerCase().trim();
-        const color = PIN_COLORS[type] || '#CC2222';
+        const color = PIN_COLORS[type] || '#E97A2B';
+        const letter = type === 'events' ? 'E' : type === 'routes' ? 'R' : type === 'services' ? 'S' : '?';
 
         const el = document.createElement('div');
         el.style.cssText = `
-          width: 16px; height: 16px;
+          width: 32px; height: 32px;
           background-color: ${color}; border: 2.5px solid white;
           border-radius: 50%; cursor: pointer;
           box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          display: flex; align-items: center; justify-content: center;
+          color: white; font-size: 13px; font-weight: 700;
+          line-height: 1;
         `;
+        el.textContent = letter;
 
         el.addEventListener('mouseenter', () => {
-          el.style.borderColor = color;
+          el.style.transform = 'scale(1.15)';
           el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
         });
         el.addEventListener('mouseleave', () => {
-          el.style.borderColor = 'white';
+          el.style.transform = 'scale(1)';
           el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
         });
 
-        // Bug 2 fix — use ref so the click handler is never stale
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           handlePinClickRef.current(pin);
@@ -833,6 +917,22 @@ const Home = () => {
       )}
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
+
+      {/* Empty state when no pins found */}
+      {showEmptyState && !isNavigating && (
+        <div className="absolute bottom-36 left-4 right-4 z-30 animate-fade-up">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center">
+            <p className="text-sm font-semibold text-foreground mb-1">No events nearby — be the first to create one!</p>
+            <p className="text-xs text-muted-foreground mb-3">Add an event, route, or service to see it on the map.</p>
+            <button
+              onClick={() => navigate('/add-event')}
+              className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl"
+            >
+              Add Event
+            </button>
+          </div>
+        </div>
+      )}
 
       {!isNavigating && (
         <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
