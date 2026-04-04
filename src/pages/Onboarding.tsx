@@ -139,38 +139,57 @@ const Onboarding = () => {
     setIsSubmitting(true);
 
     try {
-      // Refresh session to get a fresh user ID
-      const { data: sessionData } = await supabase.auth.refreshSession();
+      // 1. Refresh session to get a fresh user ID
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError) throw sessionError;
       const userId = sessionData?.session?.user?.id || user.id;
 
-      let avatarUrl: string | undefined;
+      // 2. Upload avatar if provided
+      let avatarUrl: string | null = null;
       if (avatarFile) {
-        const url = await uploadAvatar();
-        if (url) avatarUrl = url;
+        const ext = avatarFile.name.split('.').pop() || 'jpg';
+        const path = `${userId}/avatar.${ext}`;
+        const { error: uploadError } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true });
+        if (uploadError) {
+          console.error('Avatar upload failed:', uploadError);
+        } else {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+          avatarUrl = urlData.publicUrl;
+        }
       }
 
-      // Save profile with all onboarding data
-      const updates: any = {
-        username,
-        onboardingComplete: true,
-        isProfileComplete: true,
+      // 3. Update profiles table
+      const profileUpdate: Record<string, unknown> = {
+        username: username || null,
+        onboarding_complete: true,
       };
-      if (avatarUrl) updates.avatar = avatarUrl;
-      await updateProfile(updates);
+      if (avatarUrl) profileUpdate.avatar_url = avatarUrl;
 
-      // Save vehicle interests and meet style preferences
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', userId);
+      if (profileError) throw profileError;
+
+      // 4. Upsert user_preferences
       if (vehicleInterests.length > 0 || meetStyles.length > 0) {
-        await supabase.from('user_preferences').upsert({
+        const { error: prefError } = await supabase.from('user_preferences').upsert({
           user_id: userId,
           vehicle_interests: vehicleInterests,
           meet_style_preferences: meetStyles,
         }, { onConflict: 'user_id' });
+        if (prefError) console.error('Preferences save failed:', prefError);
       }
 
+      // 5. Update local auth state
+      updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar });
+
+      // 6. Navigate to home
       navigate('/', { replace: true });
       toast.success('Welcome to RevNet!');
-    } catch {
-      toast.error('Something went wrong. Please try again.');
+    } catch (err: any) {
+      console.error('Onboarding completion failed:', err);
+      toast.error(err?.message || 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
