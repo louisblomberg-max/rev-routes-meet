@@ -34,7 +34,7 @@ const You = () => {
           supabase.from('profiles').select('id, display_name, username, avatar_url, bio, plan, location').eq('id', authUser.id).single(),
           supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', authUser.id),
           supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', authUser.id),
-          supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', authUser.id),
+          supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', authUser.id).eq('status', 'active'),
         ]);
         if (profileRes.error) throw profileRes.error;
         setProfile(profileRes.data);

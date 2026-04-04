@@ -166,6 +166,7 @@ const AddVehicle = () => {
         return;
       }
 
+      await refreshVehicles();
       toast.success(`${selectedMake.name} ${selectedModel.name} added to your garage!`);
       navigate(-1);
     } catch {
