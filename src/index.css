@@ -6,59 +6,59 @@
 
 @layer base {
   :root {
-    /* Light Mode - Clean & Minimal with Dark Accents */
-    --background: 60 31% 93%;
-    --background-warm: 60 31% 93%;
-    --foreground: 0 0% 0%;
+    /* ── RevNet Design System ── */
+    --background: 48 23% 92%;
+    --background-warm: 48 23% 92%;
+    --foreground: 0 0% 7%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 0 0% 7%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 0 0% 7%;
 
-    /* Motorsport Red - Bold Primary */
-    --primary: 115 45% 29%;
+    /* Primary — RevNet Red */
+    --primary: 349 90% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 48 18% 89%;
+    --secondary-foreground: 0 0% 7%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 48 18% 89%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 48 18% 89%;
+    --accent-foreground: 0 0% 7%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 349 90% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 115 45% 29%;
+    --border: 48 12% 89%;
+    --input: 48 12% 89%;
+    --ring: 349 90% 45%;
 
     --radius: 0.5rem;
 
-    /* RevNet Feature Colors */
-    --events: 1 76% 55%;
+    /* Feature Colors */
+    --events: 349 90% 45%;
     --events-foreground: 0 0% 100%;
-    --events-muted: 1 60% 95%;
-    
-    --routes: 220 100% 65%;
+    --events-muted: 349 60% 95%;
+
+    --routes: 222 100% 57%;
     --routes-foreground: 0 0% 100%;
-    --routes-muted: 220 60% 95%;
-    
+    --routes-muted: 222 60% 96%;
+
     --services: 30 100% 50%;
     --services-foreground: 0 0% 100%;
     --services-muted: 30 60% 95%;
-    
-    --clubs: 220 70% 35%;
-    --clubs-foreground: 0 0% 100%;
-    --clubs-muted: 220 50% 95%;
 
-    --community: 212 51% 31%;
+    --clubs: 222 70% 35%;
+    --clubs-foreground: 0 0% 100%;
+    --clubs-muted: 222 50% 95%;
+
+    --community: 349 90% 45%;
     --community-foreground: 0 0% 100%;
-    --community-muted: 212 30% 93%;
+    --community-muted: 349 30% 95%;
 
     --marketplace: 130 22% 29%;
     --marketplace-foreground: 0 0% 100%;
@@ -68,7 +68,7 @@
     --surface: 0 0% 100%;
     --surface-elevated: 0 0% 100%;
 
-    /* Premium Shadows */
+    /* Shadows */
     --shadow-color: 0 0% 0%;
 
     --sidebar-background: 0 0% 98%;
@@ -78,13 +78,12 @@
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 115 45% 29%;
+    --sidebar-ring: 349 90% 45%;
   }
 
   .dark {
-    /* Dark Mode - Racing Night */
     --background: 0 0% 4%;
-    --background-warm: 60 10% 12%;
+    --background-warm: 48 10% 8%;
     --foreground: 0 0% 98%;
 
     --card: 0 0% 7%;
@@ -93,8 +92,7 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
-    /* Bright Red for Dark Mode */
-    --primary: 115 45% 35%;
+    --primary: 349 90% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
@@ -106,35 +104,33 @@
     --accent: 0 0% 12%;
     --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 349 90% 50%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 115 45% 35%;
+    --ring: 349 90% 50%;
 
-    /* Dark Mode Feature Colors */
-    --events: 1 76% 55%;
-    --events-muted: 1 50% 15%;
-    
-    --routes: 220 100% 65%;
-    --routes-muted: 220 60% 15%;
-    
-    --services: 160 60% 45%;
-    --services-muted: 160 40% 15%;
-    
-    --clubs: 220 70% 45%;
-    --clubs-muted: 220 50% 15%;
+    --events: 349 90% 50%;
+    --events-muted: 349 50% 15%;
 
-    --community: 212 51% 41%;
+    --routes: 222 100% 57%;
+    --routes-muted: 222 60% 15%;
+
+    --services: 30 100% 50%;
+    --services-muted: 30 40% 15%;
+
+    --clubs: 222 70% 45%;
+    --clubs-muted: 222 50% 15%;
+
+    --community: 349 90% 50%;
     --community-foreground: 0 0% 100%;
-    --community-muted: 212 30% 15%;
+    --community-muted: 349 30% 15%;
 
     --marketplace: 130 22% 39%;
     --marketplace-foreground: 0 0% 100%;
     --marketplace-muted: 130 15% 15%;
 
-    /* Surface Layers */
     --surface: 0 0% 7%;
     --surface-elevated: 0 0% 10%;
 
@@ -145,7 +141,7 @@
     --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 115 45% 35%;
+    --sidebar-ring: 349 90% 50%;
   }
 }
 
@@ -166,104 +162,120 @@
 }
 
 @layer components {
-  /* Premium Search Bar */
+  /* Search Bar */
   .search-bar {
-    @apply bg-card rounded-xl shadow-lg px-4 py-3 flex items-center gap-3 transition-all duration-200 border border-border/50;
+    @apply bg-card rounded-full shadow-sm px-4 py-3 flex items-center gap-3 transition-all duration-200 border border-border;
   }
-
   .search-bar:focus-within {
-    @apply ring-2 ring-primary/30 border-primary/50;
+    border-color: #d30d37;
   }
 
-  /* Category Chips - Sharp & Bold */
+  /* Category Chips */
   .category-chip {
-    @apply px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer border;
+    @apply px-3.5 py-2 rounded-full text-[13px] font-medium transition-all duration-200 cursor-pointer border;
   }
-
   .category-chip-events {
     @apply bg-events-muted text-events border-events/20 hover:bg-events hover:text-events-foreground hover:border-events;
   }
-
   .category-chip-events.active {
     @apply bg-events text-events-foreground border-events;
   }
-
   .category-chip-routes {
     @apply bg-routes-muted text-routes border-routes/20 hover:bg-routes hover:text-routes-foreground hover:border-routes;
   }
-
   .category-chip-routes.active {
     @apply bg-routes text-routes-foreground border-routes;
   }
-
   .category-chip-services {
     @apply bg-services-muted text-services border-services/20 hover:bg-services hover:text-services-foreground hover:border-services;
   }
-
   .category-chip-services.active {
     @apply bg-services text-services-foreground border-services;
   }
-
   .category-chip-clubs {
     @apply bg-clubs-muted text-clubs border-clubs/20 hover:bg-clubs hover:text-clubs-foreground hover:border-clubs;
   }
-
   .category-chip-clubs.active {
     @apply bg-clubs text-clubs-foreground border-clubs;
   }
 
-  /* Bottom Sheet - Refined */
+  /* Bottom Sheet */
   .bottom-sheet {
-    @apply bg-card rounded-t-2xl shadow-2xl border-t border-border/50;
+    @apply bg-card rounded-t-[20px] shadow-2xl border-t border-border;
   }
 
-  /* Content Card - Premium */
+  /* Content Card */
   .content-card {
-    @apply bg-card rounded-xl p-4 shadow-sm border border-border/50 transition-all duration-200 hover:shadow-md hover:border-border;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 16px;
+    border: 0.5px solid #e8e8e0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: all 200ms;
+  }
+  .content-card:hover {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.09);
   }
 
-  /* FAB - Bold & Consistent */
+  /* FAB */
   .fab-button {
-    @apply w-14 h-14 rounded-xl bg-primary text-primary-foreground shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #d30d37;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(211,13,55,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 200ms;
+  }
+  .fab-button:active {
+    transform: scale(0.96);
   }
 
   .fab-option {
-    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-xl shadow-md border border-border/50 transition-all duration-200 hover:bg-muted cursor-pointer;
+    @apply flex items-center gap-3 px-4 py-3 bg-card rounded-xl shadow-md border border-border transition-all duration-200 hover:bg-muted cursor-pointer;
   }
 
   /* Map Pins */
-  .pin-events {
-    @apply bg-events text-events-foreground;
-  }
-
-  .pin-routes {
-    @apply bg-routes text-routes-foreground;
-  }
-
-  .pin-services {
-    @apply bg-services text-services-foreground;
-  }
-
-  .pin-clubs {
-    @apply bg-clubs text-clubs-foreground;
-  }
+  .pin-events { @apply bg-events text-events-foreground; }
+  .pin-routes { @apply bg-routes text-routes-foreground; }
+  .pin-services { @apply bg-services text-services-foreground; }
+  .pin-clubs { @apply bg-clubs text-clubs-foreground; }
 
   /* Page Containers */
   .page-container {
-    @apply min-h-screen bg-background;
+    @apply min-h-screen;
+    background: #f3f3e8;
   }
 
   .mobile-container {
-    @apply max-w-md mx-auto min-h-screen relative overflow-hidden bg-background;
+    @apply max-w-md mx-auto min-h-screen relative overflow-hidden;
+    background: #f3f3e8;
   }
 
-  /* Premium Glass Effect */
+  /* Glass */
   .glass {
-    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+    @apply bg-card/80 backdrop-blur-xl border border-border;
+  }
+  .glass-dark {
+    @apply bg-background/90 backdrop-blur-xl border border-border;
   }
 
-  .glass-dark {
-    @apply bg-background/90 backdrop-blur-xl border border-border/50;
+  /* RevNet button press animation */
+  .btn-press {
+    transition: transform 150ms ease;
+  }
+  .btn-press:active {
+    transform: scale(0.96);
+  }
+
+  /* Skeleton shimmer */
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, #f3f3e8 25%, #e8e8e0 50%, #f3f3e8 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
 }
 
@@ -304,79 +316,85 @@
     padding-bottom: env(safe-area-inset-bottom, 20px);
   }
 
-  /* Typography Utilities */
+  /* Typography — 4 sizes only */
   .heading-display {
-    @apply text-3xl font-black tracking-tight;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
   .heading-lg {
-    @apply text-2xl font-bold tracking-tight;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
   }
 
   .heading-md {
-    @apply text-lg font-bold;
+    font-size: 17px;
+    font-weight: 500;
   }
 
   .heading-sm {
-    @apply text-base font-semibold;
+    font-size: 15px;
+    font-weight: 500;
+  }
+
+  .text-body {
+    font-size: 15px;
+    font-weight: 400;
+  }
+
+  .text-detail {
+    font-size: 13px;
+    font-weight: 400;
   }
 
   .text-caption {
-    @apply text-[11px] font-medium text-muted-foreground;
+    font-size: 13px;
+    font-weight: 400;
+    color: #666666;
   }
 
   .text-label {
-    @apply text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #999999;
   }
 }
 
 @keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleUp {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes slideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
 @keyframes slideDown {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes sosPulse {
+  0% { transform: scale(1); opacity: 0.6; }
+  100% { transform: scale(2); opacity: 0; }
 }

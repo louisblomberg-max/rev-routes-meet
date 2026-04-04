@@ -8,35 +8,58 @@ interface BottomNavigationProps {
 }
 
 const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
-  const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
-    { id: 'discovery', label: 'Discovery', icon: Compass, activeColor: '#d30d37' },
-    { id: 'community', label: 'Community', icon: Users, activeColor: '#274C77' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, activeColor: '#3A5A40' },
-    { id: 'you', label: 'You', icon: User, activeColor: '#161616' },
+  const tabs: { id: Tab; label: string; icon: typeof Compass }[] = [
+    { id: 'discovery', label: 'Discover', icon: Compass },
+    { id: 'community', label: 'Social', icon: Users },
+    { id: 'marketplace', label: 'Market', icon: ShoppingBag },
+    { id: 'you', label: 'You', icon: User },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 safe-bottom px-3 pb-3 pt-1" style={{ backgroundColor: '#f3f3e8' }}>
-      <div className="max-w-md mx-auto grid grid-cols-4 gap-1.5">
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40"
+      style={{
+        background: '#ffffff',
+        borderTop: '0.5px solid #e8e8e0',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+      }}
+    >
+      <div className="max-w-md mx-auto flex" style={{ height: 60 }}>
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
-          
+
           return (
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all duration-200 bg-white shadow-sm ${
-                isActive ? 'border-black/20' : 'border-black/10 text-foreground hover:text-foreground'
-              }`}
-              style={isActive ? { color: tab.activeColor, borderColor: `${tab.activeColor}33` } : undefined}
+              className="flex-1 flex flex-col items-center justify-center gap-1 btn-press"
             >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-              <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'font-bold' : ''}`}>
+              <Icon
+                className="w-[22px] h-[22px]"
+                style={{ color: isActive ? '#d30d37' : '#999999' }}
+                strokeWidth={isActive ? 2 : 1.5}
+              />
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: isActive ? 500 : 400,
+                  color: isActive ? '#d30d37' : '#999999',
+                  lineHeight: 1,
+                }}
+              >
                 {tab.label}
               </span>
               {isActive && (
-                <div className="w-6 h-[2px] rounded-full mt-0.5" style={{ backgroundColor: tab.activeColor }} />
+                <div
+                  style={{
+                    width: 4,
+                    height: 4,
+                    borderRadius: '50%',
+                    background: '#d30d37',
+                    marginTop: 1,
+                  }}
+                />
               )}
             </button>
           );
