@@ -56,12 +56,6 @@ const PIN_COLORS: Record<string, string> = {
   services: '#ff8000',
 };
 
-const PIN_ICONS: Record<string, string> = {
-  events: '<path d="M11 5h2v2h-2V5zm0 4h2v6h-2V9z" fill="white" transform="translate(6,6) scale(0.5)"/><rect x="9" y="10" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="9" y="14" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="9" y="18" width="18" height="2" rx="1" fill="white" opacity="0.9"/><rect x="12" y="7" width="12" height="1.5" rx="0.75" fill="white"/>',
-  routes: '<path d="M18 11c0-1.1-.4-2.1-1-2.8L18 7l-1-1-1.2 1.2C15.1 6.4 14.1 6 13 6c-3.3 0-6 2.7-6 6s2.7 6 6 6 6-2.7 6-6z" fill="none" stroke="white" stroke-width="1.5" transform="translate(5,5) scale(0.55)"/><path d="M10 18L14 11L18 15L22 9" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="translate(2,2) scale(0.7)"/>',
-  services: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(6,6) scale(0.65)"/>',
-};
-
 /* ── Haversine distance in km ── */
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
@@ -616,44 +610,16 @@ const Home = () => {
 
         const type = String(pin.type || '').toLowerCase().trim();
         const color = PIN_COLORS[type] || '#d30d37';
-        const iconSvg = PIN_ICONS[type] || '';
-        const label = (pin.title || '').slice(0, 14);
 
         const el = document.createElement('div');
-        el.style.cssText = 'position: relative; width: 36px; height: 44px; cursor: pointer; overflow: visible;';
-
-        // SVG map pin
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '36');
-        svg.setAttribute('height', '44');
-        svg.setAttribute('viewBox', '0 0 36 44');
-        svg.innerHTML = `
-          <path d="M18 0C8.059 0 0 8.059 0 18C0 31.5 18 44 18 44C18 44 36 31.5 36 18C36 8.059 27.941 0 18 0Z" fill="${color}"/>
-          <circle cx="18" cy="18" r="10" fill="rgba(255,255,255,0.2)"/>
-          ${iconSvg}
-        `;
-        el.appendChild(svg);
-
-        // Name label pill below
-        if (label) {
-          const pill = document.createElement('div');
-          pill.style.cssText = `
-            position: absolute; top: 46px; left: 50%; transform: translateX(-50%);
-            background: white; font-size: 10px; font-weight: 600; color: #111111;
-            padding: 2px 6px; border-radius: 4px; white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15); pointer-events: none;
-            max-width: 90px; overflow: hidden; text-overflow: ellipsis; z-index: 1;
-          `;
-          pill.textContent = label;
-          el.appendChild(pill);
-        }
+        el.style.cssText = `width:20px;height:20px;border-radius:50%;background-color:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
 
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           handlePinClickRef.current(pin);
         });
 
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
           .setLngLat([lng, lat])
           .addTo(m);
 
