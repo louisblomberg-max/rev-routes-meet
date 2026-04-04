@@ -75,7 +75,7 @@ const NewConversationSheet = ({ open, onOpenChange, onCreateConversation }: NewC
       const { data } = await supabase
         .from('profiles')
         .select('id, username, display_name, avatar_url')
-        .ilike('username', `%${searchQuery.trim()}%`)
+        .or(`username.ilike.%${searchQuery.trim()}%,display_name.ilike.%${searchQuery.trim()}%`)
         .neq('id', authUser.id)
         .limit(10);
       if (data) {
