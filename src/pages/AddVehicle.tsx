@@ -44,6 +44,7 @@ const DRIVETRAIN_OPTIONS = [
 const AddVehicle = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshVehicles } = useGarage();
   const [saving, setSaving] = useState(false);
 
   // Vehicle type
