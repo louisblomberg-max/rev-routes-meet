@@ -3,20 +3,33 @@ import { ShieldOff, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BlockUserSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userName?: string;
+  targetUserId: string;
 }
 
-const BlockUserSheet = ({ open, onOpenChange, userName = 'this user' }: BlockUserSheetProps) => {
+const BlockUserSheet = ({ open, onOpenChange, userName = 'this user', targetUserId }: BlockUserSheetProps) => {
+  const { user } = useAuth();
   const [confirmed, setConfirmed] = useState(false);
 
-  const handleBlock = () => {
+  const handleBlock = async () => {
+    if (!user?.id) {
+      toast.error('You must be logged in to block a user');
+      return;
+    }
+    const { error } = await supabase.from('blocked_users').insert({ user_id: user.id, blocked_user_id: targetUserId });
+    if (error) {
+      toast.error('Failed to block user');
+      return;
+    }
     setConfirmed(true);
+    toast.success(`${userName} has been blocked`);
     setTimeout(() => {
-      toast.success(`${userName} has been blocked`);
       onOpenChange(false);
       setConfirmed(false);
     }, 800);

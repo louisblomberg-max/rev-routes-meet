@@ -86,7 +86,7 @@ const FAQSettings = () => {
           <p className="text-sm text-muted-foreground">
             Can't find what you're looking for?
           </p>
-          <button className="mt-2 text-sm font-medium text-primary">
+          <button className="mt-2 text-sm font-medium text-primary" onClick={() => { window.location.href = 'mailto:support@revnet.club'; }}>
             Contact Support
           </button>
         </div>

@@ -381,7 +381,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user?.id) {
       const { error } = await supabase.from('profiles').update({
         onboarding_complete: true,
-        onboarding_step: 14,
+        onboarding_step: 6,
       }).eq('id', user.id);
       if (error) {
         toast.error('Failed to save onboarding status');

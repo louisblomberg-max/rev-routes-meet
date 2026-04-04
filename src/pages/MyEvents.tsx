@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUserEvents } from '@/hooks/useProfileData';
+import { usePlan } from '@/contexts/PlanContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const eventTypeColors: Record<string, string> = {
   'Meets': 'bg-events/15 text-events',
@@ -17,6 +19,8 @@ const eventTypeColors: Record<string, string> = {
 
 const MyEvents = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { currentPlan } = usePlan();
   const { upcoming, past, saved, isLoading } = useUserEvents();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'hosting' | 'saved'>('upcoming');
 
@@ -41,9 +45,16 @@ const MyEvents = () => {
               <p className="text-xs text-muted-foreground">{upcoming.length} upcoming</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => navigate('/add/event')} className="gap-1.5 rounded-lg">
-            <Plus className="w-4 h-4" /> Create
-          </Button>
+          <div className="flex items-center gap-2">
+            {currentPlan === 'free' && (
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: '#fce8ed', color: '#d30d37' }}>
+                {user?.eventCredits || 0} credit{(user?.eventCredits || 0) !== 1 ? 's' : ''}
+              </span>
+            )}
+            <Button size="sm" onClick={() => navigate('/add/event')} className="gap-1.5 rounded-lg">
+              <Plus className="w-4 h-4" /> Create
+            </Button>
+          </div>
         </div>
       </div>
 

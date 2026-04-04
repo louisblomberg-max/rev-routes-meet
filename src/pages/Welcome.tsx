@@ -92,7 +92,7 @@ const Welcome = () => {
 
         <div className="flex items-center justify-center gap-1">
           <span className="text-sm text-muted-foreground">Already have an account?</span>
-          <button onClick={() => navigate('/login')} className="text-sm text-primary font-semibold">
+          <button onClick={() => navigate('/auth')} className="text-sm text-primary font-semibold">
             Sign in
           </button>
         </div>

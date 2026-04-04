@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
+import { validateImageFile } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
 import { X, ImagePlus, RefreshCw, Crown, AlertTriangle } from 'lucide-react'
 
@@ -343,10 +344,12 @@ export default function ClubSettings() {
 
       <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={e => {
         const f = e.target.files?.[0]; if (!f) return
+        const validationError = validateImageFile(f); if (validationError) { toast.error(validationError); e.target.value = ''; return }
         setLogoFile(f); setLogoPreview(URL.createObjectURL(f)); e.target.value = ''
       }} />
       <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => {
         const f = e.target.files?.[0]; if (!f) return
+        const validationError = validateImageFile(f); if (validationError) { toast.error(validationError); e.target.value = ''; return }
         setCoverFile(f); setCoverPreview(URL.createObjectURL(f)); e.target.value = ''
       }} />
 

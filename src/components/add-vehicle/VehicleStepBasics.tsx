@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { VehicleFormData } from '@/models/vehicle';
 import { CAR_BRANDS, MOTORCYCLE_BRANDS } from '@/models/vehicle';
+import { validateImageFile } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface Props {
   data: VehicleFormData;
@@ -28,6 +30,9 @@ const VehicleStepBasics = ({ data, onChange, onNext }: Props) => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
+    for (const file of Array.from(files)) {
+      const validationError = validateImageFile(file); if (validationError) { toast.error(validationError); e.target.value = ''; return; }
+    }
     Array.from(files).forEach(file => {
       const reader = new FileReader();
       reader.onload = () => {

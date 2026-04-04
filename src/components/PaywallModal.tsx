@@ -1,10 +1,12 @@
 // ============================
-// Paywall / Mock Payment Modal
+// Paywall / Payment Modal
 // ============================
 import { useState } from 'react';
 import { Crown, Check, X, CreditCard, Sparkles, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export type PaywallReason = 'event_credits' | 'route_credits' | 'service_plan' | 'club_plan';
 
@@ -86,6 +88,7 @@ const CONFIG: Record<PaywallReason, {
 };
 
 const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentResult }: PaywallModalProps) => {
+  const { user } = useAuth();
   const [processing, setProcessing] = useState<'per_item' | 'subscribe' | null>(null);
 
   if (!open) return null;
@@ -93,19 +96,34 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
   const config = CONFIG[reason];
   const hasPerItem = !!config.perItemPrice;
 
-  const simulatePayment = async (method: 'per_item' | 'subscribe', success: boolean) => {
+  const handlePayment = async (method: 'per_item' | 'subscribe') => {
+    if (!user?.id) {
+      toast.error('You must be logged in to make a payment.');
+      return;
+    }
     setProcessing(method);
-    await new Promise(r => setTimeout(r, 800));
-    setProcessing(null);
-
-    if (success) {
+    try {
+      const { data, error } = await supabase.functions.invoke('charge-event-post', {
+        body: { user_id: user.id, method, reason },
+      });
+      if (error || !data) {
+        toast.error('Payment failed. Please try again.');
+        onPaymentResult(false, method);
+        return;
+      }
+      if (data.url) {
+        window.location.href = data.url;
+        return;
+      }
       toast.success(method === 'subscribe'
         ? `Subscribed to ${config.subscribePlan}!`
         : 'Payment successful!');
       onPaymentResult(true, method);
-    } else {
-      toast.error('Payment failed — please try again.');
+    } catch {
+      toast.error('Payment failed. Please try again.');
       onPaymentResult(false, method);
+    } finally {
+      setProcessing(null);
     }
   };
 
@@ -140,7 +158,7 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
                 </div>
                 <div className="flex gap-2">
                   <Button
-                    onClick={() => simulatePayment('per_item', true)}
+                    onClick={() => handlePayment('per_item')}
                     disabled={!!processing}
                     className="flex-1 h-10 rounded-xl bg-foreground text-background hover:bg-foreground/90"
                   >
@@ -178,7 +196,7 @@ const PaywallModal = ({ open, onClose, reason, creditsRemaining = 0, onPaymentRe
                 ))}
               </ul>
               <Button
-                onClick={() => simulatePayment('subscribe', true)}
+                onClick={() => handlePayment('subscribe')}
                 disabled={!!processing}
                 className="w-full h-10 rounded-xl"
               >

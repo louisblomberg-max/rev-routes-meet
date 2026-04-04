@@ -50,7 +50,7 @@ const CompleteProfile = () => {
                   {user?.displayName?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
-              <button type="button" className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg" onClick={() => toast.info('Photo upload coming soon')}>
+              <button type="button" className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg" onClick={() => toast.info('Photo upload available during onboarding. Go to Settings > Account to change your photo.')}>
                 <Camera className="w-4 h-4" />
               </button>
             </div>

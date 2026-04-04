@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Route, Star, Plus, Clock, Bookmark, PenLine, ChevronRight, Navigation, Trash2, MoreHorizontal } from 'lucide-react';
+import { Route, Star, Plus, Clock, Bookmark, PenLine, ChevronRight, Navigation, Trash2, MoreHorizontal, Lock } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { useUserRoutes } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 const routeTypeColors: Record<string, string> = {
   'Scenic': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -21,6 +22,7 @@ const routeTypeColors: Record<string, string> = {
 const MyRoutes = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { currentPlan } = usePlan();
   const { saved, created, isLoading } = useUserRoutes();
   const { routes: routesRepo } = useData();
   const [activeTab, setActiveTab] = useState<'saved' | 'created'>('saved');
@@ -43,7 +45,16 @@ const MyRoutes = () => {
               <p className="text-xs text-muted-foreground">{saved.length} saved, {created.length} created</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => navigate('/add/route')} className="gap-1.5 rounded-lg">
+          <Button size="sm" onClick={() => {
+            if (currentPlan === 'free') {
+              toast.info('Creating routes requires Pro Driver. Upgrade to unlock unlimited routes.', {
+                action: { label: 'Upgrade', onClick: () => navigate('/subscription') },
+              });
+            } else {
+              navigate('/add/route');
+            }
+          }} className="gap-1.5 rounded-lg">
+            {currentPlan === 'free' && <Lock className="w-3.5 h-3.5" />}
             <Plus className="w-4 h-4" /> Create
           </Button>
         </div>
@@ -117,7 +128,7 @@ const MyRoutes = () => {
                     <button onClick={() => navigate('/', { state: { showRouteId: route.id } })} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
                       <Route className="w-4 h-4" /> View
                     </button>
-                    <button onClick={() => toast('Edit coming soon')} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
+                    <button onClick={() => toast.info('Route editing coming soon.')} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
                       <PenLine className="w-4 h-4" /> Edit
                     </button>
                   </div>

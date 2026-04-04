@@ -90,7 +90,7 @@ const EventDetail = () => {
   }, [id, authUser?.id]);
   const [purchasingTicket, setPurchasingTicket] = useState(false);
   const [hasTicket, setHasTicket] = useState(false);
-  const isHost = event?.createdBy === authUser?.id;
+  const isHost = event?.createdBy === authUser?.id || event?.created_by === authUser?.id;
 
   // Check if event is ticketed from raw Supabase data
   const [eventRaw, setEventRaw] = useState<any>(null);

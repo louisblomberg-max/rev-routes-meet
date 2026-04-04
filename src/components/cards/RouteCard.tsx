@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { Route, Ruler, Car, Bike, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface RouteData {
   id: string;
@@ -16,6 +20,9 @@ interface RouteCardProps {
 }
 
 const RouteCard = ({ route, onClick }: RouteCardProps) => {
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
+
   const getRouteTypeBadge = (type: string) => {
     const colors: Record<string, string> = {
       'Scenic': 'bg-routes-light text-routes',
@@ -65,11 +72,24 @@ const RouteCard = ({ route, onClick }: RouteCardProps) => {
           size="sm" 
           variant="outline"
           className="flex-shrink-0"
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
+            if (!user?.id) {
+              toast.error('Sign in to save routes');
+              return;
+            }
+            if (!saved) {
+              await supabase.from('saved_routes').insert({ user_id: user.id, route_id: route.id });
+              setSaved(true);
+              toast.success('Route saved');
+            } else {
+              await supabase.from('saved_routes').delete().eq('user_id', user.id).eq('route_id', route.id);
+              setSaved(false);
+              toast.success('Route unsaved');
+            }
           }}
         >
-          <Bookmark className="w-4 h-4" />
+          <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
         </Button>
       </div>
     </div>

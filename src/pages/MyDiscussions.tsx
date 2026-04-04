@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useUserDiscussions } from '@/hooks/useProfileData';
 import { getCategoryInfo, getPostTypeInfo } from '@/data/forumData';
 
@@ -106,8 +107,8 @@ const MyDiscussions = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>View Post</DropdownMenuItem>
-                                <DropdownMenuItem>Edit Post</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => toast('Post deleted')}>
+                                <DropdownMenuItem onClick={() => toast.info('Post editing coming soon.')}>Edit Post</DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { const { error } = await supabase.from('forum_posts').delete().eq('id', post.id); if (error) { toast.error('Failed to delete post'); return; } toast.success('Post deleted'); window.location.reload(); }}>
                                   <Trash2 className="w-4 h-4 mr-2" /> Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -184,7 +185,7 @@ const MyDiscussions = () => {
                           </div>
                         </button>
                         <div className="border-t border-border/30">
-                          <button onClick={() => toast('Post unsaved')} className="w-full py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">Unsave</button>
+                          <button onClick={() => toast.info('Unsave feature coming soon.')} className="w-full py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">Unsave</button>
                         </div>
                       </div>
                     );

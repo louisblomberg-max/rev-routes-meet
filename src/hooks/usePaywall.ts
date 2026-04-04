@@ -7,6 +7,7 @@ import { usePlan, type PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { PaywallReason } from '@/components/PaywallModal';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PaywallCheck {
   allowed: boolean;
@@ -55,11 +56,17 @@ export const usePaywall = () => {
   };
 
   /** Deduct 1 event credit (for free users paying per-item) */
-  const deductEventCredit = () => {
+  const deductEventCredit = async () => {
+    if (!user?.id) return;
+    const { error } = await supabase.rpc('use_event_credit', { p_user_id: user.id });
+    if (error) { toast.error('Failed to deduct credit'); return; }
     updateProfile({ eventCredits: Math.max(0, (user?.eventCredits ?? 0) - 1) });
   };
 
-  const deductRouteCredit = () => {
+  const deductRouteCredit = async () => {
+    if (!user?.id) return;
+    const { error } = await supabase.rpc('use_route_credit', { p_user_id: user.id });
+    if (error) { toast.error('Failed to deduct credit'); return; }
     updateProfile({ routeCredits: Math.max(0, (user?.routeCredits ?? 0) - 1) });
   };
 

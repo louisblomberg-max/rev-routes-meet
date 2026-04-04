@@ -76,7 +76,7 @@ const Permissions = () => {
     }
 
     if (isLast) {
-      navigate('/complete-profile');
+      navigate('/onboarding');
     } else {
       setCurrent(c => c + 1);
     }
@@ -84,7 +84,7 @@ const Permissions = () => {
 
   const skip = () => {
     if (isLast) {
-      navigate('/complete-profile');
+      navigate('/onboarding');
     } else {
       setCurrent(c => c + 1);
     }

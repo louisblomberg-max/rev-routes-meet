@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useCurrentUser } from '@/hooks/useProfileData';
 import { usePlan } from '@/contexts/PlanContext';
@@ -19,6 +20,7 @@ const YouTab = () => {
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
   const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -29,7 +31,14 @@ const YouTab = () => {
         setHelpDistance(data.help_radius_miles || 10);
         setFreeEventCredits(data.free_event_credits ?? 0);
       }
+      setIsProfileLoading(false);
     })();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (user?.id) return;
+    const timer = setTimeout(() => setIsProfileLoading(false), 2000);
+    return () => clearTimeout(timer);
   }, [user?.id]);
 
   const handleAvailableToggle = (v: boolean) => {
@@ -71,6 +80,26 @@ const YouTab = () => {
     }
     navigate(tile.route);
   };
+
+  if (isProfileLoading) {
+    return (
+      <div className="mobile-container bg-background min-h-screen px-4 pt-8">
+        <div className="flex flex-col items-center gap-3">
+          <Skeleton className="w-[72px] h-[72px] rounded-full" />
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="flex justify-around mt-6">
+          <Skeleton className="h-16 w-20 rounded-xl" />
+          <Skeleton className="h-16 w-20 rounded-xl" />
+          <Skeleton className="h-16 w-20 rounded-xl" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 mt-6">
+          {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full bg-background pb-20 flex flex-col overflow-y-auto">

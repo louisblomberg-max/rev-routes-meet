@@ -282,7 +282,7 @@ const Upgrade = () => {
         </div>
 
         <button 
-          onClick={() => navigate('/settings/plan-billing')}
+          onClick={() => navigate('/settings/billing')}
           className="w-full text-sm text-primary font-medium hover:text-primary/80 transition-colors py-2"
         >
           View billing history & manage subscription →

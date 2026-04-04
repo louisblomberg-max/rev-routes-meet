@@ -159,11 +159,11 @@ const MyFriends = () => {
                           <p className="text-xs text-muted-foreground">@{friend.username} · {friend.mutualFriends} mutual</p>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => navigate('/messages')}><MessageSquare className="w-4 h-4 text-muted-foreground" /></Button>
+                          <Button size="icon" variant="ghost" className="h-9 w-9" onClick={() => navigate(`/messages/${friend.id}`)}><MessageSquare className="w-4 h-4 text-muted-foreground" /></Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button size="icon" variant="ghost" className="h-9 w-9"><MoreHorizontal className="w-4 h-4 text-muted-foreground" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => navigate('/profile')}>View Profile</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/profile/${friend.id}`)}>View Profile</DropdownMenuItem>
                               <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => handleRemove(friend.id)}>
                                 <UserX className="w-4 h-4 mr-2" /> Remove
                               </DropdownMenuItem>

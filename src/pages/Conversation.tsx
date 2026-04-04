@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
 import { toast } from 'sonner';
+import { validateImageFile, ALLOWED_IMAGE_TYPES } from '@/lib/utils';
 
 const Conversation = () => {
   const navigate = useNavigate();
@@ -167,6 +168,7 @@ const Conversation = () => {
   const handleImageSend = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user?.id) return;
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error('Invalid file type. Please use JPEG, PNG, or WebP.'); return; }
     if (file.size > 10 * 1024 * 1024) { toast.error('Image must be under 10MB'); return; }
 
     let activeConvId = conversationId;

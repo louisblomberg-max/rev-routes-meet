@@ -11,29 +11,29 @@ const SupportLegalSettings = () => {
       icon: MessageCircle,
       label: 'Help Center',
       description: 'Browse FAQs and guides',
-      action: () => toast.info('Opening Help Center...'),
-      external: true,
+      action: () => navigate('/settings/faq'),
+      external: false,
     },
     {
       icon: Mail,
       label: 'Contact Support',
       description: 'Get help from our team',
-      action: () => toast.info('Opening email client...'),
+      action: () => { window.location.href = 'mailto:support@revnet.club'; },
       external: true,
     },
     {
       icon: Bug,
       label: 'Report a Bug',
       description: 'Let us know about issues',
-      action: () => toast.success('Bug report form opened'),
-      external: false,
+      action: () => { window.location.href = 'mailto:bugs@revnet.club?subject=Bug%20Report'; },
+      external: true,
     },
     {
       icon: Star,
       label: 'Send Feedback',
       description: 'Share your thoughts with us',
-      action: () => toast.success('Feedback form opened'),
-      external: false,
+      action: () => { window.location.href = 'mailto:feedback@revnet.club?subject=Feedback'; },
+      external: true,
     },
   ];
 
@@ -42,19 +42,19 @@ const SupportLegalSettings = () => {
       icon: FileText,
       label: 'Terms of Service',
       description: 'Our terms and conditions',
-      action: () => toast.info('Opening Terms of Service...'),
+      action: () => window.open('https://revnet.club/terms', '_blank'),
     },
     {
       icon: Shield,
       label: 'Privacy Policy',
       description: 'How we handle your data',
-      action: () => toast.info('Opening Privacy Policy...'),
+      action: () => window.open('https://revnet.club/privacy', '_blank'),
     },
     {
       icon: Scale,
       label: 'Licenses',
       description: 'Open source attributions',
-      action: () => toast.info('Opening Licenses...'),
+      action: () => toast.info('Coming soon.'),
     },
   ];
 
@@ -137,7 +137,7 @@ const SupportLegalSettings = () => {
           </p>
           <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
             <button
-              onClick={() => toast.info('Opening Instagram...')}
+              onClick={() => window.open('https://instagram.com/revnet_app', '_blank')}
               className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
             >
               <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shrink-0">
@@ -150,7 +150,7 @@ const SupportLegalSettings = () => {
               <ExternalLink className="w-4 h-4 text-muted-foreground/50 shrink-0" />
             </button>
             <button
-              onClick={() => toast.info('Opening Discord...')}
+              onClick={() => toast.info('Discord invite coming soon.')}
               className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
             >
               <div className="w-9 h-9 rounded-lg bg-[#5865F2] flex items-center justify-center shrink-0">

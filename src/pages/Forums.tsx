@@ -117,9 +117,12 @@ const Forums = () => {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-3"><MessageSquare className="w-7 h-7 text-muted-foreground" /></div>
-            <h3 className="heading-sm text-foreground mb-1">No posts found</h3>
-            <p className="text-sm text-muted-foreground max-w-[240px]">Try adjusting your search or filters</p>
+            <span className="text-5xl mb-4">💬</span>
+            <h3 className="text-[17px] font-medium text-foreground mb-1">No discussions yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">Be the first to start a conversation</p>
+            <Button onClick={() => navigate('/forums/create')} style={{ backgroundColor: '#d30d37' }} className="text-white">
+              Create Post
+            </Button>
           </div>
         ) : (
           <div className="divide-y divide-border/30">

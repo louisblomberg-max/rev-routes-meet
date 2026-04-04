@@ -4,7 +4,10 @@ import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 import BackButton from '@/components/BackButton'
-import { ChevronRight, ImagePlus, X } from 'lucide-react'
+import { ChevronRight, ImagePlus, X, Lock } from 'lucide-react'
+import { validateImageFile } from '@/lib/utils'
+import { usePlan } from '@/contexts/PlanContext'
+import { Button } from '@/components/ui/button'
 
 const CLUB_TYPES = [
   { id: 'make_model', label: 'Make & Model', description: 'Porsche, BMW M, Honda Type R...', emoji: '🏎' },
@@ -26,6 +29,7 @@ const JOIN_MODES = [
 export default function AddClub() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { currentPlan } = usePlan()
   const logoInputRef = useRef<HTMLInputElement>(null)
   const coverInputRef = useRef<HTMLInputElement>(null)
 
@@ -137,6 +141,20 @@ export default function AddClub() {
 
   const canProceedStep1 = name.trim().length > 0 && handle.trim().length > 0 && clubType
 
+  if (currentPlan !== 'club') {
+    return (
+      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
+        <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
+        <h2 className="text-lg font-bold text-foreground mb-1">Club & Business Plan Required</h2>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Creating and managing clubs requires the Club & Business plan.</p>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+          <Button onClick={() => navigate('/subscription')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
@@ -157,10 +175,12 @@ export default function AddClub() {
 
       <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={e => {
         const f = e.target.files?.[0]; if (!f) return
+        const validationError = validateImageFile(f); if (validationError) { toast.error(validationError); e.target.value = ''; return }
         setLogoFile(f); setLogoPreview(URL.createObjectURL(f)); e.target.value = ''
       }} />
       <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => {
         const f = e.target.files?.[0]; if (!f) return
+        const validationError = validateImageFile(f); if (validationError) { toast.error(validationError); e.target.value = ''; return }
         setCoverFile(f); setCoverPreview(URL.createObjectURL(f)); e.target.value = ''
       }} />
 

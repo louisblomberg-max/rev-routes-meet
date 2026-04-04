@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { X, Calendar, MapPin, Car, Users, Star, Clock, Route, Navigation, Share2, Bookmark, Phone, DollarSign, Tag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 // Types for different content
 interface EventItem {
@@ -64,6 +68,33 @@ interface ItemDetailSheetProps {
 }
 
 const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) => {
+  const { user } = useAuth();
+  const [saved, setSaved] = useState(false);
+
+  const handleToggleSave = async (type: 'event' | 'route' | 'service', id: string) => {
+    if (!user?.id) {
+      toast.error('Sign in to save items');
+      return;
+    }
+    const table = type === 'event' ? 'saved_events'
+      : type === 'route' ? 'saved_routes'
+      : 'saved_services';
+    const idCol = type === 'event' ? 'event_id'
+      : type === 'route' ? 'route_id'
+      : 'service_id';
+
+    if (!saved) {
+      const { error } = await supabase.from(table).insert({ user_id: user.id, [idCol]: id });
+      if (error) { toast.error('Failed to save'); return; }
+      setSaved(true);
+      toast.success('Saved');
+    } else {
+      await supabase.from(table).delete().eq('user_id', user.id).eq(idCol, id);
+      setSaved(false);
+      toast.success('Unsaved');
+    }
+  };
+
   if (!item) return null;
 
   const renderEventDetails = (event: EventItem) => {
@@ -146,16 +177,22 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       )}
 
       <div className="mt-6 flex gap-3">
-        <Button 
+        <Button
           className="flex-1 bg-events hover:bg-events/90 text-events-foreground"
           onClick={() => onViewFull('event', event.id)}
         >
           RSVP
         </Button>
-        <Button variant="outline" size="icon">
-          <Bookmark className="w-4 h-4" />
+        <Button variant="outline" size="icon" onClick={() => handleToggleSave('event', event.id)}>
+          <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
         </Button>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (navigator.share) {
+            navigator.share({ title: event.title, text: `Check out ${event.title} on RevNet` }).catch(() => {});
+          } else {
+            toast.success('Link copied');
+          }
+        }}>
           <Share2 className="w-4 h-4" />
         </Button>
       </div>
@@ -216,16 +253,24 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       </div>
 
       <div className="mt-6 flex gap-3">
-        <Button 
+        <Button
           className="flex-1 bg-services hover:bg-services/90 text-services-foreground"
           onClick={() => onViewFull('service', service.id)}
         >
           View Profile
         </Button>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (service.phone) { window.location.href = `tel:${service.phone}`; }
+        }}>
           <Phone className="w-4 h-4" />
         </Button>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (navigator.share) {
+            navigator.share({ title: service.name, text: `Check out ${service.name} on RevNet` }).catch(() => {});
+          } else {
+            toast.success('Link copied');
+          }
+        }}>
           <Share2 className="w-4 h-4" />
         </Button>
       </div>
@@ -278,17 +323,23 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       </p>
 
       <div className="mt-4 flex gap-3">
-        <Button 
+        <Button
           variant="outline"
           className="flex-1"
           onClick={() => onViewFull('route', route.id)}
         >
           View Full Route
         </Button>
-        <Button variant="outline" size="icon">
-          <Bookmark className="w-4 h-4" />
+        <Button variant="outline" size="icon" onClick={() => handleToggleSave('route', route.id)}>
+          <Bookmark className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
         </Button>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (navigator.share) {
+            navigator.share({ title: route.name, text: `Check out ${route.name} on RevNet` }).catch(() => {});
+          } else {
+            toast.success('Link copied');
+          }
+        }}>
           <Share2 className="w-4 h-4" />
         </Button>
       </div>
@@ -322,13 +373,19 @@ const ItemDetailSheet = ({ item, onClose, onViewFull }: ItemDetailSheetProps) =>
       </div>
 
       <div className="mt-6 flex gap-3">
-        <Button 
+        <Button
           className="flex-1 bg-clubs hover:bg-clubs/90 text-clubs-foreground"
           onClick={() => onViewFull('club', club.id)}
         >
           View Club
         </Button>
-        <Button variant="outline" size="icon">
+        <Button variant="outline" size="icon" onClick={() => {
+          if (navigator.share) {
+            navigator.share({ title: club.name, text: `Check out ${club.name} on RevNet` }).catch(() => {});
+          } else {
+            toast.success('Link copied');
+          }
+        }}>
           <Share2 className="w-4 h-4" />
         </Button>
       </div>

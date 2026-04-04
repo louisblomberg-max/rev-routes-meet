@@ -15,9 +15,11 @@ import GPXImportSheet from '@/components/route-creation/GPXImportSheet';
 import EditPublishRoute from '@/components/route-creation/EditPublishRoute';
 import { buildRouteDraft, formatRouteDistance } from '@/services/routeService';
 import { Button } from '@/components/ui/button';
+import { Lock } from 'lucide-react';
 import type { RouteDraft, PublishRouteFormData } from '@/models/route';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlan } from '@/contexts/PlanContext';
 
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
@@ -28,6 +30,7 @@ const AddRoute = () => {
   const navigate = useNavigate();
   const { routes: routesRepo, state } = useData();
   const { user: authUser } = useAuth();
+  const { currentPlan } = usePlan();
 
   const [phase, setPhase] = useState<Phase>('pick');
   const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
@@ -288,6 +291,21 @@ const AddRoute = () => {
     cleanupMap();
     navigate(-1);
   };
+
+  // Plan gate — free users cannot create routes
+  if (currentPlan === 'free') {
+    return (
+      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
+        <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
+        <h2 className="text-lg font-bold text-foreground mb-1">Pro Driver Required</h2>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Creating and sharing routes requires a Pro Driver or Club & Business plan.</p>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
+          <Button onClick={() => navigate('/subscription')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
+        </div>
+      </div>
+    );
+  }
 
   // Edit & Publish phase
   if (phase === 'edit' && draftRoute) {

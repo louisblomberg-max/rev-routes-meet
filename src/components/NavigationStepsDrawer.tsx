@@ -54,6 +54,11 @@ const NavigationStepsDrawer = ({ open, onOpenChange }: Props) => {
         </DrawerHeader>
 
         <ScrollArea className="flex-1 max-h-[55vh]">
+          {(!steps || steps.length === 0) && (
+            <div className="p-6 text-center">
+              <p className="text-sm text-muted-foreground">Route information not available</p>
+            </div>
+          )}
           <div className="px-4 pb-4 space-y-1">
             {steps.map((step, i) => {
               const isActive = i === currentStepIndex && status === 'navigating';

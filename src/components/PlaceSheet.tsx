@@ -3,12 +3,15 @@
  * Contains: title, category badge, distance, Start Navigation, Save, Share.
  */
 
+import { useState } from 'react';
 import { X, Navigation, Bookmark, Share2, MapPin, Calendar, Star, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { formatDistance } from '@/services/navigationService';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface PlaceItem {
   type: 'event' | 'route' | 'service' | 'club';
@@ -38,7 +41,9 @@ const categoryConfig: Record<string, { label: string; colorClass: string; bgClas
 };
 
 const PlaceSheet = ({ item, onClose, onViewFull }: PlaceSheetProps) => {
+  const { user } = useAuth();
   const { startNavigation, status } = useNavigation();
+  const [saved, setSaved] = useState(false);
 
   if (!item) return null;
 
@@ -54,8 +59,28 @@ const PlaceSheet = ({ item, onClose, onViewFull }: PlaceSheetProps) => {
     });
   };
 
-  const handleSave = () => {
-    toast.success('Saved to your collection');
+  const handleSave = async () => {
+    if (!user?.id) {
+      toast.error('Sign in to save items');
+      return;
+    }
+    const table = item.type === 'event' ? 'saved_events'
+      : item.type === 'route' ? 'saved_routes'
+      : 'saved_services';
+    const idCol = item.type === 'event' ? 'event_id'
+      : item.type === 'route' ? 'route_id'
+      : 'service_id';
+
+    if (!saved) {
+      const { error } = await supabase.from(table).insert({ user_id: user.id, [idCol]: item.id });
+      if (error) { toast.error('Failed to save'); return; }
+      setSaved(true);
+      toast.success('Saved to your collection');
+    } else {
+      await supabase.from(table).delete().eq('user_id', user.id).eq(idCol, item.id);
+      setSaved(false);
+      toast.success('Removed from your collection');
+    }
   };
 
   const handleShare = () => {

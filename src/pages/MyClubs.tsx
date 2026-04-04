@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Users, MapPin, Plus, ChevronRight, Shield } from 'lucide-react';
+import { Users, MapPin, Plus, ChevronRight, Shield, Lock } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUserClubs } from '@/hooks/useProfileData';
+import { usePlan } from '@/contexts/PlanContext';
+import { toast } from 'sonner';
 
 const MyClubs = () => {
   const navigate = useNavigate();
+  const { currentPlan } = usePlan();
   const { clubs, joined, managed, isLoading } = useUserClubs();
   const [activeTab, setActiveTab] = useState<'joined' | 'managed'>('joined');
 
@@ -25,7 +28,15 @@ const MyClubs = () => {
               <p className="text-xs text-muted-foreground">{clubs.length} club{clubs.length !== 1 ? 's' : ''}</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => navigate('/add/club')} className="gap-1.5 rounded-lg bg-clubs hover:bg-clubs/90 text-clubs-foreground">
+          <Button size="sm" onClick={() => {
+            if (currentPlan !== 'club') {
+              toast.info('Creating clubs requires the Club & Business plan.');
+              navigate('/subscription');
+            } else {
+              navigate('/add/club');
+            }
+          }} className="gap-1.5 rounded-lg bg-clubs hover:bg-clubs/90 text-clubs-foreground">
+            {currentPlan !== 'club' && <Lock className="w-3.5 h-3.5" />}
             <Plus className="w-4 h-4" /> Create
           </Button>
         </div>

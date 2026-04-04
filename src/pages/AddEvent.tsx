@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
+import { validateImageFile } from '@/lib/utils'
 import { getMakesByType } from '@/data/vehicles'
 import { addWeeks, addMonths, format } from 'date-fns'
 import BackButton from '@/components/BackButton'
@@ -320,6 +321,7 @@ const AddEvent = () => {
   const handleBannerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const validationError = validateImageFile(file); if (validationError) { toast.error(validationError); e.target.value = ''; return }
     if (bannerPreview) URL.revokeObjectURL(bannerPreview)
     setBannerFile(file)
     setBannerPreview(URL.createObjectURL(file))
@@ -331,6 +333,9 @@ const AddEvent = () => {
     if (photoFiles.length + files.length > 10) {
       toast.error('Maximum 10 photos allowed')
       return
+    }
+    for (const file of files) {
+      const validationError = validateImageFile(file); if (validationError) { toast.error(validationError); e.target.value = ''; return }
     }
     const newPreviews = files.map(f => URL.createObjectURL(f))
     setPhotoFiles(prev => [...prev, ...files])
@@ -344,11 +349,12 @@ const AddEvent = () => {
     setPhotoPreviews(prev => prev.filter((_, i) => i !== index))
   }
 
-  const uploadBanner = async (): Promise<string | null> => {
-    if (!bannerFile || !user) return null
+  const uploadBanner = async (uid?: string): Promise<string | null> => {
+    const ownerId = uid || user?.id
+    if (!bannerFile || !ownerId) return null
     try {
       const ext = bannerFile.name.split('.').pop()
-      const path = `${user.id}/${Date.now()}-banner.${ext}`
+      const path = `${ownerId}/${Date.now()}-banner.${ext}`
       const { error } = await supabase.storage.from('events').upload(path, bannerFile)
       if (error) throw error
       const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
@@ -359,13 +365,14 @@ const AddEvent = () => {
     }
   }
 
-  const uploadPhotos = async (): Promise<string[]> => {
-    if (!photoFiles.length || !user) return []
+  const uploadPhotos = async (uid?: string): Promise<string[]> => {
+    const ownerId = uid || user?.id
+    if (!photoFiles.length || !ownerId) return []
     const urls: string[] = []
     for (const file of photoFiles) {
       try {
         const ext = file.name.split('.').pop()
-        const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const path = `${ownerId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error } = await supabase.storage.from('events').upload(path, file)
         if (error) throw error
         const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
@@ -448,8 +455,8 @@ const AddEvent = () => {
 
       // Upload media
       const [bannerUrl, photoUrls] = await Promise.all([
-        uploadBanner(),
-        uploadPhotos()
+        uploadBanner(userId),
+        uploadPhotos(userId)
       ])
 
       // Create series if multiple dates

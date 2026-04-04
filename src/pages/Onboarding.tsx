@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { validateImageFile } from '@/lib/utils';
 import { Camera, Check, X, Bell, MapPin, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { getMakesByType, getModelsByMake, getVariantsByModel, getYearsByModel, searchMakes, type VehicleMake } from '@/data/vehicles';
 import { PLAN_PRICES, getPriceId } from '@/config/stripe';
@@ -119,10 +120,8 @@ const Onboarding = () => {
   const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
-      return;
-    }
+    const validationError = validateImageFile(file);
+    if (validationError) { toast.error(validationError); return; }
     setAvatarFile(file);
     setAvatarPreview(URL.createObjectURL(file));
   };

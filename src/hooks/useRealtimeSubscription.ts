@@ -98,11 +98,10 @@ export const useNotificationBadge = () => {
     const channel = supabase
       .channel(`badge-notif-${user.id}`)
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'notifications',
+        event: 'INSERT',
+        schema: 'public',
+        table: 'notifications',
         filter: `user_id=eq.${user.id}`,
-      }, () => { fetchCounts(); })
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'messages',
       }, () => { fetchCounts(); })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

@@ -131,10 +131,15 @@ const Messages = () => {
     if (!user?.id) return;
     const channel = supabase.channel('messages-list-rt')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' },
-        () => { fetchConversations(); })
+        (payload: any) => {
+          const convIds = conversations.map(c => c.conversationId);
+          if (convIds.includes(payload.new?.conversation_id)) {
+            fetchConversations();
+          }
+        })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user?.id, fetchConversations]);
+  }, [user?.id, fetchConversations, conversations]);
 
   const fetchFriends = async () => {
     if (!user?.id) return;

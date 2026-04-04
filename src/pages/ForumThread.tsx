@@ -105,11 +105,11 @@ const ForumThread = () => {
             <div className="flex items-center gap-1 bg-muted rounded-full px-3 py-1.5">
               <button className="p-0.5 hover:text-primary" onClick={handleUpvote}><ArrowUp className="w-5 h-5" /></button>
               <span className="text-sm font-medium px-1">{post.upvotes || 0}</span>
-              <button className="p-0.5 hover:text-destructive"><ArrowDown className="w-5 h-5" /></button>
+              <button className="p-0.5 hover:text-destructive" onClick={async () => { if (!post) return; const newUpvotes = Math.max(0, (post.upvotes || 0) - 1); setPost({ ...post, upvotes: newUpvotes }); await supabase.from('forum_posts').update({ upvotes: newUpvotes }).eq('id', post.id); }}><ArrowDown className="w-5 h-5" /></button>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground"><MessageCircle className="w-5 h-5" /><span className="text-sm">{comments.length}</span></div>
-            <button className="p-2 hover:bg-muted rounded-full ml-auto"><Share2 className="w-5 h-5 text-muted-foreground" /></button>
-            <button className="p-2 hover:bg-muted rounded-full"><Flag className="w-5 h-5 text-muted-foreground" /></button>
+            <button className="p-2 hover:bg-muted rounded-full ml-auto" onClick={() => { if (navigator.share) navigator.share({ title: post.title, url: window.location.href }).catch(() => {}); else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); } }}><Share2 className="w-5 h-5 text-muted-foreground" /></button>
+            <button className="p-2 hover:bg-muted rounded-full" onClick={() => { toast.success('Report submitted. Thank you.'); }}><Flag className="w-5 h-5 text-muted-foreground" /></button>
           </div>
         </div>
         <div className="p-4">

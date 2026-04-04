@@ -73,7 +73,17 @@ const ServiceDetail = () => {
     );
   }
 
-  if (!service) return null;
+  if (!service) return (
+    <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
+      <MapPin className="w-16 h-16 text-muted-foreground/30 mb-4" />
+      <h2 className="text-lg font-bold text-foreground mb-1">Service not found</h2>
+      <p className="text-sm text-muted-foreground mb-6">This service may have been removed or doesn't exist.</p>
+      <div className="flex gap-3">
+        <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
+        <Button onClick={() => navigate('/', { state: { tab: 'discovery' } })}>Browse Services</Button>
+      </div>
+    </div>
+  );
 
   const avgRating = service.rating || 0;
 

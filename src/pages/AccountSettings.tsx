@@ -49,7 +49,31 @@ const AccountSettings = () => {
     else toast.success('Password updated successfully');
   };
 
-  const handleDownloadData = () => toast.info('Download my data coming soon');
+  const handleDownloadData = async () => {
+    if (!user?.id) return;
+    toast.info('Preparing your data export...');
+    const [profileRes, vehiclesRes, eventsRes, routesRes] = await Promise.all([
+      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('vehicles').select('*').eq('user_id', user.id),
+      supabase.from('event_attendees').select('*, events(*)').eq('user_id', user.id),
+      supabase.from('routes').select('*').eq('created_by', user.id),
+    ]);
+    const exportData = {
+      profile: profileRes.data,
+      vehicles: vehiclesRes.data,
+      events: eventsRes.data,
+      routes: routesRes.data,
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'revnet-data-export.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Data exported successfully');
+  };
   const handleDeactivate = async () => {
     await supabase.auth.updateUser({ data: { deactivated: true } });
     toast.success('Account deactivated. Log in again to reactivate.');
@@ -126,10 +150,10 @@ const AccountSettings = () => {
             <div className="px-4 py-3">
               <div className="flex items-center justify-between">
                 <div><span className="text-sm text-foreground">Two-factor authentication</span><p className="text-xs text-muted-foreground mt-0.5">Adds an extra layer of security</p></div>
-                <Switch checked={false} onCheckedChange={() => toast.info('2FA coming soon')} />
+                <Switch checked={false} onCheckedChange={() => toast.info('Two-factor authentication coming soon. We will email you when it is available.')} />
               </div>
             </div>
-            <button onClick={() => toast.info('Active sessions coming soon')} className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors">
+            <button onClick={() => toast.info('Session management coming soon.')} className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors">
               <span className="text-sm text-foreground">Active sessions</span>
               <div className="flex items-center gap-2"><Smartphone className="w-4 h-4 text-muted-foreground" /><ChevronRight className="w-4 h-4 text-muted-foreground/50" /></div>
             </button>
@@ -142,11 +166,11 @@ const AccountSettings = () => {
           <div className="divide-y divide-border/30">
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-foreground flex items-center justify-center"><Apple className="w-4 h-4 text-background" /></div><span className="text-sm text-foreground">Apple</span></div>
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => toast.info('Coming soon')}>Connect</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={async () => { try { await supabase.auth.linkIdentity({ provider: 'apple' }); } catch (err: any) { toast.error(err?.message || 'Failed to connect Apple account'); } }}>Connect</Button>
             </div>
             <div className="flex items-center justify-between px-4 py-3">
               <div className="flex items-center gap-3"><div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center"><Mail className="w-4 h-4 text-foreground" /></div><span className="text-sm text-foreground">Google</span></div>
-              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => toast.info('Coming soon')}>Connect</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={async () => { try { await supabase.auth.linkIdentity({ provider: 'google' }); } catch (err: any) { toast.error(err?.message || 'Failed to connect Google account'); } }}>Connect</Button>
             </div>
           </div>
         </div>

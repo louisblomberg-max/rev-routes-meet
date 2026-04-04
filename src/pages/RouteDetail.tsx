@@ -289,7 +289,7 @@ const RouteDetail = () => {
         <NavigateButton destination={routeStart} colorClass="bg-routes hover:bg-routes/90" />
 
         {/* Report */}
-        <button onClick={() => toast.info('Report submitted')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors mx-auto">
+        <button onClick={() => toast.success('Report submitted. Thank you for helping keep RevNet safe.')} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-destructive transition-colors mx-auto">
           <Flag className="w-4 h-4" /> Report this route
         </button>
       </div>

@@ -158,7 +158,13 @@ const DevTools = () => {
   useEffect(() => {
     (async () => {
       const { data: { user: su } } = await supabase.auth.getUser();
-      if (su?.email !== 'louisblomberg@gmail.com') {
+      if (!su?.id) { setIsAdmin(false); return; }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', su.id)
+        .maybeSingle();
+      if (!profile?.is_admin) {
         setIsAdmin(false);
         return;
       }
