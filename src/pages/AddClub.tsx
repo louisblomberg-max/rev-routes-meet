@@ -125,13 +125,7 @@ export default function AddClub() {
         return
       }
 
-      // Add creator as owner
-      await supabase.from('club_memberships').insert({
-        club_id: newClub.id,
-        user_id: user.id,
-        role: 'owner',
-      })
-
+      // Owner membership is auto-created by database trigger
       toast.success(`${name} is live! 🎉`)
       navigate(`/club/${newClub.id}`, { replace: true })
     } catch (err: any) {
