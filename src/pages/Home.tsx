@@ -918,6 +918,22 @@ const Home = () => {
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
+      {/* Empty state when no pins found */}
+      {showEmptyState && !isNavigating && (
+        <div className="absolute bottom-36 left-4 right-4 z-30 animate-fade-up">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center">
+            <p className="text-sm font-semibold text-foreground mb-1">No events nearby — be the first to create one!</p>
+            <p className="text-xs text-muted-foreground mb-3">Add an event, route, or service to see it on the map.</p>
+            <button
+              onClick={() => navigate('/add-event')}
+              className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl"
+            >
+              Add Event
+            </button>
+          </div>
+        </div>
+      )}
+
       {!isNavigating && (
         <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
       )}
