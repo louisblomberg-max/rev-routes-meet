@@ -620,7 +620,7 @@ const Home = () => {
         const label = (pin.title || '').slice(0, 14);
 
         const el = document.createElement('div');
-        el.style.cssText = 'position: relative; cursor: pointer; transition: transform 0.15s ease;';
+        el.style.cssText = 'position: relative; width: 36px; height: 44px; cursor: pointer; overflow: visible;';
 
         // SVG map pin
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -638,18 +638,15 @@ const Home = () => {
         if (label) {
           const pill = document.createElement('div');
           pill.style.cssText = `
-            position: absolute; top: 44px; left: 50%; transform: translateX(-50%);
-            background: white; font-size: 10px; font-weight: 600; color: #111;
+            position: absolute; top: 46px; left: 50%; transform: translateX(-50%);
+            background: white; font-size: 10px; font-weight: 600; color: #111111;
             padding: 2px 6px; border-radius: 4px; white-space: nowrap;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15); max-width: 100px;
-            overflow: hidden; text-overflow: ellipsis;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15); pointer-events: none;
+            max-width: 90px; overflow: hidden; text-overflow: ellipsis; z-index: 1;
           `;
           pill.textContent = label;
           el.appendChild(pill);
         }
-
-        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.15)'; });
-        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
 
         el.addEventListener('click', (e) => {
           e.stopPropagation();
