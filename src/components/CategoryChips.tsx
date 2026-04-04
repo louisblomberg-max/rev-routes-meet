@@ -8,34 +8,41 @@ interface CategoryChipsProps {
 
 const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps) => {
   const categories = [
-    { id: null, label: 'All' },
     { id: 'events', label: 'Events', icon: Calendar },
     { id: 'routes', label: 'Routes', icon: Route },
     { id: 'services', label: 'Services', icon: Wrench },
   ];
 
+  const handleClick = (categoryId: string) => {
+    onCategoryChange(activeCategory === categoryId ? null : categoryId);
+  };
+
   return (
-    <div className="flex gap-2 overflow-x-auto scrollbar-none" style={{ paddingLeft: 12 }}>
-      {categories.map((cat) => {
-        const isActive = activeCategory === cat.id;
+    <div className="flex gap-2 w-full">
+      {categories.map((category) => {
+        const Icon = category.icon;
+        const isActive = activeCategory === category.id;
+
+        const activeStyles: Record<string, string> = {
+          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
+          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
+          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
+        };
+
+        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-black/20 shadow-sm hover:shadow-md hover:bg-white';
+
         return (
           <button
-            key={cat.id ?? 'all'}
-            onClick={() => onCategoryChange(cat.id)}
-            className="flex-shrink-0 flex items-center justify-center gap-1.5 btn-press"
-            style={{
-              height: 32,
-              padding: '0 14px',
-              borderRadius: 999,
-              fontSize: 13,
-              fontWeight: 500,
-              background: isActive ? '#d30d37' : '#ffffff',
-              color: isActive ? '#ffffff' : '#666666',
-              border: isActive ? 'none' : '0.5px solid #e8e8e0',
-              transition: 'all 200ms',
-            }}
+            key={category.id}
+            onClick={() => handleClick(category.id)}
+            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
+              isActive ? activeStyles[category.id] : inactiveStyles
+            }`}
           >
-            {cat.label}
+            <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+            <span className={`text-[11px] font-semibold tracking-wide whitespace-nowrap ${isActive ? 'text-white' : ''}`}>
+              {category.label}
+            </span>
           </button>
         );
       })}
