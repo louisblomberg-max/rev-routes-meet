@@ -129,6 +129,7 @@ const Home = () => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const moveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const initialFitDoneRef = useRef(false);
+  const initialLoadDoneRef = useRef(false);
 
   // All pins from RPC (unfiltered) kept separately so category switch is instant
   const allPinsRef = useRef<any[]>([]);
@@ -141,10 +142,81 @@ const Home = () => {
   const [friendLocations, setFriendLocations] = useState<Record<string, FriendLocation>>({});
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
-  /* ── refreshPins fetches ALL categories via direct table queries ── */
+  // Empty state
+  const [showEmptyState, setShowEmptyState] = useState(false);
+
+  /* ── fetchAllPins: initial load without bounds filter ── */
+  const fetchAllPins = useCallback(async () => {
+    try {
+      const [eventsRes, routesRes, servicesRes] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+        supabase
+          .from('routes')
+          .select('id, name, lat, lng, type, difficulty')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+        supabase
+          .from('services')
+          .select('id, name, lat, lng, service_type')
+          .eq('visibility', 'public')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
+          .limit(500),
+      ]);
+
+      const mapped = [
+        ...(eventsRes.data || []).map(e => ({
+          id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
+          type: 'events', subtype: e.type,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          date_start: e.date_start,
+        })),
+        ...(routesRes.data || []).map(r => ({
+          id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
+          type: 'routes', subtype: r.type,
+          difficulty: r.difficulty,
+        })),
+        ...(servicesRes.data || []).map(s => ({
+          id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
+          type: 'services', subtype: s.service_type,
+        })),
+      ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
+
+      allPinsRef.current = mapped;
+      setPins(mapped);
+
+      // Show empty state only if query succeeded but returned nothing
+      if (mapped.length === 0) {
+        setShowEmptyState(true);
+      } else {
+        setShowEmptyState(false);
+      }
+    } catch {
+      // Don't show empty state on error
+    }
+  }, [setPins]);
+
+  /* ── refreshPins: bounds-filtered refresh after initial load ── */
   const refreshPins = useCallback(async () => {
     const m = mapRef.current;
     if (!m || !m.loaded()) return;
+
+    // On very first call, do unbounded fetch
+    if (!initialLoadDoneRef.current) {
+      initialLoadDoneRef.current = true;
+      await fetchAllPins();
+      return;
+    }
 
     const bounds = m.getBounds();
     const north = bounds.getNorthEast().lat;
@@ -156,42 +228,50 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, meet_style_tags, vehicle_focus, vehicle_brands, is_free, entry_fee, status')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .eq('status', 'published')
-          .limit(200),
+          .limit(500),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty, duration_minutes, surface_type, status')
+          .select('id, name, lat, lng, type, difficulty')
+          .eq('visibility', 'public')
+          .eq('status', 'published')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .eq('status', 'published')
-          .limit(200),
+          .limit(500),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type, service_types, is_24_7')
+          .select('id, name, lat, lng, service_type')
+          .eq('visibility', 'public')
+          .not('lat', 'is', null)
+          .not('lng', 'is', null)
           .gte('lat', south).lte('lat', north)
           .gte('lng', west).lte('lng', east)
-          .limit(200),
+          .limit(500),
       ]);
 
       const mapped = [
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
-          date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          date_start: e.date_start,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty, duration_minutes: r.duration_minutes, surface_type: r.surface_type,
+          difficulty: r.difficulty,
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type,
-          service_types: s.service_types, is_24_7: s.is_24_7,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -200,7 +280,7 @@ const Home = () => {
     } catch {
       // silently retry on next viewport change
     }
-  }, [setPins]);
+  }, [setPins, fetchAllPins]);
 
   // Realtime subscriptions for new content
   useEffect(() => {
