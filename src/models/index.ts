@@ -254,6 +254,7 @@ export const EVENT_TYPES_DISPLAY = [
 export interface RevService {
   id: string;
   name: string;
+  description?: string;
   tagline?: string;
   category: string;
   serviceTypes: string[];
