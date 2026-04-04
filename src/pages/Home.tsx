@@ -48,12 +48,12 @@ interface FriendLocation {
 }
 
 const PIN_COLORS: Record<string, string> = {
-  event: '#CC2222',
-  events: '#CC2222',
+  event: '#E97A2B',
+  events: '#E97A2B',
   route: '#185FA5',
   routes: '#185FA5',
-  service: '#C2700A',
-  services: '#C2700A',
+  service: '#22C55E',
+  services: '#22C55E',
 };
 
 /* ── Haversine distance in km ── */
