@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useGarage } from '@/contexts/GarageContext';
 import {
   searchMakes,
   searchModels,
@@ -43,6 +44,7 @@ const DRIVETRAIN_OPTIONS = [
 const AddVehicle = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { refreshVehicles } = useGarage();
   const [saving, setSaving] = useState(false);
 
   // Vehicle type
@@ -164,6 +166,7 @@ const AddVehicle = () => {
         return;
       }
 
+      await refreshVehicles();
       toast.success(`${selectedMake.name} ${selectedModel.name} added to your garage!`);
       navigate(-1);
     } catch {
