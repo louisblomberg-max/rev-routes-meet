@@ -599,26 +599,30 @@ const Home = () => {
         if (isNaN(lat) || isNaN(lng)) return;
 
         const type = String(pin.type || '').toLowerCase().trim();
-        const color = PIN_COLORS[type] || '#CC2222';
+        const color = PIN_COLORS[type] || '#E97A2B';
+        const letter = type === 'events' ? 'E' : type === 'routes' ? 'R' : type === 'services' ? 'S' : '?';
 
         const el = document.createElement('div');
         el.style.cssText = `
-          width: 16px; height: 16px;
+          width: 32px; height: 32px;
           background-color: ${color}; border: 2.5px solid white;
           border-radius: 50%; cursor: pointer;
           box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          display: flex; align-items: center; justify-content: center;
+          color: white; font-size: 13px; font-weight: 700;
+          line-height: 1;
         `;
+        el.textContent = letter;
 
         el.addEventListener('mouseenter', () => {
-          el.style.borderColor = color;
+          el.style.transform = 'scale(1.15)';
           el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.5)';
         });
         el.addEventListener('mouseleave', () => {
-          el.style.borderColor = 'white';
+          el.style.transform = 'scale(1)';
           el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.4)';
         });
 
-        // Bug 2 fix — use ref so the click handler is never stale
         el.addEventListener('click', (e) => {
           e.stopPropagation();
           handlePinClickRef.current(pin);
