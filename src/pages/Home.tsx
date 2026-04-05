@@ -1,22 +1,21 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { Search, X, SlidersHorizontal } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import revnetLogoNew from '@/assets/revnet-logo-header.png';
 import MapView from '@/components/MapView';
 
 import CategoryChips from '@/components/CategoryChips';
 import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
-import BottomNavigation from '@/components/BottomNavigation';
 import DesktopSidebar from '@/components/DesktopSidebar';
+import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
 import HelpSheet from '@/components/HelpSheet';
-import MapStyleButton, { MapStyle } from '@/components/MapStyleButton';
+import type { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
@@ -809,16 +808,17 @@ const Home = () => {
           {activeTab === 'community' && <CommunityTab />}
           {activeTab === 'marketplace' && <MarketplaceTab />}
           {activeTab === 'you' && <YouTab />}
-          <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+          {/* Mobile: floating pill nav. Desktop: sidebar handles navigation */}
+          <div className="md:hidden">
+            <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
         </div>
       </>
     );
   }
 
   return (
-    <>
-    <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-    <div className="mobile-container md:ml-[240px]" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+    <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <style>{`
         @keyframes friend-pulse {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
@@ -844,46 +844,68 @@ const Home = () => {
       <RouteLayer map={mapRef.current} />
       <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
+      {/* ═══ Floating top search pill ═══ */}
       {!isNavigating && (
-        <div className="absolute top-0 left-0 right-0 z-30">
-          <div className="backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
-            <div className="max-w-md mx-auto px-3 pt-2 flex items-center gap-2">
-              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
-                <img src={revnetLogoNew} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
-              </div>
-              <div className="h-10 flex-1 min-w-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-black/20 shadow-sm">
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search events, routes, services..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="p-0.5">
-                    <X className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-32px)] md:w-auto md:min-w-[480px] md:max-w-[640px] safe-top">
+          <div
+            className="flex items-center gap-2 px-4 py-2"
+            style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
+          >
+            {/* Logo */}
+            <span className="text-[15px] font-bold tracking-tight flex-shrink-0 select-none">
+              <span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111111' }}>NET</span>
+            </span>
+            {/* Search */}
+            <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
+              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="p-0.5">
+                  <X className="w-3.5 h-3.5 text-muted-foreground" />
+                </button>
+              )}
             </div>
-            <div className="max-w-md mx-auto flex items-center justify-around py-2 px-3">
-              <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-            </div>
+            {/* Filter icon */}
+            <button
+              onClick={() => {/* filter panels toggle below */}}
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-black/5 transition-colors"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
-
-          {/* Filter panels — show relevant panel per active category, or all when no category */}
-          <div className="px-3 pt-2">
-            {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
-            {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
-            {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
-          </div>
-
         </div>
       )}
 
+      {/* ═══ Floating category chips pill ═══ */}
       {!isNavigating && (
-        <div className="absolute right-3 bottom-56 z-20 flex flex-col items-center gap-2.5">
+        <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 safe-top">
+          <div
+            className="flex items-center gap-1.5 px-3 py-1.5"
+            style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', backdropFilter: 'blur(12px)' }}
+          >
+            <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+          </div>
+        </div>
+      )}
+
+      {/* Filter panels — appear below chips when a category is active */}
+      {!isNavigating && activeCategory && (
+        <div className="absolute top-[128px] left-1/2 -translate-x-1/2 z-30 w-[calc(100%-32px)] md:w-auto md:min-w-[480px] md:max-w-[640px] safe-top">
+          {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+          {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+          {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
+        </div>
+      )}
+
+      {/* ═══ Map utility buttons ═══ */}
+      {!isNavigating && (
+        <div className="absolute right-3 bottom-24 z-20 flex flex-col items-center gap-2.5">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
         </div>
@@ -893,7 +915,7 @@ const Home = () => {
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
-        <div className="absolute top-[120px] left-0 right-0 z-20 flex justify-center pointer-events-none">
+        <div className="absolute top-[130px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
           <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
           </div>
@@ -902,13 +924,14 @@ const Home = () => {
 
       {/* Empty state when no pins found */}
       {showEmptyState && activeCategory && !isNavigating && (
-        <div className="absolute bottom-36 left-4 right-4 z-30 animate-fade-up">
+        <div className="absolute bottom-28 left-4 right-4 z-30 animate-fade-up">
           <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center">
-            <p className="text-sm font-semibold text-foreground mb-1">No events nearby — be the first to create one!</p>
-            <p className="text-xs text-muted-foreground mb-3">Add an event, route, or service to see it on the map.</p>
+            <p className="text-sm font-semibold text-foreground mb-1">No content in this area yet</p>
+            <p className="text-xs text-muted-foreground mb-3">Move the map or create the first event!</p>
             <button
-              onClick={() => navigate('/add-event')}
-              className="bg-primary text-primary-foreground text-sm font-medium px-4 py-2 rounded-xl"
+              onClick={() => navigate('/add/event')}
+              className="text-sm font-medium px-4 py-2 rounded-xl text-white"
+              style={{ backgroundColor: '#d30d37' }}
             >
               Add Event
             </button>
@@ -954,11 +977,11 @@ const Home = () => {
 
       <NavigationHUD />
 
+      {/* ═══ Floating bottom pill navigation ═══ */}
       {!isNavigating && (
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
       )}
     </div>
-    </>
   );
 };
 
