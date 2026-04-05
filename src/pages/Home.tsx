@@ -871,14 +871,6 @@ const Home = () => {
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
             </div>
           </div>
-          {/* Mobile filter panels */}
-          {activeCategory && (
-            <div className="px-3 pt-2">
-              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
-              {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
-              {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
-            </div>
-          )}
         </div>
       )}
 
@@ -919,15 +911,14 @@ const Home = () => {
         </div>
       )}
 
-      {/* DESKTOP: Filter panels — positioned below chips, not blocking map */}
+      {/* ═══ UNIFIED: Filter panels — works on both mobile and desktop ═══ */}
       {!isNavigating && activeCategory && (
-        <div
-          className="hidden md:block absolute left-1/2 -translate-x-1/2 w-[600px]"
-          style={{ top: '120px', zIndex: 9999 }}
-        >
-          {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
-          {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
-          {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
+        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px]" style={{ top: '120px' }}>
+          <div className="px-3 pt-2">
+            {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+            {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+            {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
+          </div>
         </div>
       )}
 
