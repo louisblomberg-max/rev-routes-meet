@@ -43,6 +43,48 @@ serve(async (req) => {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // ── Ticket purchase (has ticket_id in metadata) ──
+        if (session.metadata?.ticket_id) {
+          const { ticket_id, event_id } = session.metadata;
+          log("Ticket purchase completed", { ticket_id, event_id });
+
+          // Mark ticket as confirmed
+          await supabaseAdmin.from("event_tickets").update({
+            status: "confirmed",
+            stripe_payment_intent_id: session.payment_intent as string,
+          }).eq("id", ticket_id);
+
+          // Get ticket details and add to attendees
+          const { data: ticket } = await supabaseAdmin
+            .from("event_tickets")
+            .select("user_id, vehicle_id")
+            .eq("id", ticket_id)
+            .single();
+
+          if (ticket) {
+            await supabaseAdmin.from("event_attendees").upsert({
+              event_id,
+              user_id: ticket.user_id,
+              status: "attending",
+            }, { onConflict: "event_id,user_id" });
+
+            // Increment attendee count
+            const { data: evt } = await supabaseAdmin
+              .from("events")
+              .select("attendee_count")
+              .eq("id", event_id)
+              .single();
+            if (evt) {
+              await supabaseAdmin.from("events").update({
+                attendee_count: (evt.attendee_count || 0) + 1,
+              }).eq("id", event_id);
+            }
+          }
+          break;
+        }
+
+        // ── Subscription checkout (existing logic) ──
         const userId = session.metadata?.user_id;
         if (!userId) { log("No user_id in metadata"); break; }
 
