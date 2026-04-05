@@ -911,7 +911,7 @@ const Home = () => {
 
       {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
-        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-30 gap-2">
+        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-30 w-[320px]">
           <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
         </div>
       )}
