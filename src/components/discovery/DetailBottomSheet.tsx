@@ -3,7 +3,7 @@
  * Uses vaul Drawer for native-feeling drag.
  */
 
-import { Drawer, DrawerContent, DrawerOverlay } from '@/components/ui/drawer';
+import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import { X } from 'lucide-react';
 import { RevEvent, RevRoute, RevService } from '@/models';
 import { useAuth } from '@/contexts/AuthContext';
@@ -122,7 +122,6 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
 
   return (
     <Drawer open={!!item} onClose={onClose} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DrawerOverlay className="bg-black/20" />
       <DrawerContent className="max-h-[85vh] bg-card border-t border-border/50 rounded-t-2xl">
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-muted-foreground/20 rounded-full" />
