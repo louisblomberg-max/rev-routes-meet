@@ -8,6 +8,7 @@ import MapView from '@/components/MapView';
 
 import CategoryChips from '@/components/CategoryChips';
 import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
+import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
@@ -806,7 +807,11 @@ const Home = () => {
         {activeTab === 'community' && <CommunityTab />}
         {activeTab === 'marketplace' && <MarketplaceTab />}
         {activeTab === 'you' && <YouTab />}
-        <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+        {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="hidden md:block">
+          <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
       </div>
     );
   }
@@ -838,16 +843,53 @@ const Home = () => {
       <RouteLayer map={mapRef.current} />
       <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
-      {/* ═══ Floating top search pill ═══ */}
+      {/* ═══ MOBILE: Original full-width header ═══ */}
       {!isNavigating && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-32px)] md:w-auto md:min-w-[480px] md:max-w-[640px] safe-top">
+        <div className="absolute top-0 left-0 right-0 z-30 md:hidden">
+          <div className="backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
+            <div className="px-3 pt-2 flex items-center gap-2">
+              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
+                <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
+              </div>
+              <div className="h-10 flex-1 min-w-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-black/20 shadow-sm">
+                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search events, routes, services..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="p-0.5">
+                    <X className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center justify-around py-2 px-3">
+              <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+            </div>
+          </div>
+          {/* Mobile filter panels */}
+          {activeCategory && (
+            <div className="px-3 pt-2">
+              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+              {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+              {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ═══ DESKTOP: Floating search pill ═══ */}
+      {!isNavigating && (
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-30 min-w-[480px] max-w-[640px]">
           <div
             className="flex items-center gap-2 px-4 py-2"
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
-            {/* Logo */}
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
-            {/* Search */}
             <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
               <input
@@ -863,9 +905,8 @@ const Home = () => {
                 </button>
               )}
             </div>
-            {/* Filter icon */}
             <button
-              onClick={() => {/* filter panels toggle below */}}
+              onClick={() => {}}
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-black/5 transition-colors"
             >
               <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
@@ -874,9 +915,9 @@ const Home = () => {
         </div>
       )}
 
-      {/* ═══ Floating category chips pill ═══ */}
+      {/* ═══ DESKTOP: Floating category chips pill ═══ */}
       {!isNavigating && (
-        <div className="absolute top-[72px] left-1/2 -translate-x-1/2 z-30 safe-top">
+        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-30">
           <div
             className="flex items-center gap-1.5 px-3 py-1.5"
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', backdropFilter: 'blur(12px)' }}
@@ -886,9 +927,9 @@ const Home = () => {
         </div>
       )}
 
-      {/* Filter panels — appear below chips when a category is active */}
+      {/* DESKTOP: Filter panels */}
       {!isNavigating && activeCategory && (
-        <div className="absolute top-[128px] left-1/2 -translate-x-1/2 z-30 w-[calc(100%-32px)] md:w-auto md:min-w-[480px] md:max-w-[640px] safe-top">
+        <div className="hidden md:block absolute top-[128px] left-1/2 -translate-x-1/2 z-30 min-w-[480px] max-w-[640px]">
           {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
           {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
           {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
@@ -907,7 +948,7 @@ const Home = () => {
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
-        <div className="absolute top-[130px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
+        <div className="absolute top-[120px] md:top-[130px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
           <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
           </div>
@@ -969,9 +1010,15 @@ const Home = () => {
 
       <NavigationHUD />
 
-      {/* ═══ Floating bottom pill navigation ═══ */}
+      {/* Mobile: original bottom nav bar */}
       {!isNavigating && (
-        <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+      )}
+      {/* Desktop: floating pill nav */}
+      {!isNavigating && (
+        <div className="hidden md:block">
+          <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
       )}
     </div>
   );
