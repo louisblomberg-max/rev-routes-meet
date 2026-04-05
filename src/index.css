@@ -1,5 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
+/* Safe area insets for native app */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -254,7 +265,7 @@
   }
 
   .mobile-container {
-    @apply max-w-md mx-auto min-h-screen relative overflow-hidden bg-background;
+    @apply w-full min-h-screen relative overflow-hidden bg-background;
   }
 
   /* Premium Glass Effect */
@@ -296,13 +307,7 @@
     animation: slideDown 0.3s ease-out forwards;
   }
 
-  .safe-top {
-    padding-top: env(safe-area-inset-top, 20px);
-  }
-
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 20px);
-  }
+  /* safe-top and safe-bottom defined at root level above */
 
   /* Typography Utilities */
   .heading-display {
