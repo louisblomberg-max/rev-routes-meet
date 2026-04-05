@@ -876,9 +876,9 @@ const Home = () => {
 
       {/* ═══ DESKTOP: Floating search pill ═══ */}
       {!isNavigating && (
-        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-30 min-w-[480px] max-w-[640px]">
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-30 min-w-[480px] max-w-[640px] pointer-events-none">
           <div
-            className="flex items-center gap-2 px-4 py-2"
+            className="flex items-center gap-2 px-4 py-2 pointer-events-auto"
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
@@ -904,7 +904,7 @@ const Home = () => {
       {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
         <div
-          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px]"
+          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px] pointer-events-auto"
           style={{ top: '72px', zIndex: 9999 }}
         >
           <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
@@ -913,8 +913,8 @@ const Home = () => {
 
       {/* ═══ UNIFIED: Filter panels — works on both mobile and desktop ═══ */}
       {!isNavigating && activeCategory && (
-        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px]" style={{ top: '120px' }}>
-          <div className="px-3 pt-2">
+        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: '120px' }}>
+          <div className="px-3 pt-2 pointer-events-auto">
             {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
             {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
             {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
