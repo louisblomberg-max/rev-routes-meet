@@ -817,12 +817,13 @@ const Home = () => {
   }
 
   return (
-    <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+    <div className="mobile-container !overflow-visible" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <style>{`
         @keyframes friend-pulse {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
           100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
         }
+        .mapboxgl-marker { z-index: 10 !important; }
       `}</style>
       <MapView
         onMapTap={(lngLat) => {
