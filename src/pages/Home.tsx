@@ -561,66 +561,91 @@ const Home = () => {
   }, [servicesFilters]);
 
 
-  /* ── Fix 6 — Render DOM markers: apply all filters + category ── */
+  /* ── Render DOM markers: apply all filters + category ── */
+  const renderMarkers = useCallback(() => {
+    const m = mapRef.current;
+    if (!m) return;
+
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+
+    // No category selected — show empty map
+    if (!activeCategory) return;
+
+    // Filter from allPinsRef (full dataset), not context pins
+    const source = allPinsRef.current.length > 0 ? allPinsRef.current : pins;
+
+    // Category tab filter
+    let visiblePins = source.filter(p => p.type === activeCategory);
+
+    // Apply type-specific filters
+    visiblePins = visiblePins.filter(pin =>
+      applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
+    );
+
+    // Search filter — match title against search query
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      visiblePins = visiblePins.filter(p => p.title?.toLowerCase().includes(q));
+    }
+
+    visiblePins.forEach(pin => {
+      const lat = Number(pin.lat);
+      const lng = Number(pin.lng);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const type = String(pin.type || '').toLowerCase().trim();
+      const color = PIN_COLORS[type] || '#d30d37';
+
+      const el = document.createElement('div');
+      el.style.cssText = `width:20px;height:20px;border-radius:50%;background-color:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
+
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handlePinClickRef.current(pin);
+      });
+
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat([lng, lat])
+        .addTo(m);
+
+      markersRef.current.push(marker);
+    });
+  }, [pins, activeCategory, searchQuery, applyEventFilters, applyRouteFilters, applyServiceFilters]);
+
   useEffect(() => {
     const m = mapRef.current;
     if (!m) return;
 
-    const doRender = () => {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
-
-      // No category selected — show empty map
-      if (!activeCategory) return;
-
-      // Filter from allPinsRef (full dataset), not context pins
-      const source = allPinsRef.current.length > 0 ? allPinsRef.current : pins;
-
-      // Category tab filter
-      let visiblePins = source.filter(p => p.type === activeCategory);
-
-      // Apply type-specific filters
-      visiblePins = visiblePins.filter(pin =>
-        applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
-      );
-
-      // Search filter — match title against search query
-      if (searchQuery.trim()) {
-        const q = searchQuery.trim().toLowerCase();
-        visiblePins = visiblePins.filter(p => p.title?.toLowerCase().includes(q));
-      }
-
-      visiblePins.forEach(pin => {
-        const lat = Number(pin.lat);
-        const lng = Number(pin.lng);
-        if (isNaN(lat) || isNaN(lng)) return;
-
-        const type = String(pin.type || '').toLowerCase().trim();
-        const color = PIN_COLORS[type] || '#d30d37';
-
-        const el = document.createElement('div');
-        el.style.cssText = `width:20px;height:20px;border-radius:50%;background-color:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
-
-        el.addEventListener('click', (e) => {
-          e.stopPropagation();
-          handlePinClickRef.current(pin);
-        });
-
-        const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
-          .setLngLat([lng, lat])
-          .addTo(m);
-
-        markersRef.current.push(marker);
-      });
-
-    };
-
     if (m.loaded()) {
-      doRender();
+      renderMarkers();
     } else {
-      m.once('load', doRender);
+      m.once('load', renderMarkers);
     }
-  }, [pins, activeCategory, searchQuery, applyEventFilters, applyRouteFilters, applyServiceFilters]);
+  }, [renderMarkers]);
+
+  // Re-render markers when user returns to tab
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && mapRef.current) {
+        mapRef.current.resize();
+        setTimeout(() => renderMarkers(), 100);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [renderMarkers]);
+
+  useEffect(() => {
+    const handleFocus = () => {
+      if (mapRef.current) {
+        mapRef.current.resize();
+        setTimeout(() => renderMarkers(), 150);
+      }
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [renderMarkers]);
 
   // Center map on newly published item
   useEffect(() => {
