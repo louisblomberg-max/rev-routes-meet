@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Component, type ReactNode, type ErrorInfo } from 'react';
 import { SlidersHorizontal, X, Plus, CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -7,6 +7,17 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Error boundary to prevent white screen if this panel crashes
+class FilterErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(_error: Error, _info: ErrorInfo) { /* swallow */ }
+  render() {
+    if (this.state.hasError) return null;
+    return this.props.children;
+  }
+}
 
 export interface EventsFilterState {
   distance: number | 'national' | 'international';
@@ -61,7 +72,13 @@ const MEET_STYLE_TAGS = [
   'Track Focus', 'Charity', 'Family Friendly', 'Electric', 'Stance',
 ];
 
-const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
+function safeFormatDate(date: Date | undefined | null, fmt: string): string {
+  if (!date) return '';
+  try { return format(date instanceof Date ? date : new Date(date), fmt); }
+  catch { return ''; }
+}
+
+const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPanelProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
@@ -164,7 +181,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <CalendarIcon className="w-4 h-4" />
               <span className="text-[10px] font-semibold whitespace-nowrap">
                 {filters.specificDate
-                  ? format(filters.specificDate, 'MMM d')
+                  ? safeFormatDate(filters.specificDate, 'MMM d') || 'Date'
                   : 'Date'}
               </span>
             </button>
@@ -373,7 +390,7 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
               <div className="text-center py-3">
                 <p className="text-[11px] text-muted-foreground">Add vehicles to My Garage to use this filter</p>
                 <button
-                  onClick={() => navigate('/garage/add')}
+                  onClick={() => navigate('/add/vehicle')}
                   className="mt-2 text-xs font-semibold text-events"
                 >
                   Add a vehicle →
@@ -478,5 +495,11 @@ const EventsFiltersPanel = ({ filters, onFiltersChange }: EventsFiltersPanelProp
     </div>
   );
 };
+
+const EventsFiltersPanel = (props: EventsFiltersPanelProps) => (
+  <FilterErrorBoundary>
+    <EventsFiltersPanelInner {...props} />
+  </FilterErrorBoundary>
+);
 
 export default EventsFiltersPanel;

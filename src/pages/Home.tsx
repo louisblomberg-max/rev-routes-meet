@@ -17,7 +17,7 @@ import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
 import HelpSheet from '@/components/HelpSheet';
 import type { MapStyle } from '@/components/MapStyleButton';
-import type { EventsFilterState } from '@/components/EventsFiltersPanel';
+import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
 import ServicesFiltersPanel, { ServicesFilterState } from '@/components/ServicesFiltersPanel';
 import RouteLayer from '@/components/Map/RouteLayer';
@@ -874,6 +874,7 @@ const Home = () => {
           {/* Mobile filter panels */}
           {activeCategory && (
             <div className="px-3 pt-2">
+              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
               {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
               {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
             </div>
@@ -918,6 +919,7 @@ const Home = () => {
       {/* DESKTOP: Filter panels — positioned below chips, not blocking map */}
       {!isNavigating && activeCategory && (
         <div className="hidden md:block absolute top-[116px] left-1/2 -translate-x-1/2 z-20 w-[480px]">
+          {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
           {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
           {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
         </div>
