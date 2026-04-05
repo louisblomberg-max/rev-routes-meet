@@ -911,14 +911,20 @@ const Home = () => {
 
       {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
-        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-40 w-[320px]">
+        <div
+          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px]"
+          style={{ top: '72px', zIndex: 9999 }}
+        >
           <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
         </div>
       )}
 
       {/* DESKTOP: Filter panels — positioned below chips, not blocking map */}
       {!isNavigating && activeCategory && (
-        <div className="hidden md:block absolute top-[120px] left-1/2 -translate-x-1/2 z-50 w-[600px]">
+        <div
+          className="hidden md:block absolute left-1/2 -translate-x-1/2 w-[600px]"
+          style={{ top: '120px', zIndex: 9999 }}
+        >
           {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
           {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
           {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
