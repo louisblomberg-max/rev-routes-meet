@@ -7,42 +7,42 @@ interface FloatingMapNavProps {
   onTabChange: (tab: Tab) => void;
 }
 
-const tabs: { id: Tab; icon: typeof Compass }[] = [
-  { id: 'discovery', icon: Compass },
-  { id: 'community', icon: Users },
-  { id: 'marketplace', icon: ShoppingBag },
-  { id: 'you', icon: User },
-];
-
 const FloatingMapNav = ({ activeTab, onTabChange }: FloatingMapNavProps) => {
+  const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
+    { id: 'discovery', label: 'Discovery', icon: Compass, activeColor: '#d30d37' },
+    { id: 'community', label: 'Community', icon: Users, activeColor: '#274C77' },
+    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, activeColor: '#3A5A40' },
+    { id: 'you', label: 'You', icon: User, activeColor: '#161616' },
+  ];
+
   return (
-    <div
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex flex-row items-center gap-2 px-6 py-2"
-      style={{
-        backgroundColor: '#ffffff',
-        borderRadius: 999,
-        boxShadow: '0 8px 32px rgba(0,0,0,0.20)',
-      }}
-    >
-      {tabs.map((tab) => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className="w-12 h-12 rounded-full flex items-center justify-center transition-colors"
-            style={
-              isActive
-                ? { backgroundColor: '#fce8ed', color: '#d30d37' }
-                : { backgroundColor: 'transparent', color: '#999999' }
-            }
-          >
-            <Icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 1.5} />
-          </button>
-        );
-      })}
-    </div>
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-3 pt-1 pb-1" style={{ backgroundColor: '#f3f3e8', borderRadius: 20, boxShadow: '0 8px 32px rgba(0,0,0,0.20)' }}>
+      <div className="grid grid-cols-4 gap-1.5">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTabChange(tab.id)}
+              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all duration-200 bg-white shadow-sm ${
+                isActive ? 'border-black/20' : 'border-black/10 text-foreground hover:text-foreground'
+              }`}
+              style={isActive ? { color: tab.activeColor, borderColor: `${tab.activeColor}33` } : undefined}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
+              <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'font-bold' : ''}`}>
+                {tab.label}
+              </span>
+              {isActive && (
+                <div className="w-6 h-[2px] rounded-full mt-0.5" style={{ backgroundColor: tab.activeColor }} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
 };
 
