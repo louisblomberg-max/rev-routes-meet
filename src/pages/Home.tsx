@@ -918,7 +918,7 @@ const Home = () => {
 
       {/* DESKTOP: Filter panels — positioned below chips, not blocking map */}
       {!isNavigating && activeCategory && (
-        <div className="hidden md:block absolute top-[116px] left-1/2 -translate-x-1/2 z-20 w-[calc(100%-32px)] md:w-[600px]">
+        <div className="hidden md:block absolute top-[120px] left-1/2 -translate-x-1/2 z-50 w-[600px]">
           {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
           {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
           {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
