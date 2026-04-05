@@ -569,38 +569,24 @@ const Home = () => {
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
 
-      // Bug 1 fix — always filter from allPinsRef (full dataset), not context pins
+      // No category selected — show empty map
+      if (!activeCategory) return;
+
+      // Filter from allPinsRef (full dataset), not context pins
       const source = allPinsRef.current.length > 0 ? allPinsRef.current : pins;
 
-      // Apply all three filter functions
-      let visiblePins = source.filter(pin =>
+      // Category tab filter
+      let visiblePins = source.filter(p => p.type === activeCategory);
+
+      // Apply type-specific filters
+      visiblePins = visiblePins.filter(pin =>
         applyEventFilters(pin) && applyRouteFilters(pin) && applyServiceFilters(pin),
       );
-
-      // Category tab filter
-      if (activeCategory) {
-        visiblePins = visiblePins.filter(p => p.type === activeCategory);
-      }
 
       // Search filter — match title against search query
       if (searchQuery.trim()) {
         const q = searchQuery.trim().toLowerCase();
         visiblePins = visiblePins.filter(p => p.title?.toLowerCase().includes(q));
-      }
-
-
-      // Bug 3 fix — fit bounds on very first load if we have pins
-      if (!initialFitDoneRef.current && visiblePins.length > 0) {
-        initialFitDoneRef.current = true;
-        const bounds = new mapboxgl.LngLatBounds();
-        visiblePins.forEach(pin => {
-          const lat = Number(pin.lat);
-          const lng = Number(pin.lng);
-          if (!isNaN(lat) && !isNaN(lng)) bounds.extend([lng, lat]);
-        });
-        if (!bounds.isEmpty()) {
-          m.fitBounds(bounds, { padding: 60, maxZoom: 14, duration: 800 });
-        }
       }
 
       visiblePins.forEach(pin => {
@@ -908,8 +894,17 @@ const Home = () => {
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
+      {/* Hint when no category selected */}
+      {!activeCategory && !isNavigating && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+          <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
+            <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
+          </div>
+        </div>
+      )}
+
       {/* Empty state when no pins found */}
-      {showEmptyState && !isNavigating && (
+      {showEmptyState && activeCategory && !isNavigating && (
         <div className="absolute bottom-36 left-4 right-4 z-30 animate-fade-up">
           <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center">
             <p className="text-sm font-semibold text-foreground mb-1">No events nearby — be the first to create one!</p>
