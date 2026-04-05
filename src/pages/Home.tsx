@@ -873,15 +873,6 @@ const Home = () => {
             {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
           </div>
 
-          <div className="px-3 pt-2 flex justify-end gap-2">
-            <button
-              onClick={() => refreshPins()}
-              className="bg-white/90 backdrop-blur-md border border-border/50 rounded-xl px-3 py-2 text-xs font-medium shadow-sm flex items-center gap-1"
-            >
-              <RefreshCw className="w-3 h-3" /> Refresh pins
-            </button>
-            <MapStyleButton currentStyle={mapStyle} onStyleChange={setMapStyle} />
-          </div>
         </div>
       )}
 
@@ -896,7 +887,7 @@ const Home = () => {
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+        <div className="absolute top-[120px] left-0 right-0 z-20 flex justify-center pointer-events-none">
           <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
           </div>
