@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X, SlidersHorizontal } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogo from '@/assets/revnet-logo-header.png';
@@ -905,25 +905,14 @@ const Home = () => {
                 </button>
               )}
             </div>
-            <button
-              onClick={() => {}}
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-black/5 transition-colors"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
-            </button>
           </div>
         </div>
       )}
 
-      {/* ═══ DESKTOP: Floating category chips pill ═══ */}
+      {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
-        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-30">
-          <div
-            className="flex items-center gap-1.5 px-3 py-1.5"
-            style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 2px 12px rgba(0,0,0,0.10)', backdropFilter: 'blur(12px)' }}
-          >
-            <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
-          </div>
+        <div className="hidden md:flex absolute top-[72px] left-1/2 -translate-x-1/2 z-30 gap-2">
+          <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
         </div>
       )}
 
