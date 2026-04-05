@@ -170,8 +170,8 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
   return (
     <div className="space-y-4">
-      {/* Photo gallery */}
-      {allPhotos.length > 0 && (
+      {/* Photo gallery or placeholder */}
+      {allPhotos.length > 0 ? (
         <div className="relative w-full h-52 -mx-5 -mt-1 rounded-t-2xl overflow-hidden bg-muted flex-shrink-0">
           <img
             src={allPhotos[currentPhotoIndex]}
@@ -197,6 +197,15 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
           )}
           {data.type && (
             <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium">
+              {data.type}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="relative w-full h-44 -mx-5 -mt-1 rounded-t-2xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'rgba(211, 13, 55, 0.08)' }}>
+          <span className="text-5xl">📅</span>
+          {data.type && (
+            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-medium" style={{ backgroundColor: '#fce8ed', color: '#d30d37' }}>
               {data.type}
             </div>
           )}
@@ -387,9 +396,18 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
       {data.is_ticketed && !isOwnEvent && (
         <button
           onClick={() => navigate(`/event/${eventId}/ticket`)}
-          className="w-full py-3.5 rounded-xl bg-green-600 text-white text-sm font-semibold mb-4"
+          className="w-full py-3.5 rounded-xl bg-green-600 text-white text-sm font-semibold mb-2"
         >Buy Ticket — £{Number(data.ticket_price).toFixed(2)}</button>
       )}
+
+      {/* View full details */}
+      <button
+        onClick={() => navigate(`/event/${eventId}`)}
+        className="w-full text-center text-[13px] font-medium pb-2"
+        style={{ color: '#d30d37' }}
+      >
+        View full details →
+      </button>
     </div>
   );
 };
