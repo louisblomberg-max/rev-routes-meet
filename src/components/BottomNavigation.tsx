@@ -16,8 +16,8 @@ const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => 
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 safe-bottom px-3 pb-3 pt-1" style={{ backgroundColor: '#f3f3e8' }}>
-      <div className="max-w-md mx-auto grid grid-cols-4 gap-1.5">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 safe-bottom px-3 pb-3 pt-1 md:hidden" style={{ backgroundColor: '#f3f3e8' }}>
+      <div className="grid grid-cols-4 gap-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;

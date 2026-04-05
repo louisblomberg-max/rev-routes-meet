@@ -9,6 +9,7 @@ import MapView from '@/components/MapView';
 import CategoryChips from '@/components/CategoryChips';
 import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
 import BottomNavigation from '@/components/BottomNavigation';
+import DesktopSidebar from '@/components/DesktopSidebar';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
 import MarketplaceTab from '@/components/MarketplaceTab';
@@ -802,17 +803,22 @@ const Home = () => {
 
   if (activeTab !== 'discovery') {
     return (
-      <div className="mobile-container">
-        {activeTab === 'community' && <CommunityTab />}
-        {activeTab === 'marketplace' && <MarketplaceTab />}
-        {activeTab === 'you' && <YouTab />}
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
-      </div>
+      <>
+        <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="mobile-container md:ml-[240px]">
+          {activeTab === 'community' && <CommunityTab />}
+          {activeTab === 'marketplace' && <MarketplaceTab />}
+          {activeTab === 'you' && <YouTab />}
+          <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="mobile-container" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+    <>
+    <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+    <div className="mobile-container md:ml-[240px]" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <style>{`
         @keyframes friend-pulse {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
@@ -952,6 +958,7 @@ const Home = () => {
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
       )}
     </div>
+    </>
   );
 };
 
