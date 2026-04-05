@@ -115,11 +115,20 @@ const MyEvents = () => {
                   <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="w-4 h-4" /><span className="truncate">{event.location}</span></div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground"><Users className="w-4 h-4" /><span>{event.attendees} attending</span></div>
-                    {'status' in event && (
-                      <Badge variant="outline" className="text-[10px]">
-                        {event.status === 'attending' ? '✓ Going' : event.status === 'attended' ? '✓ Attended' : '★ Interested'}
-                      </Badge>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {'status' in event && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {event.status === 'attending' ? '✓ Going' : event.status === 'attended' ? '✓ Attended' : '★ Interested'}
+                        </Badge>
+                      )}
+                      {event.isHost && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); navigate(`/event/${event.id}/manage`); }}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-semibold text-white"
+                          style={{ backgroundColor: '#d30d37' }}
+                        >Manage</button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </button>

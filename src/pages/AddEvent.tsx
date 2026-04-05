@@ -109,6 +109,7 @@ const AddEvent = () => {
   const [isTicketed, setIsTicketed] = useState(false)
   const [ticketPrice, setTicketPrice] = useState('')
   const [maxTickets, setMaxTickets] = useState('')
+  const [ticketTypes, setTicketTypes] = useState([{ name: 'General Admission', description: '', price: '', capacity: '' }])
 
   // Section 9 — Rules
   const [eventRules, setEventRules] = useState('')
@@ -527,6 +528,22 @@ const AddEvent = () => {
       if (insertError) {
         toast.error('Could not publish: ' + insertError.message)
         return
+      }
+
+      // Save ticket types for ticketed events
+      if (isTicketed && newEvents && newEvents.length > 0) {
+        const ticketTypeRows = ticketTypes
+          .filter(t => t.name && t.price)
+          .map(t => ({
+            event_id: newEvents[0].id,
+            name: t.name,
+            description: t.description || null,
+            price: parseFloat(t.price) || 0,
+            capacity: t.capacity ? parseInt(t.capacity) : null,
+          }))
+        if (ticketTypeRows.length > 0) {
+          await supabase.from('event_ticket_types').insert(ticketTypeRows)
+        }
       }
 
       // Self-notification (best-effort)
@@ -1102,37 +1119,38 @@ const AddEvent = () => {
                 </div>
               )}
 
-              <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">Ticket price (£) *</label>
-                <input
-                  type="number"
-                  value={ticketPrice}
-                  onChange={e => setTicketPrice(e.target.value)}
-                  placeholder="10.00"
-                  min="1"
-                  className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block">Max tickets</label>
-                <input
-                  type="number"
-                  value={maxTickets}
-                  onChange={e => setMaxTickets(e.target.value)}
-                  placeholder="Same as max attendees"
-                  className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
-                />
-              </div>
-
-              {ticketPrice && maxTickets && (
-                <div className="p-3 rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <p className="text-xs font-semibold text-green-800 dark:text-green-200 mb-1">Potential revenue</p>
-                  <p className="text-xs text-green-700 dark:text-green-300">
-                    {maxTickets} tickets × £{Number(ticketPrice).toFixed(2)} = £{(Number(maxTickets) * Number(ticketPrice)).toFixed(2)}
-                  </p>
+              {/* Ticket Types */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground">Ticket Types</label>
+                  <button
+                    type="button"
+                    onClick={() => setTicketTypes(prev => [...prev, { name: '', description: '', price: '', capacity: '' }])}
+                    className="text-xs font-medium"
+                    style={{ color: '#d30d37' }}
+                  >+ Add Ticket Type</button>
                 </div>
-              )}
+                {ticketTypes.map((tt, i) => (
+                  <div key={i} className="p-3 rounded-xl border border-border/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Ticket {i + 1}</span>
+                      {ticketTypes.length > 1 && (
+                        <button type="button" onClick={() => setTicketTypes(prev => prev.filter((_, idx) => idx !== i))} className="text-xs text-destructive">Remove</button>
+                      )}
+                    </div>
+                    <input value={tt.name} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], name: e.target.value }; setTicketTypes(v); }}
+                      placeholder="e.g. General Admission" className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                    <input value={tt.description} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], description: e.target.value }; setTicketTypes(v); }}
+                      placeholder="Description (optional)" className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="number" value={tt.price} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], price: e.target.value }; setTicketTypes(v); setTicketPrice(e.target.value); }}
+                        placeholder="Price £" min="1" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                      <input type="number" value={tt.capacity} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], capacity: e.target.value }; setTicketTypes(v); }}
+                        placeholder="Capacity" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -431,8 +431,14 @@ const EventDetail = () => {
         )}
 
         {/* Organiser Dashboard — only visible to the event creator */}
-        {isHost && isTicketed && (
-          <OrganiserDashboard eventId={event.id} />
+        {isHost && (
+          <Button
+            onClick={() => navigate(`/event/${event.id}/manage`)}
+            variant="outline"
+            className="w-full py-5 text-sm font-semibold gap-2"
+          >
+            Manage Event & Attendees
+          </Button>
         )}
 
         {/* Report */}
