@@ -3,11 +3,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { Search, X, SlidersHorizontal } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import revnetLogo from '@/assets/revnet-logo-header.png';
 import MapView from '@/components/MapView';
 
 import CategoryChips from '@/components/CategoryChips';
 import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
-import DesktopSidebar from '@/components/DesktopSidebar';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
@@ -802,18 +802,12 @@ const Home = () => {
 
   if (activeTab !== 'discovery') {
     return (
-      <>
-        <DesktopSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="mobile-container md:ml-[240px]">
-          {activeTab === 'community' && <CommunityTab />}
-          {activeTab === 'marketplace' && <MarketplaceTab />}
-          {activeTab === 'you' && <YouTab />}
-          {/* Mobile: floating pill nav. Desktop: sidebar handles navigation */}
-          <div className="md:hidden">
-            <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-        </div>
-      </>
+      <div className="mobile-container">
+        {activeTab === 'community' && <CommunityTab />}
+        {activeTab === 'marketplace' && <MarketplaceTab />}
+        {activeTab === 'you' && <YouTab />}
+        <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
     );
   }
 
@@ -852,9 +846,7 @@ const Home = () => {
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
             {/* Logo */}
-            <span className="text-[15px] font-bold tracking-tight flex-shrink-0 select-none">
-              <span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111111' }}>NET</span>
-            </span>
+            <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
             {/* Search */}
             <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
               <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />

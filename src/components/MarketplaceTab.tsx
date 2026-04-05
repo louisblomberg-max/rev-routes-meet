@@ -260,7 +260,7 @@ const MarketplaceTab = () => {
   const featuredListing = marketplaceListings[0];
 
   return (
-    <div className="h-full bg-background overflow-y-auto pb-24">
+    <div className="h-full bg-background overflow-y-auto pb-24 md:max-w-[768px] md:mx-auto">
       {/* Header */}
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center justify-between">
