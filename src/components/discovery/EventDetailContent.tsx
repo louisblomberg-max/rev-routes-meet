@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import TicketPurchaseSheet from '@/components/TicketPurchaseSheet';
 
 interface EventDetailContentProps {
   event: any;
@@ -24,6 +25,8 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const [seriesEvents, setSeriesEvents] = useState<any[]>([]);
   const [actionLoading, setActionLoading] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+  const [showTicketSheet, setShowTicketSheet] = useState(false);
+  const [ticketTypes, setTicketTypes] = useState<any[]>([]);
 
   // Normalize — event may come from pin data or direct
   const data = event.data || event;
@@ -101,6 +104,30 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [eventId]);
+
+  // Fetch ticket types for paid events
+  useEffect(() => {
+    if (!eventId) return;
+    supabase.from('event_ticket_types')
+      .select('*')
+      .eq('event_id', eventId)
+      .eq('is_active', true)
+      .then(({ data: types }) => {
+        if (types && types.length > 0) setTicketTypes(types);
+      });
+  }, [eventId]);
+
+  const handleAttendClick = () => {
+    if (!userId) { navigate('/auth'); return; }
+    const isPaid = data.is_ticketed || (data.entry_fee && Number(data.entry_fee) > 0) || data.is_free === false;
+    if (isPaid && ticketTypes.length > 0) {
+      setShowTicketSheet(true);
+    } else if (isPaid && ticketTypes.length === 0) {
+      toast.error('Tickets are not available yet. Check back soon.');
+    } else {
+      handleAttend();
+    }
+  };
 
   const handleAttend = async () => {
     if (!userId) { navigate('/auth'); return; }
@@ -368,7 +395,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
       {/* Manage for host */}
       {isOwnEvent && (
         <button
-          onClick={() => navigate(`/manage/event/${eventId}`)}
+          onClick={() => navigate(`/event/${eventId}/manage`)}
           className="w-full py-3 rounded-xl bg-muted/50 border border-border/50 text-sm font-medium text-foreground"
         >Manage Event & Attendees</button>
       )}
@@ -380,7 +407,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
           className="flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[hsl(var(--routes))] text-white text-sm font-semibold"
         >Directions</button>
         <button
-          onClick={handleAttend}
+          onClick={handleAttendClick}
           disabled={actionLoading}
           className={`flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
             isAttending
@@ -388,26 +415,24 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
               : 'bg-events text-events-foreground'
           }`}
         >
-          {actionLoading ? '...' : isAttending ? 'Attending ✓' : 'Attend'}
+          {actionLoading ? '...' : isAttending ? '✓ Attending' : 'Attend'}
         </button>
       </div>
 
-      {/* Buy ticket */}
-      {data.is_ticketed && !isOwnEvent && (
-        <button
-          onClick={() => navigate(`/event/${eventId}/ticket`)}
-          className="w-full py-3.5 rounded-xl bg-green-600 text-white text-sm font-semibold mb-2"
-        >Buy Ticket — £{Number(data.ticket_price).toFixed(2)}</button>
+      {/* Ticket purchase sheet */}
+      {showTicketSheet && (
+        <TicketPurchaseSheet
+          event={data}
+          ticketTypes={ticketTypes}
+          onClose={() => setShowTicketSheet(false)}
+          onSuccess={() => {
+            setShowTicketSheet(false);
+            setIsAttending(true);
+            setAttendeeCount(prev => prev + 1);
+            toast.success("You're going! Check your tickets.");
+          }}
+        />
       )}
-
-      {/* View full details */}
-      <button
-        onClick={() => navigate(`/event/${eventId}`)}
-        className="w-full text-center text-[13px] font-medium pb-2"
-        style={{ color: '#d30d37' }}
-      >
-        View full details →
-      </button>
     </div>
   );
 };

@@ -50,23 +50,35 @@ const TicketPurchaseSheet = ({ event, ticketTypes, onClose, onSuccess }: TicketP
       }).select().single();
       if (ticketError || !ticket) { toast.error('Failed to create ticket'); setPaying(false); return; }
 
-      // 2. Create checkout session
-      const { data, error } = await supabase.functions.invoke('create-ticket-checkout', {
+      // 2. Get organiser's Stripe Connect account
+      const creatorId = event.created_by || event.createdBy;
+      let stripeAccountId: string | null = null;
+      if (creatorId) {
+        const { data: stripeAcct } = await supabase
+          .from('stripe_connect_accounts')
+          .select('stripe_account_id')
+          .eq('user_id', creatorId)
+          .maybeSingle();
+        stripeAccountId = stripeAcct?.stripe_account_id || null;
+      }
+
+      // 3. Create checkout session
+      const { data: checkoutData, error } = await supabase.functions.invoke('create-ticket-checkout', {
         body: {
           ticket_id: ticket.id,
           event_id: event.id,
           ticket_type_id: selectedType.id,
           amount: Math.round(selectedType.price * 100),
           event_title: event.title,
-          organiser_stripe_account_id: event.stripe_connect_account_id || null,
+          organiser_stripe_account_id: stripeAccountId,
           success_url: `${window.location.origin}/ticket-success?ticket_id=${ticket.id}`,
           cancel_url: window.location.href,
         },
       });
-      if (error || !data?.url) { toast.error('Failed to start checkout'); setPaying(false); return; }
-      window.location.href = data.url;
-    } catch {
-      toast.error('Something went wrong');
+      if (error || !checkoutData?.url) { toast.error('Failed to start checkout'); setPaying(false); return; }
+      window.location.href = checkoutData.url;
+    } catch (err: any) {
+      toast.error(err?.message || 'Something went wrong');
       setPaying(false);
     }
   };
@@ -85,9 +97,10 @@ const TicketPurchaseSheet = ({ event, ticketTypes, onClose, onSuccess }: TicketP
 
         <div className="overflow-y-auto px-5 pb-6 max-h-[calc(80vh-40px)] space-y-5">
           {/* Header */}
-          <div>
-            <h2 className="text-lg font-bold text-foreground truncate">{event.title}</h2>
-            {eventDate && <p className="text-sm text-muted-foreground">{format(new Date(eventDate), 'EEE d MMM yyyy · HH:mm')}</p>}
+          <div className="pb-3 border-b border-border/30">
+            <h2 className="text-[17px] font-bold text-foreground truncate">{event.title}</h2>
+            {eventDate && <p className="text-sm text-muted-foreground mt-0.5">{format(new Date(eventDate), 'EEE d MMM yyyy · HH:mm')}</p>}
+            {(event.location || event.locationName) && <p className="text-sm text-muted-foreground">{event.location || event.locationName}</p>}
           </div>
 
           {/* Ticket types */}
