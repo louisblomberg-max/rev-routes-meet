@@ -971,10 +971,12 @@ const Home = () => {
       {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
         <div
-          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px] pointer-events-auto"
-          style={{ top: '72px', zIndex: 9999 }}
+          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px]"
+          style={{ top: '72px', zIndex: 9999, pointerEvents: 'none' }}
         >
-          <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+          <div style={{ pointerEvents: 'auto', width: '100%' }}>
+            <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+          </div>
         </div>
       )}
 
@@ -1010,8 +1012,8 @@ const Home = () => {
 
       {/* Empty state when no pins found */}
       {showEmptyState && activeCategory && !isNavigating && (
-        <div className="absolute bottom-28 left-4 right-4 z-30 animate-fade-up">
-          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center">
+        <div className="absolute bottom-28 left-4 right-4 z-30 animate-fade-up pointer-events-none">
+          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center pointer-events-auto">
             <p className="text-sm font-semibold text-foreground mb-1">No content in this area yet</p>
             <p className="text-xs text-muted-foreground mb-3">Move the map or create the first event!</p>
             <button
@@ -1025,7 +1027,7 @@ const Home = () => {
         </div>
       )}
 
-      {!isNavigating && (
+      {!isNavigating && selectedDetail && (
         <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
       )}
 
@@ -1069,8 +1071,8 @@ const Home = () => {
       )}
       {/* Desktop: floating pill nav */}
       {!isNavigating && (
-        <div className="hidden md:block">
-          <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="hidden md:block pointer-events-none">
+          <div className="pointer-events-auto"><FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} /></div>
         </div>
       )}
     </div>

@@ -21,6 +21,7 @@ const YouTab = () => {
   const [helpDistance, setHelpDistance] = useState(10);
   const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
   const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [myTickets, setMyTickets] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -32,6 +33,16 @@ const YouTab = () => {
         setFreeEventCredits(data.free_event_credits ?? 0);
       }
       setIsProfileLoading(false);
+    })();
+    // Fetch tickets
+    (async () => {
+      const [ticketsRes, passesRes] = await Promise.all([
+        supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
+        supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
+      ]);
+      const tickets = (ticketsRes.data || []).map((t: any) => ({ ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false }));
+      const passes = (passesRes.data || []).filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id)).map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
+      setMyTickets([...tickets, ...passes]);
     })();
   }, [user?.id]);
 
@@ -205,6 +216,30 @@ const YouTab = () => {
           </div>
         </div>
       </div>
+
+      {/* ── My Tickets ── */}
+      {myTickets.length > 0 && (
+        <div className="px-4 pt-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Tickets</p>
+          <div className="flex gap-2.5 overflow-x-auto pb-1">
+            {myTickets.map((t: any) => (
+              <button
+                key={t.id}
+                onClick={() => navigate(t.isFree
+                  ? `/ticket-success?ticket_id=free&event_id=${t.event_id}&token=${t.qr_code_token}&type=free`
+                  : `/ticket-success?ticket_id=${t.id}`
+                )}
+                className="flex-shrink-0 w-[160px] bg-card rounded-xl border border-border/50 shadow-sm p-3 text-left"
+              >
+                <p className="text-sm font-semibold truncate">{t.event_title || 'Event'}</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5">{t.event_date || ''}</p>
+                <p className="text-[10px] mt-1" style={{ color: '#d30d37' }}>{t.isFree ? 'Free Pass' : `Ticket · £${Number(t.amount_paid || 0).toFixed(2)}`}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Tap to show QR</p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Available to Help ── */}
       <div className="px-4 pt-3">
