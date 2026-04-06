@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { ArrowLeft, Search, Download, Check, X, AlertTriangle, Send, Pencil } from 'lucide-react';
+import { ArrowLeft, Search, Download, Check, X, AlertTriangle, Send, Pencil, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,6 +30,7 @@ const OrganizerDashboard = () => {
   const [cancelling, setCancelling] = useState(false);
   const [scanResult, setScanResult] = useState<{ type: 'valid' | 'already' | 'invalid'; name?: string; vehicle?: string; time?: string } | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -159,7 +160,8 @@ const OrganizerDashboard = () => {
   };
 
   const handleScanQR = useCallback(async (token: string) => {
-    if (!eventId) return;
+    if (!eventId || isProcessing) return;
+    setIsProcessing(true);
     // Check paid tickets first
     const { data: ticket } = await supabase.from('event_tickets')
       .select('*, profiles:user_id(display_name), vehicles:vehicle_id(make, model, year)')
@@ -187,31 +189,39 @@ const OrganizerDashboard = () => {
         setScanResult({ type: 'valid', name: att.profiles?.display_name });
       }
     }
-    setTimeout(() => { setScanResult(null); fetchData(); }, 3000);
-  }, [eventId, fetchData]);
+    setTimeout(() => { setScanResult(null); setIsProcessing(false); fetchData(); }, 3000);
+  }, [eventId, fetchData, isProcessing]);
 
   const startScanner = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      if (videoRef.current) { videoRef.current.srcObject = stream; videoRef.current.play(); }
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(() => {});
+      }
       setIsScanning(true);
       const jsQR = (await import('jsqr')).default;
       const scan = () => {
         if (!videoRef.current || !canvasRef.current) return;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext('2d');
-        if (!ctx || videoRef.current.readyState < videoRef.current.HAVE_ENOUGH_DATA) { animFrameRef.current = requestAnimationFrame(scan); return; }
+        if (!ctx || videoRef.current.readyState < videoRef.current.HAVE_ENOUGH_DATA) {
+          animFrameRef.current = requestAnimationFrame(scan);
+          return;
+        }
         canvas.width = videoRef.current.videoWidth;
         canvas.height = videoRef.current.videoHeight;
         ctx.drawImage(videoRef.current, 0, 0);
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code?.data && !scanResult) handleScanQR(code.data);
+        if (code?.data) handleScanQR(code.data);
         animFrameRef.current = requestAnimationFrame(scan);
       };
       animFrameRef.current = requestAnimationFrame(scan);
-    } catch { toast.error('Camera not available'); }
-  }, [handleScanQR, scanResult]);
+    } catch {
+      toast.error('Camera not available. Please grant camera permission.');
+    }
+  }, [handleScanQR]);
 
   const stopScanner = useCallback(() => {
     if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
@@ -222,11 +232,11 @@ const OrganizerDashboard = () => {
     setIsScanning(false);
   }, []);
 
+  // Stop scanner when leaving scanner tab — but do NOT auto-start
   useEffect(() => {
-    if (activeTab === 'scanner') startScanner();
-    else stopScanner();
+    if (activeTab !== 'scanner') stopScanner();
     return () => stopScanner();
-  }, [activeTab, startScanner, stopScanner]);
+  }, [activeTab, stopScanner]);
 
   if (loading) {
     return (
@@ -407,23 +417,48 @@ const OrganizerDashboard = () => {
       {/* ─── SCANNER TAB ─── */}
       {activeTab === 'scanner' && (
         <div className="px-4 py-4 space-y-4">
-          <div className="text-center"><h2 className="text-lg font-bold">Scan Tickets</h2><p className="text-sm text-muted-foreground">Point camera at attendee QR code</p></div>
-          <div className="relative w-[300px] h-[300px] mx-auto rounded-2xl overflow-hidden bg-black">
-            <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
-            <canvas ref={canvasRef} className="hidden" />
-            <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-white rounded-tl-lg" />
-            <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-white rounded-tr-lg" />
-            <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-white rounded-bl-lg" />
-            <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-white rounded-br-lg" />
-            {scanResult && (
-              <div className={`absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 ${scanResult.type === 'valid' ? 'bg-green-600/90' : scanResult.type === 'already' ? 'bg-orange-500/90' : 'bg-red-600/90'}`}>
-                {scanResult.type === 'valid' && <><Check className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Valid Ticket</p>{scanResult.name && <p className="text-sm">{scanResult.name}</p>}{scanResult.vehicle && <p className="text-xs opacity-80">{scanResult.vehicle}</p>}</>}
-                {scanResult.type === 'already' && <><AlertTriangle className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Already Checked In</p>{scanResult.name && <p className="text-sm">{scanResult.name}</p>}{scanResult.time && <p className="text-xs opacity-80">at {scanResult.time}</p>}</>}
-                {scanResult.type === 'invalid' && <><X className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Invalid Ticket</p></>}
-              </div>
-            )}
+          <div className="text-center">
+            <h2 className="text-lg font-bold">Scan Tickets</h2>
+            <p className="text-sm text-muted-foreground">{isScanning ? 'Point camera at attendee QR code' : 'Tap Start Scanner to begin checking in attendees'}</p>
           </div>
-          <div className="flex gap-2"><Input value={manualCode} onChange={e => setManualCode(e.target.value)} placeholder="Enter ticket code manually" className="flex-1" /><Button onClick={() => { if (manualCode.trim()) handleScanQR(manualCode.trim()); }} disabled={!manualCode.trim()}>Check</Button></div>
+
+          {!isScanning ? (
+            <div className="flex flex-col items-center gap-4 py-8">
+              <div className="w-20 h-20 rounded-2xl bg-muted flex items-center justify-center">
+                <Camera className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <Button onClick={startScanner} className="h-12 px-8 rounded-xl text-base gap-2" style={{ backgroundColor: '#d30d37' }}>
+                <Camera className="w-5 h-5" /> Start Scanner
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div className="relative w-[300px] h-[300px] mx-auto rounded-2xl overflow-hidden bg-black">
+                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
+                <canvas ref={canvasRef} className="hidden" />
+                <div className="absolute top-3 left-3 w-8 h-8 border-t-2 border-l-2 border-white rounded-tl-lg" />
+                <div className="absolute top-3 right-3 w-8 h-8 border-t-2 border-r-2 border-white rounded-tr-lg" />
+                <div className="absolute bottom-3 left-3 w-8 h-8 border-b-2 border-l-2 border-white rounded-bl-lg" />
+                <div className="absolute bottom-3 right-3 w-8 h-8 border-b-2 border-r-2 border-white rounded-br-lg" />
+                {scanResult && (
+                  <div className={`absolute inset-0 flex flex-col items-center justify-center text-white text-center p-4 ${scanResult.type === 'valid' ? 'bg-green-600/90' : scanResult.type === 'already' ? 'bg-orange-500/90' : 'bg-red-600/90'}`}>
+                    {scanResult.type === 'valid' && <><Check className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Valid Ticket</p>{scanResult.name && <p className="text-sm">{scanResult.name}</p>}{scanResult.vehicle && <p className="text-xs opacity-80">{scanResult.vehicle}</p>}</>}
+                    {scanResult.type === 'already' && <><AlertTriangle className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Already Checked In</p>{scanResult.name && <p className="text-sm">{scanResult.name}</p>}{scanResult.time && <p className="text-xs opacity-80">at {scanResult.time}</p>}</>}
+                    {scanResult.type === 'invalid' && <><X className="w-16 h-16 mb-2" /><p className="text-xl font-bold">Invalid Ticket</p></>}
+                  </div>
+                )}
+              </div>
+              <Button onClick={stopScanner} variant="outline" className="w-full h-10 rounded-xl gap-2">
+                <X className="w-4 h-4" /> Stop Scanner
+              </Button>
+            </>
+          )}
+
+          <div className="flex gap-2">
+            <Input value={manualCode} onChange={e => setManualCode(e.target.value)} placeholder="Enter ticket code manually" className="flex-1" />
+            <Button onClick={() => { if (manualCode.trim()) { handleScanQR(manualCode.trim()); setManualCode(''); } }} disabled={!manualCode.trim()}>Check</Button>
+          </div>
         </div>
       )}
     </div>
