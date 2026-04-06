@@ -157,7 +157,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
+          .select('id, title, lat, lng, type, event_types, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -184,7 +184,7 @@ const Home = () => {
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          event_types: e.event_types, meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
           location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
@@ -233,7 +233,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
+          .select('id, title, lat, lng, type, event_types, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -266,7 +266,7 @@ const Home = () => {
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
+          event_types: e.event_types, meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
           location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
@@ -465,20 +465,29 @@ const Home = () => {
     if (pin.type !== 'events') return true;
     const ef = eventsFilters;
 
-    // Event sub-type from RPC data (spread into pin): event_type or type field
-    const eventSubType: string = pin.event_type || pin.subtype || '';
-    if (ef.filterEventTypes.length > 0 && eventSubType && !ef.filterEventTypes.includes(eventSubType)) return false;
-
-    // Vehicle focus
-    if (ef.filterVehicleFocus && ef.filterVehicleFocus !== 'all') {
-      const pinFocus = pin.vehicle_focus || 'all_welcome';
-      if (pinFocus !== 'all_welcome' && pinFocus !== ef.filterVehicleFocus) return false;
+    // Event type filter — check both event_types array and single type/subtype
+    if (ef.filterEventTypes && ef.filterEventTypes.length > 0) {
+      const pinTypes = [...(pin.event_types || []), pin.subtype, pin.event_type].filter(Boolean).map((t: string) => t.toLowerCase());
+      const hasMatch = ef.filterEventTypes.some((ft: string) => pinTypes.includes(ft.toLowerCase()));
+      if (!hasMatch) return false;
     }
 
-    // Meet style tags
-    if (ef.filterMeetStyles.length > 0) {
-      const eventTags: string[] = pin.meet_style_tags || [];
-      if (!ef.filterMeetStyles.some((tag: string) => eventTags.includes(tag))) return false;
+    // Vehicle focus filter
+    if (ef.filterVehicleFocus && ef.filterVehicleFocus !== 'all') {
+      const pinFocus = pin.vehicle_focus || 'all_welcome';
+      // specific_makes, event_style, vehicle_era handled by their own filters below
+      if (!['specific_makes', 'event_style', 'vehicle_era'].includes(ef.filterVehicleFocus)) {
+        if (pinFocus !== 'all_welcome' && pinFocus !== ef.filterVehicleFocus) return false;
+      }
+    }
+
+    // Event style (meet style tags) filter
+    if (ef.filterMeetStyles && ef.filterMeetStyles.length > 0) {
+      const pinStyles = (pin.meet_style_tags || []).map((s: string) => s.toLowerCase());
+      if (pinStyles.length > 0) {
+        const hasMatch = ef.filterMeetStyles.some((s: string) => pinStyles.includes(s.toLowerCase()));
+        if (!hasMatch) return false;
+      }
     }
 
     // Free entry only
@@ -496,15 +505,31 @@ const Home = () => {
 
     // Garage vehicle compatibility
     if (ef.filterGarageVehicle) {
+      const v = ef.filterGarageVehicle;
       const vf = pin.vehicle_focus || 'all_welcome';
-      if (vf !== 'all_welcome') {
-        if (vf === 'cars_only' && ef.filterGarageVehicle.vehicle_type !== 'car') return false;
-        if (vf === 'motorcycles_only' && ef.filterGarageVehicle.vehicle_type !== 'motorcycle') return false;
-        if (vf === 'specific_makes') {
-          const eventMakes: string[] = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
-          if (!eventMakes.includes(ef.filterGarageVehicle.make?.toLowerCase())) return false;
+      if (vf === 'cars_only' && !['car', 'classic', 'van', 'other'].includes((v.vehicle_type || '').toLowerCase())) return false;
+      if (vf === 'motorcycles_only' && (v.vehicle_type || '').toLowerCase() !== 'motorcycle') return false;
+      if (vf === 'specific_makes') {
+        const eventMakes: string[] = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
+        if (eventMakes.length > 0 && !eventMakes.includes((v.make || '').toLowerCase())) return false;
+      }
+      if (vf === 'vehicle_era' && v.year) {
+        const pinYears: string[] = pin.specific_years || [];
+        if (pinYears.length > 0) {
+          const yr = parseInt(v.year);
+          const hasMatch = pinYears.some((era: string) => {
+            if (era === 'Pre 50s') return yr < 1950;
+            if (era === 'Pre 60s') return yr < 1960;
+            if (era === 'Pre 70s') return yr < 1970;
+            if (era === 'Pre 80s') return yr < 1980;
+            if (era === 'Pre 90s') return yr < 1990;
+            if (era === 'Pre 00s') return yr < 2000;
+            return true;
+          });
+          if (!hasMatch) return false;
         }
       }
+      // event_style and all_welcome: show for any vehicle
     }
 
     // Specific brand filter
