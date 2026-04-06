@@ -150,7 +150,6 @@ const Home = () => {
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
   // Empty state
-  const [showEmptyState, setShowEmptyState] = useState(false);
 
   /* ── fetchAllPins: initial load without bounds filter ── */
   const fetchAllPins = useCallback(async () => {
@@ -207,12 +206,6 @@ const Home = () => {
       allPinsRef.current = mapped;
       setPins(mapped);
 
-      // Show empty state only if query succeeded but returned nothing
-      if (mapped.length === 0) {
-        setShowEmptyState(true);
-      } else {
-        setShowEmptyState(false);
-      }
     } catch {
       // Don't show empty state on error
     }
@@ -1012,23 +1005,6 @@ const Home = () => {
         <div className="absolute top-[120px] md:top-[130px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
           <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
-          </div>
-        </div>
-      )}
-
-      {/* Empty state when no pins found */}
-      {showEmptyState && activeCategory && !isNavigating && (
-        <div className="absolute bottom-28 left-4 right-4 z-30 animate-fade-up pointer-events-none">
-          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-5 py-4 text-center pointer-events-auto">
-            <p className="text-sm font-semibold text-foreground mb-1">No content in this area yet</p>
-            <p className="text-xs text-muted-foreground mb-3">Move the map or create the first event!</p>
-            <button
-              onClick={() => navigate('/add/event')}
-              className="text-sm font-medium px-4 py-2 rounded-xl text-white"
-              style={{ backgroundColor: '#d30d37' }}
-            >
-              Add Event
-            </button>
           </div>
         </div>
       )}
