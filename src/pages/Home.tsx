@@ -119,16 +119,16 @@ const Home = () => {
 
   /* ── Filter state ── */
   const [eventsFilters, setEventsFilters] = useState<EventsFilterState>({
-    distance: 25, types: [], dateFilter: null, specificDate: undefined,
+    distance: 0, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
     filterEventTypes: [], filterVehicleFocus: 'all', filterMeetStyles: [], filterFreeOnly: false,
     filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null, specificYears: [], filterSpecificBrands: [],
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
-    distance: 25, types: [], difficulty: [], duration: null, surface: [],
+    distance: 0, types: [], difficulty: [], duration: null, surface: [],
   });
   const [servicesFilters, setServicesFilters] = useState<ServicesFilterState>({
-    distance: 25, types: [], openNow: false,
+    distance: 0, types: [], openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
@@ -493,12 +493,15 @@ const Home = () => {
     // Free entry only
     if (ef.filterFreeOnly && !pin.is_free) return false;
 
-    // Date from
+    // Date filter — from quick date button (specificDate) or manual range
+    if (ef.specificDate && pin.date_start) {
+      const eventDay = new Date(pin.date_start).toDateString();
+      const filterDay = new Date(ef.specificDate).toDateString();
+      if (eventDay !== filterDay) return false;
+    }
     if (ef.filterDateFrom && pin.date_start) {
       if (new Date(pin.date_start) < new Date(ef.filterDateFrom)) return false;
     }
-
-    // Date to
     if (ef.filterDateTo && pin.date_start) {
       if (new Date(pin.date_start) > new Date(ef.filterDateTo + 'T23:59:59')) return false;
     }
