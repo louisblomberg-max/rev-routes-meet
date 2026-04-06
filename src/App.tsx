@@ -66,7 +66,8 @@ const ChoosePlan = React.lazy(() => import("./pages/ChoosePlan"));
 const DevTools = React.lazy(() => import("./pages/DevTools"));
 const StolenVehicles = React.lazy(() => import("./pages/StolenVehicles"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
-const Friends = React.lazy(() => import("./pages/Friends"));
+const ListingDetail = React.lazy(() => import("./pages/ListingDetail"));
+const CreateListing = React.lazy(() => import("./pages/CreateListing"));
 const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const TicketSuccess = React.lazy(() => import("./pages/TicketSuccess"));
 const OrganizerDashboard = React.lazy(() => import("./pages/OrganizerDashboard"));
@@ -164,7 +165,9 @@ const App = () => (
           <Route path="/stolen-vehicles" element={<ProtectedRoute><StolenVehicles /></ProtectedRoute>} />
           <Route path="/user/:username" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-          <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
+          <Route path="/listing/:id" element={<ProtectedRoute><ListingDetail /></ProtectedRoute>} />
+          <Route path="/add/listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
+          <Route path="/friends" element={<Navigate to="/my-friends" replace />} />
           <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
           <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />

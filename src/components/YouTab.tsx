@@ -26,23 +26,27 @@ const YouTab = () => {
   useEffect(() => {
     if (!user?.id) return;
     (async () => {
-      const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single();
-      if (data) {
-        setIsAvailableToHelp(data.available_to_help || false);
-        setHelpDistance(data.help_radius_miles || 10);
-        setFreeEventCredits(data.free_event_credits ?? 0);
-      }
+      try {
+        const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single();
+        if (data) {
+          setIsAvailableToHelp(data.available_to_help || false);
+          setHelpDistance(data.help_radius_miles || 10);
+          setFreeEventCredits(data.free_event_credits ?? 0);
+        }
+      } catch { /* continue with defaults */ }
       setIsProfileLoading(false);
     })();
     // Fetch tickets
     (async () => {
-      const [ticketsRes, passesRes] = await Promise.all([
-        supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
-        supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
-      ]);
-      const tickets = (ticketsRes.data || []).map((t: any) => ({ ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false }));
-      const passes = (passesRes.data || []).filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id)).map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
-      setMyTickets([...tickets, ...passes]);
+      try {
+        const [ticketsRes, passesRes] = await Promise.all([
+          supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
+          supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
+        ]);
+        const tickets = (ticketsRes.data || []).map((t: any) => ({ ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false }));
+        const passes = (passesRes.data || []).filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id)).map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
+        setMyTickets([...tickets, ...passes]);
+      } catch { /* continue with empty tickets */ }
     })();
   }, [user?.id]);
 
@@ -74,9 +78,9 @@ const YouTab = () => {
   };
 
   const planBadge = {
-    free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
-    pro: { label: 'Pro', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground border-0' },
-    club: { label: 'Club', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground border-0' },
+    free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
+    pro: { label: 'Pro Driver', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground border-0' },
+    club: { label: 'Club & Business', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground border-0' },
   };
 
   const badge = planBadge[currentPlan];
@@ -327,14 +331,7 @@ const YouTab = () => {
 
       {/* ── Utility ── */}
       <div className="px-4 pt-4 pb-2">
-        <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden divide-y divide-border/30">
-          <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors active:bg-muted">
-            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <span className="flex-1 text-left font-semibold text-foreground text-sm">RevNet Shop</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
+        <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
           <button
             onClick={() => navigate('/settings')}
             className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors active:bg-muted"

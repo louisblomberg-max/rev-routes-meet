@@ -18,13 +18,14 @@ export function useUserStatsData() {
 
   const fetchStats = useCallback(async () => {
     if (!user?.id) return;
-    const [vehicles, friends, clubs, events, routes, services] = await Promise.all([
+    const [vehicles, friends, clubs, events, routes, services, discussions] = await Promise.all([
       supabase.from('vehicles').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       supabase.from('friends').select('user_id', { count: 'exact', head: true }).or(`user_id.eq.${user.id},friend_id.eq.${user.id}`).eq('status', 'accepted'),
       supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', user.id),
       supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', user.id),
       supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
       supabase.from('saved_services').select('service_id', { count: 'exact', head: true }).eq('user_id', user.id),
+      supabase.from('forum_posts').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
     ]);
     setStats({
       garageCount: vehicles.count || 0,
@@ -32,7 +33,7 @@ export function useUserStatsData() {
       clubsCount: clubs.count || 0,
       eventsCount: events.count || 0,
       routesCount: routes.count || 0,
-      discussionsCount: 0,
+      discussionsCount: discussions.count || 0,
       savedServicesCount: services.count || 0,
     });
   }, [user?.id]);
