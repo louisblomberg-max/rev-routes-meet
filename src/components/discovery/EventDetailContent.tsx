@@ -276,6 +276,15 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         </div>
       </div>
 
+      {/* Event type badges */}
+      <div className="flex flex-wrap gap-1.5">
+        {(data.event_types?.length > 0 ? data.event_types : [data.type || data.eventType]).filter(Boolean).map((t: string) => (
+          <span key={t} className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-events/10 text-events">
+            {t}
+          </span>
+        ))}
+      </div>
+
       {/* Meet style tags */}
       {meetStyleTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">

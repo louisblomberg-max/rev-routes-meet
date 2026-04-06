@@ -487,6 +487,7 @@ const AddEvent = () => {
           banner_url: bannerUrl,
           photos: photoUrls,
           type: eventTypes[0] || '',
+          event_types: eventTypes,
           vehicle_focus: vehicleFocus,
           vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
           vehicle_types: vehicleFocus === 'cars_only' ? ['cars']
