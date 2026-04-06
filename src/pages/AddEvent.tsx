@@ -31,7 +31,7 @@ const VEHICLE_FOCUS_OPTIONS = [
   { id: 'all_welcome', label: 'All welcome', sub: 'Any vehicle can attend' },
   { id: 'cars_only', label: 'Cars only', sub: 'Four wheeled vehicles only' },
   { id: 'motorcycles_only', label: 'Motorcycles only', sub: 'Two wheeled vehicles only' },
-  { id: 'specific_makes', label: 'Specific Branding', sub: 'Choose which brands are welcome' },
+  { id: 'specific_makes', label: 'Specific Brand', sub: 'Choose which brands are welcome' },
   { id: 'event_style', label: 'Event Style', sub: 'Choose the style of your event' },
   { id: 'vehicle_era', label: 'Vehicle Era', sub: 'Select vehicle era' },
 ]
@@ -82,6 +82,7 @@ const AddEvent = () => {
   const [meetStyleTags, setMeetStyleTags] = useState<string[]>([])
   const [meetStyleSearch, setMeetStyleSearch] = useState('')
   const [specificYears, setSpecificYears] = useState<string[]>([])
+  const [yearSearch, setYearSearch] = useState('')
 
   // Section 5 — Dates
   const [dates, setDates] = useState([{
@@ -785,7 +786,7 @@ const AddEvent = () => {
             <div className="mt-3 space-y-2">
               <p className="text-xs font-medium text-foreground">Event Style</p>
               {meetStyleTags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 mb-1">
                   {meetStyleTags.map(tag => (
                     <button key={tag} onClick={() => setMeetStyleTags(prev => prev.filter(t => t !== tag))}
                       className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-events text-events-foreground text-xs font-semibold">
@@ -794,13 +795,17 @@ const AddEvent = () => {
                   ))}
                 </div>
               )}
-              <input type="text" placeholder="Search event styles..." value={meetStyleSearch} onChange={e => setMeetStyleSearch(e.target.value)}
-                className="w-full border border-border/50 rounded-xl px-3 py-2 text-sm bg-background" />
-              <div className="flex flex-wrap gap-1.5">
-                {MEET_STYLE_TAGS.filter(tag => !meetStyleTags.includes(tag)).filter(tag => !meetStyleSearch || tag.toLowerCase().includes(meetStyleSearch.toLowerCase())).map(tag => (
-                  <button key={tag} onClick={() => { setMeetStyleTags(prev => [...prev, tag]); setMeetStyleSearch(''); }}
-                    className="px-2.5 py-1 rounded-xl text-xs font-semibold border bg-muted/50 text-muted-foreground border-border/50">{tag}</button>
-                ))}
+              <div className="relative">
+                <input type="text" placeholder="Search event styles..." value={meetStyleSearch} onChange={e => setMeetStyleSearch(e.target.value)}
+                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background" />
+                {meetStyleSearch && (
+                  <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-48 overflow-y-auto shadow-lg">
+                    {MEET_STYLE_TAGS.filter(tag => !meetStyleTags.includes(tag)).filter(tag => tag.toLowerCase().includes(meetStyleSearch.toLowerCase())).map(tag => (
+                      <button key={tag} onClick={() => { setMeetStyleTags(prev => [...prev, tag]); setMeetStyleSearch(''); }}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted/50 border-b border-border/30 last:border-none">{tag}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -809,13 +814,27 @@ const AddEvent = () => {
           {vehicleFocus === 'vehicle_era' && (
             <div className="mt-3 space-y-2">
               <p className="text-xs font-medium text-foreground">Vehicle Era</p>
-              <div className="flex flex-wrap gap-1.5">
-                {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].map(year => (
-                  <button key={year} onClick={() => setSpecificYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year])}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${specificYears.includes(year) ? 'bg-events text-events-foreground border-events' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>
-                    {year}
-                  </button>
-                ))}
+              {specificYears.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-1">
+                  {specificYears.map(y => (
+                    <button key={y} onClick={() => setSpecificYears(prev => prev.filter(x => x !== y))}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-events text-events-foreground text-xs font-semibold">
+                      {y} <X className="w-3 h-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="relative">
+                <input type="text" placeholder="Search vehicle era..." value={yearSearch} onChange={e => setYearSearch(e.target.value)}
+                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background" />
+                {yearSearch && (
+                  <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-48 overflow-y-auto shadow-lg">
+                    {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].filter(y => !specificYears.includes(y)).filter(y => y.toLowerCase().includes(yearSearch.toLowerCase())).map(y => (
+                      <button key={y} onClick={() => { setSpecificYears(prev => [...prev, y]); setYearSearch(''); }}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted/50 border-b border-border/30 last:border-none">{y}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

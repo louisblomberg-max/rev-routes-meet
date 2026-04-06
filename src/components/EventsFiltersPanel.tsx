@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Slider } from '@/components/ui/slider';
+import { getMakesByType } from '@/data/vehicles';
 
 // Error boundary to prevent white screen if this panel crashes
 class FilterErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -42,6 +43,7 @@ export interface EventsFilterState {
   filterGarageVehicleId: string | null;
   filterGarageVehicle: any | null;
   specificYears: string[];
+  filterSpecificBrands: string[];
 }
 
 interface EventsFiltersPanelProps {
@@ -65,7 +67,7 @@ const VEHICLE_FOCUS_OPTIONS = [
   { id: 'all', label: 'All welcome' },
   { id: 'cars_only', label: 'Cars only' },
   { id: 'motorcycles_only', label: 'Motorcycles only' },
-  { id: 'specific_makes', label: 'Specific makes' },
+  { id: 'specific_makes', label: 'Specific Brand' },
 ];
 
 const MEET_STYLE_TAGS = [
@@ -86,6 +88,8 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
   const [isOpen, setIsOpen] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [myGarageVehicles, setMyGarageVehicles] = useState<any[]>([]);
+  const [brandSearch, setBrandSearch] = useState('');
+  const allMakes = useMemo(() => getMakesByType('all'), []);
 
   // Load user garage vehicles for filter
   useEffect(() => {
@@ -122,6 +126,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
     if (filters.filterMeetStyles?.length > 0) count++;
     if (filters.filterFreeOnly) count++;
     if (filters.specificYears?.length > 0) count++;
+    if (filters.filterSpecificBrands?.length > 0) count++;
     if (filters.filterGarageVehicleId) count++;
     return count;
   }, [filters]);
@@ -139,6 +144,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
       filterGarageVehicleId: null,
       filterGarageVehicle: null,
       specificYears: [],
+      filterSpecificBrands: [],
       // Also clear legacy filters
       types: [],
       dateFilter: null,
@@ -345,7 +351,36 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
             </div>
           </div>
 
-          {/* MEET STYLE */}
+          {/* SPECIFIC BRAND SEARCH — when specific_makes selected */}
+          {(filters.filterVehicleFocus === 'specific_makes') && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-foreground">Brand Search</p>
+              {(filters.filterSpecificBrands || []).length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {(filters.filterSpecificBrands || []).map((b: string) => (
+                    <button key={b} onClick={() => onFiltersChange({ ...filters, filterSpecificBrands: (filters.filterSpecificBrands || []).filter((x: string) => x !== b) })}
+                      className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-events text-events-foreground text-[10px] font-semibold">
+                      {b} <span className="text-[8px]">×</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="relative">
+                <input type="text" placeholder="Search brands..." value={brandSearch} onChange={e => setBrandSearch(e.target.value)}
+                  className="w-full border border-border/50 rounded-xl px-3 py-2 text-xs bg-background" />
+                {brandSearch && (
+                  <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-36 overflow-y-auto shadow-lg">
+                    {allMakes.filter((m: any) => m.name.toLowerCase().includes(brandSearch.toLowerCase())).filter((m: any) => !(filters.filterSpecificBrands || []).includes(m.name)).slice(0, 8).map((m: any) => (
+                      <button key={m.id} onClick={() => { onFiltersChange({ ...filters, filterSpecificBrands: [...(filters.filterSpecificBrands || []), m.name] }); setBrandSearch(''); }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 border-b border-border/30 last:border-none">{m.name}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* EVENT STYLE */}
           <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Event Style</p>
             <div className="flex flex-wrap gap-1.5">

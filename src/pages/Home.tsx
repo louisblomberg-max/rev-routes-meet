@@ -122,7 +122,7 @@ const Home = () => {
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
     filterEventTypes: [], filterVehicleFocus: 'all', filterMeetStyles: [], filterFreeOnly: false,
-    filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null, specificYears: [],
+    filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null, specificYears: [], filterSpecificBrands: [],
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25, types: [], difficulty: [], duration: null, surface: [],
@@ -504,6 +504,15 @@ const Home = () => {
           const eventMakes: string[] = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
           if (!eventMakes.includes(ef.filterGarageVehicle.make?.toLowerCase())) return false;
         }
+      }
+    }
+
+    // Specific brand filter
+    if (ef.filterVehicleFocus === 'specific_makes' && ef.filterSpecificBrands && ef.filterSpecificBrands.length > 0) {
+      const pinBrands = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
+      if (pinBrands.length > 0) {
+        const hasMatch = ef.filterSpecificBrands.some((b: string) => pinBrands.some((pb: string) => pb.includes(b.toLowerCase()) || b.toLowerCase().includes(pb)));
+        if (!hasMatch) return false;
       }
     }
 
