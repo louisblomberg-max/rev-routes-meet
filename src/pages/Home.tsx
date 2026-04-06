@@ -603,7 +603,9 @@ const Home = () => {
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        handlePinClickRef.current(pin);
+        e.preventDefault();
+        const handler = handlePinClickRef.current;
+        if (handler) handler(pin);
       });
 
       const marker = new mapboxgl.Marker({ element: el, anchor: 'center' })
@@ -630,32 +632,34 @@ const Home = () => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && mapRef.current) {
         mapRef.current.resize();
-        setTimeout(() => renderMarkers(), 100);
+        setTimeout(() => refreshPins(), 300);
+        setTimeout(() => renderMarkers(), 600);
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [renderMarkers]);
+  }, [renderMarkers, refreshPins]);
 
   useEffect(() => {
     const handleFocus = () => {
       if (mapRef.current) {
         mapRef.current.resize();
-        setTimeout(() => renderMarkers(), 150);
+        setTimeout(() => refreshPins(), 300);
+        setTimeout(() => renderMarkers(), 600);
       }
     };
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [renderMarkers]);
+  }, [renderMarkers, refreshPins]);
 
   // Re-render pins when switching back to discovery tab
   useEffect(() => {
     if (activeTab === 'discovery') {
       setTimeout(() => {
         if (mapRef.current) mapRef.current.resize();
-        renderMarkers();
-        refreshPins();
-      }, 200);
+      }, 100);
+      setTimeout(() => refreshPins(), 300);
+      setTimeout(() => renderMarkers(), 600);
     }
   }, [activeTab]);
 
@@ -826,9 +830,11 @@ const Home = () => {
     }
   };
 
-  /* ── Bug 2 fix — stable ref for handlePinClick so marker listeners never go stale ── */
-  const handlePinClickRef = useRef(handlePinClick);
-  handlePinClickRef.current = handlePinClick;
+  /* ── Stable ref for handlePinClick so marker listeners never go stale ── */
+  const handlePinClickRef = useRef<(pin: any) => void>(() => {});
+  useEffect(() => {
+    handlePinClickRef.current = handlePinClick;
+  });
 
   const handleCloseDetail = () => setSelectedDetail(null);
 
