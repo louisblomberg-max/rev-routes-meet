@@ -219,6 +219,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await loadUserProfile(user.id, user.email);
   }, [user?.id, user?.email, loadUserProfile]);
 
+  // Safety timeout — never stay loading forever
+  useEffect(() => {
+    const timeout = setTimeout(() => { setIsLoading(false); }, 5000);
+    return () => clearTimeout(timeout);
+  }, []);
+
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
@@ -231,7 +237,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!mounted) return;
         if (session?.user) {
           try {
-            await loadUserProfile(session.user.id, session.user.email ?? undefined);
+            // Race profile fetch against an 8-second timeout
+            await Promise.race([
+              loadUserProfile(session.user.id, session.user.email ?? undefined),
+              new Promise(resolve => setTimeout(resolve, 8000)),
+            ]);
           } catch {
             await supabase.auth.signOut();
             setUser(null);

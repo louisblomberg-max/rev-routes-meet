@@ -294,20 +294,23 @@ const Home = () => {
 
   // Realtime subscriptions for new content
   useEffect(() => {
-    const channel = supabase
-      .channel('map-realtime-inserts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, () => {
-        refreshPins();
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'routes' }, () => {
-        refreshPins();
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'services' }, () => {
-        refreshPins();
-      })
-      .subscribe();
+    let channel: any;
+    try {
+      channel = supabase
+        .channel('map-realtime-inserts')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'events' }, () => {
+          refreshPins();
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'routes' }, () => {
+          refreshPins();
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'services' }, () => {
+          refreshPins();
+        })
+        .subscribe();
+    } catch { /* realtime not available */ }
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { if (channel) supabase.removeChannel(channel); };
   }, [refreshPins]);
 
   // Friend live location tracking via RPC + realtime
