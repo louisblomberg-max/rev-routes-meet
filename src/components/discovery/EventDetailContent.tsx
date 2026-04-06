@@ -148,10 +148,18 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
           }
           return;
         }
-        await supabase.from('event_attendees').insert({ event_id: eventId, user_id: userId, status: 'attending' });
+        const { data: attendRow } = await supabase.from('event_attendees')
+          .insert({ event_id: eventId, user_id: userId, status: 'attending' })
+          .select('qr_code_token')
+          .single();
         setIsAttending(true);
         setAttendeeCount(prev => prev + 1);
         toast.success("You're attending!");
+
+        // Navigate to free ticket pass if QR token was generated
+        if (attendRow?.qr_code_token) {
+          navigate(`/ticket-success?ticket_id=free&event_id=${eventId}&token=${attendRow.qr_code_token}&type=free`);
+        }
 
         const creatorId = data.created_by || data.createdBy;
         if (creatorId && creatorId !== userId) {

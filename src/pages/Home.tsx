@@ -647,6 +647,25 @@ const Home = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, [renderMarkers]);
 
+  // Re-render pins when switching back to discovery tab
+  useEffect(() => {
+    if (activeTab === 'discovery') {
+      setTimeout(() => {
+        if (mapRef.current) mapRef.current.resize();
+        renderMarkers();
+        refreshPins();
+      }, 200);
+    }
+  }, [activeTab]);
+
+  // Auto-refresh pin data every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (activeTab === 'discovery' && activeCategory) refreshPins();
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [activeTab, activeCategory]);
+
   // Center map on newly published item
   useEffect(() => {
     const navState = location.state as { centerOn?: { lat: number; lng: number }; category?: string; showServiceId?: string; showEventId?: string; showRouteId?: string; refreshMap?: boolean } | null;

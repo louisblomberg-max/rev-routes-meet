@@ -14,6 +14,9 @@ const TicketSuccess = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const ticketId = searchParams.get('ticket_id');
+  const isFreePass = searchParams.get('type') === 'free';
+  const freeEventId = searchParams.get('event_id');
+  const freeToken = searchParams.get('token');
 
   const [ticket, setTicket] = useState<any>(null);
   const [event, setEvent] = useState<any>(null);
@@ -24,6 +27,18 @@ const TicketSuccess = () => {
   useEffect(() => {
     if (!ticketId) { setLoading(false); return; }
     const load = async () => {
+      if (isFreePass && freeEventId && freeToken) {
+        // Free attendee pass
+        const { data: e } = await supabase.from('events').select('id, title, date_start, date_end, location, banner_url').eq('id', freeEventId).single();
+        setEvent(e);
+        setTicket({ id: 'free', amount_paid: 0, qr_code_token: freeToken });
+        const url = await QRCode.toDataURL(freeToken, { width: 200, margin: 2 });
+        setQrDataUrl(url);
+        setLoading(false);
+        return;
+      }
+
+      // Paid ticket
       const { data: t } = await supabase.from('event_tickets').select('*').eq('id', ticketId).single();
       if (!t) { setLoading(false); return; }
       setTicket(t);
