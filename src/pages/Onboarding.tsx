@@ -271,20 +271,24 @@ const Onboarding = () => {
 
       // 4. Insert vehicles
       if (vehicles.length > 0) {
-        const vehicleRows = vehicles.map(v => ({
+        const vehicleRows = vehicles.filter(v => v.makeName).map(v => ({
           user_id: userId,
-          vehicle_type: v.vehicleType,
+          vehicle_type: v.vehicleType || 'car',
           make: v.makeName,
-          model: v.model,
+          make_id: v.makeId || null,
+          model: v.model || null,
           variant: v.variant || null,
           year: v.year ? String(v.year) : null,
           colour: v.colour || null,
           number_plate: v.numberPlate || null,
-          visibility: v.visibility,
+          visibility: v.visibility || 'public',
+          is_primary: false,
         }));
-        const { error: vehError } = await supabase.from('vehicles').insert(vehicleRows);
-        if (vehError) {
-          toast.error('Some vehicles could not be saved. You can add them later in My Garage.');
+        if (vehicleRows.length > 0) {
+          const { error: vehError } = await supabase.from('vehicles').insert(vehicleRows);
+          if (vehError) {
+            toast.error(`Vehicle save failed: ${vehError.message}`);
+          }
         }
       }
 
