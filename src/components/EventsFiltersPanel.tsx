@@ -347,7 +347,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
 
           {/* MEET STYLE */}
           <div className="space-y-2.5">
-            <p className="text-xs font-medium text-foreground">Meet Style</p>
+            <p className="text-xs font-medium text-foreground">Event Style</p>
             <div className="flex flex-wrap gap-1.5">
               {MEET_STYLE_TAGS.map(tag => (
                 <button

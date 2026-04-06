@@ -285,7 +285,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         ))}
       </div>
 
-      {/* Meet style tags */}
+      {/* Event style tags */}
       {meetStyleTags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {meetStyleTags.map((tag: string) => (

@@ -32,6 +32,8 @@ const VEHICLE_FOCUS_OPTIONS = [
   { id: 'cars_only', label: 'Cars only', sub: 'Four wheeled vehicles only' },
   { id: 'motorcycles_only', label: 'Motorcycles only', sub: 'Two wheeled vehicles only' },
   { id: 'specific_makes', label: 'Specific Branding', sub: 'Choose which brands are welcome' },
+  { id: 'event_style', label: 'Event Style', sub: 'Choose the style of your event' },
+  { id: 'vehicle_era', label: 'Vehicle Era', sub: 'Select vehicle era' },
 ]
 
 const AddEvent = () => {
@@ -71,7 +73,7 @@ const AddEvent = () => {
   const [eventTypes, setEventTypes] = useState<string[]>([])
 
   // Section 3 — Vehicle focus
-  const [vehicleFocus, setVehicleFocus] = useState<'all_welcome' | 'cars_only' | 'motorcycles_only' | 'specific_makes'>('all_welcome')
+  const [vehicleFocus, setVehicleFocus] = useState<string>('all_welcome')
   const [specificMakes, setSpecificMakes] = useState<string[]>([])
   const [makeSearch, setMakeSearch] = useState('')
   const [showMakeSuggestions, setShowMakeSuggestions] = useState(false)
@@ -715,24 +717,19 @@ const AddEvent = () => {
             </div>
             <h2 className="text-base font-bold">Vehicle Focus *</h2>
           </div>
-          <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2">
             {VEHICLE_FOCUS_OPTIONS.map(opt => (
               <button
                 key={opt.id}
-                onClick={() => setVehicleFocus(opt.id as any)}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+                onClick={() => setVehicleFocus(vehicleFocus === opt.id ? 'all_welcome' : opt.id)}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
                   vehicleFocus === opt.id
                     ? 'bg-events/10 border-events'
                     : 'bg-muted/30 border-border/50'
                 }`}
               >
-                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                  vehicleFocus === opt.id ? 'bg-events border-events' : 'border-muted-foreground'
-                }`} />
-                <div>
-                  <p className="text-sm font-medium">{opt.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{opt.sub}</p>
-                </div>
+                <p className="text-xs font-semibold">{opt.label}</p>
+                <p className="text-[9px] text-muted-foreground leading-tight">{opt.sub}</p>
               </button>
             ))}
           </div>
@@ -782,74 +779,46 @@ const AddEvent = () => {
               </div>
             </div>
           )}
-        </div>
 
-        {/* SECTION 4 — Meet style tags */}
-        <div className="bg-card rounded-2xl border border-border/50 p-5">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
-              <Tag className="w-4 h-4 text-events" />
-            </div>
-            <h2 className="text-base font-bold">Meet Style <span className="text-muted-foreground text-sm font-normal">(optional)</span></h2>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">What best describes this event? Select all that apply.</p>
-          {/* Selected tags */}
-          {meetStyleTags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {meetStyleTags.map(tag => (
-                <button key={tag} onClick={() => setMeetStyleTags(prev => prev.filter(t => t !== tag))}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-events text-events-foreground text-xs font-semibold">
-                  {tag} <X className="w-3 h-3" />
-                </button>
-              ))}
+          {/* Event Style picker */}
+          {vehicleFocus === 'event_style' && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-foreground">Event Style</p>
+              {meetStyleTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {meetStyleTags.map(tag => (
+                    <button key={tag} onClick={() => setMeetStyleTags(prev => prev.filter(t => t !== tag))}
+                      className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-events text-events-foreground text-xs font-semibold">
+                      {tag} <X className="w-3 h-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+              <input type="text" placeholder="Search event styles..." value={meetStyleSearch} onChange={e => setMeetStyleSearch(e.target.value)}
+                className="w-full border border-border/50 rounded-xl px-3 py-2 text-sm bg-background" />
+              <div className="flex flex-wrap gap-1.5">
+                {MEET_STYLE_TAGS.filter(tag => !meetStyleTags.includes(tag)).filter(tag => !meetStyleSearch || tag.toLowerCase().includes(meetStyleSearch.toLowerCase())).map(tag => (
+                  <button key={tag} onClick={() => { setMeetStyleTags(prev => [...prev, tag]); setMeetStyleSearch(''); }}
+                    className="px-2.5 py-1 rounded-xl text-xs font-semibold border bg-muted/50 text-muted-foreground border-border/50">{tag}</button>
+                ))}
+              </div>
             </div>
           )}
-          {/* Search + available tags */}
-          <input
-            type="text"
-            placeholder="Search meet styles..."
-            value={meetStyleSearch}
-            onChange={e => setMeetStyleSearch(e.target.value)}
-            className="w-full border border-border/50 rounded-xl px-3 py-2 text-sm bg-background mb-2"
-          />
-          <div className="flex flex-wrap gap-2">
-            {MEET_STYLE_TAGS
-              .filter(tag => !meetStyleTags.includes(tag))
-              .filter(tag => !meetStyleSearch || tag.toLowerCase().includes(meetStyleSearch.toLowerCase()))
-              .map(tag => (
-              <button
-                key={tag}
-                onClick={() => { setMeetStyleTags(prev => [...prev, tag]); setMeetStyleSearch(''); }}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all bg-muted/50 text-muted-foreground border-border/50"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {/* SECTION 4b — Specific Year */}
-        <div className="bg-card rounded-2xl border border-border/50 p-5">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
-              <Calendar className="w-4 h-4 text-events" />
+          {/* Vehicle Era picker */}
+          {vehicleFocus === 'vehicle_era' && (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs font-medium text-foreground">Vehicle Era</p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].map(year => (
+                  <button key={year} onClick={() => setSpecificYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year])}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${specificYears.includes(year) ? 'bg-events text-events-foreground border-events' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>
+                    {year}
+                  </button>
+                ))}
+              </div>
             </div>
-            <h2 className="text-base font-bold">Vehicle Era <span className="text-muted-foreground text-sm font-normal">(optional)</span></h2>
-          </div>
-          <p className="text-xs text-muted-foreground mb-3">What era of vehicles is this event for?</p>
-          <div className="flex flex-wrap gap-2">
-            {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].map(year => (
-              <button
-                key={year}
-                onClick={() => setSpecificYears(prev => prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year])}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-                  specificYears.includes(year)
-                    ? 'bg-events text-events-foreground border-events'
-                    : 'bg-muted/50 text-muted-foreground border-border/50'
-                }`}
-              >{year}</button>
-            ))}
-          </div>
+          )}
         </div>
 
         {/* SECTION 5 — Dates and times */}
