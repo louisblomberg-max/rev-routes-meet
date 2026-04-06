@@ -20,40 +20,44 @@ const YouTab = () => {
   const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
   const [helpDistance, setHelpDistance] = useState(10);
   const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
-  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [detailsLoaded, setDetailsLoaded] = useState(false);
   const [myTickets, setMyTickets] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
+    // Profile details — race against 3s timeout
     (async () => {
       try {
-        const { data } = await supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single();
-        if (data) {
-          setIsAvailableToHelp(data.available_to_help || false);
-          setHelpDistance(data.help_radius_miles || 10);
-          setFreeEventCredits(data.free_event_credits ?? 0);
-        }
-      } catch { /* continue with defaults */ }
-      setIsProfileLoading(false);
-    })();
-    // Fetch tickets
-    (async () => {
-      try {
-        const [ticketsRes, passesRes] = await Promise.all([
-          supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
-          supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
+        const result = await Promise.race([
+          supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single(),
+          new Promise<null>(r => setTimeout(() => r(null), 3000)),
         ]);
-        const tickets = (ticketsRes.data || []).map((t: any) => ({ ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false }));
-        const passes = (passesRes.data || []).filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id)).map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
-        setMyTickets([...tickets, ...passes]);
-      } catch { /* continue with empty tickets */ }
+        if (result && 'data' in result && result.data) {
+          setIsAvailableToHelp(result.data.available_to_help || false);
+          setHelpDistance(result.data.help_radius_miles || 10);
+          setFreeEventCredits(result.data.free_event_credits ?? 0);
+        }
+      } catch { /* defaults */ }
+      setDetailsLoaded(true);
     })();
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (user?.id) return;
-    const timer = setTimeout(() => setIsProfileLoading(false), 2000);
-    return () => clearTimeout(timer);
+    // Tickets — race against 3s timeout
+    (async () => {
+      try {
+        const result = await Promise.race([
+          Promise.all([
+            supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
+            supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
+          ]),
+          new Promise<null>(r => setTimeout(() => r(null), 3000)),
+        ]);
+        if (result && Array.isArray(result)) {
+          const [ticketsRes, passesRes] = result;
+          const tickets = (ticketsRes.data || []).map((t: any) => ({ ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false }));
+          const passes = (passesRes.data || []).filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id)).map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
+          setMyTickets([...tickets, ...passes]);
+        }
+      } catch { /* empty */ }
+    })();
   }, [user?.id]);
 
   const handleAvailableToggle = async (v: boolean) => {
@@ -108,21 +112,13 @@ const YouTab = () => {
     navigate(tile.route);
   };
 
-  if (isProfileLoading) {
+  if (!user) {
     return (
       <div className="mobile-container bg-background min-h-screen px-4 pt-8 md:max-w-[768px] md:mx-auto">
         <div className="flex flex-col items-center gap-3">
           <Skeleton className="w-[72px] h-[72px] rounded-full" />
           <Skeleton className="h-5 w-32" />
           <Skeleton className="h-4 w-24" />
-        </div>
-        <div className="flex justify-around mt-6">
-          <Skeleton className="h-16 w-20 rounded-xl" />
-          <Skeleton className="h-16 w-20 rounded-xl" />
-          <Skeleton className="h-16 w-20 rounded-xl" />
-        </div>
-        <div className="grid grid-cols-2 gap-3 mt-6">
-          {[1,2,3,4,5,6].map(i => <Skeleton key={i} className="h-20 rounded-xl" />)}
         </div>
       </div>
     );
