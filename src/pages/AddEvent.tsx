@@ -68,7 +68,7 @@ const AddEvent = () => {
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
 
   // Section 2 — Event type
-  const [eventType, setEventType] = useState('')
+  const [eventTypes, setEventTypes] = useState<string[]>([])
 
   // Section 3 — Vehicle focus
   const [vehicleFocus, setVehicleFocus] = useState<'all_welcome' | 'cars_only' | 'motorcycles_only' | 'specific_makes'>('all_welcome')
@@ -391,7 +391,7 @@ const AddEvent = () => {
     if (!description.trim() || description.trim().split(/\s+/).length < 15) {
       toast.error('Description must be at least 15 words'); return false
     }
-    if (!eventType) { toast.error('Please select an event type'); return false }
+    if (eventTypes.length === 0) { toast.error('Please select at least one event type'); return false }
     if (!location.trim()) { toast.error('Please enter a location'); return false }
     if (!locationLat || !locationLng) { toast.error('Please select a location from the dropdown'); return false }
     const validDatesList = dates.filter(d => d.date)
@@ -486,7 +486,7 @@ const AddEvent = () => {
           description: description.trim(),
           banner_url: bannerUrl,
           photos: photoUrls,
-          type: eventType,
+          type: eventTypes[0] || '',
           vehicle_focus: vehicleFocus,
           vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
           vehicle_types: vehicleFocus === 'cars_only' ? ['cars']
@@ -690,9 +690,9 @@ const AddEvent = () => {
             {EVENT_TYPES.map(type => (
               <button
                 key={type}
-                onClick={() => setEventType(eventType === type ? '' : type)}
+                onClick={() => setEventTypes(prev => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type])}
                 className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                  eventType === type
+                  eventTypes.includes(type)
                     ? 'bg-events text-events-foreground border-events'
                     : 'bg-muted/50 text-muted-foreground border-border/50'
                 }`}
