@@ -101,14 +101,22 @@ const Profile = () => {
   }, [profile]);
 
   const planBadge = {
-    free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
-    pro: { label: 'Pro', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
-    club: { label: 'Club', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground' },
+    free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
+    pro: { label: 'Pro Driver', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
+    club: { label: 'Club & Business', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground' },
   };
   const currentBadge = planBadge[plan as keyof typeof planBadge] || planBadge.free;
   const BadgeIcon = currentBadge.icon;
 
-  const handleShare = () => { navigator.clipboard.writeText(window.location.href); toast.success('Profile link copied!'); };
+  const handleShare = async () => {
+    const url = `${window.location.origin}/user/${username}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: displayName, url }); } catch {}
+    } else {
+      await navigator.clipboard.writeText(url);
+      toast.success('Profile link copied!');
+    }
+  };
 
   const handleSaveProfile = async () => {
     if (!authUser?.id) return;

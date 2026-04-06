@@ -188,9 +188,9 @@ const YouTab = () => {
               <button
                 onClick={() => {
                   if (navigator.share) {
-                    navigator.share({ title: user?.displayName || 'My Profile', url: window.location.origin + '/profile' });
+                    navigator.share({ title: user?.displayName || 'My Profile', url: window.location.origin + '/user/' + (user?.username || '') });
                   } else {
-                    navigator.clipboard.writeText(window.location.origin + '/profile');
+                    navigator.clipboard.writeText(window.location.origin + '/user/' + (user?.username || ''));
                     toast.success('Profile link copied!');
                   }
                 }}
