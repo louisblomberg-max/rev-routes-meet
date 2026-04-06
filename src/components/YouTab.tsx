@@ -52,13 +52,25 @@ const YouTab = () => {
     return () => clearTimeout(timer);
   }, [user?.id]);
 
-  const handleAvailableToggle = (v: boolean) => {
+  const handleAvailableToggle = async (v: boolean) => {
+    const prev = isAvailableToHelp;
     setIsAvailableToHelp(v);
-    if (user?.id) supabase.from('profiles').update({ available_to_help: v }).eq('id', user.id);
+    if (!user?.id) return;
+    const { error } = await supabase.from('profiles').update({ available_to_help: v }).eq('id', user.id);
+    if (error) {
+      setIsAvailableToHelp(prev);
+      toast.error('Failed to save. Please try again.');
+    }
   };
-  const handleHelpDistanceCommit = (v: number[]) => {
+  const handleHelpDistanceCommit = async (v: number[]) => {
+    const prev = helpDistance;
     setHelpDistance(v[0]);
-    if (user?.id) supabase.from('profiles').update({ help_radius_miles: v[0] }).eq('id', user.id);
+    if (!user?.id) return;
+    const { error } = await supabase.from('profiles').update({ help_radius_miles: v[0] }).eq('id', user.id);
+    if (error) {
+      setHelpDistance(prev);
+      toast.error('Failed to save. Please try again.');
+    }
   };
 
   const planBadge = {
