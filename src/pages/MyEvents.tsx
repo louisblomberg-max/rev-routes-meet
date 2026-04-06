@@ -23,18 +23,17 @@ const MyEvents = () => {
   const { user } = useAuth();
   const { currentPlan } = usePlan();
   const { upcoming, past, saved, isLoading } = useUserEvents();
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'hosting' | 'saved'>('upcoming');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'saved'>('upcoming');
   const [attendeeMap, setAttendeeMap] = useState<Record<string, any[]>>({});
 
   const hosted = upcoming.filter(e => e.isHost);
   const tabs = [
     { id: 'upcoming' as const, label: 'Upcoming', count: upcoming.length, icon: CalendarCheck },
     { id: 'past' as const, label: 'Past', count: past.length, icon: Clock },
-    { id: 'hosting' as const, label: 'Hosting', count: hosted.length, icon: Calendar },
     { id: 'saved' as const, label: 'Saved', count: saved.length, icon: Bookmark },
   ];
 
-  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : activeTab === 'hosting' ? hosted : saved;
+  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : saved;
 
   // Fetch attendee avatars for hosted events
   useEffect(() => {

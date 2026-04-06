@@ -206,7 +206,7 @@ export default function ClubProfile() {
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }}
             className="absolute top-4 left-4 w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white safe-top"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -279,7 +279,7 @@ export default function ClubProfile() {
         {/* Back and actions */}
         <div className="absolute top-4 left-4 right-4 flex justify-between safe-top">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }}
             className="w-9 h-9 rounded-xl bg-black/40 backdrop-blur flex items-center justify-center text-white"
           >
             <ChevronLeft className="w-5 h-5" />

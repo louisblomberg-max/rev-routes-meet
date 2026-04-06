@@ -56,7 +56,7 @@ const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => voi
       });
       return;
     }
-    toast.info('Create listing coming soon');
+    navigate('/add/listing');
   };
 
   return (

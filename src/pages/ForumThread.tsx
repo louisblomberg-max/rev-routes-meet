@@ -109,7 +109,7 @@ const ForumThread = () => {
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground"><MessageCircle className="w-5 h-5" /><span className="text-sm">{comments.length}</span></div>
             <button className="p-2 hover:bg-muted rounded-full ml-auto" onClick={() => { if (navigator.share) navigator.share({ title: post.title, url: window.location.href }).catch(() => {}); else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); } }}><Share2 className="w-5 h-5 text-muted-foreground" /></button>
-            <button className="p-2 hover:bg-muted rounded-full" onClick={() => { toast.success('Report submitted. Thank you.'); }}><Flag className="w-5 h-5 text-muted-foreground" /></button>
+            <button className="p-2 hover:bg-muted rounded-full" onClick={async () => { if (user?.id && post?.id) { await supabase.from('club_reports').insert({ reporter_id: user.id, content_type: 'forum_post', content_id: post.id }); } toast.success('Report submitted. Thank you.'); }}><Flag className="w-5 h-5 text-muted-foreground" /></button>
           </div>
         </div>
         <div className="p-4">
