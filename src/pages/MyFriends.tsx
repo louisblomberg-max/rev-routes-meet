@@ -12,21 +12,42 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from 'sonner';
 import { useUserFriends } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
-
-const suggestedFriends = [
-  { id: 's1', username: 'porsche_paul', displayName: 'Paul Richards', avatar: null, mutualFriends: 12 },
-  { id: 's2', username: 'bmw_sarah', displayName: 'Sarah Collins', avatar: null, mutualFriends: 8 },
-  { id: 's3', username: 'jdm_legend', displayName: 'Takeshi Yamamoto', avatar: null, mutualFriends: 5 },
-  { id: 's4', username: 'track_day_tom', displayName: 'Tom Bennett', avatar: null, mutualFriends: 3 },
-];
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const MyFriends = () => {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const { accepted, pendingReceived, pendingSent, isLoading } = useUserFriends();
   const { friends: friendsRepo } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState<'all' | 'requests' | 'suggested'>('all');
+  const [findQuery, setFindQuery] = useState('');
+  const [findResults, setFindResults] = useState<any[]>([]);
+  const [findLoading, setFindLoading] = useState(false);
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
+
+  const handleFindSearch = async (q: string) => {
+    setFindQuery(q);
+    if (q.length < 2) { setFindResults([]); return; }
+    setFindLoading(true);
+    const { data } = await supabase.from('profiles')
+      .select('id, display_name, username, avatar_url')
+      .or(`display_name.ilike.%${q}%,username.ilike.%${q}%`)
+      .neq('id', authUser?.id || '')
+      .limit(10);
+    setFindResults(data || []);
+    setFindLoading(false);
+  };
+
+  const handleSendRequest = async (targetId: string, name: string) => {
+    if (!authUser?.id || sentIds.has(targetId)) return;
+    const { error } = await supabase.from('friends').insert({ user_id: authUser.id, friend_id: targetId, status: 'pending' });
+    if (error) { toast.error('Could not send request'); return; }
+    setSentIds(prev => new Set(prev).add(targetId));
+    toast.success(`Request sent to ${name}`);
+  };
 
   const filteredFriends = accepted.filter(f =>
     f.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -187,23 +208,44 @@ const MyFriends = () => {
           <div className="py-4 space-y-4 overflow-y-auto max-h-[calc(80vh-100px)]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search by username or name..." className="pl-10 h-11" />
+              <Input placeholder="Search by username or name..." className="pl-10 h-11" value={findQuery} onChange={e => handleFindSearch(e.target.value)} />
             </div>
-            <p className="text-xs text-muted-foreground px-1">People you might know</p>
-            <div className="bg-card rounded-2xl border border-border/50 overflow-hidden divide-y divide-border/30">
-              {suggestedFriends.map(person => (
-                <div key={person.id} className="flex items-center gap-3 px-4 py-3">
-                  <Avatar className="w-11 h-11"><AvatarFallback className="bg-muted text-muted-foreground font-semibold">{person.displayName.charAt(0)}</AvatarFallback></Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">{person.displayName}</p>
-                    <p className="text-xs text-muted-foreground">@{person.username} · {person.mutualFriends} mutual</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toast.success(`Request sent to ${person.displayName}`)}>
-                    <UserPlus className="w-3.5 h-3.5" /> Add
-                  </Button>
-                </div>
-              ))}
-            </div>
+            {findLoading && <p className="text-xs text-muted-foreground px-1">Searching...</p>}
+            {findResults.length === 0 && findQuery.length >= 2 && !findLoading && (
+              <p className="text-xs text-muted-foreground px-1">No users found</p>
+            )}
+            {findResults.length === 0 && findQuery.length < 2 && (
+              <p className="text-xs text-muted-foreground px-1">Type at least 2 characters to search</p>
+            )}
+            {findResults.length > 0 && (
+              <div className="bg-card rounded-2xl border border-border/50 overflow-hidden divide-y divide-border/30">
+                {findResults.map(person => {
+                  const alreadyFriend = accepted.some(f => f.id === person.id);
+                  const alreadySent = pendingSent.some(f => f.id === person.id) || sentIds.has(person.id);
+                  return (
+                    <div key={person.id} className="flex items-center gap-3 px-4 py-3">
+                      <Avatar className="w-11 h-11">
+                        {person.avatar_url ? <AvatarImage src={person.avatar_url} /> : null}
+                        <AvatarFallback className="bg-muted text-muted-foreground font-semibold">{(person.display_name || '?')[0].toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-foreground truncate">{person.display_name}</p>
+                        <p className="text-xs text-muted-foreground">@{person.username || '—'}</p>
+                      </div>
+                      {alreadyFriend ? (
+                        <Badge variant="outline" className="text-xs">Friends</Badge>
+                      ) : alreadySent ? (
+                        <Badge variant="outline" className="text-xs">Sent</Badge>
+                      ) : (
+                        <Button size="sm" variant="outline" className="gap-1.5" onClick={() => handleSendRequest(person.id, person.display_name)}>
+                          <UserPlus className="w-3.5 h-3.5" /> Add
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>
