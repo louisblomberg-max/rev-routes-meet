@@ -220,7 +220,7 @@ const Onboarding = () => {
     // Safety timeout — if everything hangs, force navigate home after 15s
     const completeTimeout = setTimeout(() => {
       toast.error('Taking too long. Saving what we can...');
-      updateProfile({ onboardingComplete: true, isProfileComplete: true, username, displayName: displayName.trim(), bio, location });
+      updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
       navigate('/', { replace: true });
     }, 15000);
 
@@ -255,17 +255,19 @@ const Onboarding = () => {
       }
 
       // 3. Update profiles
+      const profileUpdate: Record<string, unknown> = {
+        display_name: displayName.trim(),
+        username: username.trim().toLowerCase() || null,
+        bio: bio.trim() || null,
+        location: location.trim() || null,
+        onboarding_complete: true,
+        onboarding_step: 5,
+        updated_at: new Date().toISOString(),
+      };
+      if (avatarUrl) profileUpdate.avatar_url = avatarUrl;
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
-          display_name: displayName.trim(),
-          username: username.toLowerCase() || null,
-          bio: bio || null,
-          location: location || null,
-          avatar_url: avatarUrl || undefined,
-          onboarding_complete: true,
-          updated_at: new Date().toISOString(),
-        })
+        .update(profileUpdate)
         .eq('id', userId);
       if (profileError) throw profileError;
 
@@ -303,7 +305,7 @@ const Onboarding = () => {
       // 6. Handle plan selection
       clearTimeout(completeTimeout);
       if (plan === 'free' || !plan) {
-        updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
+        updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: avatarUrl || user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
         navigate('/', { replace: true });
         toast.success('Welcome to RevNet!');
       } else {
@@ -319,7 +321,7 @@ const Onboarding = () => {
         });
         if (error || !data?.url) {
           toast.error('Payment setup failed. You can upgrade later from settings.');
-          updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
+          updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: avatarUrl || user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
           navigate('/', { replace: true });
           return;
         }
