@@ -89,6 +89,8 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [myGarageVehicles, setMyGarageVehicles] = useState<any[]>([]);
   const [brandSearch, setBrandSearch] = useState('');
+  const [eventStyleSearch, setEventStyleSearch] = useState('');
+  const [eraSearch, setEraSearch] = useState('');
   const allMakes = useMemo(() => getMakesByType('all'), []);
 
   // Load user garage vehicles for filter
@@ -328,76 +330,106 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
             </div>
           </div>
 
-          {/* VEHICLE FOCUS */}
+          {/* VEHICLE FOCUS — 6-option grid matching AddEvent */}
           <div className="space-y-2.5">
             <p className="text-xs font-medium text-foreground">Vehicle Focus</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {VEHICLE_FOCUS_OPTIONS.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => onFiltersChange({
-                    ...filters,
-                    filterVehicleFocus: (filters.filterVehicleFocus || 'all') === opt.id ? 'all' : opt.id,
-                  })}
-                  className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                    (filters.filterVehicleFocus || 'all') === opt.id
-                      ? 'bg-foreground text-background border-foreground'
-                      : 'bg-muted/30 text-muted-foreground border-border/30'
-                  }`}
-                >
-                  {opt.label}
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { id: 'all', label: 'All welcome', sub: 'Any vehicle can attend' },
+                { id: 'cars_only', label: 'Cars only', sub: 'Four wheeled vehicles only' },
+                { id: 'motorcycles_only', label: 'Motorcycles only', sub: 'Two wheeled vehicles only' },
+                { id: 'specific_makes', label: 'Specific Brand', sub: 'Choose which brands' },
+                { id: 'event_style', label: 'Event Style', sub: 'Style of the event' },
+                { id: 'vehicle_era', label: 'Vehicle Era', sub: 'Era of vehicles' },
+              ].map(opt => (
+                <button key={opt.id}
+                  onClick={() => onFiltersChange({ ...filters, filterVehicleFocus: filters.filterVehicleFocus === opt.id ? 'all' : opt.id })}
+                  className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${
+                    filters.filterVehicleFocus === opt.id ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'
+                  }`}>
+                  <p className="text-xs font-semibold">{opt.label}</p>
+                  <p className="text-[9px] text-muted-foreground leading-tight">{opt.sub}</p>
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* SPECIFIC BRAND SEARCH — when specific_makes selected */}
-          {(filters.filterVehicleFocus === 'specific_makes') && (
-            <div className="space-y-2">
-              <p className="text-xs font-medium text-foreground">Brand Search</p>
-              {(filters.filterSpecificBrands || []).length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {(filters.filterSpecificBrands || []).map((b: string) => (
-                    <button key={b} onClick={() => onFiltersChange({ ...filters, filterSpecificBrands: (filters.filterSpecificBrands || []).filter((x: string) => x !== b) })}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-events text-events-foreground text-[10px] font-semibold">
-                      {b} <span className="text-[8px]">×</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="relative">
-                <input type="text" placeholder="Search brands..." value={brandSearch} onChange={e => setBrandSearch(e.target.value)}
-                  className="w-full border border-border/50 rounded-xl px-3 py-2 text-xs bg-background" />
-                {brandSearch && (
-                  <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-36 overflow-y-auto shadow-lg">
-                    {allMakes.filter((m: any) => m.name.toLowerCase().includes(brandSearch.toLowerCase())).filter((m: any) => !(filters.filterSpecificBrands || []).includes(m.name)).slice(0, 8).map((m: any) => (
-                      <button key={m.id} onClick={() => { onFiltersChange({ ...filters, filterSpecificBrands: [...(filters.filterSpecificBrands || []), m.name] }); setBrandSearch(''); }}
-                        className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 border-b border-border/30 last:border-none">{m.name}</button>
+            {/* Specific Brand search */}
+            {filters.filterVehicleFocus === 'specific_makes' && (
+              <div className="mt-2 space-y-1.5">
+                {(filters.filterSpecificBrands || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(filters.filterSpecificBrands || []).map((b: string) => (
+                      <button key={b} onClick={() => onFiltersChange({ ...filters, filterSpecificBrands: (filters.filterSpecificBrands || []).filter((x: string) => x !== b) })}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-events text-events-foreground text-[10px] font-semibold">{b} <span className="text-[8px]">×</span></button>
                     ))}
                   </div>
                 )}
+                <div className="relative">
+                  <input type="text" placeholder="Search brands..." value={brandSearch} onChange={e => setBrandSearch(e.target.value)}
+                    className="w-full border border-border/50 rounded-xl px-3 py-2 text-xs bg-background" />
+                  {brandSearch && (
+                    <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-36 overflow-y-auto shadow-lg">
+                      {allMakes.filter((m: any) => m.name.toLowerCase().includes(brandSearch.toLowerCase())).filter((m: any) => !(filters.filterSpecificBrands || []).includes(m.name)).slice(0, 8).map((m: any) => (
+                        <button key={m.id} onClick={() => { onFiltersChange({ ...filters, filterSpecificBrands: [...(filters.filterSpecificBrands || []), m.name] }); setBrandSearch(''); }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 border-b border-border/30 last:border-none">{m.name}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* EVENT STYLE */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-medium text-foreground">Event Style</p>
-            <div className="flex flex-wrap gap-1.5">
-              {MEET_STYLE_TAGS.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => toggleMeetStyle(tag)}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                    (filters.filterMeetStyles || []).includes(tag)
-                      ? 'bg-events text-events-foreground border-events'
-                      : 'bg-muted/30 text-muted-foreground border-border/30'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
+            {/* Event Style search */}
+            {filters.filterVehicleFocus === 'event_style' && (
+              <div className="mt-2 space-y-1.5">
+                {(filters.filterMeetStyles || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(filters.filterMeetStyles || []).map((s: string) => (
+                      <button key={s} onClick={() => onFiltersChange({ ...filters, filterMeetStyles: (filters.filterMeetStyles || []).filter((x: string) => x !== s) })}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-events text-events-foreground text-[10px] font-semibold">{s} <span className="text-[8px]">×</span></button>
+                    ))}
+                  </div>
+                )}
+                <div className="relative">
+                  <input type="text" placeholder="Search event styles..." value={eventStyleSearch} onChange={e => setEventStyleSearch(e.target.value)}
+                    className="w-full border border-border/50 rounded-xl px-3 py-2 text-xs bg-background" />
+                  {eventStyleSearch && (
+                    <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-36 overflow-y-auto shadow-lg">
+                      {MEET_STYLE_TAGS.filter(t => !(filters.filterMeetStyles || []).includes(t)).filter(t => t.toLowerCase().includes(eventStyleSearch.toLowerCase())).map(t => (
+                        <button key={t} onClick={() => { onFiltersChange({ ...filters, filterMeetStyles: [...(filters.filterMeetStyles || []), t] }); setEventStyleSearch(''); }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 border-b border-border/30 last:border-none">{t}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Vehicle Era search */}
+            {filters.filterVehicleFocus === 'vehicle_era' && (
+              <div className="mt-2 space-y-1.5">
+                {(filters.specificYears || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {(filters.specificYears || []).map((y: string) => (
+                      <button key={y} onClick={() => onFiltersChange({ ...filters, specificYears: (filters.specificYears || []).filter((x: string) => x !== y) })}
+                        className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-events text-events-foreground text-[10px] font-semibold">{y} <span className="text-[8px]">×</span></button>
+                    ))}
+                  </div>
+                )}
+                <div className="relative">
+                  <input type="text" placeholder="Search vehicle era..." value={eraSearch} onChange={e => setEraSearch(e.target.value)}
+                    className="w-full border border-border/50 rounded-xl px-3 py-2 text-xs bg-background" />
+                  {eraSearch && (
+                    <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-xl mt-1 z-50 max-h-36 overflow-y-auto shadow-lg">
+                      {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].filter(y => !(filters.specificYears || []).includes(y)).filter(y => y.toLowerCase().includes(eraSearch.toLowerCase())).map(y => (
+                        <button key={y} onClick={() => { onFiltersChange({ ...filters, specificYears: [...(filters.specificYears || []), y] }); setEraSearch(''); }}
+                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted/50 border-b border-border/30 last:border-none">{y}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* FREE ENTRY ONLY */}
@@ -416,26 +448,6 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                 filters.filterFreeOnly ? 'left-[26px]' : 'left-0.5'
               }`} />
             </button>
-          </div>
-
-          {/* YEAR RANGE */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-medium text-foreground">Vehicle Era</p>
-            <div className="flex flex-wrap gap-1.5">
-              {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].map(year => (
-                <button key={year}
-                  onClick={() => {
-                    const current = filters.specificYears || [];
-                    const next = current.includes(year) ? current.filter((y: string) => y !== year) : [...current, year];
-                    onFiltersChange({ ...filters, specificYears: next });
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                    (filters.specificYears || []).includes(year)
-                      ? 'bg-events text-events-foreground border-events'
-                      : 'bg-muted/30 text-muted-foreground border-border/30'
-                  }`}>{year}</button>
-              ))}
-            </div>
           </div>
 
           {/* MY GARAGE VEHICLES */}
