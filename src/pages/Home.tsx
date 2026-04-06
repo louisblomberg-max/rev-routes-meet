@@ -122,7 +122,7 @@ const Home = () => {
     distance: 25, types: [], dateFilter: null, specificDate: undefined,
     vehicleTypes: [], vehicleBrands: [], vehicleCategories: [], vehicleAges: [], eventSize: null, entryFee: null, clubHosted: false,
     filterEventTypes: [], filterVehicleFocus: 'all', filterMeetStyles: [], filterFreeOnly: false,
-    filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null,
+    filterDateFrom: '', filterDateTo: '', filterGarageVehicleId: null, filterGarageVehicle: null, specificYears: [],
   });
   const [routesFilters, setRoutesFilters] = useState<RoutesFilterState>({
     distance: 25, types: [], difficulty: [], duration: null, surface: [],
@@ -157,7 +157,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -187,7 +187,7 @@ const Home = () => {
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -233,7 +233,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -269,7 +269,7 @@ const Home = () => {
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -501,6 +501,15 @@ const Home = () => {
           const eventMakes: string[] = (pin.vehicle_brands || []).map((b: string) => b.toLowerCase());
           if (!eventMakes.includes(ef.filterGarageVehicle.make?.toLowerCase())) return false;
         }
+      }
+    }
+
+    // Year range filter
+    if (ef.specificYears && ef.specificYears.length > 0) {
+      const pinYears: string[] = pin.specific_years || [];
+      if (pinYears.length > 0) {
+        const hasMatch = ef.specificYears.some((y: string) => pinYears.includes(y));
+        if (!hasMatch) return false;
       }
     }
 

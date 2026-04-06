@@ -346,8 +346,20 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
             {vehicleFocus === 'cars_only' ? 'Cars only' :
              vehicleFocus === 'motorcycles_only' ? 'Motorcycles only' :
              vehicleFocus === 'specific_makes' && vehicleBrands.length > 0
-               ? `${vehicleBrands.join(', ')} only` : 'Specific vehicles'}
+               ? `${vehicleBrands.join(', ')} only` : 'Specific Branding'}
           </p>
+        </div>
+      )}
+
+      {/* Specific years */}
+      {(data.specific_years?.length > 0) && (
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">📅</div>
+          <div className="flex flex-wrap gap-1">
+            {data.specific_years.map((y: string) => (
+              <span key={y} className="px-2 py-0.5 rounded-full bg-events/10 text-events text-[10px] font-semibold">{y}</span>
+            ))}
+          </div>
         </div>
       )}
 

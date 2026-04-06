@@ -41,6 +41,7 @@ export interface EventsFilterState {
   filterDateTo: string;
   filterGarageVehicleId: string | null;
   filterGarageVehicle: any | null;
+  specificYears: string[];
 }
 
 interface EventsFiltersPanelProps {
@@ -120,6 +121,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
     if (filters.filterVehicleFocus && filters.filterVehicleFocus !== 'all') count++;
     if (filters.filterMeetStyles?.length > 0) count++;
     if (filters.filterFreeOnly) count++;
+    if (filters.specificYears?.length > 0) count++;
     if (filters.filterGarageVehicleId) count++;
     return count;
   }, [filters]);
@@ -136,6 +138,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
       filterDateTo: '',
       filterGarageVehicleId: null,
       filterGarageVehicle: null,
+      specificYears: [],
       // Also clear legacy filters
       types: [],
       dateFilter: null,
@@ -378,6 +381,26 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                 filters.filterFreeOnly ? 'left-[26px]' : 'left-0.5'
               }`} />
             </button>
+          </div>
+
+          {/* YEAR RANGE */}
+          <div className="space-y-2.5">
+            <p className="text-xs font-medium text-foreground">Vehicle Era</p>
+            <div className="flex flex-wrap gap-1.5">
+              {['Pre 50s', 'Pre 60s', 'Pre 70s', 'Pre 80s', 'Pre 90s', 'Pre 00s'].map(year => (
+                <button key={year}
+                  onClick={() => {
+                    const current = filters.specificYears || [];
+                    const next = current.includes(year) ? current.filter((y: string) => y !== year) : [...current, year];
+                    onFiltersChange({ ...filters, specificYears: next });
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                    (filters.specificYears || []).includes(year)
+                      ? 'bg-events text-events-foreground border-events'
+                      : 'bg-muted/30 text-muted-foreground border-border/30'
+                  }`}>{year}</button>
+              ))}
+            </div>
           </div>
 
           {/* MY GARAGE VEHICLES */}
