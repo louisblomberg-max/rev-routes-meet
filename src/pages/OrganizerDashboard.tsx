@@ -251,7 +251,7 @@ const OrganizerDashboard = () => {
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
       <div className="px-4 pt-12 pb-3 safe-top border-b border-border/50 flex items-center gap-3">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
+        <button onClick={() => navigate('/my-events')} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
         <div className="flex-1 min-w-0">
           <h1 className="font-bold text-foreground truncate">{event?.title}</h1>
           {event?.date_start && <p className="text-xs text-muted-foreground">{format(new Date(event.date_start), 'EEE d MMM yyyy · HH:mm')}</p>}

@@ -79,10 +79,16 @@ const Home = () => {
   const { pins, setPins, setIsLoadingPins } = useMap();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
-  const [activeTab, setActiveTabState] = useState<Tab>(tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam) ? tabParam : 'discovery');
+  const [activeTab, setActiveTabState] = useState<Tab>(() => {
+    if (tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam)) return tabParam;
+    const stored = sessionStorage.getItem('revnet_active_tab') as Tab | null;
+    if (stored && ['discovery', 'community', 'marketplace', 'you'].includes(stored)) return stored;
+    return 'discovery';
+  });
 
   const setActiveTab = (tab: Tab) => {
     setActiveTabState(tab);
+    sessionStorage.setItem('revnet_active_tab', tab);
     if (tab === 'discovery') {
       setSearchParams({}, { replace: true });
     } else {
@@ -912,8 +918,8 @@ const Home = () => {
 
       {/* ═══ MOBILE: Original full-width header ═══ */}
       {!isNavigating && (
-        <div className="absolute top-0 left-0 right-0 z-30 md:hidden">
-          <div className="backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
+        <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
+          <div className="pointer-events-auto backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
             <div className="px-3 pt-2 flex items-center gap-2">
               <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
                 <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
@@ -1033,8 +1039,8 @@ const Home = () => {
 
       {/* Tap-to-navigate popup */}
       {showLocationPopup && tappedLocation && !isNavigating && (
-        <div className="absolute bottom-24 left-3 right-3 z-40 animate-fade-up">
-          <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-4 py-3 flex items-center gap-3">
+        <div className="absolute bottom-24 left-3 right-3 z-40 animate-fade-up pointer-events-none">
+          <div className="pointer-events-auto bg-card/95 backdrop-blur-xl rounded-2xl shadow-lg border border-border/50 px-4 py-3 flex items-center gap-3">
             <span className="text-xl flex-shrink-0">📍</span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground truncate">{tappedLocation.name}</p>
@@ -1063,7 +1069,7 @@ const Home = () => {
         </div>
       )}
 
-      <NavigationHUD />
+      {isNavigating && <NavigationHUD />}
 
       {/* Mobile: original bottom nav bar */}
       {!isNavigating && (

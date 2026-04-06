@@ -65,7 +65,7 @@ const Forums = () => {
     <div className="mobile-container bg-background min-h-screen flex flex-col">
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
-          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
+          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }} />
           <h1 className="heading-md text-foreground flex-1">Advice & Forums</h1>
           <Button size="sm" className="gap-1.5 h-8" onClick={() => navigate('/forums/create')}>
             <Plus className="w-3.5 h-3.5" /> Post

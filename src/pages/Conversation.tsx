@@ -207,7 +207,7 @@ const Conversation = () => {
       <div className="min-h-screen bg-background flex flex-col">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
           <div className="flex items-center gap-3 px-4 py-3">
-            <BackButton className="w-10 h-10 rounded-full bg-card" />
+            <BackButton className="w-10 h-10 rounded-full bg-card" onClick={() => navigate('/messages')} />
             <Skeleton className="w-10 h-10 rounded-full" />
             <Skeleton className="h-5 w-28" />
           </div>
@@ -224,7 +224,7 @@ const Conversation = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">
-          <BackButton className="w-10 h-10 rounded-full bg-card" />
+          <BackButton className="w-10 h-10 rounded-full bg-card" onClick={() => navigate('/messages')} />
           <button onClick={() => navigate(`/profile/${otherUserId}`)} className="flex items-center gap-3 flex-1 min-w-0">
             <Avatar className="w-10 h-10">
               <AvatarImage src={otherProfile?.avatar_url || undefined} />

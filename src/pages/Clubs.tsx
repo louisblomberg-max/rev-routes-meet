@@ -181,7 +181,7 @@ export default function Clubs() {
       {/* Header */}
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
-          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
+          <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }} />
           <h1 className="text-lg font-bold text-foreground flex-1">Clubs</h1>
           <div className="flex items-center gap-2">
             <button

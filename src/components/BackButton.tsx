@@ -6,6 +6,7 @@ interface BackButtonProps {
   className?: string;
   iconClassName?: string;
   fallbackPath?: string;
+  onClick?: () => void;
 }
 
 /**
@@ -17,10 +18,15 @@ const BackButton = ({
   className,
   iconClassName,
   fallbackPath = '/',
+  onClick,
 }: BackButtonProps) => {
   const navigate = useNavigate();
 
   const handleBack = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
     // window.history.length > 1 isn't fully reliable (new tab starts at 1-2),
     // so we also check if there's a referrer or state from react-router.
     if (window.history.state && window.history.state.idx > 0) {

@@ -175,7 +175,7 @@ const Messages = () => {
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">
-          <BackButton className="w-10 h-10 rounded-full bg-card" />
+          <BackButton className="w-10 h-10 rounded-full bg-card" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }} />
           <h1 className="text-xl font-bold text-foreground flex-1">Messages</h1>
           <button onClick={handleOpenFriendPicker} className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
             <Plus className="w-5 h-5 text-primary-foreground" />
