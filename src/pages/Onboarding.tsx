@@ -93,16 +93,19 @@ const Onboarding = () => {
       return;
     }
     setCheckingUsername(true);
-    const { data } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('username', value)
-      .neq('id', user?.id || '')
-      .maybeSingle();
-    setCheckingUsername(false);
-    if (data) {
-      setUsernameError('Username already taken');
-    } else {
+    try {
+      const result = await Promise.race([
+        supabase.from('profiles').select('id').eq('username', value).neq('id', user?.id || '').maybeSingle(),
+        new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 5000)),
+      ]);
+      setCheckingUsername(false);
+      if ((result as any)?.data) {
+        setUsernameError('Username already taken');
+      } else {
+        setUsernameError('');
+      }
+    } catch {
+      setCheckingUsername(false);
       setUsernameError('');
     }
   }, [user?.id]);
@@ -211,18 +214,34 @@ const Onboarding = () => {
   };
 
   const handleComplete = async (plan: 'free' | 'pro' | 'club' = selectedPlan, cycle: 'monthly' | 'yearly' = billingCycle) => {
-    if (!user?.id) return;
+    if (isSubmitting) return;
     setIsSubmitting(true);
 
+    // Safety timeout — if everything hangs, force navigate home after 15s
+    const completeTimeout = setTimeout(() => {
+      toast.error('Taking too long. Saving what we can...');
+      updateProfile({ onboardingComplete: true, isProfileComplete: true, username, displayName: displayName.trim(), bio, location });
+      navigate('/', { replace: true });
+    }, 15000);
+
     try {
-      // 1. Refresh session
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      if (sessionError || !sessionData?.session) {
+      // 1. Get session — try getSession first (faster), fall back to refreshSession
+      let userId = user?.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        userId = session.user.id;
+      } else {
+        const { data: refreshData } = await supabase.auth.refreshSession();
+        if (refreshData?.session?.user?.id) {
+          userId = refreshData.session.user.id;
+        }
+      }
+      if (!userId) {
+        clearTimeout(completeTimeout);
         toast.error('Session expired. Please sign in again.');
         navigate('/auth', { replace: true });
         return;
       }
-      const userId = sessionData.session.user.id;
 
       // 2. Upload avatar
       let avatarUrl: string | null = null;
@@ -278,6 +297,7 @@ const Onboarding = () => {
       if (prefError) { /* non-blocking */ }
 
       // 6. Handle plan selection
+      clearTimeout(completeTimeout);
       if (plan === 'free' || !plan) {
         updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
         navigate('/', { replace: true });
@@ -294,18 +314,18 @@ const Onboarding = () => {
           },
         });
         if (error || !data?.url) {
-          toast.error(error?.message || 'Failed to start checkout');
-          // Still mark onboarding complete and go home on free
+          toast.error('Payment setup failed. You can upgrade later from settings.');
           updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
           navigate('/', { replace: true });
-          toast.success('Welcome to RevNet! You can upgrade anytime.');
           return;
         }
         window.location.href = data.url;
       }
     } catch (err: any) {
+      clearTimeout(completeTimeout);
       toast.error(err?.message || 'Something went wrong. Please try again.');
     } finally {
+      clearTimeout(completeTimeout);
       setIsSubmitting(false);
     }
   };
@@ -395,8 +415,8 @@ const Onboarding = () => {
                 <p className="text-xs text-muted-foreground">3–20 characters: letters, numbers, underscores only</p>
               </div>
 
-              <Button onClick={handleNext} disabled={username.length < 3 || !!usernameError || checkingUsername} className="w-full h-11 rounded-xl">
-                Continue
+              <Button onClick={handleNext} disabled={username.length < 3 || usernameError === 'Username already taken'} className="w-full h-11 rounded-xl">
+                {checkingUsername ? 'Checking...' : 'Continue'}
               </Button>
             </div>
           )}
