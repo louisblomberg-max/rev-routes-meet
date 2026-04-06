@@ -204,10 +204,10 @@ const Onboarding = () => {
     setTimeout(() => setStep(5), 12000);
   };
 
-  const handlePlanSelect = (plan: 'free' | 'pro' | 'club', cycle?: 'monthly' | 'yearly') => {
+  const handlePlanSelect = async (plan: 'free' | 'pro' | 'club', cycle?: 'monthly' | 'yearly') => {
     setSelectedPlan(plan);
     if (cycle) setBillingCycle(cycle);
-    handleComplete(plan, cycle || billingCycle);
+    await handleComplete(plan, cycle || billingCycle);
   };
 
   const handleComplete = async (plan: 'free' | 'pro' | 'club' = selectedPlan, cycle: 'monthly' | 'yearly' = billingCycle) => {
@@ -265,7 +265,7 @@ const Onboarding = () => {
         }));
         const { error: vehError } = await supabase.from('vehicles').insert(vehicleRows);
         if (vehError) {
-          // Non-blocking — log but continue
+          toast.error('Some vehicles could not be saved. You can add them later in My Garage.');
         }
       }
 
@@ -279,7 +279,7 @@ const Onboarding = () => {
 
       // 6. Handle plan selection
       if (plan === 'free' || !plan) {
-        updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim() });
+        updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
         navigate('/', { replace: true });
         toast.success('Welcome to RevNet!');
       } else {
@@ -296,7 +296,7 @@ const Onboarding = () => {
         if (error || !data?.url) {
           toast.error(error?.message || 'Failed to start checkout');
           // Still mark onboarding complete and go home on free
-          updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim() });
+          updateProfile({ onboardingComplete: true, isProfileComplete: true, username, avatar: avatarUrl || user.avatar, displayName: displayName.trim(), bio, location });
           navigate('/', { replace: true });
           toast.success('Welcome to RevNet! You can upgrade anytime.');
           return;
