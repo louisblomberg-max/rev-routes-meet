@@ -152,7 +152,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -182,7 +182,7 @@ const Home = () => {
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -234,7 +234,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -270,7 +270,7 @@ const Home = () => {
           meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -596,9 +596,10 @@ const Home = () => {
 
       const type = String(pin.type || '').toLowerCase().trim();
       const color = PIN_COLORS[type] || '#d30d37';
+      const pinFull = type === 'events' && pin.attendee_count && pin.max_attendees && Number(pin.attendee_count) >= Number(pin.max_attendees);
 
       const el = document.createElement('div');
-      el.style.cssText = `width:20px;height:20px;border-radius:50%;background-color:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
+      el.style.cssText = `width:20px;height:20px;border-radius:50%;background-color:${color};border:2.5px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;${pinFull ? 'opacity:0.45;' : ''}`;
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();

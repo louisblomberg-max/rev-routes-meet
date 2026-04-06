@@ -252,14 +252,24 @@ const OrganizerDashboard = () => {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-2 px-4 py-3">
         <div className="bg-green-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-green-700">{attendees.length}</p><p className="text-[10px] text-green-600">Attending</p></div>
-        <div className="bg-blue-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-blue-700">{event?.max_attendees ? event.max_attendees - attendees.length : '∞'}</p><p className="text-[10px] text-blue-600">Left</p></div>
+        <div className="bg-blue-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-blue-700">{event?.max_attendees ? `${attendees.length}/${event.max_attendees}` : 'Unlimited'}</p><p className="text-[10px] text-blue-600">Capacity</p></div>
         <div className="bg-orange-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-orange-700">£{netRevenue.toFixed(0)}</p><p className="text-[10px] text-orange-600">Revenue</p></div>
         <div className="bg-purple-50 rounded-xl p-2.5 text-center"><p className="text-lg font-bold text-purple-700">{checkedInCount}</p><p className="text-[10px] text-purple-600">Checked In</p></div>
       </div>
 
-      {/* Tabs */}
+      {/* Capacity progress bar */}
+      {event?.max_attendees && (
+        <div className="px-4 pb-2">
+          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${Math.min(100, (attendees.length / event.max_attendees) * 100)}%`, backgroundColor: attendees.length >= event.max_attendees ? '#ef4444' : '#d30d37' }} />
+          </div>
+          <p className="text-xs text-muted-foreground mt-1 text-right">{attendees.length} / {event.max_attendees} capacity</p>
+        </div>
+      )}
+
+      {/* Tabs — only show relevant tabs */}
       <div className="flex border-b border-border/50 px-4">
-        {(['details', 'attendees', 'revenue', 'scanner'] as DashTab[]).map(tab => (
+        {(['details', 'attendees', ...(event?.is_ticketed ? ['revenue'] : []), ...((event?.is_ticketed || event?.max_attendees) ? ['scanner'] : [])] as DashTab[]).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors capitalize ${activeTab === tab ? 'border-[#d30d37] text-[#d30d37]' : 'border-transparent text-muted-foreground'}`}>
             {tab}

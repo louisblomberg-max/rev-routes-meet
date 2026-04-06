@@ -156,8 +156,9 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         setAttendeeCount(prev => prev + 1);
         toast.success("You're attending!");
 
-        // Navigate to free ticket pass if QR token was generated
-        if (attendRow?.qr_code_token) {
+        // Only show QR pass if event has limited capacity or is ticketed
+        const needsQR = data.is_ticketed || (maxAtt && maxAtt > 0);
+        if (needsQR && attendRow?.qr_code_token) {
           navigate(`/ticket-success?ticket_id=free&event_id=${eventId}&token=${attendRow.qr_code_token}&type=free`);
         }
 
@@ -201,6 +202,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const vehicleFocus = data.vehicle_focus || 'all_welcome';
   const vehicleBrands = data.vehicle_brands || [];
   const maxAtt = data.max_attendees || data.maxAttendees;
+  const isFull = !!(maxAtt && attendeeCount >= maxAtt);
   const eventRules = data.event_rules;
 
   return (
@@ -416,14 +418,16 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         >Directions</button>
         <button
           onClick={handleAttendClick}
-          disabled={actionLoading}
+          disabled={actionLoading || (isFull && !isAttending)}
           className={`flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-semibold transition-all ${
             isAttending
               ? 'bg-green-600 text-white'
-              : 'bg-events text-events-foreground'
+              : isFull
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-events text-events-foreground'
           }`}
         >
-          {actionLoading ? '...' : isAttending ? '✓ Attending' : 'Attend'}
+          {actionLoading ? '...' : isAttending ? '✓ Attending' : isFull ? 'Event Full' : 'Attend'}
         </button>
       </div>
 
