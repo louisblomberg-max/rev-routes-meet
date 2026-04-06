@@ -103,17 +103,11 @@ const AddEvent = () => {
   const [locationSuggestions, setLocationSuggestions] = useState<any[]>([])
   const [what3words, setWhat3words] = useState('')
 
-  // Section 7 — Capacity
+  // Section 7 — Attendance & Entry
   const [maxAttendees, setMaxAttendees] = useState('')
-  const [firstComeFirstServe, setFirstComeFirstServe] = useState(true)
   const [waitlistEnabled, setWaitlistEnabled] = useState(false)
-
-  // Section 8 — Entry and tickets
-  const [isFree, setIsFree] = useState(true)
-  const [entryFee, setEntryFee] = useState('')
-  const [isTicketed, setIsTicketed] = useState(false)
+  const [entryType, setEntryType] = useState<'free' | 'ticketed'>('free')
   const [ticketPrice, setTicketPrice] = useState('')
-  const [maxTickets, setMaxTickets] = useState('')
   const [ticketTypes, setTicketTypes] = useState([{ name: 'General Admission', description: '', price: '', capacity: '' }])
 
   // Section 9 — Rules
@@ -402,7 +396,7 @@ const AddEvent = () => {
     const validDatesList = dates.filter(d => d.date)
     if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
     if (!maxAttendees) { toast.error('Please enter max attendees'); return false }
-    if (isTicketed && (!ticketPrice || Number(ticketPrice) < 1)) {
+    if (entryType === 'ticketed' && (!ticketPrice || Number(ticketPrice) < 1)) {
       toast.error('Minimum ticket price is £1.00'); return false
     }
     if (isTicketed && !hasStripeConnect) {
@@ -506,12 +500,11 @@ const AddEvent = () => {
           lng: locationLng,
           what3words: what3words.trim() || null,
           max_attendees: maxAttendees ? Number(maxAttendees) : null,
-          is_first_come_first_serve: firstComeFirstServe,
           waitlist_enabled: waitlistEnabled,
-          entry_fee: !isFree && !isTicketed && entryFee ? Number(entryFee) : 0,
-          is_free: isFree && !isTicketed,
-          is_ticketed: isTicketed,
-          ticket_price: isTicketed ? Number(ticketPrice) : 0,
+          entry_fee: 0,
+          is_free: entryType === 'free',
+          is_ticketed: entryType === 'ticketed',
+          ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
           event_rules: eventRules.trim() || null,
           visibility,
           club_id: visibility === 'club' ? clubId : null,
@@ -538,7 +531,7 @@ const AddEvent = () => {
       }
 
       // Save ticket types for ticketed events
-      if (isTicketed && newEvents && newEvents.length > 0) {
+      if (entryType === 'ticketed' && newEvents && newEvents.length > 0) {
         const ticketTypeRows = ticketTypes
           .filter(t => t.name && t.price)
           .map(t => ({
@@ -1077,112 +1070,83 @@ const AddEvent = () => {
           </div>
         )}
 
-        {/* SECTION 7 — Capacity */}
-        <div className="bg-card rounded-2xl border border-border/50 p-5">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
-              <Users className="w-4 h-4 text-events" />
-            </div>
-            <h2 className="text-base font-bold">Capacity *</h2>
-          </div>
-
-          <div className="mb-3">
-            <label className="text-xs text-muted-foreground mb-1.5 block">Max attendees</label>
-            <input
-              type="number"
-              value={maxAttendees}
-              onChange={e => setMaxAttendees(e.target.value)}
-              placeholder="e.g. 100"
-              className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background"
-            />
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-2">
-            <div>
-              <p className="text-xs font-medium">First come first served</p>
-              <p className="text-[10px] text-muted-foreground">Places given in order of attendance</p>
-            </div>
-            <Switch checked={firstComeFirstServe} onCheckedChange={setFirstComeFirstServe} />
-          </div>
-
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
-            <div>
-              <p className="text-xs font-medium">Enable waitlist</p>
-              <p className="text-[10px] text-muted-foreground">Users join a waitlist when event is full</p>
-            </div>
-            <Switch checked={waitlistEnabled} onCheckedChange={setWaitlistEnabled} />
-          </div>
-        </div>
-
-        {/* SECTION 8 — Tickets */}
+        {/* SECTION 7 — Attendance & Entry */}
         <div className="bg-card rounded-2xl border border-border/50 p-5">
           <div className="flex items-center gap-2.5 mb-4">
             <div className="w-8 h-8 rounded-xl bg-events/10 flex items-center justify-center">
               <Ticket className="w-4 h-4 text-events" />
             </div>
-            <h2 className="text-base font-bold">Tickets</h2>
+            <h2 className="text-base font-bold">Attendance & Entry</h2>
           </div>
 
-          {/* Ticketing toggle */}
-          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
-            <div>
-              <p className="text-xs font-medium">Sell tickets through RevNet</p>
-              <p className="text-[10px] text-muted-foreground">Attendees buy tickets in the app</p>
+          {/* Entry type selection */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <button onClick={() => setEntryType('free')}
+              className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${entryType === 'free' ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'}`}>
+              <p className="text-xs font-semibold">Free Event</p>
+              <p className="text-[9px] text-muted-foreground">Free to attend</p>
+            </button>
+            <button onClick={() => setEntryType('ticketed')}
+              className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${entryType === 'ticketed' ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'}`}>
+              <p className="text-xs font-semibold">Ticketed Event</p>
+              <p className="text-[9px] text-muted-foreground">Sell tickets via RevNet</p>
+            </button>
+          </div>
+
+          {/* Max attendees — shared */}
+          <div className="mb-3">
+            <label className="text-xs text-muted-foreground mb-1.5 block">Max attendees</label>
+            <input type="number" value={maxAttendees} onChange={e => setMaxAttendees(e.target.value)}
+              placeholder="Leave blank for unlimited" className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background" />
+          </div>
+
+          {/* Waitlist — only when max set */}
+          {maxAttendees && (
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
+              <div>
+                <p className="text-xs font-medium">Enable waitlist</p>
+                <p className="text-[10px] text-muted-foreground">Users join waitlist when full</p>
+              </div>
+              <Switch checked={waitlistEnabled} onCheckedChange={setWaitlistEnabled} />
             </div>
-            <Switch checked={isTicketed} onCheckedChange={setIsTicketed} />
-          </div>
+          )}
 
-          {isTicketed && (
-            <div className="space-y-3">
+          {/* Ticketed section */}
+          {entryType === 'ticketed' && (
+            <div className="space-y-3 mt-2">
               {!hasStripeConnect && (
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-2">Connect bank account to receive payments</p>
-                  <button
-                    onClick={async () => {
-                      const { data, error } = await supabase.functions.invoke('create-stripe-connect-account')
-                      if (error || !data?.url) { toast.error('Could not start setup'); return }
-                      window.open(data.url, '_blank')
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-800 dark:text-amber-200"
-                  >
-                    <CreditCard className="w-3.5 h-3.5" />
-                    Connect Bank Account
+                  <button onClick={async () => {
+                    const { data, error } = await supabase.functions.invoke('create-stripe-connect-account')
+                    if (error || !data?.url) { toast.error('Could not start setup'); return }
+                    window.open(data.url, '_blank')
+                  }} className="flex items-center gap-2 px-3 py-2 rounded-lg border border-amber-300 dark:border-amber-700 text-xs font-medium text-amber-800 dark:text-amber-200">
+                    <CreditCard className="w-3.5 h-3.5" /> Connect Bank Account
                   </button>
                 </div>
               )}
-
-              {/* Ticket Types */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-foreground">Ticket Types</label>
-                  <button
-                    type="button"
-                    onClick={() => setTicketTypes(prev => [...prev, { name: '', description: '', price: '', capacity: '' }])}
-                    className="text-xs font-medium"
-                    style={{ color: '#d30d37' }}
-                  >+ Add Ticket Type</button>
-                </div>
-                {ticketTypes.map((tt, i) => (
-                  <div key={i} className="p-3 rounded-xl border border-border/50 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium text-muted-foreground">Ticket {i + 1}</span>
-                      {ticketTypes.length > 1 && (
-                        <button type="button" onClick={() => setTicketTypes(prev => prev.filter((_, idx) => idx !== i))} className="text-xs text-destructive">Remove</button>
-                      )}
-                    </div>
-                    <input value={tt.name} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], name: e.target.value }; setTicketTypes(v); }}
-                      placeholder="e.g. General Admission" className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
-                    <input value={tt.description} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], description: e.target.value }; setTicketTypes(v); }}
-                      placeholder="Description (optional)" className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
-                    <div className="grid grid-cols-2 gap-2">
-                      <input type="number" value={tt.price} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], price: e.target.value }; setTicketTypes(v); setTicketPrice(e.target.value); }}
-                        placeholder="Price £" min="1" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
-                      <input type="number" value={tt.capacity} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], capacity: e.target.value }; setTicketTypes(v); }}
-                        placeholder="Capacity" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
-                    </div>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-foreground">Ticket Types</label>
+                <button type="button" onClick={() => setTicketTypes(prev => [...prev, { name: '', description: '', price: '', capacity: '' }])}
+                  className="text-xs font-medium" style={{ color: '#d30d37' }}>+ Add Ticket Type</button>
               </div>
+              {ticketTypes.map((tt, i) => (
+                <div key={i} className="p-3 rounded-xl border border-border/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-muted-foreground">Ticket {i + 1}</span>
+                    {ticketTypes.length > 1 && <button type="button" onClick={() => setTicketTypes(prev => prev.filter((_, idx) => idx !== i))} className="text-xs text-destructive">Remove</button>}
+                  </div>
+                  <input value={tt.name} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], name: e.target.value }; setTicketTypes(v); }}
+                    placeholder="e.g. General Admission" className="w-full border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="number" value={tt.price} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], price: e.target.value }; setTicketTypes(v); setTicketPrice(e.target.value); }}
+                      placeholder="Price £" min="1" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                    <input type="number" value={tt.capacity} onChange={e => { const v = [...ticketTypes]; v[i] = { ...v[i], capacity: e.target.value }; setTicketTypes(v); }}
+                      placeholder="Capacity" className="border border-border/50 rounded-lg px-3 py-2 text-sm bg-background" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

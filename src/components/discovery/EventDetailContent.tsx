@@ -333,21 +333,27 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
           ) : data.is_ticketed ? (
             <p className="text-sm font-medium">Tickets — £{Number(data.ticket_price).toFixed(2)}</p>
           ) : (
-            <p className="text-sm font-medium">Entry — £{Number(data.entry_fee).toFixed(2)} cash on door</p>
+            <p className="text-sm font-medium">Entry fee applies</p>
           )}
         </div>
       </div>
 
       {/* Vehicle focus */}
-      {vehicleFocus !== 'all_welcome' && (
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">🚗</div>
-          <p className="text-sm font-medium">
-            {vehicleFocus === 'cars_only' ? 'Cars only' :
-             vehicleFocus === 'motorcycles_only' ? 'Motorcycles only' :
-             vehicleFocus === 'specific_makes' && vehicleBrands.length > 0
-               ? `${vehicleBrands.join(', ')} only` : 'Specific Branding'}
-          </p>
+      {vehicleFocus && vehicleFocus !== 'all_welcome' && (
+        <div className="flex items-start gap-2">
+          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">🚗</div>
+          <div>
+            <p className="text-sm font-medium">
+              {vehicleFocus === 'cars_only' ? 'Cars only' :
+               vehicleFocus === 'motorcycles_only' ? 'Motorcycles only' :
+               vehicleFocus === 'specific_makes' && vehicleBrands.length > 0 ? `Specific brands: ${vehicleBrands.join(', ')}` :
+               vehicleFocus === 'event_style' && meetStyleTags.length > 0 ? `Style: ${meetStyleTags.join(', ')}` :
+               vehicleFocus === 'vehicle_era' && (data.specific_years?.length > 0) ? `Era: ${data.specific_years.join(', ')}` :
+               vehicleFocus === 'specific_makes' ? 'Specific Brand' :
+               vehicleFocus === 'event_style' ? 'Event Style' :
+               vehicleFocus === 'vehicle_era' ? 'Vehicle Era' : vehicleFocus}
+            </p>
+          </div>
         </div>
       )}
 
@@ -420,6 +426,22 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Ticket types for ticketed events */}
+      {data.is_ticketed && ticketTypes.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tickets</p>
+          {ticketTypes.map((tt: any) => (
+            <div key={tt.id} className="flex items-center justify-between p-2.5 rounded-xl bg-muted/30 border border-border/30">
+              <div>
+                <p className="text-sm font-medium">{tt.name}</p>
+                {tt.description && <p className="text-[10px] text-muted-foreground">{tt.description}</p>}
+              </div>
+              <p className="text-sm font-bold" style={{ color: '#d30d37' }}>£{Number(tt.price).toFixed(2)}</p>
+            </div>
+          ))}
         </div>
       )}
 
