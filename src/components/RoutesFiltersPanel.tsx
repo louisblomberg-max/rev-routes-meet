@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Slider } from '@/components/ui/slider';
+import { useState, useMemo } from 'react';
 import { SlidersHorizontal, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -16,286 +15,155 @@ interface RoutesFiltersPanelProps {
   onFiltersChange: (filters: RoutesFilterState) => void;
 }
 
+const DISTANCE_OPTIONS = [
+  { value: 0, label: 'Any' },
+  { value: 5, label: '5mi' },
+  { value: 10, label: '10mi' },
+  { value: 25, label: '25mi' },
+  { value: 50, label: '50mi' },
+  { value: 100, label: '100mi' },
+];
+
+const TYPE_OPTIONS = ['All', 'Scenic', 'Coastal', 'Off-road', 'Twisties', 'Urban', 'Track'];
+const DIFFICULTY_OPTIONS = ['All', 'Easy', 'Moderate', 'Challenging', 'Expert'];
+const DURATION_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'under-1h', label: '< 1 hour' },
+  { id: '1-2h', label: '1-2 hours' },
+  { id: '2-4h', label: '2-4 hours' },
+  { id: 'over-4h', label: '4+ hours' },
+];
+const SURFACE_OPTIONS = ['All', 'Tarmac', 'Gravel', 'Dirt', 'Mixed'];
+
 const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  const distancePresets = [
-    { id: 'national', label: 'National' },
-    { id: 'international', label: 'International' },
-  ];
+  const distNum = typeof filters.distance === 'number' ? filters.distance : 25;
 
-  const typeOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'scenic', label: 'Scenic' },
-    { id: 'coastal', label: 'Coastal' },
-    { id: 'off-road', label: 'Off-road' },
-    { id: 'twisties', label: 'Twisties' },
-    { id: 'urban', label: 'Urban' },
-    { id: 'track', label: 'Track' },
-  ];
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (typeof filters.distance === 'number' && filters.distance > 0) count++;
+    if (filters.types.length > 0) count++;
+    if (filters.difficulty.length > 0) count++;
+    if (filters.duration) count++;
+    if (filters.surface.length > 0) count++;
+    return count;
+  }, [filters]);
 
-  const difficultyOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'easy', label: 'Easy' },
-    { id: 'moderate', label: 'Moderate' },
-    { id: 'challenging', label: 'Challenging' },
-    { id: 'expert', label: 'Expert' },
-  ];
+  const clearAll = () => onFiltersChange({ distance: 0, types: [], difficulty: [], duration: null, surface: [] });
 
-  const durationOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'under-1h', label: '< 1 hour' },
-    { id: '1-2h', label: '1-2 hours' },
-    { id: '2-4h', label: '2-4 hours' },
-    { id: 'over-4h', label: '4+ hours' },
-  ];
-
-  const surfaceOptions = [
-    { id: 'all', label: 'All' },
-    { id: 'tarmac', label: 'Tarmac' },
-    { id: 'gravel', label: 'Gravel' },
-    { id: 'dirt', label: 'Dirt' },
-    { id: 'mixed', label: 'Mixed' },
-  ];
-
-
-  const toggleType = (typeId: string) => {
-    if (typeId === 'all') {
-      onFiltersChange({ ...filters, types: [] });
-      return;
-    }
-    const newTypes = filters.types.includes(typeId)
-      ? filters.types.filter(t => t !== typeId)
-      : [...filters.types, typeId];
-    onFiltersChange({ ...filters, types: newTypes });
-  };
-
-  const toggleDifficulty = (difficultyId: string) => {
-    if (difficultyId === 'all') {
-      onFiltersChange({ ...filters, difficulty: [] });
-      return;
-    }
-    const newDifficulty = filters.difficulty.includes(difficultyId)
-      ? filters.difficulty.filter(d => d !== difficultyId)
-      : [...filters.difficulty, difficultyId];
-    onFiltersChange({ ...filters, difficulty: newDifficulty });
-  };
-
-  const toggleSurface = (surfaceId: string) => {
-    if (surfaceId === 'all') {
-      onFiltersChange({ ...filters, surface: [] });
-      return;
-    }
-    const newSurface = filters.surface.includes(surfaceId)
-      ? filters.surface.filter(s => s !== surfaceId)
-      : [...filters.surface, surfaceId];
-    onFiltersChange({ ...filters, surface: newSurface });
-  };
-
-  const handleDistanceChange = (value: number[]) => {
-    onFiltersChange({ ...filters, distance: value[0] });
-  };
-
-  const handleDistancePreset = (preset: 'national' | 'international') => {
-    onFiltersChange({ 
-      ...filters, 
-      distance: filters.distance === preset ? 25 : preset 
-    });
-  };
-
-  const handleDurationChange = (durationId: string) => {
-    if (durationId === 'all') {
-      onFiltersChange({ ...filters, duration: null });
-      return;
-    }
-    onFiltersChange({ 
-      ...filters, 
-      duration: filters.duration === durationId ? null : durationId 
-    });
-  };
-
-
-  const isDistanceNumeric = typeof filters.distance === 'number';
-  const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
-  const getDistanceLabel = () => {
-    if (isDistanceNumeric) return `${filters.distance} miles`;
-    const preset = filters.distance as string;
-    return preset.charAt(0).toUpperCase() + preset.slice(1);
+  const toggleArr = (arr: string[], id: string, field: keyof RoutesFilterState) => {
+    if (id.toLowerCase() === 'all') { onFiltersChange({ ...filters, [field]: [] }); return; }
+    const lower = id.toLowerCase();
+    const cur = arr as string[];
+    const next = cur.includes(lower) ? cur.filter(x => x !== lower) : [...cur, lower];
+    onFiltersChange({ ...filters, [field]: next });
   };
 
   return (
     <div className="space-y-2 animate-fade-up">
-      {/* Filter Bar Row */}
       <div className="flex items-center gap-2">
-        {/* Filter Button */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
-            isOpen
-              ? 'bg-routes/80 text-white border-routes/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-routes/50 hover:bg-routes/10'
-          }`}
-        >
+        <button onClick={() => setIsOpen(!isOpen)}
+          className={`relative h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen ? 'bg-routes/80 text-white border-routes/80 shadow-lg' : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-routes/50 hover:bg-routes/10'
+          }`}>
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-routes text-white text-[10px] font-bold flex items-center justify-center shadow-sm">{activeFilterCount}</span>
+          )}
         </button>
-
-        {/* Add Route Button */}
-        <button
-          onClick={() => navigate('/add/route')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-routes text-routes-foreground shadow-sm hover:bg-routes/90 active:scale-[0.97] transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
+        <button onClick={() => navigate('/add/route')} className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-routes text-routes-foreground shadow-sm hover:bg-routes/90 active:scale-[0.97] transition-all">
+          <Plus className="w-4 h-4" /><span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 
-      {/* Filter Panel */}
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[60vh] overflow-y-auto">
-          {/* Header with close */}
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[65vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Routes</h3>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => onFiltersChange({
-                  distance: 25, types: [], difficulty: [], duration: null, surface: [],
-                })}
-                className="text-[10px] font-medium text-routes hover:text-routes/70 transition-colors"
-              >
-                Clear All
-              </button>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
-              >
-                <X className="w-3 h-3 text-muted-foreground" />
-              </button>
+              {activeFilterCount > 0 && <button onClick={clearAll} className="text-[10px] font-medium text-routes hover:text-routes/70 transition-colors">Clear all</button>}
+              <button onClick={() => setIsOpen(false)} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"><X className="w-3 h-3 text-muted-foreground" /></button>
             </div>
           </div>
 
-          {/* Distance Filter */}
+          {activeFilterCount > 0 && (
+            <div className="flex items-center bg-routes/5 rounded-lg px-3 py-2 border border-routes/20">
+              <span className="text-[11px] font-semibold text-routes">{activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active</span>
+            </div>
+          )}
+
+          {/* Distance */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Distance</p>
-              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} miles` : 'Any distance'}</span>
             </div>
-            <Slider
-              variant="routes"
-              value={[isDistanceNumeric ? distanceValue : 25]}
-              onValueChange={handleDistanceChange}
-              min={1}
-              max={50}
-              step={1}
-              className="w-full"
-              disabled={!isDistanceNumeric}
-            />
-            <div className="flex gap-1.5 mt-2">
-              {distancePresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.distance === preset.id
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  {preset.label}
+            <div className="flex gap-1.5">
+              {DISTANCE_OPTIONS.map(opt => (
+                <button key={opt.value} onClick={() => onFiltersChange({ ...filters, distance: opt.value })}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${distNum === opt.value ? 'bg-routes text-white border-routes' : 'bg-white text-muted-foreground border-border/50'}`}>
+                  {opt.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Type Filter */}
+          {/* Type */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Type</p>
             <div className="flex flex-wrap gap-1.5">
-              {typeOptions.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => toggleType(type.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (type.id === 'all' && filters.types.length === 0) || filters.types.includes(type.id)
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  {type.label}
-                </button>
+              {TYPE_OPTIONS.map(t => (
+                <button key={t} onClick={() => toggleArr(filters.types, t, 'types')}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    (t === 'All' && filters.types.length === 0) || filters.types.includes(t.toLowerCase()) ? 'bg-routes text-white border-routes' : 'bg-white text-muted-foreground border-border/50'
+                  }`}>{t}</button>
               ))}
             </div>
           </div>
 
-          {/* Difficulty Filter */}
+          {/* Difficulty */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Difficulty</p>
             <div className="flex flex-wrap gap-1.5">
-              {difficultyOptions.map((diff) => (
-                <button
-                  key={diff.id}
-                  onClick={() => toggleDifficulty(diff.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (diff.id === 'all' && filters.difficulty.length === 0) || filters.difficulty.includes(diff.id)
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  {diff.label}
-                </button>
+              {DIFFICULTY_OPTIONS.map(d => (
+                <button key={d} onClick={() => toggleArr(filters.difficulty, d, 'difficulty')}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    (d === 'All' && filters.difficulty.length === 0) || filters.difficulty.includes(d.toLowerCase()) ? 'bg-routes text-white border-routes' : 'bg-white text-muted-foreground border-border/50'
+                  }`}>{d}</button>
               ))}
             </div>
           </div>
 
-          {/* Duration Filter */}
+          {/* Duration */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Duration</p>
             <div className="flex flex-wrap gap-1.5">
-              {durationOptions.map((dur) => (
-                <button
-                  key={dur.id}
-                  onClick={() => handleDurationChange(dur.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (dur.id === 'all' && filters.duration === null) || filters.duration === dur.id
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  {dur.label}
-                </button>
+              {DURATION_OPTIONS.map(dur => (
+                <button key={dur.id} onClick={() => onFiltersChange({ ...filters, duration: dur.id === 'all' ? null : (filters.duration === dur.id ? null : dur.id) })}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    (dur.id === 'all' && !filters.duration) || filters.duration === dur.id ? 'bg-routes text-white border-routes' : 'bg-white text-muted-foreground border-border/50'
+                  }`}>{dur.label}</button>
               ))}
             </div>
           </div>
 
-          {/* Surface Filter */}
+          {/* Surface */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Surface</p>
             <div className="flex flex-wrap gap-1.5">
-              {surfaceOptions.map((surf) => (
-                <button
-                  key={surf.id}
-                  onClick={() => toggleSurface(surf.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    (surf.id === 'all' && filters.surface.length === 0) || filters.surface.includes(surf.id)
-                      ? 'bg-routes/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-routes/10'
-                  }`}
-                >
-                  {surf.label}
-                </button>
+              {SURFACE_OPTIONS.map(s => (
+                <button key={s} onClick={() => toggleArr(filters.surface, s, 'surface')}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    (s === 'All' && filters.surface.length === 0) || filters.surface.includes(s.toLowerCase()) ? 'bg-routes text-white border-routes' : 'bg-white text-muted-foreground border-border/50'
+                  }`}>{s}</button>
               ))}
             </div>
           </div>
 
-
-          {/* Apply Button */}
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-routes/80 text-white hover:bg-routes transition-colors"
-          >
-            Apply Filters
-          </button>
+          <button onClick={() => setIsOpen(false)} className="w-full py-2.5 rounded-lg text-sm font-medium bg-routes/80 text-white hover:bg-routes transition-colors">Apply Filters</button>
         </div>
       )}
     </div>

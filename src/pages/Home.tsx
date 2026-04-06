@@ -547,8 +547,14 @@ const Home = () => {
       if (surfaceType && !rf.surface.includes(surfaceType)) return false;
     }
 
+    // Distance filter
+    const rdist = typeof rf.distance === 'number' ? rf.distance : 0;
+    if (rdist > 0 && userLat && userLng && pin.lat && pin.lng) {
+      if (haversineKm(userLat, userLng, Number(pin.lat), Number(pin.lng)) * 0.621371 > rdist) return false;
+    }
+
     return true;
-  }, [routesFilters]);
+  }, [routesFilters, userLat, userLng]);
 
   /* ── Fix 5 — applyServiceFilters ── */
   const applyServiceFilters = useCallback((pin: any): boolean => {
@@ -564,8 +570,14 @@ const Home = () => {
     // Open now filter
     if (sf.openNow && !pin.is_24_7) return false;
 
+    // Distance filter
+    const sdist = typeof sf.distance === 'number' ? sf.distance : 0;
+    if (sdist > 0 && userLat && userLng && pin.lat && pin.lng) {
+      if (haversineKm(userLat, userLng, Number(pin.lat), Number(pin.lng)) * 0.621371 > sdist) return false;
+    }
+
     return true;
-  }, [servicesFilters]);
+  }, [servicesFilters, userLat, userLng]);
 
 
   /* ── Render DOM markers: apply all filters + category ── */

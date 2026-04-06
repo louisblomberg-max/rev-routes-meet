@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { Slider } from '@/components/ui/slider';
+import { useState, useMemo } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { SlidersHorizontal, X, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -15,173 +14,120 @@ interface ServicesFiltersPanelProps {
   onFiltersChange: (filters: ServicesFilterState) => void;
 }
 
+const DISTANCE_OPTIONS = [
+  { value: 0, label: 'Any' },
+  { value: 5, label: '5mi' },
+  { value: 10, label: '10mi' },
+  { value: 25, label: '25mi' },
+  { value: 50, label: '50mi' },
+  { value: 100, label: '100mi' },
+];
+
+const TYPE_OPTIONS = [
+  'Garages & Mechanics', 'Vehicle Servicing', 'Tyres & Wheels', 'Bodywork & Paint',
+  'Detailing & Car Care', 'Tuning & Performance', 'Parts & Accessories',
+  'Recovery & Roadside', 'Storage & Parking', 'Fuel & Petrol', 'EV Charging',
+  'Mobile Services', 'Shipping & Transport',
+];
+
 const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanelProps) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
-  const distancePresets = [
-    { id: 'national', label: 'National' },
-    { id: 'international', label: 'International' },
-  ];
+  const distNum = typeof filters.distance === 'number' ? filters.distance : 25;
 
-  const typeOptions = [
-    { id: 'garages-mechanics', label: 'Garages & Mechanics' },
-    { id: 'vehicle-servicing', label: 'Vehicle Servicing' },
-    { id: 'tyres-wheels', label: 'Tyres & Wheels' },
-    { id: 'bodywork-paint', label: 'Bodywork & Paint' },
-    { id: 'detailing-car-care', label: 'Detailing & Car Care' },
-    { id: 'tuning-performance', label: 'Tuning & Performance' },
-    { id: 'parts-accessories', label: 'Parts & Accessories' },
-    { id: 'recovery-roadside', label: 'Recovery & Roadside' },
-    { id: 'storage-parking', label: 'Storage & Parking' },
-    { id: 'fuel-petrol', label: 'Fuel & Petrol' },
-    { id: 'ev-charging', label: 'EV Charging' },
-    { id: 'mobile-services', label: 'Mobile Services' },
-    { id: 'shipping-transportation', label: 'Shipping & Transport' },
-  ];
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (typeof filters.distance === 'number' && filters.distance > 0) count++;
+    if (filters.types.length > 0) count++;
+    if (filters.openNow) count++;
+    return count;
+  }, [filters]);
 
-  const toggleType = (typeId: string) => {
-    const newTypes = filters.types.includes(typeId)
-      ? filters.types.filter(t => t !== typeId)
-      : [...filters.types, typeId];
-    onFiltersChange({ ...filters, types: newTypes });
-  };
+  const clearAll = () => onFiltersChange({ distance: 0, types: [], openNow: false });
 
-  const handleDistanceChange = (value: number[]) => {
-    onFiltersChange({ ...filters, distance: value[0] });
-  };
-
-  const handleDistancePreset = (preset: 'national' | 'international') => {
-    onFiltersChange({ 
-      ...filters, 
-      distance: filters.distance === preset ? 25 : preset 
-    });
-  };
-
-  const handleOpenNowChange = (checked: boolean) => {
-    onFiltersChange({ ...filters, openNow: checked });
-  };
-
-  const isDistanceNumeric = typeof filters.distance === 'number';
-  const distanceValue: number = isDistanceNumeric ? (filters.distance as number) : 25;
-  const getDistanceLabel = () => {
-    if (isDistanceNumeric) return `${filters.distance} miles`;
-    const preset = filters.distance as string;
-    return preset.charAt(0).toUpperCase() + preset.slice(1);
+  const toggleType = (typeLabel: string) => {
+    const id = typeLabel.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+    const next = filters.types.includes(id) ? filters.types.filter(t => t !== id) : [...filters.types, id];
+    onFiltersChange({ ...filters, types: next });
   };
 
   return (
     <div className="space-y-2 animate-fade-up">
       <div className="flex items-center gap-2">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className={`h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
-            isOpen
-              ? 'bg-services/80 text-white border-services/80 shadow-lg'
-              : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-services/50 hover:bg-services/10'
-          }`}
-        >
+        <button onClick={() => setIsOpen(!isOpen)}
+          className={`relative h-10 flex-1 flex items-center justify-center gap-1.5 px-4 rounded-xl border transition-all duration-300 ${
+            isOpen ? 'bg-services/80 text-white border-services/80 shadow-lg' : 'bg-white/90 backdrop-blur-sm text-muted-foreground border-white/60 shadow-sm hover:border-services/50 hover:bg-services/10'
+          }`}>
           <SlidersHorizontal className="w-4 h-4" />
           <span className="text-[10px] font-semibold">Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-services text-white text-[10px] font-bold flex items-center justify-center shadow-sm">{activeFilterCount}</span>
+          )}
         </button>
-
-        <button
-          onClick={() => navigate('/add/service')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-services text-services-foreground shadow-sm hover:bg-services/90 active:scale-[0.97] transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
+        <button onClick={() => navigate('/add/service')} className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-services text-services-foreground shadow-sm hover:bg-services/90 active:scale-[0.97] transition-all">
+          <Plus className="w-4 h-4" /><span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 
       {isOpen && (
-        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up">
+        <div className="bg-card/95 backdrop-blur-sm rounded-xl border border-border/50 shadow-sm p-4 space-y-4 animate-fade-up max-h-[65vh] overflow-y-auto">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">Filter Services</h3>
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => onFiltersChange({
-                  distance: 25, types: [], openNow: false,
-                })}
-                className="text-[10px] font-medium text-services hover:text-services/70 transition-colors"
-              >
-                Clear All
-              </button>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"
-              >
-                <X className="w-3 h-3 text-muted-foreground" />
-              </button>
+              {activeFilterCount > 0 && <button onClick={clearAll} className="text-[10px] font-medium text-services hover:text-services/70 transition-colors">Clear all</button>}
+              <button onClick={() => setIsOpen(false)} className="w-6 h-6 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors"><X className="w-3 h-3 text-muted-foreground" /></button>
             </div>
           </div>
 
+          {activeFilterCount > 0 && (
+            <div className="flex items-center bg-services/5 rounded-lg px-3 py-2 border border-services/20">
+              <span className="text-[11px] font-semibold text-services">{activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active</span>
+            </div>
+          )}
+
+          {/* Distance */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-medium text-foreground">Distance</p>
-              <span className="text-xs text-muted-foreground">{getDistanceLabel()}</span>
+              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} miles` : 'Any distance'}</span>
             </div>
-            <Slider
-              variant="services"
-              value={[isDistanceNumeric ? distanceValue : 25]}
-              onValueChange={handleDistanceChange}
-              min={1}
-              max={50}
-              step={1}
-              className="w-full"
-              disabled={!isDistanceNumeric}
-            />
-            <div className="flex gap-1.5 mt-2">
-              {distancePresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  onClick={() => handleDistancePreset(preset.id as 'national' | 'international')}
-                  className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.distance === preset.id
-                      ? 'bg-services/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-services/10'
-                  }`}
-                >
-                  {preset.label}
+            <div className="flex gap-1.5">
+              {DISTANCE_OPTIONS.map(opt => (
+                <button key={opt.value} onClick={() => onFiltersChange({ ...filters, distance: opt.value })}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${distNum === opt.value ? 'bg-services text-white border-services' : 'bg-white text-muted-foreground border-border/50'}`}>
+                  {opt.label}
                 </button>
               ))}
             </div>
           </div>
 
+          {/* Type */}
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Type</p>
             <div className="flex flex-wrap gap-1.5">
-              {typeOptions.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => toggleType(type.id)}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-medium transition-all ${
-                    filters.types.includes(type.id)
-                      ? 'bg-services/80 text-white'
-                      : 'bg-muted text-muted-foreground hover:bg-services/10'
-                  }`}
-                >
-                  {type.label}
-                </button>
-              ))}
+              {TYPE_OPTIONS.map(t => {
+                const id = t.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
+                return (
+                  <button key={t} onClick={() => toggleType(t)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                      filters.types.includes(id) ? 'bg-services text-white border-services' : 'bg-white text-muted-foreground border-border/50'
+                    }`}>{t}</button>
+                );
+              })}
             </div>
           </div>
 
+          {/* Open Now */}
           <div className="flex items-center justify-between py-1">
-            <p className="text-xs font-medium text-foreground">Open Now</p>
-            <Switch
-              checked={filters.openNow}
-              onCheckedChange={handleOpenNowChange}
-              className="data-[state=checked]:bg-services"
-            />
+            <div>
+              <p className="text-xs font-medium text-foreground">Open Now</p>
+              <p className="text-[10px] text-muted-foreground">Only show services currently open</p>
+            </div>
+            <Switch checked={filters.openNow} onCheckedChange={(v) => onFiltersChange({ ...filters, openNow: v })} className="data-[state=checked]:bg-services" />
           </div>
 
-          <button
-            onClick={() => setIsOpen(false)}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-services/80 text-white hover:bg-services transition-colors"
-          >
-            Apply Filters
-          </button>
+          <button onClick={() => setIsOpen(false)} className="w-full py-2.5 rounded-lg text-sm font-medium bg-services/80 text-white hover:bg-services transition-colors">Apply Filters</button>
         </div>
       )}
     </div>
