@@ -504,8 +504,16 @@ const Home = () => {
       }
     }
 
+    // Distance filter
+    const dist = ef.distance;
+    if (typeof dist === 'number' && dist > 0 && userLat && userLng && pin.lat && pin.lng) {
+      const distKm = haversineKm(userLat, userLng, Number(pin.lat), Number(pin.lng));
+      const distMiles = distKm * 0.621371;
+      if (distMiles > dist) return false;
+    }
+
     return true;
-  }, [eventsFilters]);
+  }, [eventsFilters, userLat, userLng]);
 
   /* ── Fix 4 — applyRouteFilters ── */
   const applyRouteFilters = useCallback((pin: any): boolean => {

@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Slider } from '@/components/ui/slider';
 
 // Error boundary to prevent white screen if this panel crashes
 class FilterErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -114,6 +115,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
   // Count active filters for badge
   const activeFilterCount = useMemo(() => {
     let count = 0;
+    if (typeof filters.distance === 'number' && filters.distance > 0) count++;
     if (filters.filterEventTypes?.length > 0) count++;
     if (filters.filterVehicleFocus && filters.filterVehicleFocus !== 'all') count++;
     if (filters.filterMeetStyles?.length > 0) count++;
@@ -126,6 +128,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
   const clearAllFilters = () => {
     onFiltersChange({
       ...filters,
+      distance: 0,
       filterEventTypes: [],
       filterVehicleFocus: 'all',
       filterMeetStyles: [],
@@ -263,6 +266,38 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
               </span>
             </div>
           )}
+
+          {/* DISTANCE */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Distance</p>
+              <span className="text-xs text-muted-foreground">
+                {typeof filters.distance === 'number' && filters.distance > 0 ? `Within ${filters.distance} miles` : 'Any distance'}
+              </span>
+            </div>
+            <div className="flex gap-1.5">
+              {[
+                { value: 0, label: 'Any' },
+                { value: 5, label: '5mi' },
+                { value: 10, label: '10mi' },
+                { value: 25, label: '25mi' },
+                { value: 50, label: '50mi' },
+                { value: 100, label: '100mi' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onFiltersChange({ ...filters, distance: opt.value })}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    filters.distance === opt.value
+                      ? 'bg-events text-white border-events'
+                      : 'bg-white text-muted-foreground border-border/50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* EVENT TYPE */}
           <div className="space-y-2.5">
