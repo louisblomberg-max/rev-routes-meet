@@ -120,7 +120,6 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
     if (filters.filterVehicleFocus && filters.filterVehicleFocus !== 'all') count++;
     if (filters.filterMeetStyles?.length > 0) count++;
     if (filters.filterFreeOnly) count++;
-    if (filters.filterDateFrom || filters.filterDateTo) count++;
     if (filters.filterGarageVehicleId) count++;
     return count;
   }, [filters]);
@@ -379,39 +378,6 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                 filters.filterFreeOnly ? 'left-[26px]' : 'left-0.5'
               }`} />
             </button>
-          </div>
-
-          {/* DATE RANGE */}
-          <div className="space-y-2.5">
-            <p className="text-xs font-medium text-foreground">Date Range</p>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="text-[10px] text-muted-foreground mb-1 block">From</label>
-                <input
-                  type="date"
-                  value={filters.filterDateFrom || ''}
-                  onChange={(e) => onFiltersChange({ ...filters, filterDateFrom: e.target.value })}
-                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-xs bg-background"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-muted-foreground mb-1 block">To</label>
-                <input
-                  type="date"
-                  value={filters.filterDateTo || ''}
-                  onChange={(e) => onFiltersChange({ ...filters, filterDateTo: e.target.value })}
-                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-xs bg-background"
-                />
-              </div>
-            </div>
-            {(filters.filterDateFrom || filters.filterDateTo) && (
-              <button
-                onClick={() => onFiltersChange({ ...filters, filterDateFrom: '', filterDateTo: '' })}
-                className="text-xs text-muted-foreground mt-1.5"
-              >
-                Clear dates
-              </button>
-            )}
           </div>
 
           {/* MY GARAGE VEHICLES */}
