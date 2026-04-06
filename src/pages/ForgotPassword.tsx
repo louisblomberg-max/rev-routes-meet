@@ -33,7 +33,7 @@ const ForgotPassword = () => {
           </div>
           <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
           <p className="text-sm text-muted-foreground">We sent a reset link to <strong className="text-foreground">{email}</strong></p>
-          <Button variant="outline" className="mt-6" onClick={() => navigate('/login')}>Back to Sign In</Button>
+          <Button variant="outline" className="mt-6" onClick={() => navigate('/auth')}>Back to Sign In</Button>
         </div>
       </div>
     );

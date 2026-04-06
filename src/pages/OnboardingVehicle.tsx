@@ -115,12 +115,12 @@ const OnboardingVehicle = () => {
     });
 
     setOnboardingStep(2);
-    navigate('/onboarding/notifications');
+    navigate('/onboarding');
   };
 
   const handleSkip = () => {
     setOnboardingStep(2);
-    navigate('/onboarding/notifications');
+    navigate('/onboarding');
   };
 
   const previewVehicles = vehicles.filter(v => v.make.trim()).map(v => ({

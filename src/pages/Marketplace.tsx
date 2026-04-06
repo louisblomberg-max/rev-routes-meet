@@ -118,7 +118,7 @@ const Marketplace = () => {
                 <button
                   key={listing.id}
                   className="bg-card rounded-xl overflow-hidden border border-border/50 text-left hover:border-border transition-colors"
-                  onClick={() => toast.info('Listing detail view coming soon.')}
+                  onClick={() => toast.info(listing.description || listing.title, { description: `£${listing.price?.toLocaleString() || '0'} · ${listing.condition || 'Used'}` })}
                 >
                   <div className="aspect-[4/3] bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
                     {listing.category === 'Cars' && <Car className="w-12 h-12 text-muted-foreground/30" />}

@@ -48,7 +48,7 @@ const OnboardingProfile = () => {
       bio: form.bio,
     } as any);
     setOnboardingStep(1);
-    navigate('/onboarding/vehicle');
+    navigate('/onboarding');
   };
 
   // Step 1 of 6 now (added referral step)
@@ -150,7 +150,7 @@ const OnboardingProfile = () => {
         <button
           onClick={() => {
             setOnboardingStep(1);
-            navigate('/onboarding/vehicle');
+            navigate('/onboarding');
           }}
           className="w-full text-sm text-black/50 mt-2 py-1"
         >

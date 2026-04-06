@@ -45,7 +45,7 @@ const OnboardingLocation = () => {
       discoveryScope: scope as any,
     } as any);
     setOnboardingStep(4);
-    navigate('/onboarding/notifications');
+    navigate('/onboarding');
   };
 
   if (step === 'ask') {

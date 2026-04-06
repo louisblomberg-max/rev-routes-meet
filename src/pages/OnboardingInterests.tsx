@@ -33,7 +33,7 @@ const OnboardingInterests = () => {
       },
     } as any);
     setOnboardingStep(2);
-    navigate('/onboarding/vehicle');
+    navigate('/onboarding');
   };
 
   return (

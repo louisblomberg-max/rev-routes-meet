@@ -90,7 +90,7 @@ const ChoosePlan = () => {
   const handleContinue = async () => {
     if (selected === 'free') {
       setPlan('free');
-      navigate('/onboarding/profile');
+      navigate('/onboarding');
       return;
     }
 

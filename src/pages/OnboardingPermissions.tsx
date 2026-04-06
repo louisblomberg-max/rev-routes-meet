@@ -32,7 +32,7 @@ const OnboardingPermissions = () => {
       }
     }
     setOnboardingStep(4);
-    navigate('/onboarding/referral');
+    navigate('/onboarding');
   };
 
   if (step === 'intro') {
@@ -153,7 +153,7 @@ const OnboardingPermissions = () => {
         <button
           onClick={() => {
             setOnboardingStep(4);
-            navigate('/onboarding/referral');
+            navigate('/onboarding');
           }}
           className="w-full text-sm text-black/50 mt-3 py-1"
         >

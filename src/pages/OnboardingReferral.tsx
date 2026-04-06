@@ -23,7 +23,7 @@ const OnboardingReferral = () => {
 
   const handleContinue = () => {
     setOnboardingStep(5);
-    navigate('/onboarding/finish');
+    navigate('/');
   };
 
   return (

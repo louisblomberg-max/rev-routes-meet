@@ -133,8 +133,8 @@ const TicketSuccess = () => {
 
       {/* Action buttons */}
       <div className="w-full max-w-sm mt-6 space-y-3">
-        <Button onClick={() => navigate(`/event/${event.id}`)} className="w-full h-11 rounded-xl" style={{ backgroundColor: '#d30d37' }}>
-          View Event
+        <Button onClick={() => navigate('/')} className="w-full h-11 rounded-xl" style={{ backgroundColor: '#d30d37' }}>
+          Back to App
         </Button>
         <Button onClick={handleShare} variant="outline" className="w-full h-11 rounded-xl gap-2">
           <Share2 className="w-4 h-4" /> Share
