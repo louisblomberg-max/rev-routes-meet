@@ -11,6 +11,7 @@ import { useUserRoutes } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const routeTypeColors: Record<string, string> = {
   'Scenic': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -26,13 +27,25 @@ const MyRoutes = () => {
   const { saved, created, isLoading } = useUserRoutes();
   const { routes: routesRepo } = useData();
   const [activeTab, setActiveTab] = useState<'saved' | 'created'>('saved');
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const handleUnsave = (routeId: string) => {
     routesRepo.unsaveRoute(user?.id, routeId);
     toast('Route removed from saved');
   };
 
-  const displayRoutes = activeTab === 'saved' ? saved : created;
+  const handleDelete = async (routeId: string, routeName: string) => {
+    if (!window.confirm(`Delete "${routeName}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from('routes').delete().eq('id', routeId).eq('created_by', user?.id ?? '');
+    if (error) {
+      toast.error('Failed to delete route');
+    } else {
+      toast.success('Route deleted');
+      setDeletedIds(prev => new Set([...prev, routeId]));
+    }
+  };
+
+  const displayRoutes = (activeTab === 'saved' ? saved : created).filter(r => !deletedIds.has(r.id));
 
   return (
     <div className="mobile-container bg-background min-h-screen">
@@ -130,6 +143,9 @@ const MyRoutes = () => {
                     </button>
                     <button onClick={() => navigate(`/add/route?edit=${route.id}`)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
                       <PenLine className="w-4 h-4" /> Edit
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(route.id, route.name); }} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors">
+                      <Trash2 className="w-4 h-4" /> Delete
                     </button>
                   </div>
                 )}
