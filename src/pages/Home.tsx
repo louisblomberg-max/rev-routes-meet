@@ -570,16 +570,16 @@ const Home = () => {
     if (pin.type !== 'routes') return true;
     const rf = routesFilters;
 
-    // Type filter
+    // Type filter — case-insensitive
     if (rf.types.length > 0) {
-      const routeType = pin.route_type || pin.subtype || '';
-      if (routeType && !rf.types.includes(routeType)) return false;
+      const routeType = (pin.route_type || pin.subtype || '').toLowerCase();
+      if (routeType && !rf.types.some((t: string) => t.toLowerCase() === routeType)) return false;
     }
 
-    // Difficulty filter
+    // Difficulty filter — case-insensitive
     if (rf.difficulty.length > 0) {
-      const diff = pin.difficulty || '';
-      if (diff && !rf.difficulty.includes(diff)) return false;
+      const diff = (pin.difficulty || '').toLowerCase();
+      if (diff && !rf.difficulty.some((d: string) => d.toLowerCase() === diff)) return false;
     }
 
     // Duration filter
@@ -591,10 +591,10 @@ const Home = () => {
       if ((rf.duration === 'gt240' || rf.duration === 'over-4h') && mins < 240) return false;
     }
 
-    // Surface filter
+    // Surface filter — case-insensitive
     if (rf.surface.length > 0) {
-      const surfaceType = pin.surface_type || '';
-      if (surfaceType && !rf.surface.includes(surfaceType)) return false;
+      const surfaceType = (pin.surface_type || '').toLowerCase();
+      if (surfaceType && !rf.surface.some((s: string) => s.toLowerCase() === surfaceType)) return false;
     }
 
     // Distance filter
