@@ -1009,7 +1009,7 @@ const Home = () => {
 
       {/* ═══ DESKTOP: Floating search pill ═══ */}
       {!isNavigating && (
-        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 z-30 min-w-[480px] max-w-[640px] pointer-events-none">
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 min-w-[520px] max-w-[640px] pointer-events-none" style={{ zIndex: 10000 }}>
           <div
             className="flex items-center gap-2 px-4 py-2 pointer-events-auto"
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
