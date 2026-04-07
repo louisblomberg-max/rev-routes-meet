@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, Bookmark } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
@@ -36,22 +36,24 @@ const MyEvents = () => {
   const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : saved;
 
   // Fetch attendee avatars for hosted events
-  useEffect(() => {
+  const fetchHostedAttendees = useCallback(async () => {
     if (hosted.length === 0) return;
-    const fetchAttendees = async () => {
+    const hostedIds = hosted.map(e => e.id);
+    const { data } = await supabase
+      .from('event_attendees')
+      .select('user_id, event_id, profiles:user_id(id, display_name, avatar_url)')
+      .in('event_id', hostedIds);
+    if (data) {
       const map: Record<string, any[]> = {};
-      for (const event of hosted) {
-        const { data } = await supabase
-          .from('event_attendees')
-          .select('user_id, profiles:user_id(id, display_name, avatar_url)')
-          .eq('event_id', event.id)
-          .limit(5);
-        map[event.id] = data || [];
-      }
+      data.forEach((a: any) => {
+        if (!map[a.event_id]) map[a.event_id] = [];
+        if (map[a.event_id].length < 5) map[a.event_id].push(a);
+      });
       setAttendeeMap(map);
-    };
-    fetchAttendees();
+    }
   }, [hosted.length]);
+
+  useEffect(() => { fetchHostedAttendees(); }, [fetchHostedAttendees]);
 
   // Realtime: update when attendees change
   useEffect(() => {
@@ -59,22 +61,7 @@ const MyEvents = () => {
     const channel = supabase
       .channel('my-events-attendees')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_attendees' }, () => {
-        // Re-fetch attendees for hosted events
-        if (hosted.length > 0) {
-          const fetchAttendees = async () => {
-            const map: Record<string, any[]> = {};
-            for (const event of hosted) {
-              const { data } = await supabase
-                .from('event_attendees')
-                .select('user_id, profiles:user_id(id, display_name, avatar_url)')
-                .eq('event_id', event.id)
-                .limit(5);
-              map[event.id] = data || [];
-            }
-            setAttendeeMap(map);
-          };
-          fetchAttendees();
-        }
+        fetchHostedAttendees();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

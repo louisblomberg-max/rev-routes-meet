@@ -70,11 +70,14 @@ const Notifications = () => {
     }
     // Navigate based on data
     const d = notif.data;
-    if (d?.route) navigate(d.route);
-    else if (d?.event) navigate(`/event/${d.event}`);
-    else if (d?.club) navigate(`/club/${d.club}`);
-    else if (d?.club_id) navigate(`/club/${d.club_id}`);
-    else if (d?.url) navigate(d.url);
+    const safeNav = (r: string) => { if (r?.startsWith('/') && !r.includes('..') && !r.includes('http')) navigate(r); };
+    if (d?.route) safeNav(d.route);
+    else if (d?.event) safeNav(`/event/${d.event}`);
+    else if (d?.event_id) safeNav(`/event/${d.event_id}`);
+    else if (d?.club) safeNav(`/club/${d.club}`);
+    else if (d?.club_id) safeNav(`/club/${d.club_id}`);
+    else if (d?.user_id) safeNav(`/profile/${d.user_id}`);
+    else if (d?.conversation_id) safeNav(`/messages/${d.conversation_id}`);
   };
 
   const handleMarkAllRead = async () => {

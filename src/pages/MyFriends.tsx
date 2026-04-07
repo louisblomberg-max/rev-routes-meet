@@ -22,7 +22,7 @@ const MyFriends = () => {
   const { friends: friendsRepo } = useData();
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<'all' | 'requests' | 'suggested'>('all');
+  const [activeFilter, setActiveFilter] = useState<'all' | 'requests'>('all');
   const [findQuery, setFindQuery] = useState('');
   const [findResults, setFindResults] = useState<any[]>([]);
   const [findLoading, setFindLoading] = useState(false);
@@ -61,7 +61,6 @@ const MyFriends = () => {
   const filters = [
     { id: 'all' as const, label: 'All', count: accepted.length },
     { id: 'requests' as const, label: 'Requests', count: pendingReceived.length },
-    { id: 'suggested' as const, label: 'Suggested', count: suggestedFriends.length },
   ];
 
   return (
@@ -139,24 +138,6 @@ const MyFriends = () => {
                 <Users className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                 <h3 className="font-semibold text-foreground mb-1">No pending requests</h3>
                 <p className="text-sm text-muted-foreground">Friend requests will appear here</p>
-              </div>
-            )}
-
-            {/* Suggested */}
-            {activeFilter === 'suggested' && (
-              <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden divide-y divide-border/30">
-                {suggestedFriends.map(person => (
-                  <div key={person.id} className="flex items-center gap-3 px-4 py-3.5">
-                    <Avatar className="w-11 h-11"><AvatarFallback className="bg-muted text-muted-foreground font-semibold">{person.displayName.charAt(0)}</AvatarFallback></Avatar>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-foreground truncate">{person.displayName}</p>
-                      <p className="text-xs text-muted-foreground">@{person.username} · {person.mutualFriends} mutual</p>
-                    </div>
-                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => toast.success(`Request sent to ${person.displayName}`)}>
-                      <UserPlus className="w-3.5 h-3.5" /> Add
-                    </Button>
-                  </div>
-                ))}
               </div>
             )}
 

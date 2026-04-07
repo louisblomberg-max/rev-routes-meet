@@ -33,7 +33,8 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
     setIsLoading(true);
     setIsOpen(true);
 
-    const kw = q.trim();
+    const kw = q.replace(/[%_'"\\]/g, ' ').trim().slice(0, 100);
+    if (!kw) { setResults([]); setIsLoading(false); return; }
     const allResults: SearchResult[] = [];
 
     try {
