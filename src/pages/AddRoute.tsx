@@ -192,9 +192,9 @@ const AddRoute = () => {
       const photoUrls: string[] = [];
       for (const file of photoFiles) {
         const ext = file.name.split('.').pop();
-        const path = `routes/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: ue } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type });
-        if (ue) { console.warn('Photo upload failed:', ue.message); } else { const { data: u } = supabase.storage.from('avatars').getPublicUrl(path); photoUrls.push(u.publicUrl); }
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: ue } = await supabase.storage.from('routes').upload(path, file, { upsert: true, contentType: file.type });
+        if (ue) { console.warn('Photo upload failed:', ue.message); } else { const { data: u } = supabase.storage.from('routes').getPublicUrl(path); photoUrls.push(u.publicUrl); }
       }
       const allPhotos = [...existingPhotos, ...photoUrls];
 
