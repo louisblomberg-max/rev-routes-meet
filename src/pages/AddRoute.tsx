@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
@@ -20,8 +20,13 @@ const AddRoute = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { currentPlan } = usePlan();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEdit = !!editId;
+  const [isLoadingEdit, setIsLoadingEdit] = useState(isEdit);
+  const [existingPhotos, setExistingPhotos] = useState<string[]>([]);
 
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(isEdit ? 3 : 1);
   const [method, setMethod] = useState<'draw' | 'gpx' | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -62,6 +67,28 @@ const AddRoute = () => {
       </div>
     );
   }
+
+  // Load edit data
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (!editId || !user?.id) { setIsLoadingEdit(false); return; }
+    (async () => {
+      const { data } = await supabase.from('routes').select('*').eq('id', editId).single();
+      if (!data) { toast.error('Route not found'); navigate('/my-routes'); return; }
+      if (data.created_by !== user.id) { toast.error('Not your route'); navigate('/my-routes'); return; }
+      setTitle(data.name || '');
+      setDescription(data.description || '');
+      setRouteType(data.type ? data.type.charAt(0).toUpperCase() + data.type.slice(1) : '');
+      setDifficulty(data.difficulty ? data.difficulty.charAt(0).toUpperCase() + data.difficulty.slice(1) : '');
+      setSurface(data.surface_type ? data.surface_type.charAt(0).toUpperCase() + data.surface_type.slice(1) : '');
+      setVisibility((data.visibility as any) || 'public');
+      setDistanceKm(data.distance_meters ? data.distance_meters / 1000 : 0);
+      setDurationMin(data.duration_minutes || 0);
+      setExistingPhotos(data.photos || []);
+      if (data.geometry) setRouteGeoJson(data.geometry);
+      setIsLoadingEdit(false);
+    })();
+  }, [editId, user?.id]);
 
   // Initialize draw map
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -161,7 +188,7 @@ const AddRoute = () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id || user.id;
-      // Upload photos
+      // Upload new photos
       const photoUrls: string[] = [];
       for (const file of photoFiles) {
         const ext = file.name.split('.').pop();
@@ -169,9 +196,23 @@ const AddRoute = () => {
         const { error: ue } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
         if (!ue) { const { data: u } = supabase.storage.from('avatars').getPublicUrl(path); photoUrls.push(u.publicUrl); }
       }
+      const allPhotos = [...existingPhotos, ...photoUrls];
+
+      if (isEdit && editId) {
+        const { error } = await supabase.from('routes').update({
+          name: title.trim(), description: description.trim() || null,
+          type: routeType.toLowerCase() || null, difficulty: difficulty.toLowerCase() || null,
+          surface_type: surface.toLowerCase() || null, visibility,
+          photos: allPhotos.length > 0 ? allPhotos : null,
+        }).eq('id', editId).eq('created_by', userId);
+        if (error) throw error;
+        toast.success('Route updated!');
+        navigate('/my-routes');
+        return;
+      }
 
       const { error } = await supabase.from('routes').insert({
-        name: title.trim(), description: description.trim() || null, photos: photoUrls.length > 0 ? photoUrls : null,
+        name: title.trim(), description: description.trim() || null, photos: allPhotos.length > 0 ? allPhotos : null,
         type: routeType.toLowerCase() || null, difficulty: difficulty.toLowerCase() || null,
         surface_type: surface.toLowerCase() || null, visibility, geometry: routeGeoJson,
         distance_meters: Math.round(distanceKm * 1000), duration_minutes: durationMin,
@@ -191,7 +232,7 @@ const AddRoute = () => {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={goBack} className="w-9 h-9 rounded-xl bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
-          <h1 className="text-lg font-bold flex-1">Create Route</h1>
+          <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Route' : 'Create Route'}</h1>
           <span className="text-xs text-muted-foreground">Step {step}/3</span>
         </div>
         {/* Step indicator */}
@@ -300,6 +341,13 @@ const AddRoute = () => {
               <Label>Photos (optional)</Label>
               <p className="text-xs text-muted-foreground mb-2">Scenery, start point, highlights</p>
               <div className="flex gap-2 flex-wrap">
+                {existingPhotos.map((url, i) => (
+                  <div key={`ex-${i}`} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border/50">
+                    <img src={url} className="w-full h-full object-cover" alt="" />
+                    <button onClick={() => setExistingPhotos(p => p.filter((_, idx) => idx !== i))}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center text-white text-xs">×</button>
+                  </div>
+                ))}
                 {photoPreviews.map((preview, i) => (
                   <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border/50">
                     <img src={preview} className="w-full h-full object-cover" alt="" />
@@ -340,7 +388,7 @@ const AddRoute = () => {
 
           <Button onClick={handlePublish} disabled={isPublishing || !title.trim()}
             className="w-full h-12 rounded-xl text-base font-semibold" style={{ backgroundColor: '#4f7fff' }}>
-            {isPublishing ? 'Publishing...' : 'Publish Route'}
+            {isPublishing ? (isEdit ? 'Saving...' : 'Publishing...') : isEdit ? 'Save Changes' : 'Publish Route'}
           </Button>
         </div>
       )}

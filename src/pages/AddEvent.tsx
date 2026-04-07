@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
@@ -39,6 +39,10 @@ const VEHICLE_FOCUS_OPTIONS = [
 const AddEvent = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const editId = searchParams.get('edit')
+  const isEdit = !!editId
+  const [isLoadingEdit, setIsLoadingEdit] = useState(isEdit)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const photosInputRef = useRef<HTMLInputElement>(null)
   const makeSearchRef = useRef<HTMLDivElement>(null)
@@ -118,6 +122,38 @@ const AddEvent = () => {
   const [clubId, setClubId] = useState('')
 
   // Load user data on mount
+  // Load existing event data for edit mode
+  useEffect(() => {
+    if (!editId || !user?.id) { setIsLoadingEdit(false); return; }
+    (async () => {
+      const { data, error } = await supabase.from('events').select('*').eq('id', editId).single();
+      if (error || !data) { toast.error('Event not found'); navigate('/my-events'); return; }
+      if (data.created_by !== user.id) { toast.error('Cannot edit this event'); navigate('/my-events'); return; }
+      setTitle(data.title || '');
+      setDescription(data.description || '');
+      if (data.banner_url) setBannerPreview(data.banner_url);
+      setEventTypes(data.event_types?.length ? data.event_types : data.type ? [data.type] : []);
+      setVehicleFocus(data.vehicle_focus || 'all_welcome');
+      setSpecificMakes(data.vehicle_brands || []);
+      setMeetStyleTags(data.meet_style_tags || []);
+      setSpecificYears(data.specific_years || []);
+      setLocation(data.location || '');
+      setLocationLat(data.lat ? Number(data.lat) : null);
+      setLocationLng(data.lng ? Number(data.lng) : null);
+      setWhat3words(data.what3words || '');
+      setMaxAttendees(data.max_attendees ? String(data.max_attendees) : '');
+      setWaitlistEnabled(data.waitlist_enabled || false);
+      setEntryType(data.is_ticketed ? 'ticketed' : 'free');
+      setEventRules(data.event_rules || '');
+      setVisibility((data.visibility as any) || 'public');
+      if (data.date_start) {
+        const s = new Date(data.date_start);
+        setDates([{ id: crypto.randomUUID(), date: s.toISOString().split('T')[0], startTime: s.toTimeString().slice(0,5), endTime: data.date_end ? new Date(data.date_end).toTimeString().slice(0,5) : '14:00' }]);
+      }
+      setIsLoadingEdit(false);
+    })();
+  }, [editId, user?.id]);
+
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
@@ -476,6 +512,29 @@ const AddEvent = () => {
       }
 
       // Insert one event per date
+      // Edit mode — update existing event
+      if (isEdit && editId) {
+        const d = validDatesList[0] || dates[0];
+        const dateStart = d?.date ? new Date(`${d.date}T${d.startTime || '10:00'}:00`) : null;
+        const dateEnd = d?.date && d.endTime ? new Date(`${d.date}T${d.endTime}:00`) : null;
+        const { error: updateError } = await supabase.from('events').update({
+          title: title.trim(), description: description.trim(), banner_url: bannerUrl || null,
+          type: eventTypes[0] || '', event_types: eventTypes, vehicle_focus: vehicleFocus,
+          vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
+          meet_style_tags: meetStyleTags, specific_years: specificYears,
+          location: location.trim(), lat: locationLat, lng: locationLng,
+          what3words: what3words.trim() || null, max_attendees: maxAttendees ? Number(maxAttendees) : null,
+          waitlist_enabled: waitlistEnabled, is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
+          entry_fee: 0, ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
+          event_rules: eventRules.trim() || null, visibility,
+          date_start: dateStart?.toISOString() || null, date_end: dateEnd?.toISOString() || null,
+        }).eq('id', editId).eq('created_by', userId);
+        if (updateError) throw updateError;
+        toast.success('Event updated!');
+        navigate('/my-events');
+        return;
+      }
+
       const eventPayloads = validDatesList.map((d, index) => {
         const dateStart = new Date(`${d.date}T${d.startTime}:00`)
         const dateEnd = new Date(`${d.date}T${d.endTime}:00`)
@@ -590,7 +649,7 @@ const AddEvent = () => {
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton />
-          <h1 className="text-lg font-bold">Add Event</h1>
+          <h1 className="text-lg font-bold">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
         </div>
       </div>
 
@@ -1353,7 +1412,7 @@ const AddEvent = () => {
             disabled={saving}
             className="w-full bg-events hover:bg-events/90 text-events-foreground h-12 text-base font-semibold rounded-2xl"
           >
-            {saving ? 'Publishing...' : dateCount > 1 ? `Publish ${dateCount} Events` : 'Publish Event'}
+            {saving ? (isEdit ? 'Saving...' : 'Publishing...') : isEdit ? 'Save Changes' : dateCount > 1 ? `Publish ${dateCount} Events` : 'Publish Event'}
           </Button>
         </div>
       </div>

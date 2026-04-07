@@ -128,7 +128,7 @@ const MyRoutes = () => {
                     <button onClick={() => navigate('/', { state: { showRouteId: route.id } })} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
                       <Route className="w-4 h-4" /> View
                     </button>
-                    <button onClick={() => toast.info('Route editing coming soon.')} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
+                    <button onClick={() => navigate(`/add/route?edit=${route.id}`)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">
                       <PenLine className="w-4 h-4" /> Edit
                     </button>
                   </div>

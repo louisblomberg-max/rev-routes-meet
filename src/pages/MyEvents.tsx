@@ -207,13 +207,12 @@ const MyEvents = () => {
 
                   {/* Manage button for hosted events */}
                   {event.isHost && (
-                    <button
-                      onClick={() => navigate(`/event/${event.id}/manage`)}
-                      className="w-full py-2.5 text-sm font-semibold text-white border-t border-border/20"
-                      style={{ backgroundColor: '#d30d37' }}
-                    >
-                      Manage Event
-                    </button>
+                    <div className="flex border-t border-border/20">
+                      <button onClick={() => navigate(`/add/event?edit=${event.id}`)}
+                        className="flex-1 py-2.5 text-sm font-semibold text-muted-foreground border-r border-border/20 hover:bg-muted/30">Edit</button>
+                      <button onClick={() => navigate(`/event/${event.id}/manage`)}
+                        className="flex-1 py-2.5 text-sm font-semibold text-white" style={{ backgroundColor: '#d30d37' }}>Manage</button>
+                    </div>
                   )}
                 </div>
               );
