@@ -27,13 +27,33 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [hoveredStar, setHoveredStar] = useState(0);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [isEditingReview, setIsEditingReview] = useState(false);
+  const [dbPhotos, setDbPhotos] = useState<string[]>([]);
   const fullMapRef = useRef<HTMLDivElement>(null);
   const fullMapInstanceRef = useRef<mapboxgl.Map | null>(null);
 
   const data = route as any;
-  const photos: string[] = data.photos || [];
+  const propsPhotos: string[] = data.photos || [];
   const geometry = data.geometry || data.route_data;
   const routeId = data.id || route.id;
+
+  console.log('RouteDetailContent photos:', data.photos, 'full data keys:', Object.keys(data));
+
+  // Fetch photos directly from DB to bypass any data passing issues
+  useEffect(() => {
+    if (!routeId) return;
+    supabase
+      .from('routes')
+      .select('photos')
+      .eq('id', routeId)
+      .single()
+      .then(({ data: d }) => {
+        if (d?.photos && d.photos.length > 0) {
+          setDbPhotos(d.photos);
+        }
+      });
+  }, [routeId]);
+
+  const photos = dbPhotos.length > 0 ? dbPhotos : propsPhotos;
 
   useEffect(() => { supabase.auth.getUser().then(({ data: d }) => setCurrentUserId(d.user?.id || null)); }, []);
 
@@ -79,7 +99,12 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   // Full-screen map
   useEffect(() => {
     if (!showFullMap || !fullMapRef.current || fullMapInstanceRef.current) return;
-    const map = new mapboxgl.Map({ container: fullMapRef.current, style: 'mapbox://styles/mapbox/streets-v12', center: [data.lng || -1.5, data.lat || 52.5], zoom: 10 });
+    const map = new mapboxgl.Map({
+      container: fullMapRef.current, style: 'mapbox://styles/mapbox/streets-v12',
+      center: [data.lng || -1.5, data.lat || 52.5], zoom: 10,
+      dragPan: true, scrollZoom: true, touchZoomRotate: true, doubleClickZoom: true, keyboard: true,
+    });
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
     fullMapInstanceRef.current = map;
     map.on('load', () => {
       if (!geometry) return;
@@ -100,12 +125,7 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   return (
     <div className="space-y-3">
-      {/* Photos grid — no banner, no negative margins */}
-      {photos.length === 0 && (
-        <div className="h-36 bg-gradient-to-br from-routes/10 to-routes/20 rounded-2xl flex items-center justify-center">
-          <div className="text-center"><span className="text-4xl">🗺️</span><p className="text-xs font-semibold text-routes mt-1">{route.name}</p></div>
-        </div>
-      )}
+      {/* Photos grid */}
       {photos.length === 1 && <img src={photos[0]} className="w-full h-44 object-cover rounded-2xl" alt="" />}
       {photos.length === 2 && (
         <div className="flex gap-2 h-36">
