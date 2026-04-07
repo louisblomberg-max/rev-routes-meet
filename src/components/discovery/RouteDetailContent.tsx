@@ -2,6 +2,7 @@ import { Star, Route, Clock, Navigation, Bookmark, Share2, ArrowLeft } from 'luc
 import { RevRoute } from '@/models';
 import { toast } from 'sonner';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -228,22 +229,25 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
         </button>
       )}
 
-      {/* Full-screen map */}
-      {showFullMap && (
-        <div className="fixed inset-0" style={{ zIndex: 99999 }}>
-          <div ref={fullMapRef} className="absolute inset-0" />
-          <div className="absolute top-12 left-4 z-10">
+      {/* Full-screen map — rendered via portal to escape bottom sheet */}
+      {showFullMap && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
+          <div ref={fullMapRef} style={{ position: 'absolute', inset: 0 }} />
+          <div style={{ position: 'absolute', top: 48, left: 16, zIndex: 10 }}>
             <button onClick={() => { setShowFullMap(false); fullMapInstanceRef.current?.remove(); fullMapInstanceRef.current = null; }}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white shadow-lg text-sm font-semibold"><ArrowLeft className="w-4 h-4" /> Back</button>
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+              ← Back to Route
+            </button>
           </div>
-          <div className="absolute bottom-0 left-0 right-0 bg-white px-4 py-4 border-t" style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))' }}>
-            <p className="font-bold text-sm">{route.name}</p>
-            <div className="flex gap-3 mt-1 text-xs text-gray-500">
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', padding: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))', borderTop: '1px solid #eee' }}>
+            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{route.name}</p>
+            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 12, color: '#666' }}>
               {data.distance_meters && <span>{(data.distance_meters / 1000).toFixed(1)} km</span>}
               {data.duration_minutes && <span>~{data.duration_minutes} min</span>}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

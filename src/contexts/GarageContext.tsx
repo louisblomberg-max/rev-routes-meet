@@ -164,13 +164,13 @@ export const GarageProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const deleteVehicle = useCallback(async (vehicleId: string) => {
-    setVehicles(prev => prev.filter(v => v.id !== vehicleId));
-    const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId);
+    const { error } = await supabase.from('vehicles').delete().eq('id', vehicleId).eq('user_id', userId);
     if (error) {
       toast.error('Failed to delete vehicle');
-      reload();
+      return;
     }
-  }, [reload]);
+    setVehicles(prev => prev.filter(v => v.id !== vehicleId));
+  }, [userId]);
 
   const setPrimary = useCallback(async (vehicleId: string) => {
     setVehicles(prev => prev.map(v => ({ ...v, isPrimary: v.id === vehicleId })));
