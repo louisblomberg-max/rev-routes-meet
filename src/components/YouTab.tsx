@@ -109,6 +109,7 @@ const YouTab = () => {
       });
       return;
     }
+    sessionStorage.setItem('revnet_active_tab', 'you');
     navigate(tile.route);
   };
 

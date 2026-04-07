@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
 import mapboxgl from 'mapbox-gl';
-import { ArrowLeft, Upload, Pencil, Undo2, Trash2, Lock, MapPin, Clock, Route } from 'lucide-react';
+import { ArrowLeft, Upload, Pencil, Undo2, Trash2, Lock, MapPin, Clock, Route, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,8 @@ const AddRoute = () => {
   const [isSnapping, setIsSnapping] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [gpxFileName, setGpxFileName] = useState('');
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -159,8 +161,17 @@ const AddRoute = () => {
     try {
       const { data: session } = await supabase.auth.getSession();
       const userId = session?.session?.user?.id || user.id;
+      // Upload photos
+      const photoUrls: string[] = [];
+      for (const file of photoFiles) {
+        const ext = file.name.split('.').pop();
+        const path = `routes/${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const { error: ue } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+        if (!ue) { const { data: u } = supabase.storage.from('avatars').getPublicUrl(path); photoUrls.push(u.publicUrl); }
+      }
+
       const { error } = await supabase.from('routes').insert({
-        name: title.trim(), description: description.trim() || null,
+        name: title.trim(), description: description.trim() || null, photos: photoUrls.length > 0 ? photoUrls : null,
         type: routeType.toLowerCase() || null, difficulty: difficulty.toLowerCase() || null,
         surface_type: surface.toLowerCase() || null, visibility, geometry: routeGeoJson,
         distance_meters: Math.round(distanceKm * 1000), duration_minutes: durationMin,
@@ -285,6 +296,33 @@ const AddRoute = () => {
           <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
             <div><Label>Route Name *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="e.g. Peak District Scenic Drive" className="mt-1" /></div>
             <div><Label>Description</Label><textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the route, notable landmarks, tips..." className="w-full mt-1 border border-border/50 rounded-xl px-3 py-2 text-sm bg-background min-h-[80px] resize-none" /></div>
+            <div>
+              <Label>Photos (optional)</Label>
+              <p className="text-xs text-muted-foreground mb-2">Scenery, start point, highlights</p>
+              <div className="flex gap-2 flex-wrap">
+                {photoPreviews.map((preview, i) => (
+                  <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-border/50">
+                    <img src={preview} className="w-full h-full object-cover" alt="" />
+                    <button onClick={() => { setPhotoPreviews(p => p.filter((_, idx) => idx !== i)); setPhotoFiles(p => p.filter((_, idx) => idx !== i)); }}
+                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center text-white text-xs">×</button>
+                  </div>
+                ))}
+                {photoPreviews.length < 5 && (
+                  <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border/50 flex flex-col items-center justify-center cursor-pointer hover:border-routes/50 transition-colors">
+                    <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-muted-foreground mt-1">Add</span>
+                    <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(ev) => {
+                      Array.from(ev.target.files || []).slice(0, 5 - photoPreviews.length).forEach(file => {
+                        if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+                        const reader = new FileReader();
+                        reader.onload = (r) => setPhotoPreviews(p => [...p, r.target?.result as string]);
+                        reader.readAsDataURL(file);
+                        setPhotoFiles(p => [...p, file]);
+                      });
+                    }} />
+                  </label>
+                )}
+              </div>
+            </div>
             <div><Label>Route Type</Label><div className="flex flex-wrap gap-2 mt-1">{ROUTE_TYPES.map(t => (
               <button key={t} onClick={() => setRouteType(routeType === t ? '' : t)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${routeType === t ? 'bg-routes text-white border-routes' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>{t}</button>
             ))}</div></div>
