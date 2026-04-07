@@ -166,7 +166,7 @@ const Home = () => {
           .limit(300),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
+          .select('id, name, lat, lng, type, difficulty, surface_type, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -193,7 +193,7 @@ const Home = () => {
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty, distance_meters: r.distance_meters,
+          difficulty: r.difficulty, surface_type: r.surface_type, distance_meters: r.distance_meters,
           duration_minutes: r.duration_minutes, rating: r.rating,
           saves: r.saves, drives: r.drives,
         })),
@@ -244,7 +244,7 @@ const Home = () => {
           .limit(300),
         supabase
           .from('routes')
-          .select('id, name, lat, lng, type, difficulty, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
+          .select('id, name, lat, lng, type, difficulty, surface_type, distance_meters, duration_minutes, rating, saves, drives, visibility, status')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -275,7 +275,7 @@ const Home = () => {
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
           type: 'routes', subtype: r.type,
-          difficulty: r.difficulty, distance_meters: r.distance_meters,
+          difficulty: r.difficulty, surface_type: r.surface_type, distance_meters: r.distance_meters,
           duration_minutes: r.duration_minutes, rating: r.rating,
           saves: r.saves, drives: r.drives,
         })),
@@ -585,10 +585,10 @@ const Home = () => {
     // Duration filter
     if (rf.duration) {
       const mins = Number(pin.duration_minutes) || 0;
-      if (rf.duration === 'lt60' && mins >= 60) return false;
-      if (rf.duration === '60to120' && (mins < 60 || mins > 120)) return false;
-      if (rf.duration === '120to240' && (mins < 120 || mins > 240)) return false;
-      if (rf.duration === 'gt240' && mins < 240) return false;
+      if ((rf.duration === 'lt60' || rf.duration === 'under-1h') && mins >= 60) return false;
+      if ((rf.duration === '60to120' || rf.duration === '1-2h') && (mins < 60 || mins > 120)) return false;
+      if ((rf.duration === '120to240' || rf.duration === '2-4h') && (mins < 120 || mins > 240)) return false;
+      if ((rf.duration === 'gt240' || rf.duration === 'over-4h') && mins < 240) return false;
     }
 
     // Surface filter
