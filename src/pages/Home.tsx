@@ -866,13 +866,21 @@ const Home = () => {
         const { data } = await supabase.from('routes').select('*').eq('id', pin.id).maybeSingle();
         if (data) {
           route = {
+            ...data,
             id: data.id, name: data.name, description: data.description || '',
             type: data.type || '', difficulty: data.difficulty || '',
             distance: data.distance_meters ? `${(data.distance_meters / 1000).toFixed(1)} km` : '',
+            distance_meters: data.distance_meters,
+            duration_minutes: data.duration_minutes,
             durationMinutes: data.duration_minutes, vehicleType: data.vehicle_type || '',
-            surfaceType: data.surface_type || '', safetyTags: data.safety_tags || [],
-            lat: data.lat, lng: data.lng, createdBy: data.created_by || '',
-            rating: data.rating, polyline: data.geometry ? JSON.stringify(data.geometry) : null,
+            surfaceType: data.surface_type || '', surface_type: data.surface_type,
+            safetyTags: data.safety_tags || [],
+            lat: data.lat, lng: data.lng,
+            createdBy: data.created_by || '', created_by: data.created_by,
+            rating: data.rating,
+            geometry: data.geometry,
+            photos: data.photos || [],
+            polyline: data.geometry ? JSON.stringify(data.geometry) : null,
             visibility: data.visibility || 'public', createdAt: data.created_at || '',
             elevationGain: data.elevation_gain,
           } as any;

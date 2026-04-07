@@ -148,6 +148,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
               route={item.data}
               onNavigate={handleNavigate}
               onViewFull={handleViewFull}
+              onClose={onClose}
               isSaved={savedRoutes.includes(item.data.id)}
               onToggleSave={() => handleSaveRoute(item.data.id)}
             />

@@ -11,11 +11,12 @@ interface RouteDetailContentProps {
   route: RevRoute;
   onNavigate: () => void;
   onViewFull: () => void;
+  onClose?: () => void;
   isSaved: boolean;
   onToggleSave: () => void;
 }
 
-const RouteDetailContent = ({ route, onNavigate, isSaved, onToggleSave }: RouteDetailContentProps) => {
+const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave }: RouteDetailContentProps) => {
   const [showFullMap, setShowFullMap] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
@@ -214,6 +215,18 @@ const RouteDetailContent = ({ route, onNavigate, isSaved, onToggleSave }: RouteD
 
         {reviews.length === 0 && !isEditingReview && <p className="text-[10px] text-muted-foreground text-center py-1">No reviews yet</p>}
       </div>
+
+      {/* Delete route — only for creator */}
+      {currentUserId && data.created_by === currentUserId && (
+        <button onClick={async () => {
+          if (!confirm('Delete this route? This cannot be undone.')) return;
+          const { error } = await supabase.from('routes').delete().eq('id', data.id).eq('created_by', currentUserId);
+          if (error) toast.error('Failed to delete');
+          else { toast.success('Route deleted'); onClose?.(); }
+        }} className="w-full py-2 rounded-xl text-xs font-semibold border border-destructive/50 text-destructive hover:bg-destructive/5">
+          Delete Route
+        </button>
+      )}
 
       {/* Full-screen map */}
       {showFullMap && (
