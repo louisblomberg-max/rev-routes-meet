@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import UniversalSearch from '@/components/UniversalSearch';
 import mapboxgl from 'mapbox-gl';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import revnetLogo from '@/assets/revnet-logo-header.png';
@@ -906,6 +907,17 @@ const Home = () => {
 
   const handleCloseDetail = () => setSelectedDetail(null);
 
+  const handleSearchSelectPin = useCallback((id: string, lat: number, lng: number, type: string) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({ center: [lng, lat], zoom: 14, duration: 1000 });
+    }
+    setActiveCategory(type);
+    setTimeout(() => {
+      const pin = allPinsRef.current.find(p => p.id === id);
+      if (pin) handlePinClick(pin);
+    }, 1200);
+  }, [handlePinClick]);
+
   const handleViewFull = (type: string, id: string) => {
     setSelectedDetail(null);
     navigate(`/${type}/${id}`);
@@ -986,21 +998,7 @@ const Home = () => {
               <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
                 <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
               </div>
-              <div className="h-10 flex-1 min-w-0 flex items-center gap-2 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-black/20 shadow-sm">
-                <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                <input
-                  type="text"
-                  placeholder="Search events, routes, services..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-                />
-                {searchQuery && (
-                  <button onClick={() => setSearchQuery('')} className="p-0.5">
-                    <X className="w-3.5 h-3.5 text-muted-foreground" />
-                  </button>
-                )}
-              </div>
+              <UniversalSearch onSelectPin={handleSearchSelectPin} variant="mobile" />
             </div>
             <div className="flex items-center justify-around py-2 px-3">
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
@@ -1017,21 +1015,7 @@ const Home = () => {
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
-            <div className="flex-1 min-w-0 flex items-center gap-2 px-2">
-              <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery('')} className="p-0.5">
-                  <X className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
-              )}
-            </div>
+            <UniversalSearch onSelectPin={handleSearchSelectPin} variant="desktop" />
           </div>
         </div>
       )}
