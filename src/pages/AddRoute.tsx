@@ -1,298 +1,45 @@
-/**
- * AddRoute page — orchestrates route creation methods and the publish flow.
- * Uses the new RouteDraft model. All business logic in routeService.ts.
- */
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
-import { toast } from 'sonner';
-import RouteMethodSheet, { type RouteMethod } from '@/components/route-creation/RouteMethodSheet';
-import RecordDriveOverlay from '@/components/route-creation/RecordDriveOverlay';
-import DrawRouteOverlay from '@/components/route-creation/DrawRouteOverlay';
-import GPXImportSheet from '@/components/route-creation/GPXImportSheet';
-import EditPublishRoute from '@/components/route-creation/EditPublishRoute';
-import { buildRouteDraft, formatRouteDistance } from '@/services/routeService';
-import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
-import type { RouteDraft, PublishRouteFormData } from '@/models/route';
-import { useData } from '@/contexts/DataContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlan } from '@/contexts/PlanContext';
-
+import { toast } from 'sonner';
+import mapboxgl from 'mapbox-gl';
+import { Upload, Pencil, Undo2, Trash2, Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import BackButton from '@/components/BackButton';
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
-type Phase = 'pick' | 'record' | 'draw' | 'gpx' | 'gpx-preview' | 'edit';
+const ROUTE_TYPES = ['Scenic', 'Coastal', 'Off-Road', 'Twisties', 'Urban', 'Track'];
+const DIFFICULTIES = ['Easy', 'Moderate', 'Challenging', 'Expert'];
+const SURFACES = ['Tarmac', 'Gravel', 'Dirt', 'Mixed'];
 
 const AddRoute = () => {
   const navigate = useNavigate();
-  const { routes: routesRepo, state } = useData();
-  const { user: authUser } = useAuth();
+  const { user } = useAuth();
   const { currentPlan } = usePlan();
 
-  const [phase, setPhase] = useState<Phase>('pick');
-  const [draftRoute, setDraftRoute] = useState<RouteDraft | null>(null);
-  const [drawWaypoints, setDrawWaypoints] = useState<[number, number][]>([]);
-  const isTransitioningRef = useRef(false);
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [routeType, setRouteType] = useState('');
+  const [difficulty, setDifficulty] = useState('');
+  const [surface, setSurface] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private'>('public');
+  const [method, setMethod] = useState<'draw' | 'gpx' | null>(null);
+  const [waypoints, setWaypoints] = useState<[number, number][]>([]);
+  const [routeGeoJson, setRouteGeoJson] = useState<any>(null);
+  const [distanceKm, setDistanceKm] = useState(0);
+  const [durationMin, setDurationMin] = useState(0);
+  const [isSnapping, setIsSnapping] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
 
-  // Map refs
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
-  const lineSourceRef = useRef<boolean>(false);
-  // Track snapped coordinates for the draw line
-  const snappedCoordsRef = useRef<[number, number][] | null>(null);
 
-  const showMap = phase === 'record' || phase === 'draw' || phase === 'gpx-preview';
-
-  const clearMarkersSafely = () => {
-    markersRef.current.forEach((mk) => {
-      try { mk.remove(); } catch (_) {}
-    });
-    markersRef.current = [];
-  };
-
-  // Init map for record/draw/gpx-preview
-  useEffect(() => {
-    if (!showMap || !mapContainerRef.current || mapRef.current) return;
-
-    const m = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-1.8, 51.5],
-      zoom: 13,
-      attributionControl: false,
-    });
-
-    m.on('load', () => {
-      m.addSource('draw-route', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } });
-      m.addLayer({ id: 'draw-route-casing', type: 'line', source: 'draw-route', paint: { 'line-color': '#1a56db', 'line-width': 8, 'line-opacity': 0.3 } });
-      m.addLayer({ id: 'draw-route-line', type: 'line', source: 'draw-route', paint: { 'line-color': '#3b82f6', 'line-width': 4, 'line-opacity': 0.9 }, layout: { 'line-cap': 'round', 'line-join': 'round' } });
-      lineSourceRef.current = true;
-
-      // If GPX preview, render the route immediately
-      if (phase === 'gpx-preview' && draftRoute) {
-        const coords = draftRoute.geometry.coordinates;
-        const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
-        if (src) {
-          src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
-        }
-        // Add start/end markers
-        const startEl = document.createElement('div');
-        startEl.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#22c55e;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);';
-        new mapboxgl.Marker({ element: startEl }).setLngLat(coords[0]).addTo(m);
-
-        const endEl = document.createElement('div');
-        endEl.style.cssText = 'width:16px;height:16px;border-radius:50%;background:#ef4444;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);';
-        new mapboxgl.Marker({ element: endEl }).setLngLat(coords[coords.length - 1]).addTo(m);
-
-        // Fit bounds
-        const bounds = coords.reduce(
-          (b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c),
-          new mapboxgl.LngLatBounds(coords[0], coords[0]),
-        );
-        m.fitBounds(bounds, { padding: 60, duration: 800 });
-      }
-    });
-
-    if (phase !== 'gpx-preview') {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => m.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14, duration: 1000 }),
-        () => {},
-        { enableHighAccuracy: true, timeout: 10000 },
-      );
-    }
-
-    mapRef.current = m;
-
-    return () => {
-      try { m.remove(); } catch (_) {}
-      mapRef.current = null;
-      lineSourceRef.current = false;
-    };
-  }, [showMap, phase]);
-
-  // Draw mode: add waypoints on map click
-  useEffect(() => {
-    if (phase !== 'draw' || !mapRef.current) return;
-    const m = mapRef.current;
-
-    const handleClick = (e: mapboxgl.MapMouseEvent) => {
-      const pt: [number, number] = [e.lngLat.lng, e.lngLat.lat];
-      setDrawWaypoints(prev => [...prev, pt]);
-    };
-
-    m.on('click', handleClick);
-    const canvas = m.getCanvas?.();
-    if (canvas) canvas.style.cursor = 'crosshair';
-
-    return () => {
-      try { m.off('click', handleClick); } catch (_) {}
-      const cleanupCanvas = m.getCanvas?.();
-      if (cleanupCanvas) cleanupCanvas.style.cursor = '';
-    };
-  }, [phase]);
-
-  // Update line + markers when waypoints change
-  useEffect(() => {
-    const m = mapRef.current;
-    if (!m || !lineSourceRef.current) return;
-
-    // Use snapped coords for line if available, otherwise raw waypoints
-    const lineCoords = snappedCoordsRef.current && snappedCoordsRef.current.length > 0
-      ? snappedCoordsRef.current
-      : drawWaypoints;
-
-    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
-    if (src) {
-      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: lineCoords } });
-    }
-
-    // Update markers for waypoints
-    clearMarkersSafely();
-    drawWaypoints.forEach((pt, i) => {
-      const el = document.createElement('div');
-      const isStart = i === 0;
-      const isEnd = i === drawWaypoints.length - 1 && drawWaypoints.length > 1;
-      const color = isStart ? '#22c55e' : isEnd ? '#ef4444' : '#3b82f6';
-      const size = isStart || isEnd ? 16 : 12;
-      el.style.cssText = `width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3);cursor:pointer;`;
-      const marker = new mapboxgl.Marker({ element: el, draggable: false }).setLngLat(pt).addTo(m);
-      markersRef.current.push(marker);
-    });
-  }, [drawWaypoints]);
-
-  // Handle snapped coordinates update from DrawRouteOverlay
-  const handleSnappedCoordsUpdate = useCallback((coords: [number, number][]) => {
-    snappedCoordsRef.current = coords.length > 0 ? coords : null;
-    // Force re-render of the line
-    const m = mapRef.current;
-    if (!m || !lineSourceRef.current) return;
-    const lineCoords = coords.length > 0 ? coords : drawWaypoints;
-    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
-    if (src) {
-      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: lineCoords } });
-    }
-  }, [drawWaypoints]);
-
-  // Method selection handlers
-  const handleMethodSelect = (method: RouteMethod) => {
-    isTransitioningRef.current = true;
-    if (method === 'gpx') {
-      setPhase('gpx');
-    } else {
-      setPhase(method);
-    }
-    setTimeout(() => { isTransitioningRef.current = false; }, 0);
-  };
-
-  const handleDraftReady = useCallback((draft: RouteDraft) => {
-    setDraftRoute(draft);
-    setPhase('edit');
-    clearMarkersSafely();
-    snappedCoordsRef.current = null;
-    if (mapRef.current) {
-      try { mapRef.current.remove(); } catch (_) {}
-      mapRef.current = null;
-    }
-    lineSourceRef.current = false;
-    setDrawWaypoints([]);
-  }, []);
-
-  // Handle GPX import — show on map first, then proceed to edit
-  const handleGPXImport = useCallback((oldDraft: any) => {
-    const coords = oldDraft.geometry?.coordinates || [];
-    if (coords.length < 2) {
-      toast.error('GPX must have at least 2 points');
-      return;
-    }
-    const draft = buildRouteDraft(coords, [coords[0], coords[coords.length - 1]], false);
-    setDraftRoute(draft);
-    setPhase('gpx-preview');
-  }, []);
-
-  // Record drive: update map line with new coords
-  const handleRecordCoordsUpdate = useCallback((coords: [number, number][]) => {
-    const m = mapRef.current;
-    if (!m || !lineSourceRef.current) return;
-    const src = m.getSource('draw-route') as mapboxgl.GeoJSONSource;
-    if (src) {
-      src.setData({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: coords } });
-    }
-    // Pan to latest point
-    if (coords.length > 0) {
-      const last = coords[coords.length - 1];
-      m.panTo(last, { duration: 500 });
-    }
-  }, []);
-
-  const handlePublish = async (data: PublishRouteFormData) => {
-    if (!authUser?.id) { toast.error('You must be signed in'); return; }
-
-    const draft = data.draft;
-    if (!draft?.geometry?.coordinates || draft.geometry.coordinates.length < 2) {
-      toast.error('Invalid route data', { description: 'Route must have at least 2 points.' });
-      return;
-    }
-
-    const durationMinutes = Math.round(draft.stats.durationSeconds / 60);
-
-    try {
-      const { data: newRoute, error } = await supabase.from('routes').insert({
-        created_by: authUser.id,
-        name: data.name.trim(),
-        description: data.description?.trim() || null,
-        geometry: draft.geometry as any,
-        distance_meters: draft.stats.distanceMeters || null,
-        duration_minutes: durationMinutes || null,
-        visibility: data.visibility?.level || 'public',
-        lat: draft.startLat || null,
-        lng: draft.startLng || null,
-        photos: [],
-        type: data.routeType || null,
-        difficulty: data.difficulty?.toLowerCase() || null,
-        surface_type: data.surfaceType?.toLowerCase() || null,
-        safety_tags: data.safetyTags || [],
-        status: 'published',
-        vehicle_type: data.vehicleTypes.includes('Cars') && data.vehicleTypes.includes('Motorcycles') ? 'both' : data.vehicleTypes.includes('Motorcycles') ? 'bike' : 'car',
-      }).select().single();
-
-      if (error) {
-        toast.error('Could not publish route: ' + error.message);
-        return;
-      }
-
-      toast.success('Route published!', { description: data.name });
-      navigate('/', { replace: true, state: { refreshMap: true, centerOn: draft.startLat && draft.startLng ? { lat: draft.startLat, lng: draft.startLng } : undefined } });
-    } catch (err: any) {
-      toast.error('Something went wrong. Please try again.');
-    }
-  };
-
-  const handleSaveDraft = (data: PublishRouteFormData) => {
-    toast.success('Draft saved locally');
-  };
-
-  const cleanupMap = () => {
-    clearMarkersSafely();
-    snappedCoordsRef.current = null;
-    if (mapRef.current) {
-      try { mapRef.current.remove(); } catch (_) {}
-      mapRef.current = null;
-    }
-    lineSourceRef.current = false;
-    setDrawWaypoints([]);
-    setDraftRoute(null);
-  };
-
-  const handleCancel = () => {
-    cleanupMap();
-    navigate(-1);
-  };
-
-  // Plan gate — free users cannot create routes
   if (currentPlan === 'free') {
     return (
       <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
@@ -307,80 +54,189 @@ const AddRoute = () => {
     );
   }
 
-  // Edit & Publish phase
-  if (phase === 'edit' && draftRoute) {
-    return (
-      <EditPublishRoute
-        draft={draftRoute}
-        onPublish={handlePublish}
-        onSaveDraft={handleSaveDraft}
-        onBack={() => { setDraftRoute(null); setPhase('pick'); }}
-      />
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (method !== 'draw' || !mapContainerRef.current || mapRef.current) return;
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [-1.5, 52.5],
+      zoom: 6,
+    });
+    mapRef.current = map;
+    map.on('click', (e) => {
+      setWaypoints(prev => [...prev, [e.lngLat.lng, e.lngLat.lat]]);
+    });
+    navigator.geolocation.getCurrentPosition(
+      (pos) => map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 12, duration: 1000 }),
+      () => {}, { timeout: 5000 }
     );
-  }
+    return () => { map.remove(); mapRef.current = null; };
+  }, [method]);
 
-  // Map-based phases (record / draw / gpx-preview)
-  if (showMap) {
-    return (
-      <div className="mobile-container relative">
-        <div ref={mapContainerRef} className="absolute inset-0" />
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (waypoints.length < 2 || !mapRef.current) return;
+    markersRef.current.forEach(m => m.remove());
+    markersRef.current = [];
+    waypoints.forEach((wp, i) => {
+      const el = document.createElement('div');
+      el.style.cssText = `width:24px;height:24px;border-radius:50%;background:${i === 0 ? '#22c55e' : i === waypoints.length - 1 ? '#ef4444' : '#4f7fff'};border:2px solid white;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;`;
+      el.textContent = String(i + 1);
+      const marker = new mapboxgl.Marker({ element: el }).setLngLat(wp).addTo(mapRef.current!);
+      markersRef.current.push(marker);
+    });
+    const snap = async () => {
+      setIsSnapping(true);
+      try {
+        const coords = waypoints.map(p => p.join(',')).join(';');
+        const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?geometries=geojson&overview=full&access_token=${mapboxgl.accessToken}`);
+        const data = await res.json();
+        if (data.routes?.[0]) {
+          const route = data.routes[0];
+          setRouteGeoJson(route.geometry);
+          setDistanceKm(Math.round(route.distance / 100) / 10);
+          setDurationMin(Math.round(route.duration / 60));
+          const map = mapRef.current!;
+          const src = { type: 'Feature' as const, properties: {}, geometry: route.geometry };
+          if (map.getSource('route')) {
+            (map.getSource('route') as mapboxgl.GeoJSONSource).setData(src);
+          } else {
+            map.addSource('route', { type: 'geojson', data: src });
+            map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#4f7fff', 'line-width': 4 } });
+          }
+        }
+      } catch { toast.error('Failed to snap route'); }
+      setIsSnapping(false);
+    };
+    snap();
+  }, [waypoints]);
 
-        {phase === 'record' && (
-          <RecordDriveOverlay
-            onFinish={handleDraftReady}
-            onCancel={handleCancel}
-            onCoordsUpdate={handleRecordCoordsUpdate}
-          />
-        )}
+  const handleGPXUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const doc = new DOMParser().parseFromString(text, 'text/xml');
+      const coords: [number, number][] = [];
+      doc.querySelectorAll('trkpt').forEach(pt => {
+        const lat = parseFloat(pt.getAttribute('lat') || '0');
+        const lng = parseFloat(pt.getAttribute('lon') || '0');
+        if (lat && lng) coords.push([lng, lat]);
+      });
+      if (coords.length < 2) { toast.error('GPX file has too few points'); return; }
+      const step = Math.max(1, Math.floor(coords.length / 25));
+      setWaypoints(coords.filter((_, i) => i % step === 0));
+      setRouteGeoJson({ type: 'LineString', coordinates: coords });
+      setDistanceKm(Math.round(coords.length * 0.05 * 10) / 10);
+      toast.success(`Loaded ${coords.length} points`);
+    } catch { toast.error('Failed to parse GPX file'); }
+  };
 
-        {phase === 'draw' && (
-          <DrawRouteOverlay
-            waypoints={drawWaypoints}
-            onSetWaypoints={setDrawWaypoints}
-            onSnappedCoordsUpdate={handleSnappedCoordsUpdate}
-            onFinish={handleDraftReady}
-            onCancel={handleCancel}
-          />
-        )}
+  const handlePublish = async () => {
+    if (!title.trim()) { toast.error('Please enter a route name'); return; }
+    if (waypoints.length < 2 && !routeGeoJson) { toast.error('Please create a route first'); return; }
+    if (!user?.id) return;
+    setIsPublishing(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const userId = session?.session?.user?.id || user.id;
+      const { error } = await supabase.from('routes').insert({
+        name: title.trim(),
+        description: description.trim() || null,
+        type: routeType.toLowerCase() || null,
+        difficulty: difficulty.toLowerCase() || null,
+        surface_type: surface.toLowerCase() || null,
+        visibility,
+        geometry: routeGeoJson,
+        distance_meters: Math.round(distanceKm * 1000),
+        duration_minutes: durationMin,
+        lat: waypoints[0]?.[1] || null,
+        lng: waypoints[0]?.[0] || null,
+        created_by: userId,
+        status: 'published',
+      });
+      if (error) throw error;
+      toast.success('Route published!');
+      navigate('/', { replace: true, state: { refreshMap: true } });
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to publish');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
-        {phase === 'gpx-preview' && draftRoute && (
-          <div className="absolute bottom-4 left-3 right-3 z-40">
-            <div className="bg-card/95 backdrop-blur-xl rounded-2xl shadow-elevated border border-border/40 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <p className="text-xs font-bold text-foreground">GPX Route Imported</p>
-                  <p className="text-[10px] text-muted-foreground">{draftRoute.geometry.coordinates.length} points · {formatRouteDistance(draftRoute.stats.distanceMeters)}</p>
-                </div>
-                <button onClick={() => { setDraftRoute(null); setPhase('pick'); cleanupMap(); }}
-                  className="text-[11px] text-muted-foreground hover:text-foreground font-medium">Cancel</button>
+  return (
+    <div className="mobile-container bg-background min-h-screen pb-24">
+      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} />
+          <h1 className="text-lg font-bold">Create Route</h1>
+        </div>
+      </div>
+      <div className="px-4 py-4 space-y-5">
+        <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
+          <h2 className="text-base font-bold">Route Details</h2>
+          <div><Label>Name *</Label><Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Give your route a name" className="mt-1" /></div>
+          <div><Label>Description</Label><textarea value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe the route..." className="w-full mt-1 border border-border/50 rounded-xl px-3 py-2 text-sm bg-background min-h-[80px] resize-none" /></div>
+          <div><Label>Type</Label><div className="flex flex-wrap gap-2 mt-1">{ROUTE_TYPES.map(t => (
+            <button key={t} onClick={() => setRouteType(routeType === t ? '' : t)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${routeType === t ? 'bg-routes text-white border-routes' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>{t}</button>
+          ))}</div></div>
+          <div><Label>Difficulty</Label><div className="flex flex-wrap gap-2 mt-1">{DIFFICULTIES.map(d => (
+            <button key={d} onClick={() => setDifficulty(difficulty === d ? '' : d)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${difficulty === d ? 'bg-routes text-white border-routes' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>{d}</button>
+          ))}</div></div>
+          <div><Label>Surface</Label><div className="flex flex-wrap gap-2 mt-1">{SURFACES.map(s => (
+            <button key={s} onClick={() => setSurface(surface === s ? '' : s)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${surface === s ? 'bg-routes text-white border-routes' : 'bg-muted/50 text-muted-foreground border-border/50'}`}>{s}</button>
+          ))}</div></div>
+          <div><Label>Visibility</Label><div className="grid grid-cols-2 gap-2 mt-1">
+            <button onClick={() => setVisibility('public')} className={`p-3 rounded-xl border text-center text-xs font-semibold ${visibility === 'public' ? 'bg-routes/10 border-routes' : 'bg-muted/30 border-border/50'}`}>Public</button>
+            <button onClick={() => setVisibility('private')} className={`p-3 rounded-xl border text-center text-xs font-semibold ${visibility === 'private' ? 'bg-routes/10 border-routes' : 'bg-muted/30 border-border/50'}`}>Private</button>
+          </div></div>
+        </div>
+
+        <div className="bg-card rounded-2xl border border-border/50 p-5 space-y-4">
+          <h2 className="text-base font-bold">Create Route</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <button onClick={() => setMethod('draw')} className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${method === 'draw' ? 'bg-routes/10 border-routes' : 'bg-muted/30 border-border/50'}`}>
+              <Pencil className="w-6 h-6 text-routes" /><p className="text-xs font-semibold">Draw Route</p><p className="text-[9px] text-muted-foreground">Tap points on map</p>
+            </button>
+            <button onClick={() => setMethod('gpx')} className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-all ${method === 'gpx' ? 'bg-routes/10 border-routes' : 'bg-muted/30 border-border/50'}`}>
+              <Upload className="w-6 h-6 text-routes" /><p className="text-xs font-semibold">Upload GPX</p><p className="text-[9px] text-muted-foreground">Import from file</p>
+            </button>
+          </div>
+        </div>
+
+        {method === 'draw' && (
+          <div className="bg-card rounded-2xl border border-border/50 overflow-hidden">
+            <div ref={mapContainerRef} className="w-full h-[400px]" />
+            <div className="p-4 space-y-3">
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setWaypoints(prev => prev.slice(0, -1))} disabled={waypoints.length === 0} className="gap-1"><Undo2 className="w-3 h-3" /> Undo</Button>
+                <Button variant="outline" size="sm" onClick={() => { setWaypoints([]); setRouteGeoJson(null); setDistanceKm(0); setDurationMin(0); }} disabled={waypoints.length === 0} className="gap-1"><Trash2 className="w-3 h-3" /> Clear</Button>
               </div>
-              <Button size="sm" onClick={() => handleDraftReady(draftRoute)}
-                className="w-full gap-1.5 bg-routes hover:bg-routes/90 text-routes-foreground rounded-xl font-semibold h-10 text-xs">
-                Continue to Edit & Publish
-              </Button>
+              {waypoints.length > 0 && <p className="text-xs text-muted-foreground">{waypoints.length} waypoints · {distanceKm} km · ~{durationMin} min{isSnapping ? ' · Snapping...' : ''}</p>}
+              {waypoints.length < 2 && <p className="text-xs text-muted-foreground">Tap on the map to add waypoints</p>}
             </div>
           </div>
         )}
-      </div>
-    );
-  }
 
-  // Default: method picker / GPX import
-  return (
-    <>
-      <RouteMethodSheet
-        open={phase === 'pick'}
-        onOpenChange={(open) => {
-          if (!open && !isTransitioningRef.current) navigate(-1);
-        }}
-        onSelect={handleMethodSelect}
-      />
-      <GPXImportSheet
-        open={phase === 'gpx'}
-        onOpenChange={(open) => { if (!open) setPhase('pick'); }}
-        onImport={handleGPXImport}
-      />
-    </>
+        {method === 'gpx' && (
+          <div className="bg-card rounded-2xl border border-border/50 p-5 text-center space-y-3">
+            <Upload className="w-10 h-10 text-muted-foreground/30 mx-auto" />
+            <p className="text-sm text-muted-foreground">Upload a .gpx file from your device</p>
+            <label className="inline-block px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer text-white" style={{ backgroundColor: '#4f7fff' }}>
+              Choose File<input type="file" accept=".gpx" onChange={handleGPXUpload} className="hidden" />
+            </label>
+            {waypoints.length > 0 && <p className="text-xs text-muted-foreground">{waypoints.length} points · {distanceKm} km</p>}
+          </div>
+        )}
+
+        <Button onClick={handlePublish} disabled={isPublishing || !title.trim() || (waypoints.length < 2 && !routeGeoJson)}
+          className="w-full h-12 rounded-xl text-base font-semibold" style={{ backgroundColor: '#4f7fff' }}>
+          {isPublishing ? 'Publishing...' : 'Publish Route'}
+        </Button>
+      </div>
+    </div>
   );
 };
 
