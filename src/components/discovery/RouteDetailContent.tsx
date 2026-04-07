@@ -129,39 +129,39 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   return (
     <div className="space-y-3">
-      {/* Photos grid — consistent aspect ratio */}
+      {/* Photos — compact grid, max 160px tall on desktop */}
       {photos.length === 1 && (
-        <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
+        <div className="w-full rounded-xl overflow-hidden" style={{ height: '160px' }}>
           <img src={photos[0]} className="w-full h-full object-cover" alt="" />
         </div>
       )}
       {photos.length === 2 && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="aspect-square rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-2 gap-1.5" style={{ height: '160px' }}>
+          <div className="rounded-xl overflow-hidden">
             <img src={photos[0]} className="w-full h-full object-cover" alt="" />
           </div>
-          <div className="aspect-square rounded-2xl overflow-hidden">
+          <div className="rounded-xl overflow-hidden">
             <img src={photos[1]} className="w-full h-full object-cover" alt="" />
           </div>
         </div>
       )}
       {photos.length === 3 && (
-        <div className="grid grid-cols-2 gap-2">
-          <div className="aspect-square rounded-2xl overflow-hidden row-span-2">
+        <div className="grid gap-1.5" style={{ height: '160px', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
+          <div className="rounded-xl overflow-hidden" style={{ gridRow: '1 / 3' }}>
             <img src={photos[0]} className="w-full h-full object-cover" alt="" />
           </div>
-          <div className="aspect-square rounded-2xl overflow-hidden">
+          <div className="rounded-xl overflow-hidden">
             <img src={photos[1]} className="w-full h-full object-cover" alt="" />
           </div>
-          <div className="aspect-square rounded-2xl overflow-hidden">
+          <div className="rounded-xl overflow-hidden">
             <img src={photos[2]} className="w-full h-full object-cover" alt="" />
           </div>
         </div>
       )}
       {photos.length >= 4 && (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-1.5" style={{ height: '160px', gridTemplateRows: '1fr 1fr' }}>
           {photos.slice(0, 4).map((p, i) => (
-            <div key={i} className="aspect-square rounded-2xl overflow-hidden">
+            <div key={i} className="rounded-xl overflow-hidden">
               <img src={p} className="w-full h-full object-cover" alt="" />
             </div>
           ))}
