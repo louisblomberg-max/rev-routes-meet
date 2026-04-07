@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import TicketPurchaseSheet from '@/components/TicketPurchaseSheet';
+import { sendNotification } from '@/utils/sendNotification';
 
 interface EventDetailContentProps {
   event: any;
@@ -164,17 +165,12 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
         const creatorId = data.created_by || data.createdBy;
         if (creatorId && creatorId !== userId) {
-          const { data: myProfile } = await supabase
-            .from('profiles')
-            .select('display_name, username')
-            .eq('id', userId)
-            .single();
-          await supabase.rpc('send_notification', {
-            p_user_id: creatorId,
-            p_type: 'event_attend',
-            p_title: 'New attendee',
-            p_body: `${myProfile?.display_name || myProfile?.username || 'Someone'} is attending ${title}`,
-            p_data: { event_id: eventId }
+          sendNotification({
+            userId: creatorId,
+            title: '🎉 New Attendee',
+            body: `${authUser?.displayName || 'Someone'} is attending ${title}`,
+            type: 'new_attendee',
+            data: { event_id: eventId, user_id: userId },
           });
         }
       }

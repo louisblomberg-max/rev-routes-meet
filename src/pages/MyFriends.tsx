@@ -14,6 +14,7 @@ import { useUserFriends } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotification } from '@/utils/sendNotification';
 
 const MyFriends = () => {
   const navigate = useNavigate();
@@ -47,6 +48,13 @@ const MyFriends = () => {
     if (error) { toast.error('Could not send request'); return; }
     setSentIds(prev => new Set(prev).add(targetId));
     toast.success(`Request sent to ${name}`);
+    await sendNotification({
+      userId: targetId,
+      title: '👋 New Friend Request',
+      body: `${authUser?.displayName || 'Someone'} wants to be your friend`,
+      type: 'friend_request',
+      data: { user_id: authUser.id },
+    });
   };
 
   const filteredFriends = accepted.filter(f =>
@@ -54,7 +62,15 @@ const MyFriends = () => {
     f.username.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAccept = (id: string) => { friendsRepo.acceptRequest(id); toast.success('Friend request accepted!'); };
+  const handleAccept = async (id: string) => {
+    friendsRepo.acceptRequest(id);
+    toast.success('Friend request accepted!');
+    // Find the requester to notify them
+    const req = pendingReceived.find(f => f.id === id);
+    if (req && authUser?.id) {
+      sendNotification({ userId: req.id, title: '✅ Friend Request Accepted', body: `${authUser.displayName || 'Someone'} accepted your friend request`, type: 'friend_accepted', data: { user_id: authUser.id } });
+    }
+  };
   const handleDecline = (id: string) => { friendsRepo.removeFriend(id); toast('Request declined'); };
   const handleRemove = (id: string) => { friendsRepo.removeFriend(id); toast('Friend removed'); };
 

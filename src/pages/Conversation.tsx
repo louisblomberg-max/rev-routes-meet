@@ -1,4 +1,5 @@
 import { Send, MessageSquare, ImagePlus } from 'lucide-react';
+import { sendNotification } from '@/utils/sendNotification';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
@@ -162,6 +163,10 @@ const Conversation = () => {
       content,
     });
     if (sendError) { toast.error('Failed to send message'); return; }
+    // Notify recipient
+    if (otherUserId && otherUserId !== user.id) {
+      sendNotification({ userId: otherUserId, title: user?.displayName || 'New Message', body: content.slice(0, 80), type: 'new_message', data: { conversation_id: activeConvId } });
+    }
     setNewMessage('');
   };
 

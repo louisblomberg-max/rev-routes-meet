@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
+import { sendNotificationToMany } from '@/utils/sendNotification';
 import { ArrowLeft, Search, Download, Check, X, AlertTriangle, Send, Pencil, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -145,15 +146,14 @@ const OrganizerDashboard = () => {
     if (!eventId) return;
     setCancelling(true);
     await supabase.from('events').update({ status: 'cancelled' }).eq('id', eventId);
-    const atts = attendees.map(a => a.user_id).filter(Boolean);
-    for (const uid of atts) {
-      await supabase.from('notifications').insert({
-        user_id: uid, type: 'event_cancelled',
-        title: `Event Cancelled: ${event?.title}`,
-        body: `Unfortunately ${event?.title} has been cancelled. We apologise for any inconvenience.`,
-        data: { event_id: eventId },
-      });
-    }
+    const atts = attendees.map(a => a.user_id).filter(id => id && id !== user?.id);
+    await sendNotificationToMany({
+      userIds: atts,
+      title: '❌ Event Cancelled',
+      body: `${event?.title || 'An event'} you were attending has been cancelled`,
+      type: 'event_cancelled',
+      data: { event_id: eventId },
+    });
     toast.success('Event cancelled. All attendees notified.');
     setCancelling(false);
     navigate(-1);
