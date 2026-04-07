@@ -102,11 +102,15 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
     const map = new mapboxgl.Map({
       container: fullMapRef.current, style: 'mapbox://styles/mapbox/streets-v12',
       center: [data.lng || -1.5, data.lat || 52.5], zoom: 10,
-      dragPan: true, scrollZoom: true, touchZoomRotate: true, doubleClickZoom: true, keyboard: true,
+      dragPan: true, scrollZoom: true, touchZoomRotate: true, doubleClickZoom: true, keyboard: true, interactive: true,
     });
-    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
+    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
     fullMapInstanceRef.current = map;
     map.on('load', () => {
+      const canvas = map.getCanvas();
+      canvas.style.outline = 'none';
+      canvas.style.touchAction = 'none';
       if (!geometry) return;
       map.addSource('fr', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry } });
       map.addLayer({ id: 'fr-bg', type: 'line', source: 'fr', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fff', 'line-width': 8, 'line-opacity': 0.9 } });
@@ -125,23 +129,42 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   return (
     <div className="space-y-3">
-      {/* Photos grid */}
-      {photos.length === 1 && <img src={photos[0]} className="w-full h-44 object-cover rounded-2xl" alt="" />}
+      {/* Photos grid — consistent aspect ratio */}
+      {photos.length === 1 && (
+        <div className="w-full aspect-[4/3] rounded-2xl overflow-hidden">
+          <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+        </div>
+      )}
       {photos.length === 2 && (
-        <div className="flex gap-2 h-36">
-          <img src={photos[0]} className="flex-1 object-cover rounded-2xl" alt="" />
-          <img src={photos[1]} className="flex-1 object-cover rounded-2xl" alt="" />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={photos[1]} className="w-full h-full object-cover" alt="" />
+          </div>
         </div>
       )}
       {photos.length === 3 && (
-        <div className="space-y-1.5">
-          <img src={photos[0]} className="w-full h-32 object-cover rounded-xl" alt="" />
-          <div className="flex gap-1.5 h-20"><img src={photos[1]} className="flex-1 object-cover rounded-xl" alt="" /><img src={photos[2]} className="flex-1 object-cover rounded-xl" alt="" /></div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="aspect-square rounded-2xl overflow-hidden row-span-2">
+            <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={photos[1]} className="w-full h-full object-cover" alt="" />
+          </div>
+          <div className="aspect-square rounded-2xl overflow-hidden">
+            <img src={photos[2]} className="w-full h-full object-cover" alt="" />
+          </div>
         </div>
       )}
       {photos.length >= 4 && (
-        <div className="grid grid-cols-2 gap-1.5 h-44">
-          {photos.slice(0, 4).map((p, i) => <img key={i} src={p} className="w-full h-full object-cover rounded-xl" alt="" />)}
+        <div className="grid grid-cols-2 gap-2">
+          {photos.slice(0, 4).map((p, i) => (
+            <div key={i} className="aspect-square rounded-2xl overflow-hidden">
+              <img src={p} className="w-full h-full object-cover" alt="" />
+            </div>
+          ))}
         </div>
       )}
 
@@ -251,19 +274,21 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
       {/* Full-screen map — rendered via portal to escape bottom sheet */}
       {showFullMap && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999 }}>
-          <div ref={fullMapRef} style={{ position: 'absolute', inset: 0 }} />
-          <div style={{ position: 'absolute', top: 48, left: 16, zIndex: 10 }}>
-            <button onClick={() => { setShowFullMap(false); fullMapInstanceRef.current?.remove(); fullMapInstanceRef.current = null; }}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999, touchAction: 'none' }}>
+          <div ref={fullMapRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, touchAction: 'none' }} />
+          <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10, pointerEvents: 'auto' }}>
+            <button
+              onClick={() => { setShowFullMap(false); fullMapInstanceRef.current?.remove(); fullMapInstanceRef.current = null; }}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.25)', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
               ← Back to Route
             </button>
           </div>
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', padding: 16, paddingBottom: 'max(16px, env(safe-area-inset-bottom))', borderTop: '1px solid #eee' }}>
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', borderTop: '1px solid #eee', zIndex: 10, pointerEvents: 'none' }}>
             <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{route.name}</p>
-            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 12, color: '#666' }}>
+            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 12, color: '#888' }}>
               {data.distance_meters && <span>{(data.distance_meters / 1000).toFixed(1)} km</span>}
               {data.duration_minutes && <span>~{data.duration_minutes} min</span>}
+              {route.difficulty && <span style={{ textTransform: 'capitalize' }}>{route.difficulty}</span>}
             </div>
           </div>
         </div>,
