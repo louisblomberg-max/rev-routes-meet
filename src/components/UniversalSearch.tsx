@@ -19,7 +19,34 @@ interface UniversalSearchProps {
   variant?: 'mobile' | 'desktop';
 }
 
-const ANTHROPIC_KEY = import.meta.env.VITE_ANTHROPIC_API_KEY || '';
+const EVENT_WORDS = ['event', 'meet', 'show', 'cruise', 'rally', 'track', 'drive', 'gathering', 'run'];
+const ROUTE_WORDS = ['route', 'drive', 'road', 'scenic', 'coastal', 'tour', 'journey', 'trip'];
+const SERVICE_WORDS = ['garage', 'mechanic', 'service', 'repair', 'tyre', 'tire', 'mot', 'bodywork', 'detailing', 'tuning', 'parts'];
+const CLUB_WORDS = ['club', 'group', 'community', 'owners'];
+const USER_WORDS = ['user', 'person', 'find', 'profile', 'member'];
+
+const parseQuery = (query: string) => {
+  const q = query.toLowerCase().trim();
+  const words = q.split(/\s+/).filter(w => w.length > 1);
+  const categories: string[] = [];
+  if (words.some(w => EVENT_WORDS.includes(w))) categories.push('events');
+  if (words.some(w => ROUTE_WORDS.includes(w))) categories.push('routes');
+  if (words.some(w => SERVICE_WORDS.includes(w))) categories.push('services');
+  if (words.some(w => CLUB_WORDS.includes(w))) categories.push('clubs');
+  if (words.some(w => USER_WORDS.includes(w))) categories.push('users');
+  if (categories.length === 0) categories.push('events', 'routes', 'services', 'clubs', 'users');
+  return { categories, keywords: words, isFree: q.includes('free') };
+};
+
+const buildFilter = (fields: string[], kws: string[]) => {
+  const conditions: string[] = [];
+  for (const field of fields) {
+    for (const kw of kws.slice(0, 3)) {
+      conditions.push(`${field}.ilike.%${kw}%`);
+    }
+  }
+  return conditions.join(',');
+};
 
 const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchProps) => {
   const navigate = useNavigate();
@@ -27,90 +54,64 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [summary, setSummary] = useState('');
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const runSearch = useCallback(async (q: string) => {
     if (q.length < 2) { setResults([]); setIsOpen(false); return; }
     setIsLoading(true);
     setIsOpen(true);
-    setSummary('');
 
     try {
-      // Step 1: Extract intent via Claude API (or fallback to keyword search)
-      let intent: any = { categories: ['events', 'routes', 'services', 'clubs', 'users'], keywords: q.split(/\s+/).filter(Boolean), summary: `Searching for "${q}"` };
-
-      if (ANTHROPIC_KEY) {
-        try {
-          const res = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 500,
-              messages: [{ role: 'user', content: `You are a search assistant for RevNet, a UK automotive app. Extract search intent from: "${q}"\n\nReturn ONLY valid JSON:\n{"categories":["events","routes","services","clubs","users"],"keywords":["kw1"],"brand":null,"event_style":null,"vehicle_era":null,"is_free":null,"route_type":null,"service_type":null,"summary":"one line"}` }],
-            }),
-          });
-          const data = await res.json();
-          const text = data?.content?.[0]?.text || '';
-          const jsonMatch = text.match(/\{[\s\S]*\}/);
-          if (jsonMatch) intent = JSON.parse(jsonMatch[0]);
-        } catch { /* fallback to keyword search */ }
-      }
-
-      setSummary(intent.summary || `Results for "${q}"`);
-
-      // Step 2: Query Supabase based on intent
+      const { categories, keywords, isFree } = parseQuery(q);
       const allResults: SearchResult[] = [];
-      const kws = (intent.keywords || q.split(/\s+/)).filter(Boolean);
-      const kwOr = (cols: string[]) => kws.flatMap((k: string) => cols.map(c => `${c}.ilike.%${k}%`)).join(',');
-
       const queries: Promise<void>[] = [];
 
-      if (intent.categories?.includes('events')) {
+      if (categories.includes('events')) {
         queries.push((async () => {
           let qb = supabase.from('events').select('id, title, type, location, date_start, is_free, lat, lng, banner_url').eq('status', 'published').eq('visibility', 'public').limit(5);
-          if (kws.length) qb = qb.or(kwOr(['title', 'location']));
-          if (intent.brand) qb = qb.contains('vehicle_brands', [intent.brand]);
-          if (intent.event_style) qb = qb.contains('meet_style_tags', [intent.event_style]);
-          if (intent.is_free === true) qb = qb.eq('is_free', true);
+          const filter = buildFilter(['title', 'location'], keywords);
+          if (filter) qb = qb.or(filter);
+          if (isFree) qb = qb.eq('is_free', true);
           const { data } = await qb;
-          (data || []).forEach(e => allResults.push({ id: e.id, type: 'event', title: e.title, subtitle: `${e.type || 'Event'} · ${e.location || ''}`, lat: e.lat, lng: e.lng, isFree: e.is_free, image: e.banner_url }));
+          (data || []).forEach(e => allResults.push({ id: e.id, type: 'event', title: e.title || 'Event', subtitle: `${e.type || 'Event'} · ${e.location || ''}`, lat: e.lat ? Number(e.lat) : undefined, lng: e.lng ? Number(e.lng) : undefined, isFree: e.is_free, image: e.banner_url }));
         })());
       }
 
-      if (intent.categories?.includes('routes')) {
+      if (categories.includes('routes')) {
         queries.push((async () => {
           let qb = supabase.from('routes').select('id, name, type, lat, lng, difficulty').eq('visibility', 'public').limit(5);
-          if (kws.length) qb = qb.or(kwOr(['name']));
-          if (intent.route_type) qb = qb.ilike('type', `%${intent.route_type}%`);
+          const filter = buildFilter(['name'], keywords);
+          if (filter) qb = qb.or(filter);
           const { data } = await qb;
-          (data || []).forEach(r => allResults.push({ id: r.id, type: 'route', title: r.name, subtitle: `Route · ${r.type || ''} · ${r.difficulty || ''}`, lat: r.lat, lng: r.lng }));
+          (data || []).forEach(r => allResults.push({ id: r.id, type: 'route', title: r.name || 'Route', subtitle: `Route · ${r.type || ''} · ${r.difficulty || ''}`, lat: r.lat ? Number(r.lat) : undefined, lng: r.lng ? Number(r.lng) : undefined }));
         })());
       }
 
-      if (intent.categories?.includes('services')) {
+      if (categories.includes('services')) {
         queries.push((async () => {
           let qb = supabase.from('services').select('id, name, service_type, address, lat, lng').eq('visibility', 'public').limit(5);
-          if (kws.length) qb = qb.or(kwOr(['name', 'address']));
+          const filter = buildFilter(['name', 'address'], keywords);
+          if (filter) qb = qb.or(filter);
           const { data } = await qb;
-          (data || []).forEach(s => allResults.push({ id: s.id, type: 'service', title: s.name, subtitle: `Service · ${s.service_type || ''} · ${s.address || ''}`, lat: s.lat, lng: s.lng }));
+          (data || []).forEach(s => allResults.push({ id: s.id, type: 'service', title: s.name || 'Service', subtitle: `Service · ${s.service_type || ''} · ${s.address || ''}`, lat: s.lat ? Number(s.lat) : undefined, lng: s.lng ? Number(s.lng) : undefined }));
         })());
       }
 
-      if (intent.categories?.includes('clubs')) {
+      if (categories.includes('clubs')) {
         queries.push((async () => {
           let qb = supabase.from('clubs').select('id, name, club_type, member_count, logo_url').limit(5);
-          if (kws.length) qb = qb.or(kwOr(['name', 'description']));
+          const filter = buildFilter(['name', 'description'], keywords);
+          if (filter) qb = qb.or(filter);
           const { data } = await qb;
-          (data || []).forEach(c => allResults.push({ id: c.id, type: 'club', title: c.name, subtitle: `Club · ${c.club_type || ''} · ${c.member_count || 0} members`, image: c.logo_url }));
+          (data || []).forEach(c => allResults.push({ id: c.id, type: 'club', title: c.name || 'Club', subtitle: `Club · ${c.club_type || ''} · ${c.member_count || 0} members`, image: c.logo_url }));
         })());
       }
 
-      if (intent.categories?.includes('users')) {
+      if (categories.includes('users')) {
         queries.push((async () => {
           let qb = supabase.from('profiles').select('id, display_name, username, avatar_url, location').limit(5);
-          if (kws.length) qb = qb.or(kwOr(['display_name', 'username']));
+          const filter = buildFilter(['display_name', 'username'], keywords);
+          if (filter) qb = qb.or(filter);
           const { data } = await qb;
           (data || []).forEach(u => allResults.push({ id: u.id, type: 'user', title: u.display_name || u.username || 'User', subtitle: `@${u.username || ''} · ${u.location || ''}`, image: u.avatar_url }));
         })());
@@ -120,7 +121,6 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
       setResults(allResults);
     } catch {
       setResults([]);
-      setSummary('Search failed — please try again');
     } finally {
       setIsLoading(false);
     }
@@ -175,17 +175,10 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
         )}
       </div>
 
-      {/* Results dropdown */}
-      {isOpen && (query.length >= 2) && (
+      {isOpen && query.length >= 2 && (
         <>
           <div className="fixed inset-0 z-[9998]" onClick={clear} />
           <div className="absolute top-full left-0 right-0 bg-card border border-border/50 rounded-2xl shadow-xl mt-2 z-[9999] max-h-[70vh] overflow-y-auto" style={{ minWidth: variant === 'desktop' ? 440 : undefined }}>
-            {summary && (
-              <div className="px-4 py-2 border-b border-border/30">
-                <p className="text-xs text-muted-foreground">{summary}</p>
-              </div>
-            )}
-
             {isLoading && (
               <div className="px-4 py-4 text-center">
                 <div className="w-5 h-5 border-2 border-[#d30d37] border-t-transparent rounded-full animate-spin mx-auto" />
