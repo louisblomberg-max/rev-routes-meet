@@ -48,7 +48,7 @@ const Forums = () => {
       category: p.category || 'general', clubId: p.club_id, clubName: undefined,
       author: p.profiles?.display_name || p.profiles?.username || 'Unknown',
       authorAvatar: p.profiles?.avatar_url, createdAt: p.created_at,
-      upvotes: p.upvotes || 0, downvotes: 0, comments: 0, images: p.photos || [],
+      upvotes: p.upvotes || 0, downvotes: 0, comments: p.comment_count || 0, images: p.photos || [],
     })));
     setIsLoading(false);
   };

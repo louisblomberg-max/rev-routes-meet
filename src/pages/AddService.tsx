@@ -110,29 +110,34 @@ const AddService = () => {
   });
   const [dayHours, setDayHours] = useState<Record<string, DayHours>>(defaultDayHours);
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Plan check is now done on submit via paywall
 
-  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && coverImage && formData.phone.trim() && formData.website.trim();
+  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && formData.phone.trim() && formData.website.trim();
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Business name is required';
     if (formData.categories.length === 0) errs.category = 'Select at least one category';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    if (!coverImage) errs.cover = 'Cover image is required';
+    // Cover image is optional
     if (!formData.phone.trim()) errs.phone = 'Phone number is required';
     if (!formData.website.trim()) errs.website = 'Website is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  const handleCoverUpload = () => {
-    toast.info('Cover upload will connect to storage');
-    setCoverImage('cover-placeholder');
+  const handleCoverUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
+    setCoverFile(file);
+    setCoverImage(URL.createObjectURL(file));
     setErrors(prev => ({ ...prev, cover: '' }));
+    e.target.value = '';
   };
 
   const formatOpeningHours = (): string => {
@@ -193,6 +198,18 @@ const AddService = () => {
         return;
       }
 
+      // Upload cover image if present
+      let coverUrl: string | null = null;
+      if (coverFile) {
+        const ext = coverFile.name.split('.').pop();
+        const path = `${currentUser!.id}/${Date.now()}-cover.${ext}`;
+        const { error: ue } = await supabase.storage.from('services').upload(path, coverFile, { upsert: true, contentType: coverFile.type });
+        if (!ue) {
+          const { data: u } = supabase.storage.from('services').getPublicUrl(path);
+          coverUrl = u.publicUrl;
+        }
+      }
+
       const payload = {
         created_by: currentUser!.id,
         name: formData.name.trim(),
@@ -209,6 +226,7 @@ const AddService = () => {
         is_emergency: formData.isEmergency,
         hide_exact_address: formData.hideAddress,
         hours: formData.is24h ? { '24/7': true } : dayHours as any,
+        cover_url: coverUrl,
         status: 'active',
         visibility: 'public',
       };
@@ -304,16 +322,17 @@ const AddService = () => {
           <div>
             {coverImage ? (
               <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                <Image className="w-8 h-8 text-muted-foreground" />
-                <button onClick={() => setCoverImage(null)} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
+                <img src={coverImage} className="w-full h-full object-cover" alt="" />
+                <button onClick={() => { setCoverImage(null); setCoverFile(null); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
                   <X className="w-3 h-3" />
                 </button>
               </div>
             ) : (
-              <button onClick={handleCoverUpload} className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30">
+              <label className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30 cursor-pointer">
                 <Image className="w-6 h-6 text-muted-foreground" />
                 <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
-              </button>
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverUpload} />
+              </label>
             )}
             {errors.cover && <p className="text-xs text-destructive mt-1">{errors.cover}</p>}
           </div>

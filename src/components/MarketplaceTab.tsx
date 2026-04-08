@@ -746,11 +746,16 @@ const MarketplaceTab = () => {
               return (
                 <button
                   key={listing.id}
+                  onClick={() => navigate(`/listing/${listing.id}`)}
                   className="group bg-card rounded-xl overflow-hidden border border-border/50 shadow-card text-left hover:shadow-elevated hover:border-border active:scale-[0.99] transition-all duration-200"
                 >
-                  {/* Image Placeholder */}
-                  <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center">
-                    <Icon className="w-10 h-10 text-muted-foreground/20" />
+                  {/* Image */}
+                  <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-muted/30 flex items-center justify-center overflow-hidden">
+                    {listing.photos?.[0] ? (
+                      <img src={listing.photos[0]} className="w-full h-full object-cover" alt="" />
+                    ) : (
+                      <Icon className="w-10 h-10 text-muted-foreground/20" />
+                    )}
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();

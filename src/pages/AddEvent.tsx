@@ -435,7 +435,7 @@ const AddEvent = () => {
     if (entryType === 'ticketed' && (!ticketPrice || Number(ticketPrice) < 1)) {
       toast.error('Minimum ticket price is £1.00'); return false
     }
-    if (isTicketed && !hasStripeConnect) {
+    if (entryType === 'ticketed' && !hasStripeConnect) {
       toast.error('Please connect your bank account to sell tickets'); return false
     }
     if (visibility === 'club' && !clubId) {
