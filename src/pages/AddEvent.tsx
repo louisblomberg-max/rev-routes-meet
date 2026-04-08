@@ -435,7 +435,7 @@ const AddEvent = () => {
         console.log('uploading banner...')
         const ext = bannerFile.name.split('.').pop() || 'jpg'
         const path = `${userId}/${Date.now()}-banner.${ext}`
-        const { error: bannerErr } = await supabase.storage.from('events').upload(path, bannerFile, { upsert: true, contentType: bannerFile.type })
+        const { error: bannerErr } = await supabase.storage.from('events').upload(path, bannerFile, { upsert: true, contentType: bannerFile.type || 'image/heic' })
         if (bannerErr) {
           console.error('banner upload error:', bannerErr)
           toast.error('Banner upload failed: ' + bannerErr.message)
@@ -453,7 +453,7 @@ const AddEvent = () => {
       for (const file of photoFiles) {
         const ext = file.name.split('.').pop() || 'jpg'
         const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error: pe } = await supabase.storage.from('events').upload(path, file, { upsert: true, contentType: file.type })
+        const { error: pe } = await supabase.storage.from('events').upload(path, file, { upsert: true, contentType: file.type || 'image/heic' })
         if (!pe) {
           const { data: pu } = supabase.storage.from('events').getPublicUrl(path)
           uploadedPhotoUrls.push(pu.publicUrl)

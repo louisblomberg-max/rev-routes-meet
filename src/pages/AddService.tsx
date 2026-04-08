@@ -203,7 +203,7 @@ const AddService = () => {
       if (coverFile) {
         const ext = coverFile.name.split('.').pop();
         const path = `${currentUser!.id}/${Date.now()}-cover.${ext}`;
-        const { error: ue } = await supabase.storage.from('services').upload(path, coverFile, { upsert: true, contentType: coverFile.type });
+        const { error: ue } = await supabase.storage.from('services').upload(path, coverFile, { upsert: true, contentType: coverFile.type || 'image/heic' });
         if (!ue) {
           const { data: u } = supabase.storage.from('services').getPublicUrl(path);
           coverUrl = u.publicUrl;
@@ -331,7 +331,7 @@ const AddService = () => {
               <label className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30 cursor-pointer">
                 <Image className="w-6 h-6 text-muted-foreground" />
                 <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
-                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleCoverUpload} />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" className="hidden" onChange={handleCoverUpload} />
               </label>
             )}
             {errors.cover && <p className="text-xs text-destructive mt-1">{errors.cover}</p>}

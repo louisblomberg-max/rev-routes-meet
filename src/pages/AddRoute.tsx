@@ -193,7 +193,7 @@ const AddRoute = () => {
       for (const file of photoFiles) {
         const ext = file.name.split('.').pop();
         const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-        const { error: ue } = await supabase.storage.from('routes').upload(path, file, { upsert: true, contentType: file.type });
+        const { error: ue } = await supabase.storage.from('routes').upload(path, file, { upsert: true, contentType: file.type || 'image/heic' });
         if (ue) { console.warn('Photo upload failed:', ue.message); } else { const { data: u } = supabase.storage.from('routes').getPublicUrl(path); photoUrls.push(u.publicUrl); }
       }
       const allPhotos = [...existingPhotos, ...photoUrls];
@@ -358,7 +358,7 @@ const AddRoute = () => {
                 {photoPreviews.length < 5 && (
                   <label className="w-20 h-20 rounded-xl border-2 border-dashed border-border/50 flex flex-col items-center justify-center cursor-pointer hover:border-routes/50 transition-colors">
                     <Camera className="w-5 h-5 text-muted-foreground" /><span className="text-[9px] text-muted-foreground mt-1">Add</span>
-                    <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={(ev) => {
+                    <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" multiple className="hidden" onChange={(ev) => {
                       Array.from(ev.target.files || []).slice(0, 5 - photoPreviews.length).forEach(file => {
                         if (file.size > 5 * 1024 * 1024) { toast.error('Max 5MB'); return; }
                         const reader = new FileReader();
