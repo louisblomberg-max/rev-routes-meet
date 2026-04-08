@@ -32,6 +32,8 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [galleryIndex, setGalleryIndex] = useState(0);
   const fullMapRef = useRef<HTMLDivElement>(null);
   const fullMapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const touchStartX = useRef<number>(0);
+  const touchEndX = useRef<number>(0);
 
   const data = route as any;
   const propsPhotos: string[] = data.photos || [];
@@ -133,17 +135,17 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
     <div className="space-y-3">
       {/* Photos — always show max 2 side by side */}
       {photos.length === 1 && (
-        <div className="rounded-xl overflow-hidden" style={{ height: '160px' }}>
-          <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+        <div className="rounded-xl overflow-hidden" style={{ height: '160px', maxHeight: '160px' }}>
+          <img src={photos[0]} className="w-full h-full object-cover" style={{ display: 'block' }} alt="" />
         </div>
       )}
       {photos.length >= 2 && (
-        <div className="flex gap-1.5" style={{ height: '160px' }}>
-          <div className="flex-1 rounded-xl overflow-hidden">
-            <img src={photos[0]} className="w-full h-full object-cover" alt="" />
+        <div className="grid grid-cols-2 gap-1.5" style={{ height: '160px', maxHeight: '160px' }}>
+          <div className="rounded-xl overflow-hidden h-full">
+            <img src={photos[0]} className="w-full h-full object-cover" style={{ display: 'block' }} alt="" />
           </div>
-          <div className="flex-1 rounded-xl overflow-hidden">
-            <img src={photos[1]} className="w-full h-full object-cover" alt="" />
+          <div className="rounded-xl overflow-hidden h-full">
+            <img src={photos[1]} className="w-full h-full object-cover" style={{ display: 'block' }} alt="" />
           </div>
         </div>
       )}
@@ -151,7 +153,7 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
       {/* View more photos */}
       {photos.length > 2 && (
         <button
-          onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setGalleryIndex(0); setShowGallery(true); }}
           className="w-full py-2 text-xs font-semibold text-routes flex items-center justify-center gap-1.5 border border-routes/20 rounded-xl bg-routes/5 hover:bg-routes/10 transition-colors"
         >
           View all {photos.length} photos
@@ -251,10 +253,12 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
       </div>
 
       {/* Delete route — only for creator */}
-      {currentUserId && data.created_by === currentUserId && (
-        <button onClick={async () => {
-          if (!confirm('Delete this route? This cannot be undone.')) return;
-          const { error } = await supabase.from('routes').delete().eq('id', data.id).eq('created_by', currentUserId);
+      {currentUserId && data.created_by && currentUserId === data.created_by && (
+        <button onClick={async (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (!window.confirm('Delete this route? This cannot be undone.')) return;
+          const { error } = await supabase.from('routes').delete().eq('id', data.id).eq('created_by', currentUserId ?? '');
           if (error) toast.error('Failed to delete');
           else { toast.success('Route deleted'); onClose?.(); }
         }} className="w-full py-2 rounded-xl text-xs font-semibold border border-destructive/50 text-destructive hover:bg-destructive/5">
@@ -303,7 +307,18 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
           </div>
 
           {/* Main photo */}
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', position: 'relative', overflow: 'hidden' }}>
+          <div
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', position: 'relative', overflow: 'hidden' }}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              touchEndX.current = e.changedTouches[0].clientX;
+              const diff = touchStartX.current - touchEndX.current;
+              if (Math.abs(diff) > 50) {
+                if (diff > 0 && galleryIndex < photos.length - 1) setGalleryIndex(i => i + 1);
+                if (diff < 0 && galleryIndex > 0) setGalleryIndex(i => i - 1);
+              }
+            }}
+          >
             <img
               src={photos[galleryIndex]}
               style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
