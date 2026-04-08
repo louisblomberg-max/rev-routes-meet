@@ -338,29 +338,12 @@ const AddService = () => {
       return;
     }
 
-    // Skip plan check for edits — user already passed it when creating
-    if (!isEdit) {
-      setIsSubmitting(true);
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('plan')
-          .eq('id', currentUser.id)
-          .single();
-
-        console.log('user plan:', profile?.plan);
-        const ALLOWED_PLANS = ['pro', 'club', 'organiser', 'club_business', 'pro_driver'];
-        const isAllowed = ALLOWED_PLANS.includes(profile?.plan || '');
-        if (!isAllowed) {
-          setShowPaywall(true);
-          setIsSubmitting(false);
-          return;
-        }
-      } catch {
-        toast.error('Something went wrong.');
-        setIsSubmitting(false);
-        return;
-      }
+    // Plan check — allow all authenticated users for now
+    // TODO: re-enable plan gate when billing is confirmed working
+    if (!currentUser?.id) {
+      toast.error('Please sign in');
+      setIsSubmitting(false);
+      return;
     }
 
     await saveService();

@@ -39,7 +39,7 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'club_announcements': 'club',
   'event_ticketing': 'club',
   'business_listings': 'club',
-  'create_services': 'pro',
+  'create_services': 'free',
   'analytics': 'club',
   'featured_placement': 'club',
   'verified_badge': 'club',
