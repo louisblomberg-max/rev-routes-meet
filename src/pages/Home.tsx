@@ -174,7 +174,7 @@ const Home = () => {
           .limit(300),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type, types, address, rating, review_count, visibility, is_emergency, is_24_7, cover_url')
+          .select('id, name, lat, lng, service_type, types, address, rating, review_count, visibility, is_emergency, is_24_7, cover_url, hours')
           .eq('visibility', 'public')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
@@ -201,7 +201,7 @@ const Home = () => {
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type, service_types: s.types || [],
           address: s.address, rating: s.rating, review_count: s.review_count,
-          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url,
+          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url, hours: s.hours,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -284,7 +284,7 @@ const Home = () => {
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
           type: 'services', subtype: s.service_type, service_types: s.types || [],
           address: s.address, rating: s.rating, review_count: s.review_count,
-          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url,
+          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url, hours: s.hours,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -619,8 +619,31 @@ const Home = () => {
       if (pinTypes.length > 0 && !sf.types.some((t: string) => pinTypes.includes(t.toLowerCase()))) return false;
     }
 
-    // Open now filter
-    if (sf.openNow && !pin.is_24_7) return false;
+    // Emergency services only
+    if ((sf as any).emergencyOnly && !pin.is_emergency) return false;
+
+    // Open now filter — check hours object
+    if (sf.openNow) {
+      if (pin.is_24_7) {
+        // 24/7 service — always open, pass
+      } else if (pin.hours && typeof pin.hours === 'object') {
+        const h = pin.hours as Record<string, any>;
+        if (h['24/7']) {
+          // pass
+        } else {
+          const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const now = new Date();
+          const dayKey = dayNames[now.getDay()];
+          const dayH = h[dayKey];
+          if (!dayH || !dayH.open) return false;
+          const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          if (currentTime < (dayH.openTime || '00:00') || currentTime > (dayH.closeTime || '23:59')) return false;
+        }
+      } else {
+        // No hours data — hide when filtering for open now
+        return false;
+      }
+    }
 
     // Distance filter
     const sdist = typeof sf.distance === 'number' ? sf.distance : 0;

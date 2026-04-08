@@ -7,6 +7,7 @@ export interface ServicesFilterState {
   distance: number | 'national' | 'international';
   types: string[];
   openNow: boolean;
+  emergencyOnly?: boolean;
 }
 
 interface ServicesFiltersPanelProps {
@@ -42,10 +43,11 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
     if (typeof filters.distance === 'number' && filters.distance > 0) count++;
     if (filters.types.length > 0) count++;
     if (filters.openNow) count++;
+    if (filters.emergencyOnly) count++;
     return count;
   }, [filters]);
 
-  const clearAll = () => onFiltersChange({ distance: 0, types: [], openNow: false });
+  const clearAll = () => onFiltersChange({ distance: 0, types: [], openNow: false, emergencyOnly: false });
 
   const toggleType = (typeLabel: string) => {
     const next = filters.types.includes(typeLabel) ? filters.types.filter(t => t !== typeLabel) : [...filters.types, typeLabel];
@@ -125,6 +127,15 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
               <p className="text-[10px] text-muted-foreground">Only show services currently open</p>
             </div>
             <Switch checked={filters.openNow} onCheckedChange={(v) => onFiltersChange({ ...filters, openNow: v })} className="data-[state=checked]:bg-services" />
+          </div>
+
+          {/* Emergency Services */}
+          <div className="flex items-center justify-between py-1">
+            <div>
+              <p className="text-xs font-medium text-foreground">Emergency Services Only</p>
+              <p className="text-[10px] text-muted-foreground">Recovery, breakdown and 24/7 callout</p>
+            </div>
+            <Switch checked={filters.emergencyOnly || false} onCheckedChange={(v) => onFiltersChange({ ...filters, emergencyOnly: v })} className="data-[state=checked]:bg-destructive" />
           </div>
 
           <button onClick={() => setIsOpen(false)} className="w-full py-2.5 rounded-lg text-sm font-medium bg-services/80 text-white hover:bg-services transition-colors">Apply Filters</button>
