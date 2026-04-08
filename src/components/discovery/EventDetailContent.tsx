@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -28,6 +29,11 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [showTicketSheet, setShowTicketSheet] = useState(false);
   const [ticketTypes, setTicketTypes] = useState<any[]>([]);
+  const [showImageViewer, setShowImageViewer] = useState(false);
+  const [viewerImage, setViewerImage] = useState('');
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const touchStartX = useRef(0);
 
   // Normalize — event may come from pin data or direct
   const data = event.data || event;
@@ -51,6 +57,16 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
   const bannerUrl: string = dbBanner || data.banner_url || data.bannerImage || '';
   const additionalPhotos: string[] = dbPhotos.length > 0 ? dbPhotos : (data.photos || []);
+
+  // Lock body scroll while viewer/gallery is open
+  useEffect(() => {
+    if (showGallery || showImageViewer) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [showGallery, showImageViewer]);
 
   useEffect(() => {
     if (!eventId || !userId) return;
@@ -214,24 +230,26 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
   return (
     <div className="space-y-4">
-      {/* Banner — portrait */}
+      {/* Banner — portrait, tappable */}
       {bannerUrl && (
         <div className="flex justify-center">
-          <div style={{ width: '160px', aspectRatio: '9/16', borderRadius: '16px', overflow: 'hidden' }}>
+          <div
+            style={{ width: '160px', aspectRatio: '9/16', borderRadius: '16px', overflow: 'hidden', cursor: 'pointer' }}
+            onClick={() => { setViewerImage(bannerUrl); setShowImageViewer(true); }}
+          >
             <img src={bannerUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
           </div>
         </div>
       )}
 
-      {/* Additional photos — horizontal scroll */}
+      {/* View all photos button */}
       {additionalPhotos.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {additionalPhotos.map((photo, i) => (
-            <div key={i} style={{ width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
-              <img src={photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
-            </div>
-          ))}
-        </div>
+        <button
+          onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+          style={{ width: '100%', padding: '8px', fontSize: '12px', fontWeight: 600, color: '#d30d37', border: '1px solid rgba(211,13,55,0.2)', borderRadius: '12px', background: 'rgba(211,13,55,0.05)', cursor: 'pointer' }}
+        >
+          View all {additionalPhotos.length} photo{additionalPhotos.length !== 1 ? 's' : ''}
+        </button>
       )}
 
       {/* Title and actions */}
@@ -469,6 +487,93 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
             toast.success("You're going! Check your tickets.");
           }}
         />
+      )}
+
+      {/* Full screen image viewer (banner) */}
+      {showImageViewer && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => setShowImageViewer(false)}
+        >
+          <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
+            <button
+              onClick={() => setShowImageViewer(false)}
+              style={{ color: 'white', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              ← Back
+            </button>
+          </div>
+          <img
+            src={viewerImage}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+            onClick={(e) => e.stopPropagation()}
+            alt=""
+          />
+        </div>,
+        document.body
+      )}
+
+      {/* Full screen photo gallery */}
+      {showGallery && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 999999, background: '#000', display: 'flex', flexDirection: 'column', pointerEvents: 'all' }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', paddingTop: 'max(48px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.9)', flexShrink: 0 }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowGallery(false); }}
+              style={{ color: 'white', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              ← Back
+            </button>
+            <span style={{ color: 'white', fontSize: '13px' }}>{galleryIndex + 1} / {additionalPhotos.length}</span>
+            <span style={{ width: '60px' }} />
+          </div>
+
+          <div
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const diff = touchStartX.current - e.changedTouches[0].clientX;
+              if (diff > 50 && galleryIndex < additionalPhotos.length - 1) setGalleryIndex(prev => prev + 1);
+              if (diff < -50 && galleryIndex > 0) setGalleryIndex(prev => prev - 1);
+            }}
+          >
+            <img
+              key={galleryIndex}
+              src={additionalPhotos[galleryIndex]}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none', userSelect: 'none' }}
+              alt=""
+            />
+            {galleryIndex > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev - 1); }}
+                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all' }}
+              >‹</button>
+            )}
+            {galleryIndex < additionalPhotos.length - 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev + 1); }}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all' }}
+              >›</button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', padding: '10px 16px', paddingBottom: 'max(10px, env(safe-area-inset-bottom))', background: 'rgba(0,0,0,0.9)', overflowX: 'auto', flexShrink: 0, WebkitOverflowScrolling: 'touch' }}>
+            {additionalPhotos.map((p, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(i); }}
+                style={{ flexShrink: 0, width: '52px', height: '52px', borderRadius: '8px', overflow: 'hidden', border: i === galleryIndex ? '2px solid #d30d37' : '2px solid rgba(255,255,255,0.2)', padding: 0, cursor: 'pointer', background: 'none' }}
+              >
+                <img src={p} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
