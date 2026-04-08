@@ -348,7 +348,9 @@ const AddService = () => {
           .eq('id', currentUser.id)
           .single();
 
-        const isAllowed = profile?.plan === 'pro' || profile?.plan === 'club' || profile?.plan === 'organiser';
+        console.log('user plan:', profile?.plan);
+        const ALLOWED_PLANS = ['pro', 'club', 'organiser', 'club_business', 'pro_driver'];
+        const isAllowed = ALLOWED_PLANS.includes(profile?.plan || '');
         if (!isAllowed) {
           setShowPaywall(true);
           setIsSubmitting(false);
