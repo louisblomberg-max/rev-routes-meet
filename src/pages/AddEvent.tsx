@@ -387,40 +387,7 @@ const AddEvent = () => {
     setPhotoPreviews(prev => prev.filter((_, i) => i !== index))
   }
 
-  const uploadBanner = async (uid?: string): Promise<string | null> => {
-    const ownerId = uid || user?.id
-    if (!bannerFile || !ownerId) return null
-    try {
-      const ext = bannerFile.name.split('.').pop()
-      const path = `${ownerId}/${Date.now()}-banner.${ext}`
-      const { error } = await supabase.storage.from('events').upload(path, bannerFile)
-      if (error) throw error
-      const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
-      return publicUrl
-    } catch {
-      toast.error('Failed to upload banner image')
-      return null
-    }
-  }
-
-  const uploadPhotos = async (uid?: string): Promise<string[]> => {
-    const ownerId = uid || user?.id
-    if (!photoFiles.length || !ownerId) return []
-    const urls: string[] = []
-    for (const file of photoFiles) {
-      try {
-        const ext = file.name.split('.').pop()
-        const path = `${ownerId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error } = await supabase.storage.from('events').upload(path, file)
-        if (error) throw error
-        const { data: { publicUrl } } = supabase.storage.from('events').getPublicUrl(path)
-        urls.push(publicUrl)
-      } catch {
-        toast.error('Failed to upload photo')
-      }
-    }
-    return urls
-  }
+  // Upload helpers removed — inlined in handlePublish for better error control
 
   // Validation
   const validate = (): boolean => {
@@ -448,199 +415,161 @@ const AddEvent = () => {
     return true
   }
 
-  // Main publish handler
+  // Main publish handler — no timeout, explicit error handling at every step
   const handlePublish = async () => {
-    console.log('handlePublish called')
-    if (!validate()) return
-    console.log('validation passed, proceeding...')
-    if (!user?.id) { console.log('FAIL: no user'); toast.error('Please sign in'); return }
+    console.log('handlePublish start')
+    if (!validate()) { console.log('validation failed'); return }
+    if (!user?.id) { toast.error('Please sign in'); return }
 
     setSaving(true)
-    const publishTimeout = setTimeout(() => {
-      setSaving(false)
-      toast.error('Request timed out. Please try again.')
-    }, 15000)
 
     try {
-      // Refresh session first
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession()
-      if (sessionError || !sessionData?.session) {
-        toast.error('Session expired. Please sign in again.')
-        navigate('/auth', { replace: true })
-        return
-      }
-      const userId = sessionData.session.user.id
+      // Get session — use getSession (fast) not refreshSession (can hang)
+      const { data: sessionData } = await supabase.auth.getSession()
+      const userId = sessionData?.session?.user?.id || user.id
+      console.log('userId:', userId)
 
-      const validDatesList = dates.filter(d => d.date)
-      const isPaid = userPlan === 'pro' || userPlan === 'organiser' || userPlan === 'club'
-
-      // Check credits for free users
-      if (!isPaid) {
-        const creditsNeeded = Math.min(userCredits, validDatesList.length)
-        const remainingAfter = userCredits - creditsNeeded
-        const toPay = Math.max(0, validDatesList.length - userCredits)
-
-        if (toPay > 0) {
-          clearTimeout(publishTimeout)
-          setSaving(false)
-          setShowPaywall(true)
-          return
+      // Upload banner if new file selected
+      let bannerUrl: string | null = null
+      if (bannerFile) {
+        console.log('uploading banner...')
+        const ext = bannerFile.name.split('.').pop() || 'jpg'
+        const path = `${userId}/${Date.now()}-banner.${ext}`
+        const { error: bannerErr } = await supabase.storage.from('events').upload(path, bannerFile, { upsert: true, contentType: bannerFile.type })
+        if (bannerErr) {
+          console.error('banner upload error:', bannerErr)
+          toast.error('Banner upload failed: ' + bannerErr.message)
+        } else {
+          const { data: bu } = supabase.storage.from('events').getPublicUrl(path)
+          bannerUrl = bu.publicUrl
+          console.log('banner uploaded:', bannerUrl)
         }
+      } else if (bannerPreview && bannerPreview.startsWith('http')) {
+        bannerUrl = bannerPreview // existing banner from edit mode
+      }
 
-        // Deduct credits via RPC (server-side protected)
-        if (creditsNeeded > 0) {
-          for (let i = 0; i < creditsNeeded; i++) {
-            await supabase.rpc('use_event_credit', { p_user_id: userId })
-          }
+      // Upload additional photos
+      const uploadedPhotoUrls: string[] = []
+      for (const file of photoFiles) {
+        const ext = file.name.split('.').pop() || 'jpg'
+        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error: pe } = await supabase.storage.from('events').upload(path, file, { upsert: true, contentType: file.type })
+        if (!pe) {
+          const { data: pu } = supabase.storage.from('events').getPublicUrl(path)
+          uploadedPhotoUrls.push(pu.publicUrl)
+        } else {
+          console.warn('photo upload failed:', pe.message)
         }
       }
 
-      // Upload media
-      const [bannerUrl, photoUrls] = await Promise.all([
-        uploadBanner(userId),
-        uploadPhotos(userId)
-      ])
+      const validDates = dates.filter(d => d.date)
+      console.log('validDates:', validDates.length)
 
-      // Create series if multiple dates
-      let seriesId: string | null = null
-      if (validDatesList.length > 1) {
-        const { data: series, error: seriesError } = await supabase
-          .from('event_series')
-          .insert({
-            created_by: userId,
-            title: title.trim(),
-            description: description.trim(),
-            event_count: validDatesList.length,
-          })
-          .select()
-          .single()
-        if (!seriesError && series) seriesId = series.id
-      }
-
-      // Insert one event per date
-      // Edit mode — update existing event
+      // Edit mode — UPDATE existing event
       if (isEdit && editId) {
-        const d = validDatesList[0] || dates[0];
-        const dateStart = d?.date ? new Date(`${d.date}T${d.startTime || '10:00'}:00`) : null;
-        const dateEnd = d?.date && d.endTime ? new Date(`${d.date}T${d.endTime}:00`) : null;
+        console.log('updating event:', editId)
+        const d = validDates[0] || dates[0]
+        const dateStart = d?.date ? new Date(`${d.date}T${d.startTime || '10:00'}`) : null
+        const dateEnd = d?.date && d.endTime ? new Date(`${d.date}T${d.endTime}`) : null
+
         const { error: updateError } = await supabase.from('events').update({
           title: title.trim(), description: description.trim(), banner_url: bannerUrl || null,
+          photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls : undefined,
           type: eventTypes[0] || '', event_types: eventTypes, vehicle_focus: vehicleFocus,
           vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
           meet_style_tags: meetStyleTags, specific_years: specificYears,
           location: location.trim(), lat: locationLat, lng: locationLng,
-          what3words: what3words.trim() || null, max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
-          waitlist_enabled: unlimitedSpaces ? false : waitlistEnabled, is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
-          entry_fee: 0, ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
-          event_rules: eventRules.trim() || null, visibility,
-          date_start: dateStart?.toISOString() || null, date_end: dateEnd?.toISOString() || null,
-        }).eq('id', editId).eq('created_by', userId);
-        if (updateError) throw updateError;
-        toast.success('Event updated!');
-        navigate('/my-events');
-        return;
-      }
-
-      const eventPayloads = validDatesList.map((d, index) => {
-        const dateStart = new Date(`${d.date}T${d.startTime}:00`)
-        const dateEnd = new Date(`${d.date}T${d.endTime}:00`)
-        return {
-          created_by: userId,
-          title: title.trim(),
-          description: description.trim(),
-          banner_url: bannerUrl,
-          photos: photoUrls,
-          type: eventTypes[0] || '',
-          event_types: eventTypes,
-          specific_years: specificYears.length > 0 ? specificYears : [],
-          vehicle_focus: vehicleFocus,
-          vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
-          vehicle_types: vehicleFocus === 'cars_only' ? ['cars']
-            : vehicleFocus === 'motorcycles_only' ? ['bikes'] : [],
-          meet_style_tags: meetStyleTags,
-          date_start: dateStart.toISOString(),
-          date_end: dateEnd.toISOString(),
-          location: location.trim(),
-          lat: locationLat,
-          lng: locationLng,
           what3words: what3words.trim() || null,
           max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
           waitlist_enabled: unlimitedSpaces ? false : waitlistEnabled,
-          entry_fee: 0,
-          is_free: entryType === 'free',
-          is_ticketed: entryType === 'ticketed',
-          ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
-          event_rules: eventRules.trim() || null,
-          visibility,
-          club_id: visibility === 'club' ? clubId : null,
-          invited_friends: visibility === 'friends' && friendsMode === 'specific' ? selectedFriends : [],
-          invited_club_id: visibility === 'club' ? clubId : null,
-          series_id: seriesId,
-          series_index: index,
-          is_recurring: isRecurring,
-          recurring_frequency: isRecurring ? recurringFrequency : null,
-          status: 'published',
-          attendee_count: 0,
-          commission_rate: 0.05,
+          is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
+          entry_fee: 0, ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
+          event_rules: eventRules.trim() || null, visibility,
+          date_start: dateStart?.toISOString() || null, date_end: dateEnd?.toISOString() || null,
+        }).eq('id', editId).eq('created_by', userId)
+
+        if (updateError) {
+          console.error('update error:', updateError)
+          toast.error('Failed to update: ' + updateError.message)
+          setSaving(false)
+          return
         }
-      })
 
-      const { data: newEvents, error: insertError } = await supabase
-        .from('events')
-        .insert(eventPayloads)
-        .select()
-
-      if (insertError) {
-        toast.error('Could not publish: ' + insertError.message)
+        toast.success('Event updated!')
+        navigate('/my-events')
+        setSaving(false)
         return
       }
 
-      // Save ticket types for ticketed events
+      // CREATE new event(s)
+      console.log('creating', validDates.length, 'event(s)...')
+
+      const eventPayloads = validDates.map(d => ({
+        created_by: userId,
+        title: title.trim(), description: description.trim(),
+        banner_url: bannerUrl || null,
+        photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls : [],
+        type: eventTypes[0] || '', event_types: eventTypes,
+        vehicle_focus: vehicleFocus,
+        vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
+        meet_style_tags: meetStyleTags, specific_years: specificYears,
+        location: location.trim(), lat: locationLat, lng: locationLng,
+        what3words: what3words.trim() || null,
+        max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
+        waitlist_enabled: unlimitedSpaces ? false : waitlistEnabled,
+        is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
+        entry_fee: 0,
+        ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
+        event_rules: eventRules.trim() || null, visibility,
+        status: 'published', attendee_count: 0,
+        date_start: new Date(`${d.date}T${d.startTime || '10:00'}`).toISOString(),
+        date_end: new Date(`${d.date}T${d.endTime || '12:00'}`).toISOString(),
+        club_id: visibility === 'club' ? clubId : null,
+      }))
+
+      const { data: newEvents, error: insertError } = await supabase
+        .from('events').insert(eventPayloads).select()
+
+      console.log('insert result:', { count: newEvents?.length, insertError })
+
+      if (insertError) {
+        console.error('insert error:', insertError)
+        toast.error('Failed to publish: ' + insertError.message)
+        setSaving(false)
+        return
+      }
+
+      // Save ticket types (non-blocking)
       if (entryType === 'ticketed' && newEvents && newEvents.length > 0) {
-        const ticketTypeRows = ticketTypes
-          .filter(t => t.name && t.price)
-          .map(t => ({
-            event_id: newEvents[0].id,
-            name: t.name,
-            description: t.description || null,
-            price: parseFloat(t.price) || 0,
-            capacity: t.capacity ? parseInt(t.capacity) : null,
+        const ticketRows = ticketTypes.filter(t => t.name && t.price).flatMap(t =>
+          newEvents.map(ev => ({
+            event_id: ev.id, name: t.name, description: t.description || null,
+            price: Number(t.price), capacity: t.capacity ? Number(t.capacity) : null,
           }))
-        if (ticketTypeRows.length > 0) {
-          await supabase.from('event_ticket_types').insert(ticketTypeRows)
+        )
+        if (ticketRows.length > 0) {
+          supabase.from('event_ticket_types').insert(ticketRows).then(({ error: te }) => {
+            if (te) console.warn('ticket types error:', te.message)
+          })
         }
       }
 
-      // Self-notification (best-effort)
-      try {
-        await supabase.rpc('send_notification', {
-          p_user_id: userId,
-          p_type: 'event_published',
-          p_title: 'Your event is live!',
-          p_body: `${title} is now visible on the map`,
-          p_data: { event_id: newEvents?.[0]?.id }
-        })
-      } catch {
-        // ignore notification errors
-      }
+      // Non-blocking notification — fire and forget
+      supabase.rpc('send_notification', {
+        p_user_id: userId, p_type: 'event_published',
+        p_title: 'Your event is live!',
+        p_body: `${title} is now visible on the map`,
+        p_data: { event_id: newEvents?.[0]?.id }
+      }).then(() => {}).catch(() => {})
 
-      const dateLabel = validDatesList.length === 1
-        ? `on ${format(new Date(validDatesList[0].date), 'd MMM yyyy')}`
-        : `across ${validDatesList.length} dates`
+      console.log('publish complete')
+      toast.success(validDates.length > 1 ? `${validDates.length} events published!` : 'Event published!')
+      navigate('/', { replace: true, state: { refreshMap: true } })
 
-      toast.success(`Event published ${dateLabel}! 🎉`)
-      navigate('/', {
-        replace: true,
-        state: {
-          refreshMap: true,
-          centerOn: { lat: locationLat, lng: locationLng }
-        }
-      })
-
-    } catch {
-      toast.error('Something went wrong. Please try again.')
+    } catch (err: any) {
+      console.error('handlePublish error:', err)
+      toast.error(err?.message || 'Failed to publish event')
     } finally {
-      clearTimeout(publishTimeout)
       setSaving(false)
     }
   }

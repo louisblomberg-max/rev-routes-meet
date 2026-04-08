@@ -205,7 +205,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
     <div className="space-y-4">
       {/* Event banner — portrait 9:16 */}
       {allPhotos.length > 0 ? (
-        <div className="relative" style={{ aspectRatio: '9/16', maxHeight: '360px', width: '100%', maxWidth: '200px', margin: '0 auto', borderRadius: '16px', overflow: 'hidden' }}>
+        <div className="relative" style={{ width: '160px', aspectRatio: '9/16', margin: '0 auto', borderRadius: '16px', overflow: 'hidden' }}>
           <img
             src={allPhotos[currentPhotoIndex]}
             className="w-full h-full object-cover"
@@ -301,7 +301,10 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">👥</div>
         <div>
           <p className="text-sm font-medium">
-            {attendeeCount}{maxAtt ? ` / ${maxAtt}` : ''} attending
+            {maxAtt
+              ? `${attendeeCount} / ${maxAtt} attending`
+              : `${attendeeCount} attending · Unlimited spaces`
+            }
           </p>
           {maxAtt && attendeeCount >= maxAtt && (
             <p className="text-xs text-destructive font-medium">
