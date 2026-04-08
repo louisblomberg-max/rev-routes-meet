@@ -28,6 +28,8 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [isEditingReview, setIsEditingReview] = useState(false);
   const [dbPhotos, setDbPhotos] = useState<string[]>([]);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const fullMapRef = useRef<HTMLDivElement>(null);
   const fullMapInstanceRef = useRef<mapboxgl.Map | null>(null);
 
@@ -129,43 +131,31 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   return (
     <div className="space-y-3">
-      {/* Photos — compact grid, max 160px tall on desktop */}
+      {/* Photos — always show max 2 side by side */}
       {photos.length === 1 && (
-        <div className="w-full rounded-xl overflow-hidden" style={{ height: '160px' }}>
+        <div className="rounded-xl overflow-hidden" style={{ height: '160px' }}>
           <img src={photos[0]} className="w-full h-full object-cover" alt="" />
         </div>
       )}
-      {photos.length === 2 && (
-        <div className="grid grid-cols-2 gap-1.5" style={{ height: '160px' }}>
-          <div className="rounded-xl overflow-hidden">
+      {photos.length >= 2 && (
+        <div className="flex gap-1.5" style={{ height: '160px' }}>
+          <div className="flex-1 rounded-xl overflow-hidden">
             <img src={photos[0]} className="w-full h-full object-cover" alt="" />
           </div>
-          <div className="rounded-xl overflow-hidden">
+          <div className="flex-1 rounded-xl overflow-hidden">
             <img src={photos[1]} className="w-full h-full object-cover" alt="" />
           </div>
         </div>
       )}
-      {photos.length === 3 && (
-        <div className="grid gap-1.5" style={{ height: '160px', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr' }}>
-          <div className="rounded-xl overflow-hidden" style={{ gridRow: '1 / 3' }}>
-            <img src={photos[0]} className="w-full h-full object-cover" alt="" />
-          </div>
-          <div className="rounded-xl overflow-hidden">
-            <img src={photos[1]} className="w-full h-full object-cover" alt="" />
-          </div>
-          <div className="rounded-xl overflow-hidden">
-            <img src={photos[2]} className="w-full h-full object-cover" alt="" />
-          </div>
-        </div>
-      )}
-      {photos.length >= 4 && (
-        <div className="grid grid-cols-2 gap-1.5" style={{ height: '160px', gridTemplateRows: '1fr 1fr' }}>
-          {photos.slice(0, 4).map((p, i) => (
-            <div key={i} className="rounded-xl overflow-hidden">
-              <img src={p} className="w-full h-full object-cover" alt="" />
-            </div>
-          ))}
-        </div>
+
+      {/* View more photos */}
+      {photos.length > 2 && (
+        <button
+          onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+          className="w-full py-2 text-xs font-semibold text-routes flex items-center justify-center gap-1.5 border border-routes/20 rounded-xl bg-routes/5 hover:bg-routes/10 transition-colors"
+        >
+          View all {photos.length} photos
+        </button>
       )}
 
       {/* Name + save/share */}
@@ -290,6 +280,72 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
               {data.duration_minutes && <span>~{data.duration_minutes} min</span>}
               {route.difficulty && <span style={{ textTransform: 'capitalize' }}>{route.difficulty}</span>}
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Full screen photo gallery */}
+      {showGallery && createPortal(
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px', paddingTop: 'max(16px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.8)' }}>
+            <button
+              onClick={() => setShowGallery(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'white', background: 'none', border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer', padding: '8px 0' }}
+            >
+              ← Back
+            </button>
+            <span style={{ color: 'white', fontSize: 13, fontWeight: 500 }}>
+              {galleryIndex + 1} / {photos.length}
+            </span>
+            <span style={{ color: 'transparent', fontSize: 13 }}>Back</span>
+          </div>
+
+          {/* Main photo */}
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px', position: 'relative', overflow: 'hidden' }}>
+            <img
+              src={photos[galleryIndex]}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 8 }}
+              alt={`Photo ${galleryIndex + 1}`}
+            />
+
+            {/* Left arrow */}
+            {galleryIndex > 0 && (
+              <button
+                onClick={() => setGalleryIndex(i => i - 1)}
+                style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ‹
+              </button>
+            )}
+
+            {/* Right arrow */}
+            {galleryIndex < photos.length - 1 && (
+              <button
+                onClick={() => setGalleryIndex(i => i + 1)}
+                style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', width: 40, height: 40, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                ›
+              </button>
+            )}
+          </div>
+
+          {/* Thumbnail strip at bottom */}
+          <div style={{ display: 'flex', gap: 8, padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', background: 'rgba(0,0,0,0.8)', overflowX: 'auto' }}>
+            {photos.map((p, i) => (
+              <button
+                key={i}
+                onClick={() => setGalleryIndex(i)}
+                style={{
+                  width: 52, height: 52, borderRadius: 8, overflow: 'hidden', flex: '0 0 52px',
+                  border: i === galleryIndex ? '2px solid #4f7fff' : '2px solid transparent',
+                  padding: 0, cursor: 'pointer', background: 'none'
+                }}
+              >
+                <img src={p} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+              </button>
+            ))}
           </div>
         </div>,
         document.body
