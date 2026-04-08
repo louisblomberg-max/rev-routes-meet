@@ -53,14 +53,14 @@ interface EventsFiltersPanelProps {
 
 // Constants matching AddEvent exactly
 const EVENT_TYPES = [
-  { id: 'Meets', label: 'Meets', emoji: '🚗' },
-  { id: 'Shows', label: 'Shows', emoji: '🏆' },
-  { id: 'Drive', label: 'Drive Out', emoji: '🛣' },
-  { id: 'Track Day', label: 'Track Day', emoji: '🏁' },
-  { id: 'Motorsport', label: 'Motorsport', emoji: '🏎' },
-  { id: 'Autojumble', label: 'Autojumble', emoji: '🔧' },
-  { id: 'Off-Road', label: 'Off-Road', emoji: '🌿' },
-  { id: 'Other', label: 'Other', emoji: '📍' },
+  { id: 'Meets', label: 'Meets' },
+  { id: 'Shows', label: 'Shows' },
+  { id: 'Drive', label: 'Drive Out' },
+  { id: 'Track Day', label: 'Track Day' },
+  { id: 'Motorsport', label: 'Motorsport' },
+  { id: 'Autojumble', label: 'Autojumble' },
+  { id: 'Off-Road', label: 'Off-Road' },
+  { id: 'Other', label: 'Other' },
 ];
 
 const VEHICLE_FOCUS_OPTIONS = [
@@ -323,8 +323,7 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                       : 'bg-muted/30 border-border/30 text-muted-foreground'
                   }`}
                 >
-                  <span className="text-base">{type.emoji}</span>
-                  <span className="text-[9px] font-semibold">{type.label}</span>
+                  <span className="text-[10px] font-semibold">{type.label}</span>
                 </button>
               ))}
             </div>
@@ -482,8 +481,8 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                       : 'bg-muted/20 border-border/20'
                   }`}
                 >
-                  <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center text-lg">
-                    🚗
+                  <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center text-xs font-bold text-muted-foreground">
+                    ALL
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-foreground">Any vehicle</p>
@@ -525,8 +524,8 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
                       {vehicle.photos?.[0] ? (
                         <img src={vehicle.photos[0]} alt="" className="w-full h-full object-cover" />
                       ) : (
-                        <span className="text-lg">
-                          {vehicle.vehicle_type === 'motorcycle' ? '🏍' : '🚗'}
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {vehicle.vehicle_type === 'motorcycle' ? 'BIKE' : 'CAR'}
                         </span>
                       )}
                     </div>
@@ -554,9 +553,9 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
             )}
             <div className="bg-muted/50 rounded-lg p-2.5 mt-1">
               <p className="text-[10px] text-muted-foreground leading-relaxed">
-                🚗 <strong>Cars Only</strong> events show when you select a car<br/>
-                🏍 <strong>Motorcycle Only</strong> events show when you select a bike<br/>
-                🎯 <strong>Brand events</strong> show when your vehicle make matches
+                <strong>Cars Only</strong> events show when you select a car<br/>
+                <strong>Motorcycle Only</strong> events show when you select a bike<br/>
+                <strong>Brand events</strong> show when your vehicle make matches
               </p>
             </div>
           </div>
