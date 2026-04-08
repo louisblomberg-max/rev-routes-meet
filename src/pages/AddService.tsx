@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Building, Phone, Globe, Camera, X, Clock, MapPin, Image, Upload, Star, Copy, AlertCircle } from 'lucide-react';
 import BackButton from '@/components/BackButton';
@@ -86,6 +87,10 @@ const SectionTitle = ({ icon: Icon, children }: { icon: React.ElementType; child
 
 const AddService = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+  const isEdit = !!editId;
+  const [isLoadingEdit, setIsLoadingEdit] = useState(isEdit);
   const { services: servicesRepo, state } = useData();
   const { user: authUser } = useAuth();
   const currentUser = authUser;
@@ -113,6 +118,36 @@ const AddService = () => {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load existing service data for edit mode
+  useEffect(() => {
+    if (!editId || !currentUser?.id) { setIsLoadingEdit(false); return; }
+    (async () => {
+      const { data } = await supabase.from('services').select('*').eq('id', editId).single();
+      if (!data) { toast.error('Service not found'); navigate(-1); setIsLoadingEdit(false); return; }
+      if (data.created_by !== currentUser.id) { toast.error('Not your service'); navigate(-1); setIsLoadingEdit(false); return; }
+      setFormData(prev => ({
+        ...prev,
+        name: data.name || '',
+        tagline: data.tagline || '',
+        description: data.description || '',
+        categories: data.types || [],
+        location: data.address || '',
+        locationCoords: data.lat && data.lng ? { lat: data.lat, lng: data.lng } : undefined,
+        phone: data.phone?.replace(/^\+\d+\s/, '') || '',
+        website: data.website || '',
+        is24h: data.is_24_7 || false,
+        isEmergency: data.is_emergency || false,
+        hideAddress: data.hide_exact_address || false,
+        serviceType: (data.service_type as any) || 'fixed',
+      }));
+      if (data.cover_url) setCoverImage(data.cover_url);
+      if (data.hours && typeof data.hours === 'object' && !(data.hours as any)['24/7']) {
+        setDayHours(data.hours as any);
+      }
+      setIsLoadingEdit(false);
+    })();
+  }, [editId, currentUser?.id]);
 
   // Plan check is now done on submit via paywall
 
@@ -210,6 +245,29 @@ const AddService = () => {
         }
       }
 
+      // Edit mode — update existing service
+      if (isEdit && editId) {
+        const { error: updateError } = await supabase.from('services').update({
+          name: formData.name.trim(),
+          description: formData.description?.trim() || null,
+          tagline: formData.tagline?.trim() || null,
+          lat: Number(lat), lng: Number(lng),
+          address: formData.location.trim() || null,
+          phone: formData.phone ? `${formData.countryCode} ${formData.phone}` : null,
+          website: formData.website?.trim() || null,
+          types: formData.categories,
+          service_type: formData.categories[0] || 'fixed',
+          is_24_7: formData.is24h, is_emergency: formData.isEmergency,
+          hide_exact_address: formData.hideAddress,
+          hours: formData.is24h ? { '24/7': true } : dayHours as any,
+          cover_url: coverUrl || (coverImage?.startsWith('http') ? coverImage : null),
+        }).eq('id', editId).eq('created_by', currentUser!.id);
+        if (updateError) { toast.error('Failed to update: ' + updateError.message); setIsSubmitting(false); return; }
+        toast.success('Service updated!');
+        navigate(-1);
+        return;
+      }
+
       const payload = {
         created_by: currentUser!.id,
         name: formData.name.trim(),
@@ -258,28 +316,30 @@ const AddService = () => {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // Check plan from profile — simple direct query, no RPC
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('plan')
-        .eq('id', currentUser.id)
-        .single();
+    // Skip plan check for edits — user already passed it when creating
+    if (!isEdit) {
+      setIsSubmitting(true);
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('plan')
+          .eq('id', currentUser.id)
+          .single();
 
-      const isOrganiser = profile?.plan === 'club' || profile?.plan === 'organiser';
-
-      if (!isOrganiser) {
-        setShowPaywall(true);
+        const isOrganiser = profile?.plan === 'club' || profile?.plan === 'organiser';
+        if (!isOrganiser) {
+          setShowPaywall(true);
+          setIsSubmitting(false);
+          return;
+        }
+      } catch {
+        toast.error('Something went wrong.');
         setIsSubmitting(false);
         return;
       }
-
-      await saveService();
-    } catch (err) {
-      toast.error('Something went wrong.');
-      setIsSubmitting(false);
     }
+
+    await saveService();
   };
 
   const update = (field: string, value: unknown) => {
@@ -310,7 +370,7 @@ const AddService = () => {
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
-          <h1 className="text-lg font-bold text-foreground">Add Service</h1>
+          <h1 className="text-lg font-bold text-foreground">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
         </div>
       </div>
 
@@ -573,7 +633,7 @@ const AddService = () => {
             disabled={isSubmitting || !isFormValid}
             className="w-full bg-services hover:bg-services/90 text-services-foreground h-12 text-base font-semibold rounded-2xl shadow-elevated disabled:opacity-40"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Service'}
+            {isSubmitting ? (isEdit ? 'Saving...' : 'Submitting...') : isEdit ? 'Save Changes' : 'Submit Service'}
           </Button>
         </div>
       </div>
