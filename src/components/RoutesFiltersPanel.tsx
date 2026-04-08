@@ -98,8 +98,11 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           {/* Distance */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-foreground">Distance</p>
-              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} miles` : 'Any distance'}</span>
+              <div>
+                <p className="text-xs font-medium text-foreground">Distance</p>
+                <p className="text-[10px] text-muted-foreground">From your current location</p>
+              </div>
+              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} mi` : 'Any'}</span>
             </div>
             <div className="flex gap-1.5">
               {DISTANCE_OPTIONS.map(opt => (
@@ -139,7 +142,10 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
 
           {/* Duration */}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-foreground">Duration</p>
+            <div>
+              <p className="text-xs font-medium text-foreground">Duration</p>
+              <p className="text-[10px] text-muted-foreground">Estimated drive time</p>
+            </div>
             <div className="flex flex-wrap gap-1.5">
               {DURATION_OPTIONS.map(dur => (
                 <button key={dur.id} onClick={() => onFiltersChange({ ...filters, duration: dur.id === 'all' ? null : (filters.duration === dur.id ? null : dur.id) })}
