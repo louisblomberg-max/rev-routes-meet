@@ -465,6 +465,15 @@ const AddEvent = () => {
       const validDates = dates.filter(d => d.date)
       console.log('validDates:', validDates.length)
 
+      // Credit check for free users (skip for edits)
+      const isPaidPlan = userPlan === 'pro' || userPlan === 'club'
+      if (!isEdit && !isPaidPlan && userCredits <= 0) {
+        setSaving(false)
+        toast.error('You need event credits or a Pro plan to publish events')
+        navigate('/subscription', { state: { feature: 'events' } })
+        return
+      }
+
       // Edit mode — UPDATE existing event
       if (isEdit && editId) {
         console.log('updating event:', editId)
@@ -562,6 +571,14 @@ const AddEvent = () => {
         p_data: { event_id: newEvents?.[0]?.id }
       }).then(() => {}).catch(() => {})
 
+      // Deduct credit for free users (fire and forget)
+      if (!isPaidPlan) {
+        supabase.from('profiles')
+          .update({ free_event_credits: Math.max(0, userCredits - 1) })
+          .eq('id', userId)
+          .then(() => {}).catch(() => {})
+      }
+
       console.log('publish complete')
       toast.success(validDates.length > 1 ? `${validDates.length} events published!` : 'Event published!')
       navigate('/', { replace: true, state: { refreshMap: true } })
@@ -584,7 +601,14 @@ const AddEvent = () => {
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton />
-          <h1 className="text-lg font-bold">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
+          <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
+          {(userPlan === 'pro' || userPlan === 'club') ? (
+            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-events/10 text-events border border-events/20">Unlimited</span>
+          ) : (
+            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50">
+              {userCredits} credit{userCredits !== 1 ? 's' : ''} left
+            </span>
+          )}
         </div>
       </div>
 
