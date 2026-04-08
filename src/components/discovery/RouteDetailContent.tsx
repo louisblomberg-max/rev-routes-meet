@@ -59,6 +59,21 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   const photos = dbPhotos.length > 0 ? dbPhotos : propsPhotos;
 
+  // Lock body scroll while gallery is open
+  useEffect(() => {
+    if (showGallery) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [showGallery]);
+
   useEffect(() => { supabase.auth.getUser().then(({ data: d }) => setCurrentUserId(d.user?.id || null)); }, []);
 
   // Fetch reviews
@@ -133,26 +148,71 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   return (
     <div className="space-y-3">
-      {/* Photos — square 1:1 ratio */}
-      {photos.length === 1 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
-          <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
-            <img src={photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+      {/* Mobile: show 2 square photos. Desktop (md+): show 3 square photos */}
+      {photos.length >= 1 && (
+        <>
+          {/* Mobile — 2 photos */}
+          <div className="md:hidden">
+            {photos.length === 1 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
+                <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                </div>
+                <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={photos[1]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+
+          {/* Desktop — 3 photos */}
+          <div className="hidden md:block">
+            {photos.length === 1 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '6px' }}>
+                <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                </div>
+              </div>
+            ) : photos.length === 2 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {photos.slice(0, 2).map((p, i) => (
+                  <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                    <img src={p} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                {photos.slice(0, 3).map((p, i) => (
+                  <div key={i} style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
+                    <img src={p} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
-      {photos.length >= 2 && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-          <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
-            <img src={photos[0]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
-          </div>
-          <div style={{ aspectRatio: '1/1', borderRadius: '12px', overflow: 'hidden' }}>
-            <img src={photos[1]} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
-          </div>
-        </div>
-      )}
+
+      {/* View all button — Mobile: show if 3+ photos. Desktop: show if 4+ photos */}
       {photos.length > 2 && (
         <button
+          className="md:hidden"
+          onClick={(e) => { e.stopPropagation(); e.preventDefault(); setGalleryIndex(0); setShowGallery(true); }}
+          style={{ width: '100%', padding: '8px', fontSize: '12px', fontWeight: 600, color: '#4f7fff', border: '1px solid rgba(79,127,255,0.2)', borderRadius: '12px', background: 'rgba(79,127,255,0.05)', cursor: 'pointer' }}
+        >
+          View all {photos.length} photos
+        </button>
+      )}
+      {photos.length > 3 && (
+        <button
+          className="hidden md:block"
           onClick={(e) => { e.stopPropagation(); e.preventDefault(); setGalleryIndex(0); setShowGallery(true); }}
           style={{ width: '100%', padding: '8px', fontSize: '12px', fontWeight: 600, color: '#4f7fff', border: '1px solid rgba(79,127,255,0.2)', borderRadius: '12px', background: 'rgba(79,127,255,0.05)', cursor: 'pointer' }}
         >
@@ -278,13 +338,15 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
       {/* Full screen photo gallery */}
       {showGallery && createPortal(
         <div
-          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999, background: '#000', display: 'flex', flexDirection: 'column' }}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999999, background: '#000', display: 'flex', flexDirection: 'column', pointerEvents: 'all' }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', paddingTop: 'max(48px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.9)', flexShrink: 0 }}>
             <button
-              onClick={(e) => { e.stopPropagation(); setShowGallery(false); }}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowGallery(false); }}
               style={{ color: 'white', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               ← Back
@@ -295,30 +357,30 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
           {/* Main photo area */}
           <div
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', cursor: 'pointer' }}
             onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
             onTouchEnd={(e) => {
               const diff = touchStartX.current - e.changedTouches[0].clientX;
-              if (diff > 50 && galleryIndex < photos.length - 1) setGalleryIndex(i => i + 1);
-              if (diff < -50 && galleryIndex > 0) setGalleryIndex(i => i - 1);
+              if (diff > 50 && galleryIndex < photos.length - 1) setGalleryIndex(prev => prev + 1);
+              if (diff < -50 && galleryIndex > 0) setGalleryIndex(prev => prev - 1);
             }}
           >
             <img
-              key={galleryIndex}
+              key={`photo-${galleryIndex}`}
               src={photos[galleryIndex]}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block' }}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none', userSelect: 'none' }}
               alt=""
             />
             {galleryIndex > 0 && (
               <button
-                onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => i - 1); }}
-                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', border: 'none', color: 'white', fontSize: '22px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev - 1); }}
+                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all', WebkitTapHighlightColor: 'transparent' }}
               >‹</button>
             )}
             {galleryIndex < photos.length - 1 && (
               <button
-                onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => i + 1); }}
-                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', border: 'none', color: 'white', fontSize: '22px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev + 1); }}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all', WebkitTapHighlightColor: 'transparent' }}
               >›</button>
             )}
           </div>
