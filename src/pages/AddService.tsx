@@ -37,16 +37,40 @@ const SERVICE_CATEGORIES = [
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const COUNTRY_CODES = [
-  { code: '+44', label: '🇬🇧 +44' },
-  { code: '+1', label: '🇺🇸 +1' },
-  { code: '+353', label: '🇮🇪 +353' },
-  { code: '+49', label: '🇩🇪 +49' },
-  { code: '+33', label: '🇫🇷 +33' },
-  { code: '+34', label: '🇪🇸 +34' },
-  { code: '+39', label: '🇮🇹 +39' },
-  { code: '+31', label: '🇳🇱 +31' },
-  { code: '+61', label: '🇦🇺 +61' },
-  { code: '+81', label: '🇯🇵 +81' },
+  { code: '+44', label: '+44 UK' },
+  { code: '+353', label: '+353 IE' },
+  { code: '+33', label: '+33 FR' },
+  { code: '+49', label: '+49 DE' },
+  { code: '+34', label: '+34 ES' },
+  { code: '+39', label: '+39 IT' },
+  { code: '+31', label: '+31 NL' },
+  { code: '+32', label: '+32 BE' },
+  { code: '+41', label: '+41 CH' },
+  { code: '+43', label: '+43 AT' },
+  { code: '+351', label: '+351 PT' },
+  { code: '+30', label: '+30 GR' },
+  { code: '+46', label: '+46 SE' },
+  { code: '+47', label: '+47 NO' },
+  { code: '+45', label: '+45 DK' },
+  { code: '+358', label: '+358 FI' },
+  { code: '+48', label: '+48 PL' },
+  { code: '+420', label: '+420 CZ' },
+  { code: '+36', label: '+36 HU' },
+  { code: '+40', label: '+40 RO' },
+  { code: '+359', label: '+359 BG' },
+  { code: '+385', label: '+385 HR' },
+  { code: '+386', label: '+386 SI' },
+  { code: '+421', label: '+421 SK' },
+  { code: '+370', label: '+370 LT' },
+  { code: '+371', label: '+371 LV' },
+  { code: '+372', label: '+372 EE' },
+  { code: '+352', label: '+352 LU' },
+  { code: '+356', label: '+356 MT' },
+  { code: '+357', label: '+357 CY' },
+  { code: '+1', label: '+1 US' },
+  { code: '+61', label: '+61 AU' },
+  { code: '+64', label: '+64 NZ' },
+  { code: '+27', label: '+27 ZA' },
 ];
 
 const PRICE_RANGES = ['£', '££', '£££', '££££'];
@@ -151,16 +175,14 @@ const AddService = () => {
 
   // Plan check is now done on submit via paywall
 
-  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && formData.phone.trim() && formData.website.trim();
+  const isFormValid = formData.name.trim() && formData.categories.length > 0 && formData.location.trim() && formData.phone.trim();
 
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!formData.name.trim()) errs.name = 'Business name is required';
     if (formData.categories.length === 0) errs.category = 'Select at least one category';
     if (!formData.location.trim()) errs.location = 'Location is required';
-    // Cover image is optional
     if (!formData.phone.trim()) errs.phone = 'Phone number is required';
-    if (!formData.website.trim()) errs.website = 'Website is required';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -326,8 +348,8 @@ const AddService = () => {
           .eq('id', currentUser.id)
           .single();
 
-        const isOrganiser = profile?.plan === 'club' || profile?.plan === 'organiser';
-        if (!isOrganiser) {
+        const isAllowed = profile?.plan === 'pro' || profile?.plan === 'club' || profile?.plan === 'organiser';
+        if (!isAllowed) {
           setShowPaywall(true);
           setIsSubmitting(false);
           return;
@@ -378,23 +400,24 @@ const AddService = () => {
 
         {/* ── 2. COVER IMAGE ── */}
         <SectionCard>
-          <SectionTitle icon={Camera}>Cover Image *</SectionTitle>
-          <div>
+          <SectionTitle icon={Camera}>Cover Image</SectionTitle>
+          <div className="flex justify-center">
             {coverImage ? (
-              <div className="relative w-full h-32 rounded-2xl bg-muted flex items-center justify-center overflow-hidden border border-border/50">
-                <img src={coverImage} className="w-full h-full object-cover" alt="" />
-                <button onClick={() => { setCoverImage(null); setCoverFile(null); }} className="absolute top-2 right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-sm">
-                  <X className="w-3 h-3" />
-                </button>
+              <div style={{ width: '160px', aspectRatio: '9/16', borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>
+                <img src={coverImage} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+                <button
+                  onClick={() => { setCoverImage(null); setCoverFile(null); }}
+                  style={{ position: 'absolute', top: 8, right: 8, width: 24, height: 24, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}
+                >x</button>
               </div>
             ) : (
-              <label className="w-full h-32 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1.5 hover:border-services/50 transition-colors bg-muted/30 cursor-pointer">
-                <Image className="w-6 h-6 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">Add Cover Image</span>
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '160px', aspectRatio: '9/16', borderRadius: '16px', border: '2px dashed rgba(0,0,0,0.15)', background: 'rgba(0,0,0,0.03)', cursor: 'pointer' }}>
+                <Camera style={{ width: 24, height: 24, color: '#999', marginBottom: 8 }} />
+                <span style={{ fontSize: 11, color: '#999', textAlign: 'center' }}>Add cover photo</span>
+                <span style={{ fontSize: 10, color: '#bbb', marginTop: 4 }}>Portrait (9:16)</span>
                 <input type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif" className="hidden" onChange={handleCoverUpload} />
               </label>
             )}
-            {errors.cover && <p className="text-xs text-destructive mt-1">{errors.cover}</p>}
           </div>
         </SectionCard>
 
@@ -609,7 +632,7 @@ const AddService = () => {
             </div>
             {/* Website */}
             <div className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">Website *</Label>
+              <Label className="text-xs text-muted-foreground">Website</Label>
               <div className="relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input type="url" placeholder="https://" className="pl-10 rounded-xl h-11" value={formData.website} onChange={e => update('website', e.target.value)} />

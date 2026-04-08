@@ -126,22 +126,31 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
           <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
           <span className="text-foreground">{service.openingHours}</span>
         </div>
-        {service.phone && (
-          <div className="flex items-center gap-3 text-sm">
-            <Phone className="w-4 h-4 text-muted-foreground shrink-0" />
-            <a href={`tel:${service.phone}`} className="text-foreground hover:underline">{service.phone}</a>
-          </div>
+        {((service as any).phone || service.phone) && (
+          <a href={`tel:${((service as any).phone || service.phone).replace(/\s/g, '')}`} className="flex items-center gap-3 text-sm text-blue-600 font-medium">
+            <Phone className="w-4 h-4 shrink-0" />
+            {(service as any).phone || service.phone}
+          </a>
         )}
       </div>
 
       {/* Contact buttons */}
       <div className="flex gap-2">
-        {service.phone && (
-          <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(`tel:${service.phone}`, '_self')}>
+        {((service as any).phone || service.phone) && (
+          <Button variant="outline" className="flex-1 gap-2" onClick={() => {
+            const phone = (service as any).phone || service.phone;
+            if (phone) window.location.href = `tel:${phone.replace(/\s/g, '')}`;
+          }}>
             <Phone className="w-4 h-4" /> Call
           </Button>
         )}
-        <Button variant="outline" className="flex-1 gap-2" disabled={!service.website} onClick={() => service.website && window.open(service.website, '_blank')}>
+        <Button variant="outline" className="flex-1 gap-2" disabled={!((service as any).website || service.website)} onClick={() => {
+          const website = (service as any).website || service.website;
+          if (website) {
+            const url = website.startsWith('http') ? website : `https://${website}`;
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
+        }}>
           <Globe className="w-4 h-4" /> Website
         </Button>
         <Button variant="outline" className="flex-1 gap-2" onClick={onNavigate}>
