@@ -665,27 +665,28 @@ const AddEvent = () => {
             <h2 className="text-base font-bold">Event Details</h2>
           </div>
 
-          {/* Banner */}
-          {bannerPreview ? (
-            <div className="relative w-full h-44 rounded-2xl overflow-hidden mb-4">
-              <img src={bannerPreview} className="w-full h-full object-cover" alt="Banner" />
-              <button onClick={() => { URL.revokeObjectURL(bannerPreview); setBannerPreview(null); setBannerFile(null) }}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-white flex items-center justify-center">
-                <X className="w-4 h-4" />
-              </button>
-              <button onClick={() => fileInputRef.current?.click()}
-                className="absolute bottom-2 right-2 px-3 py-1.5 rounded-lg bg-card/90 text-xs font-medium border border-border/50">
-                Change
-              </button>
-            </div>
-          ) : (
-            <button onClick={() => fileInputRef.current?.click()}
-              className="w-full h-44 rounded-2xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-2 hover:border-events/50 transition-colors bg-muted/20 mb-4">
-              <ImagePlus className="w-8 h-8 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Upload banner image</span>
-              <span className="text-xs text-muted-foreground/60">Recommended 16:9</span>
-            </button>
-          )}
+          {/* Banner — 9:16 portrait ratio */}
+          <div
+            style={{ aspectRatio: '9/16', maxHeight: '400px', width: '100%', maxWidth: '225px', margin: '0 auto' }}
+            className="relative rounded-2xl overflow-hidden bg-muted/20 border-2 border-dashed border-border/50 cursor-pointer mb-4"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {bannerPreview ? (
+              <>
+                <img src={bannerPreview} className="w-full h-full object-cover" alt="Banner" />
+                <button onClick={(e) => { e.stopPropagation(); URL.revokeObjectURL(bannerPreview); setBannerPreview(null); setBannerFile(null); }}
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-destructive text-white flex items-center justify-center">
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                <ImagePlus className="w-8 h-8 text-muted-foreground/50" />
+                <p className="text-xs text-muted-foreground text-center px-4">Add event banner photo</p>
+                <p className="text-[10px] text-muted-foreground/60">Portrait format (9:16)</p>
+              </div>
+            )}
+          </div>
 
           {/* Additional photos */}
           <div className="mb-4">

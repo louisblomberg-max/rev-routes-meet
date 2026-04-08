@@ -203,9 +203,9 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
   return (
     <div className="space-y-4">
-      {/* Photo gallery or placeholder */}
+      {/* Event banner — portrait 9:16 */}
       {allPhotos.length > 0 ? (
-        <div className="relative w-full h-52 -mx-5 -mt-1 rounded-t-2xl overflow-hidden bg-muted flex-shrink-0">
+        <div className="relative" style={{ aspectRatio: '9/16', maxHeight: '360px', width: '100%', maxWidth: '200px', margin: '0 auto', borderRadius: '16px', overflow: 'hidden' }}>
           <img
             src={allPhotos[currentPhotoIndex]}
             className="w-full h-full object-cover"
@@ -215,11 +215,11 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
             <>
               <button
                 onClick={() => setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
               >‹</button>
               <button
                 onClick={() => setCurrentPhotoIndex(prev => (prev + 1) % allPhotos.length)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 text-white flex items-center justify-center"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
               >›</button>
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                 {allPhotos.map((_, i) => (
@@ -229,21 +229,12 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
             </>
           )}
           {data.type && (
-            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg bg-black/60 text-white text-xs font-medium">
+            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-medium">
               {data.type}
             </div>
           )}
         </div>
-      ) : (
-        <div className="relative w-full h-44 -mx-5 -mt-1 rounded-t-2xl overflow-hidden flex items-center justify-center" style={{ backgroundColor: 'rgba(211, 13, 55, 0.08)' }}>
-          <span className="text-5xl">📅</span>
-          {data.type && (
-            <div className="absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-medium" style={{ backgroundColor: '#fce8ed', color: '#d30d37' }}>
-              {data.type}
-            </div>
-          )}
-        </div>
-      )}
+      ) : null}
 
       {/* Title and actions */}
       <div className="flex items-start justify-between gap-3">
