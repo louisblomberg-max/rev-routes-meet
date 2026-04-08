@@ -174,7 +174,7 @@ const Home = () => {
           .limit(300),
         supabase
           .from('services')
-          .select('id, name, lat, lng, service_type, address, rating, review_count, visibility')
+          .select('id, name, lat, lng, service_type, types, address, rating, review_count, visibility, is_emergency, is_24_7, cover_url')
           .eq('visibility', 'public')
           .not('lat', 'is', null)
           .not('lng', 'is', null)
@@ -199,8 +199,9 @@ const Home = () => {
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
-          type: 'services', subtype: s.service_type,
+          type: 'services', subtype: s.service_type, service_types: s.types || [],
           address: s.address, rating: s.rating, review_count: s.review_count,
+          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -281,8 +282,9 @@ const Home = () => {
         })),
         ...(servicesRes.data || []).map(s => ({
           id: s.id, title: s.name, lat: Number(s.lat), lng: Number(s.lng),
-          type: 'services', subtype: s.service_type,
+          type: 'services', subtype: s.service_type, service_types: s.types || [],
           address: s.address, rating: s.rating, review_count: s.review_count,
+          is_emergency: s.is_emergency, is_24_7: s.is_24_7, cover_url: s.cover_url,
         })),
       ].filter(p => p.lat && p.lng && !isNaN(p.lat) && !isNaN(p.lng));
 
@@ -611,10 +613,10 @@ const Home = () => {
     if (pin.type !== 'services') return true;
     const sf = servicesFilters;
 
-    // Type filter — check service_types array OR types array
+    // Type filter — check service_types array OR types array (case-insensitive)
     if (sf.types.length > 0) {
-      const pinTypes: string[] = pin.service_types || pin.types || [];
-      if (pinTypes.length > 0 && !sf.types.some((t: string) => pinTypes.includes(t))) return false;
+      const pinTypes: string[] = (pin.service_types || pin.types || []).map((t: string) => t.toLowerCase());
+      if (pinTypes.length > 0 && !sf.types.some((t: string) => pinTypes.includes(t.toLowerCase()))) return false;
     }
 
     // Open now filter
@@ -893,13 +895,16 @@ const Home = () => {
         const { data } = await supabase.from('services').select('*').eq('id', pin.id).maybeSingle();
         if (data) {
           service = {
+            ...data,
             id: data.id, name: data.name, description: data.description || '',
             category: data.service_type || '', serviceTypes: data.types || [],
             address: data.address || '', phone: data.phone || '', website: data.website || '',
             rating: data.rating, lat: data.lat, lng: data.lng,
             createdBy: data.created_by || '', createdAt: data.created_at || '',
             is_24_7: data.is_24_7, is_emergency: data.is_emergency,
-            cover_url: data.cover_url, tagline: data.tagline,
+            cover_url: data.cover_url, coverImage: data.cover_url,
+            tagline: data.tagline, hours: data.hours,
+            openingHours: data.is_24_7 ? 'Open 24/7' : 'See hours',
           } as any;
         }
       }

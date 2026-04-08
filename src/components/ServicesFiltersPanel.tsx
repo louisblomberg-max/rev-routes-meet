@@ -23,11 +23,12 @@ const DISTANCE_OPTIONS = [
   { value: 100, label: '100mi' },
 ];
 
+// Must match SERVICE_CATEGORIES in AddService.tsx exactly
 const TYPE_OPTIONS = [
   'Garages & Mechanics', 'Vehicle Servicing', 'Tyres & Wheels', 'Bodywork & Paint',
   'Detailing & Car Care', 'Tuning & Performance', 'Parts & Accessories',
-  'Recovery & Roadside', 'Storage & Parking', 'Fuel & Petrol', 'EV Charging',
-  'Mobile Services', 'Shipping & Transport',
+  'Recovery & Roadside Assistance', 'Storage & Parking', 'Fuel & Petrol', 'EV Charging',
+  'Mobile Services', 'Shipping & Transportation',
 ];
 
 const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanelProps) => {
@@ -47,8 +48,7 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
   const clearAll = () => onFiltersChange({ distance: 0, types: [], openNow: false });
 
   const toggleType = (typeLabel: string) => {
-    const id = typeLabel.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
-    const next = filters.types.includes(id) ? filters.types.filter(t => t !== id) : [...filters.types, id];
+    const next = filters.types.includes(typeLabel) ? filters.types.filter(t => t !== typeLabel) : [...filters.types, typeLabel];
     onFiltersChange({ ...filters, types: next });
   };
 
@@ -89,8 +89,11 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           {/* Distance */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-foreground">Distance</p>
-              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} miles` : 'Any distance'}</span>
+              <div>
+                <p className="text-xs font-medium text-foreground">Distance</p>
+                <p className="text-[10px] text-muted-foreground">From your current location</p>
+              </div>
+              <span className="text-xs text-muted-foreground">{distNum > 0 ? `Within ${distNum} mi` : 'Any'}</span>
             </div>
             <div className="flex gap-1.5">
               {DISTANCE_OPTIONS.map(opt => (
@@ -106,15 +109,12 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           <div className="space-y-2">
             <p className="text-xs font-medium text-foreground">Type</p>
             <div className="flex flex-wrap gap-1.5">
-              {TYPE_OPTIONS.map(t => {
-                const id = t.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
-                return (
-                  <button key={t} onClick={() => toggleType(t)}
-                    className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
-                      filters.types.includes(id) ? 'bg-services text-white border-services' : 'bg-white text-muted-foreground border-border/50'
-                    }`}>{t}</button>
-                );
-              })}
+              {TYPE_OPTIONS.map(t => (
+                <button key={t} onClick={() => toggleType(t)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${
+                    filters.types.includes(t) ? 'bg-services text-white border-services' : 'bg-white text-muted-foreground border-border/50'
+                  }`}>{t}</button>
+              ))}
             </div>
           </div>
 

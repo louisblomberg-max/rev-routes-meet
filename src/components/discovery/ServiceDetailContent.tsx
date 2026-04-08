@@ -67,42 +67,32 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
     <div className="space-y-4">
       {/* Banner */}
       <div className="relative h-36 -mx-5 -mt-1 rounded-t-2xl overflow-hidden">
-        {service.coverImage ? (
-          <img src={service.coverImage} alt={service.name} className="w-full h-full object-cover" />
+        {((service as any).cover_url || service.coverImage) ? (
+          <img src={(service as any).cover_url || service.coverImage} alt={service.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-services/80 to-services/40 flex items-center justify-center">
-            {service.logo ? (
-              <img src={service.logo} alt={service.name} className="h-16 w-16 rounded-xl object-cover" />
-            ) : (
-              <MapPin className="w-12 h-12 text-services-foreground/60" />
-            )}
+            <MapPin className="w-12 h-12 text-services-foreground/60" />
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
           <h2 className="text-lg font-bold text-white">{service.name}</h2>
-          {service.tagline && <p className="text-xs text-white/80">{service.tagline}</p>}
+          {((service as any).tagline || service.tagline) && <p className="text-xs text-white/80">{(service as any).tagline || service.tagline}</p>}
         </div>
       </div>
 
       {/* Status + category */}
       <div className="flex flex-wrap items-center gap-2">
         <Badge variant="outline" className="bg-services/10 text-services border-services/20 text-xs">
-          {service.category}
+          {(service as any).category || (service as any).service_type || 'Service'}
         </Badge>
-        <Badge
-          variant="outline"
-          className={`text-xs ${service.isOpen ? 'bg-services/10 text-services border-services/20' : 'bg-destructive/10 text-destructive border-destructive/20'}`}
-        >
-          {service.isOpen ? 'Open now' : 'Closed'}
-        </Badge>
-        {service.isVerified && (
-          <Badge variant="outline" className="text-xs bg-routes/10 text-routes border-routes/20 gap-1">
-            <BadgeCheck className="w-3 h-3" /> Verified
+        {(service as any).is_24_7 && (
+          <Badge variant="outline" className="text-xs bg-services/10 text-services border-services/20">
+            24/7
           </Badge>
         )}
-        {service.insuranceVerified && (
-          <Badge variant="outline" className="text-xs gap-1">
-            <Shield className="w-3 h-3" /> Insured
+        {(service as any).is_emergency && (
+          <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
+            Emergency Service
           </Badge>
         )}
       </div>
@@ -146,6 +136,11 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
 
       {/* Contact buttons */}
       <div className="flex gap-2">
+        {service.phone && (
+          <Button variant="outline" className="flex-1 gap-2" onClick={() => window.open(`tel:${service.phone}`, '_self')}>
+            <Phone className="w-4 h-4" /> Call
+          </Button>
+        )}
         <Button variant="outline" className="flex-1 gap-2" disabled={!service.website} onClick={() => service.website && window.open(service.website, '_blank')}>
           <Globe className="w-4 h-4" /> Website
         </Button>
