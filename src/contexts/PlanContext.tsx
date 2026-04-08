@@ -15,6 +15,8 @@ export interface FeatureAccess {
 }
 
 export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
+  // Free features
+  'browse_map': 'free',
   'browse_routes': 'free',
   'browse_events': 'free',
   'browse_services': 'free',
@@ -27,23 +29,23 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'my_discussions': 'free',
   'post_questions': 'free',
   'post_replies': 'free',
-  'create_events': 'free',
-  'create_routes': 'pro',
   'garage_showcase': 'free',
+  'create_events': 'free',        // free gets 1 credit, pro/club unlimited
+  'offer_sos_help': 'free',
+  'receive_sos_notifications': 'free',
+  // Pro Driver features
+  'create_routes': 'pro',
   'live_location': 'pro',
-  'breakdown_help': 'pro',
-  'advanced_filters': 'pro',
-  'priority_visibility': 'pro',
+  'convoy_mode': 'pro',
+  'request_sos': 'pro',
+  'ticketed_events': 'pro',
   'create_marketplace_listing': 'pro',
+  // Club & Business features
+  'create_services': 'club',
   'create_clubs': 'club',
-  'club_announcements': 'club',
-  'event_ticketing': 'club',
-  'business_listings': 'club',
-  'create_services': 'free',
-  'analytics': 'club',
-  'featured_placement': 'club',
-  'verified_badge': 'club',
   'manage_club': 'club',
+  'analytics': 'club',
+  'verified_badge': 'club',
 };
 
 const PLAN_HIERARCHY: Record<PlanId, number> = {

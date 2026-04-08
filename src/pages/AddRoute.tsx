@@ -233,6 +233,9 @@ const AddRoute = () => {
         <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={goBack} className="w-9 h-9 rounded-xl bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Route' : 'Create Route'}</h1>
+          {(currentPlan === 'pro' || currentPlan === 'club') && (
+            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-routes/10 text-routes border border-routes/20">Unlimited</span>
+          )}
           <span className="text-xs text-muted-foreground">Step {step}/3</span>
         </div>
         {/* Step indicator */}

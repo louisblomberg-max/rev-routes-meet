@@ -29,8 +29,9 @@ const PLANS = [
       'Free forever',
       '1 free event post',
       'Routes free to browse',
-      'Join clubs & forums',
+      'Join clubs and forums',
       'Basic navigation',
+      'Offer help via SOS',
     ],
   },
   {
@@ -41,9 +42,11 @@ const PLANS = [
     features: [
       'Everything in Explorer',
       'Unlimited event posts',
-      'Create routes & services',
+      'Create and share routes',
+      'Sell tickets for events',
       'Live location sharing',
       'Convoy mode',
+      'Request SOS breakdown help',
     ],
   },
   {
@@ -53,9 +56,8 @@ const PLANS = [
     price: { monthly: 5.99, yearly: 63.99 },
     features: [
       'Everything in Pro',
-      'Create & manage clubs',
-      'Add services & listings',
-      'Sell tickets with Stripe',
+      'Create and manage clubs',
+      'Add services and business listings',
       'Analytics dashboard',
       'Verified badge',
     ],

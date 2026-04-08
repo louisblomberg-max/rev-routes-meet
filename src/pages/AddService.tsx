@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 // TODO: Add validateImageFile from '@/lib/utils' when cover upload is connected to real file input
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
 import CreationPaywallSheet from '@/components/CreationPaywallSheet';
 
@@ -118,6 +119,7 @@ const AddService = () => {
   const { services: servicesRepo, state } = useData();
   const { user: authUser } = useAuth();
   const currentUser = authUser;
+  const { effectivePlan: currentPlan } = usePlan();
   const [showPaywall, setShowPaywall] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -338,10 +340,19 @@ const AddService = () => {
       return;
     }
 
-    // Plan check — allow all authenticated users for now
-    // TODO: re-enable plan gate when billing is confirmed working
-    if (!currentUser?.id) {
-      toast.error('Please sign in');
+    // Services require Club & Business plan
+    setIsSubmitting(true);
+    try {
+      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
+      console.log('user plan:', profile?.plan);
+      const canCreate = profile?.plan === 'club' || profile?.plan === 'organiser';
+      if (!isEdit && !canCreate) {
+        setShowPaywall(true);
+        setIsSubmitting(false);
+        return;
+      }
+    } catch {
+      toast.error('Could not verify plan');
       setIsSubmitting(false);
       return;
     }
@@ -377,7 +388,13 @@ const AddService = () => {
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
-          <h1 className="text-lg font-bold text-foreground">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
+          <h1 className="text-lg font-bold text-foreground flex-1">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
+          {currentPlan === 'club' ? (
+            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-services/10 text-services border border-services/20">Club Plan</span>
+          ) : (
+            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50 cursor-pointer"
+              onClick={() => navigate('/subscription')}>Upgrade</span>
+          )}
         </div>
       </div>
 

@@ -402,11 +402,17 @@ const AddEvent = () => {
     const validDatesList = dates.filter(d => d.date)
     if (validDatesList.length === 0) { console.log('FAIL: no dates'); toast.error('Please add at least one date'); return false }
     if (!unlimitedSpaces && !maxAttendees) { console.log('FAIL: no max attendees'); toast.error('Please enter max attendees or enable unlimited spaces'); return false }
-    if (entryType === 'ticketed' && (!ticketPrice || Number(ticketPrice) < 1)) {
-      console.log('FAIL: ticket price'); toast.error('Minimum ticket price is £1.00'); return false
-    }
-    if (entryType === 'ticketed' && !hasStripeConnect) {
-      console.log('FAIL: no stripe'); toast.error('Please connect your bank account to sell tickets'); return false
+    if (entryType === 'ticketed') {
+      const isPro = userPlan === 'pro' || userPlan === 'club' || userPlan === 'organiser';
+      if (!isPro) {
+        console.log('FAIL: ticketed requires pro'); toast.error('Selling tickets requires Pro Driver or Club & Business plan'); return false
+      }
+      if (!ticketPrice || Number(ticketPrice) < 1) {
+        console.log('FAIL: ticket price'); toast.error('Minimum ticket price is £1.00'); return false
+      }
+      if (!hasStripeConnect) {
+        console.log('FAIL: no stripe'); toast.error('Please connect your bank account to sell tickets'); return false
+      }
     }
     if (visibility === 'club' && !clubId) {
       console.log('FAIL: no club'); toast.error('Please select a club'); return false
