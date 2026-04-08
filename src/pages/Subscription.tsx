@@ -41,22 +41,23 @@ const PLANS = [
     features: [
       'Everything in Explorer',
       'Unlimited event posts',
+      'Create routes & services',
       'Live location sharing',
       'Convoy mode',
-      'Priority support',
     ],
   },
   {
     id: 'club' as PlanId,
-    name: 'Organiser',
+    name: 'Club & Business',
     icon: Building2,
     price: { monthly: 5.99, yearly: 63.99 },
     features: [
       'Everything in Pro',
-      'Create clubs',
-      'Add services',
+      'Create & manage clubs',
+      'Add services & listings',
       'Sell tickets with Stripe',
       'Analytics dashboard',
+      'Verified badge',
     ],
   },
 ];
