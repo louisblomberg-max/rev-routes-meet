@@ -108,6 +108,7 @@ const AddEvent = () => {
   const [what3words, setWhat3words] = useState('')
 
   // Section 7 — Attendance & Entry
+  const [unlimitedSpaces, setUnlimitedSpaces] = useState(true)
   const [maxAttendees, setMaxAttendees] = useState('')
   const [waitlistEnabled, setWaitlistEnabled] = useState(false)
   const [entryType, setEntryType] = useState<'free' | 'ticketed'>('free')
@@ -141,6 +142,7 @@ const AddEvent = () => {
       setLocationLat(data.lat ? Number(data.lat) : null);
       setLocationLng(data.lng ? Number(data.lng) : null);
       setWhat3words(data.what3words || '');
+      setUnlimitedSpaces(!data.max_attendees);
       setMaxAttendees(data.max_attendees ? String(data.max_attendees) : '');
       setWaitlistEnabled(data.waitlist_enabled || false);
       setEntryType(data.is_ticketed ? 'ticketed' : 'free');
@@ -422,32 +424,36 @@ const AddEvent = () => {
 
   // Validation
   const validate = (): boolean => {
-    if (!title.trim()) { toast.error('Please enter an event name'); return false }
+    console.log('validate called', { title, description: description.trim().split(/\s+/).length, eventTypes, location, locationLat, locationLng, dates, unlimitedSpaces, maxAttendees, entryType })
+    if (!title.trim()) { console.log('FAIL: no title'); toast.error('Please enter an event name'); return false }
     if (!description.trim() || description.trim().split(/\s+/).length < 15) {
-      toast.error('Description must be at least 15 words'); return false
+      console.log('FAIL: description too short'); toast.error('Description must be at least 15 words'); return false
     }
-    if (eventTypes.length === 0) { toast.error('Please select at least one event type'); return false }
-    if (!location.trim()) { toast.error('Please enter a location'); return false }
-    if (!locationLat || !locationLng) { toast.error('Please select a location from the dropdown'); return false }
+    if (eventTypes.length === 0) { console.log('FAIL: no event types'); toast.error('Please select at least one event type'); return false }
+    if (!location.trim()) { console.log('FAIL: no location'); toast.error('Please enter a location'); return false }
+    if (!locationLat || !locationLng) { console.log('FAIL: no lat/lng'); toast.error('Please select a location from the dropdown'); return false }
     const validDatesList = dates.filter(d => d.date)
-    if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
-    if (!maxAttendees) { toast.error('Please enter max attendees'); return false }
+    if (validDatesList.length === 0) { console.log('FAIL: no dates'); toast.error('Please add at least one date'); return false }
+    if (!unlimitedSpaces && !maxAttendees) { console.log('FAIL: no max attendees'); toast.error('Please enter max attendees or enable unlimited spaces'); return false }
     if (entryType === 'ticketed' && (!ticketPrice || Number(ticketPrice) < 1)) {
-      toast.error('Minimum ticket price is £1.00'); return false
+      console.log('FAIL: ticket price'); toast.error('Minimum ticket price is £1.00'); return false
     }
     if (entryType === 'ticketed' && !hasStripeConnect) {
-      toast.error('Please connect your bank account to sell tickets'); return false
+      console.log('FAIL: no stripe'); toast.error('Please connect your bank account to sell tickets'); return false
     }
     if (visibility === 'club' && !clubId) {
-      toast.error('Please select a club'); return false
+      console.log('FAIL: no club'); toast.error('Please select a club'); return false
     }
+    console.log('validation passed')
     return true
   }
 
   // Main publish handler
   const handlePublish = async () => {
+    console.log('handlePublish called')
     if (!validate()) return
-    if (!user?.id) { toast.error('Please sign in'); return }
+    console.log('validation passed, proceeding...')
+    if (!user?.id) { console.log('FAIL: no user'); toast.error('Please sign in'); return }
 
     setSaving(true)
     const publishTimeout = setTimeout(() => {
@@ -523,8 +529,8 @@ const AddEvent = () => {
           vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
           meet_style_tags: meetStyleTags, specific_years: specificYears,
           location: location.trim(), lat: locationLat, lng: locationLng,
-          what3words: what3words.trim() || null, max_attendees: maxAttendees ? Number(maxAttendees) : null,
-          waitlist_enabled: waitlistEnabled, is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
+          what3words: what3words.trim() || null, max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
+          waitlist_enabled: unlimitedSpaces ? false : waitlistEnabled, is_free: entryType === 'free', is_ticketed: entryType === 'ticketed',
           entry_fee: 0, ticket_price: entryType === 'ticketed' ? Number(ticketPrice) : 0,
           event_rules: eventRules.trim() || null, visibility,
           date_start: dateStart?.toISOString() || null, date_end: dateEnd?.toISOString() || null,
@@ -558,8 +564,8 @@ const AddEvent = () => {
           lat: locationLat,
           lng: locationLng,
           what3words: what3words.trim() || null,
-          max_attendees: maxAttendees ? Number(maxAttendees) : null,
-          waitlist_enabled: waitlistEnabled,
+          max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
+          waitlist_enabled: unlimitedSpaces ? false : waitlistEnabled,
           entry_fee: 0,
           is_free: entryType === 'free',
           is_ticketed: entryType === 'ticketed',
@@ -1139,36 +1145,47 @@ const AddEvent = () => {
             <h2 className="text-base font-bold">Attendance & Entry</h2>
           </div>
 
-          {/* Entry type selection */}
+          {/* Entry type cards */}
           <div className="grid grid-cols-2 gap-2 mb-4">
-            <button onClick={() => setEntryType('free')}
+            <button type="button" onClick={() => setEntryType('free')}
               className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${entryType === 'free' ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'}`}>
               <p className="text-xs font-semibold">Free Event</p>
               <p className="text-[9px] text-muted-foreground">Free to attend</p>
             </button>
-            <button onClick={() => setEntryType('ticketed')}
+            <button type="button" onClick={() => setEntryType('ticketed')}
               className={`flex flex-col items-center gap-1 p-3 rounded-xl border text-center transition-all ${entryType === 'ticketed' ? 'bg-events/10 border-events' : 'bg-muted/30 border-border/50'}`}>
               <p className="text-xs font-semibold">Ticketed Event</p>
               <p className="text-[9px] text-muted-foreground">Sell tickets via RevNet</p>
             </button>
           </div>
 
-          {/* Max attendees — shared */}
-          <div className="mb-3">
-            <label className="text-xs text-muted-foreground mb-1.5 block">Max attendees</label>
-            <input type="number" value={maxAttendees} onChange={e => setMaxAttendees(e.target.value)}
-              placeholder="Leave blank for unlimited" className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background" />
+          {/* Unlimited spaces toggle */}
+          <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
+            <div>
+              <p className="text-xs font-medium">Unlimited spaces</p>
+              <p className="text-[10px] text-muted-foreground">No cap on attendance</p>
+            </div>
+            <Switch checked={unlimitedSpaces} onCheckedChange={(checked) => { setUnlimitedSpaces(checked); if (checked) { setMaxAttendees(''); setWaitlistEnabled(false); } }} />
           </div>
 
-          {/* Waitlist — only when max set */}
-          {maxAttendees && (
-            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
-              <div>
-                <p className="text-xs font-medium">Enable waitlist</p>
-                <p className="text-[10px] text-muted-foreground">Users join waitlist when full</p>
+          {/* Max attendees — only when unlimited is OFF */}
+          {!unlimitedSpaces && (
+            <>
+              <div className="mb-3">
+                <label className="text-xs text-muted-foreground mb-1.5 block">Max attendees</label>
+                <input type="number" value={maxAttendees} onChange={e => setMaxAttendees(e.target.value)}
+                  placeholder="e.g. 100" min="1" className="w-full border border-border/50 rounded-xl px-4 py-3 text-sm bg-background" />
               </div>
-              <Switch checked={waitlistEnabled} onCheckedChange={setWaitlistEnabled} />
-            </div>
+              {maxAttendees && Number(maxAttendees) > 0 && (
+                <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30 mb-3">
+                  <div>
+                    <p className="text-xs font-medium">Enable waitlist</p>
+                    <p className="text-[10px] text-muted-foreground">Users join waitlist when full</p>
+                  </div>
+                  <Switch checked={waitlistEnabled} onCheckedChange={setWaitlistEnabled} />
+                </div>
+              )}
+            </>
           )}
 
           {/* Ticketed section */}
@@ -1177,7 +1194,7 @@ const AddEvent = () => {
               {!hasStripeConnect && (
                 <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <p className="text-xs font-semibold text-amber-800 dark:text-amber-200 mb-2">Connect bank account to receive payments</p>
-                  <button onClick={async () => {
+                  <button type="button" onClick={async () => {
                     const { data, error } = await supabase.functions.invoke('create-stripe-connect-account')
                     if (error || !data?.url) { toast.error('Could not start setup'); return }
                     window.open(data.url, '_blank')
