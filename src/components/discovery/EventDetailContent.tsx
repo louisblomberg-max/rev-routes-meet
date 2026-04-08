@@ -36,10 +36,21 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const lat = event.lat || data.lat;
   const lng = event.lng || data.lng;
 
-  const allPhotos = [
-    data.banner_url || data.bannerImage,
-    ...(data.photos || [])
-  ].filter(Boolean);
+  const [dbBanner, setDbBanner] = useState<string>('');
+  const [dbPhotos, setDbPhotos] = useState<string[]>([]);
+
+  // Fetch banner/photos directly from DB to bypass any data-passing gaps
+  useEffect(() => {
+    if (!eventId) return;
+    supabase.from('events').select('banner_url, photos').eq('id', eventId).single()
+      .then(({ data: d }) => {
+        if (d?.banner_url) setDbBanner(d.banner_url);
+        if (d?.photos?.length) setDbPhotos(d.photos);
+      });
+  }, [eventId]);
+
+  const bannerUrl: string = dbBanner || data.banner_url || data.bannerImage || '';
+  const additionalPhotos: string[] = dbPhotos.length > 0 ? dbPhotos : (data.photos || []);
 
   useEffect(() => {
     if (!eventId || !userId) return;
@@ -203,38 +214,25 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
   return (
     <div className="space-y-4">
-      {/* Event banner — portrait 9:16 */}
-      {allPhotos.length > 0 ? (
-        <div className="relative" style={{ width: '160px', aspectRatio: '9/16', margin: '0 auto', borderRadius: '16px', overflow: 'hidden' }}>
-          <img
-            src={allPhotos[currentPhotoIndex]}
-            className="w-full h-full object-cover"
-            alt={title}
-          />
-          {allPhotos.length > 1 && (
-            <>
-              <button
-                onClick={() => setCurrentPhotoIndex(prev => (prev - 1 + allPhotos.length) % allPhotos.length)}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
-              >‹</button>
-              <button
-                onClick={() => setCurrentPhotoIndex(prev => (prev + 1) % allPhotos.length)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 text-white flex items-center justify-center text-sm"
-              >›</button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                {allPhotos.map((_, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === currentPhotoIndex ? 'bg-white' : 'bg-white/50'}`} />
-                ))}
-              </div>
-            </>
-          )}
-          {data.type && (
-            <div className="absolute top-2 left-2 px-2 py-0.5 rounded-lg bg-black/60 text-white text-[10px] font-medium">
-              {data.type}
-            </div>
-          )}
+      {/* Banner — portrait */}
+      {bannerUrl && (
+        <div className="flex justify-center">
+          <div style={{ width: '160px', aspectRatio: '9/16', borderRadius: '16px', overflow: 'hidden' }}>
+            <img src={bannerUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          </div>
         </div>
-      ) : null}
+      )}
+
+      {/* Additional photos — horizontal scroll */}
+      {additionalPhotos.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {additionalPhotos.map((photo, i) => (
+            <div key={i} style={{ width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
+              <img src={photo} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Title and actions */}
       <div className="flex items-start justify-between gap-3">
@@ -329,33 +327,27 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
       </div>
 
       {/* Vehicle focus */}
-      {vehicleFocus && vehicleFocus !== 'all_welcome' && (
+      {vehicleFocus && vehicleFocus !== 'all_welcome' ? (
         <div className="flex items-start gap-2">
           <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">🚗</div>
           <div>
+            <p className="text-xs text-muted-foreground">Vehicle Focus</p>
             <p className="text-sm font-medium">
-              {vehicleFocus === 'cars_only' ? 'Cars only' :
-               vehicleFocus === 'motorcycles_only' ? 'Motorcycles only' :
-               vehicleFocus === 'specific_makes' && vehicleBrands.length > 0 ? `Specific brands: ${vehicleBrands.join(', ')}` :
-               vehicleFocus === 'event_style' && meetStyleTags.length > 0 ? `Style: ${meetStyleTags.join(', ')}` :
-               vehicleFocus === 'vehicle_era' && (data.specific_years?.length > 0) ? `Era: ${data.specific_years.join(', ')}` :
-               vehicleFocus === 'specific_makes' ? 'Specific Brand' :
-               vehicleFocus === 'event_style' ? 'Event Style' :
-               vehicleFocus === 'vehicle_era' ? 'Vehicle Era' : vehicleFocus}
+              {vehicleFocus === 'cars_only' && 'Cars only'}
+              {vehicleFocus === 'motorcycles_only' && 'Motorcycles only'}
+              {vehicleFocus === 'specific_makes' && vehicleBrands.length > 0 && `Specific brands: ${vehicleBrands.join(', ')}`}
+              {vehicleFocus === 'specific_makes' && vehicleBrands.length === 0 && 'Specific brands'}
+              {vehicleFocus === 'event_style' && meetStyleTags.length > 0 && `Style: ${meetStyleTags.join(', ')}`}
+              {vehicleFocus === 'event_style' && meetStyleTags.length === 0 && 'Event style'}
+              {vehicleFocus === 'vehicle_era' && data.specific_years?.length > 0 && `Era: ${data.specific_years.join(', ')}`}
+              {vehicleFocus === 'vehicle_era' && (!data.specific_years || data.specific_years.length === 0) && 'Vehicle era'}
             </p>
           </div>
         </div>
-      )}
-
-      {/* Specific years */}
-      {(data.specific_years?.length > 0) && (
+      ) : (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">📅</div>
-          <div className="flex flex-wrap gap-1">
-            {data.specific_years.map((y: string) => (
-              <span key={y} className="px-2 py-0.5 rounded-full bg-events/10 text-events text-[10px] font-semibold">{y}</span>
-            ))}
-          </div>
+          <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">🚗</div>
+          <p className="text-sm font-medium text-muted-foreground">All vehicles welcome</p>
         </div>
       )}
 
