@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, Bookmark } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Clock, ChevronRight, CalendarCheck, Bookmark, Trash2 } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { useUserEvents } from '@/hooks/useProfileData';
 import { usePlan } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,15 +26,27 @@ const MyEvents = () => {
   const { upcoming, past, saved, isLoading } = useUserEvents();
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'saved'>('upcoming');
   const [attendeeMap, setAttendeeMap] = useState<Record<string, any[]>>({});
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
 
   const hosted = upcoming.filter(e => e.isHost);
+
+  const handleDeleteEvent = async (eventId: string, eventTitle: string) => {
+    if (!window.confirm(`Delete "${eventTitle}"? This cannot be undone.`)) return;
+    const { error } = await supabase.from('events').delete().eq('id', eventId).eq('created_by', user?.id ?? '');
+    if (error) {
+      toast.error('Failed to delete event');
+    } else {
+      toast.success('Event deleted');
+      setDeletedIds(prev => new Set([...prev, eventId]));
+    }
+  };
   const tabs = [
     { id: 'upcoming' as const, label: 'Upcoming', count: upcoming.length, icon: CalendarCheck },
     { id: 'past' as const, label: 'Past', count: past.length, icon: Clock },
     { id: 'saved' as const, label: 'Saved', count: saved.length, icon: Bookmark },
   ];
 
-  const displayEvents = activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : saved;
+  const displayEvents = (activeTab === 'upcoming' ? upcoming : activeTab === 'past' ? past : saved).filter(e => !deletedIds.has(e.id));
 
   // Fetch attendee avatars for hosted events
   const fetchHostedAttendees = useCallback(async () => {
@@ -198,7 +211,11 @@ const MyEvents = () => {
                       <button onClick={() => navigate(`/add/event?edit=${event.id}`)}
                         className="flex-1 py-2.5 text-sm font-semibold text-muted-foreground border-r border-border/20 hover:bg-muted/30">Edit</button>
                       <button onClick={() => navigate(`/event/${event.id}/manage`)}
-                        className="flex-1 py-2.5 text-sm font-semibold text-white" style={{ backgroundColor: '#d30d37' }}>Manage</button>
+                        className="flex-1 py-2.5 text-sm font-semibold text-white border-r border-border/20" style={{ backgroundColor: '#d30d37' }}>Manage</button>
+                      <button onClick={(e) => { e.stopPropagation(); handleDeleteEvent(event.id, event.title); }}
+                        className="flex items-center justify-center gap-1 px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/5">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
                 </div>

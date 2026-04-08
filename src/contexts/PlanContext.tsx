@@ -28,7 +28,7 @@ export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   'post_questions': 'free',
   'post_replies': 'free',
   'create_events': 'free',
-  'create_routes': 'free',
+  'create_routes': 'pro',
   'garage_showcase': 'free',
   'live_location': 'pro',
   'breakdown_help': 'pro',
