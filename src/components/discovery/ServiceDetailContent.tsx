@@ -1,18 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Star, Clock, Phone, Globe, Navigation, Bookmark, Share2, Shield, BadgeCheck, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { RevService } from '@/models';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-interface Review {
-  id: string;
-  author: string;
-  rating: number;
-  text: string;
-  date: string;
-}
 
 interface ServiceDetailContentProps {
   service: RevService;
@@ -23,14 +16,51 @@ interface ServiceDetailContentProps {
 }
 
 const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onToggleSave }: ServiceDetailContentProps) => {
-  const [userRating, setUserRating] = useState(0);
-  const [hoveredStar, setHoveredStar] = useState(0);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [userReview, setUserReview] = useState<any>(null);
   const [reviewText, setReviewText] = useState('');
-  const [reviews, setReviews] = useState<Review[]>([
-    { id: '1', author: 'Alex M.', rating: 5, text: 'Excellent service, very professional. Would highly recommend!', date: '2 days ago' },
-    { id: '2', author: 'Jordan K.', rating: 4, text: 'Great work on my car. Slightly slow but quality was top notch.', date: '1 week ago' },
-  ]);
-  const [ratingSubmitted, setRatingSubmitted] = useState(false);
+  const [reviewRating, setReviewRating] = useState(0);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const serviceId = (service as any).id;
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null));
+  }, []);
+
+  useEffect(() => {
+    if (!serviceId) return;
+    supabase.from('service_reviews')
+      .select('*, profiles:user_id(display_name, avatar_url)')
+      .eq('service_id', serviceId)
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        setReviews(data || []);
+        if (currentUserId) {
+          const own = (data || []).find((r: any) => r.user_id === currentUserId);
+          if (own) { setUserReview(own); setReviewRating(own.rating || 0); setReviewText(own.body || ''); }
+        }
+      });
+  }, [serviceId, currentUserId]);
+
+  const handleSubmitReview = async () => {
+    if (!currentUserId || !serviceId || reviewRating === 0) { toast.error('Please select a rating'); return; }
+    setIsSubmittingReview(true);
+    try {
+      if (userReview) {
+        await supabase.from('service_reviews').update({ rating: reviewRating, body: reviewText.trim() || null }).eq('id', userReview.id);
+      } else {
+        await supabase.from('service_reviews').insert({ service_id: serviceId, user_id: currentUserId, rating: reviewRating, body: reviewText.trim() || null });
+      }
+      const { data } = await supabase.from('service_reviews')
+        .select('*, profiles:user_id(display_name, avatar_url)')
+        .eq('service_id', serviceId).order('created_at', { ascending: false });
+      setReviews(data || []);
+      setUserReview((data || []).find((r: any) => r.user_id === currentUserId) || null);
+      toast.success(userReview ? 'Review updated' : 'Review submitted');
+    } catch (err: any) { toast.error(err.message || 'Failed'); }
+    finally { setIsSubmittingReview(false); }
+  };
 
   const handleShare = () => {
     if (navigator.share) {
@@ -45,23 +75,7 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
     toast.success(isSaved ? 'Removed from saved' : 'Saved to your collection');
   };
 
-  const handleSubmitReview = () => {
-    if (userRating === 0) {
-      toast.error('Please select a rating');
-      return;
-    }
-    const newReview: Review = {
-      id: Date.now().toString(),
-      author: 'You',
-      rating: userRating,
-      text: reviewText.trim(),
-      date: 'Just now',
-    };
-    setReviews(prev => [newReview, ...prev]);
-    setRatingSubmitted(true);
-    setReviewText('');
-    toast.success('Review submitted — thanks!');
-  };
+  const avgRating = reviews.length > 0 ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1) : null;
 
   return (
     <div className="space-y-4">
@@ -71,7 +85,11 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
           <img src={(service as any).cover_url || service.coverImage} alt={service.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-services/80 to-services/40 flex items-center justify-center">
-            <MapPin className="w-12 h-12 text-services-foreground/60" />
+            {service.logo ? (
+              <img src={service.logo} alt={service.name} className="h-16 w-16 rounded-xl object-cover" />
+            ) : (
+              <MapPin className="w-12 h-12 text-services-foreground/60" />
+            )}
           </div>
         )}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
@@ -86,13 +104,19 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
           {(service as any).category || (service as any).service_type || 'Service'}
         </Badge>
         {(service as any).is_24_7 && (
-          <Badge variant="outline" className="text-xs bg-services/10 text-services border-services/20">
-            24/7
-          </Badge>
+          <Badge variant="outline" className="text-xs bg-services/10 text-services border-services/20">24/7</Badge>
         )}
         {(service as any).is_emergency && (
-          <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-            Emergency Service
+          <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">Emergency Service</Badge>
+        )}
+        {service.isVerified && (
+          <Badge variant="outline" className="text-xs bg-routes/10 text-routes border-routes/20 gap-1">
+            <BadgeCheck className="w-3 h-3" /> Verified
+          </Badge>
+        )}
+        {service.insuranceVerified && (
+          <Badge variant="outline" className="text-xs gap-1">
+            <Shield className="w-3 h-3" /> Insured
           </Badge>
         )}
       </div>
@@ -113,18 +137,20 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
 
       {/* Info rows */}
       <div className="space-y-2.5">
-        <div className="flex items-center gap-3 text-sm">
-          <Star className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0" />
-          <span className="text-foreground font-medium">{service.rating}</span>
-          <span className="text-muted-foreground">({service.reviewCount} reviews by RevNet users)</span>
-        </div>
+        {avgRating && (
+          <div className="flex items-center gap-3 text-sm">
+            <Star className="w-4 h-4 fill-amber-500 text-amber-500 shrink-0" />
+            <span className="text-foreground font-medium">{avgRating}</span>
+            <span className="text-muted-foreground">({reviews.length} reviews)</span>
+          </div>
+        )}
         <div className="flex items-center gap-3 text-sm">
           <MapPin className="w-4 h-4 text-muted-foreground shrink-0" />
           <span className="text-foreground">{service.address}</span>
         </div>
         <div className="flex items-center gap-3 text-sm">
           <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-          <span className="text-foreground">{service.openingHours}</span>
+          <span className="text-foreground">{service.openingHours || ((service as any).is_24_7 ? 'Open 24/7' : 'See hours')}</span>
         </div>
         {((service as any).phone || service.phone) && (
           <a href={`tel:${((service as any).phone || service.phone).replace(/\s/g, '')}`} className="flex items-center gap-3 text-sm text-blue-600 font-medium">
@@ -173,73 +199,48 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
         </Button>
       </div>
 
-      {/* Rate this service */}
-      <div className="bg-muted/30 rounded-xl p-4 border border-border/50 space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Rate & Review</h3>
-        <p className="text-[11px] text-muted-foreground">Ratings & reviews are submitted by RevNet community members</p>
-        {ratingSubmitted ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
-            <span>You rated this service {userRating}/5</span>
-          </div>
-        ) : (
-          <>
-            <div className="flex gap-1.5">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  onMouseEnter={() => setHoveredStar(star)}
-                  onMouseLeave={() => setHoveredStar(0)}
-                  onClick={() => setUserRating(star)}
-                  className="transition-transform hover:scale-110 active:scale-95"
-                >
-                  <Star
-                    className={`w-7 h-7 transition-colors ${
-                      star <= (hoveredStar || userRating)
-                        ? 'fill-amber-500 text-amber-500'
-                        : 'text-muted-foreground/30'
-                    }`}
-                  />
+      {/* Reviews — real DB */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold">Reviews</h3>
+          {reviews.length > 0 && <span className="text-xs text-muted-foreground">{avgRating} ({reviews.length})</span>}
+        </div>
+
+        {currentUserId && (
+          <div className="p-3 rounded-xl bg-muted/30 border border-border/30 space-y-2">
+            <p className="text-xs font-semibold">{userReview ? 'Edit your review' : 'Write a review'}</p>
+            <div className="flex gap-1">
+              {[1,2,3,4,5].map(s => (
+                <button key={s} onClick={() => setReviewRating(s)}>
+                  <Star className={`w-6 h-6 ${s <= reviewRating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/30'}`} />
                 </button>
               ))}
             </div>
-            <Textarea
-              placeholder="Write a review (optional)..."
-              value={reviewText}
-              onChange={(e) => setReviewText(e.target.value)}
-              className="min-h-[60px] text-sm bg-background"
-              maxLength={500}
-            />
-            <Button size="sm" onClick={handleSubmitReview} disabled={userRating === 0} className="gap-1.5">
-              <Send className="w-3.5 h-3.5" /> Submit review
-            </Button>
-          </>
+            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)} placeholder="Share your experience..."
+              className="w-full text-xs border border-border/30 rounded-lg px-3 py-2 bg-background resize-none min-h-[60px]" />
+            <button onClick={handleSubmitReview} disabled={isSubmittingReview || reviewRating === 0}
+              className="w-full py-2 rounded-lg text-xs font-semibold text-white disabled:opacity-50" style={{ background: '#ff8000' }}>
+              {isSubmittingReview ? 'Submitting...' : userReview ? 'Update Review' : 'Submit Review'}
+            </button>
+          </div>
         )}
-      </div>
 
-      {/* Reviews */}
-      {reviews.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Reviews ({reviews.length})</h3>
-          {reviews.map((review) => (
-            <div key={review.id} className="bg-muted/30 rounded-xl p-3 border border-border/50 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">{review.author}</span>
-                <span className="text-xs text-muted-foreground">{review.date}</span>
-              </div>
-              <div className="flex gap-0.5">
-                {[1, 2, 3, 4, 5].map((s) => (
-                  <Star
-                    key={s}
-                    className={`w-3.5 h-3.5 ${s <= review.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/20'}`}
-                  />
-                ))}
-              </div>
-              {review.text && <p className="text-xs text-muted-foreground leading-relaxed">{review.text}</p>}
+        {reviews.length === 0 && <p className="text-xs text-muted-foreground text-center py-3">No reviews yet</p>}
+        {reviews.filter(r => r.user_id !== currentUserId).slice(0, 5).map(r => (
+          <div key={r.id} className="flex gap-3 p-3 rounded-xl bg-card border border-border/30">
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0">
+              {r.profiles?.avatar_url ? <img src={r.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <span className="w-full h-full flex items-center justify-center text-xs font-bold">{r.profiles?.display_name?.[0] || '?'}</span>}
             </div>
-          ))}
-        </div>
-      )}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold truncate">{r.profiles?.display_name || 'Member'}</p>
+                <div className="flex flex-shrink-0">{[1,2,3,4,5].map(s => <Star key={s} className={`w-3 h-3 ${s <= r.rating ? 'fill-amber-500 text-amber-500' : 'text-muted-foreground/20'}`} />)}</div>
+              </div>
+              {r.body && <p className="text-xs text-muted-foreground mt-0.5">{r.body}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
