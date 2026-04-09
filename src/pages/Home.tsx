@@ -1148,7 +1148,7 @@ const Home = () => {
 
       {/* SOS button — fixed above bottom nav, all screen sizes */}
       {!isNavigating && activeTab === 'discovery' && (
-        <div className="fixed bottom-20 right-4 z-30">
+        <div className="fixed bottom-24 right-4 z-30 md:hidden">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
         </div>
       )}
