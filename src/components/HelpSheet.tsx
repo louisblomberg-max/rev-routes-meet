@@ -1,249 +1,491 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  ArrowRight, ShieldAlert, Loader2, Check, Radio, MapPinned,
-  X, Users, MapPin, Phone, Star, Clock, ChevronLeft, Zap,
-  CircleDot, Fuel, Key, Wrench, AlertTriangle, Car,
-} from 'lucide-react';
-import { useData } from '@/contexts/DataContext';
+import { X, Phone, CheckCircle, AlertTriangle, Users, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { sendNotificationToMany } from '@/utils/sendNotification';
 import { toast } from 'sonner';
-import type { RevService } from '@/models';
 
-interface HelpSheetProps { open: boolean; onOpenChange: (open: boolean) => void; }
-
-const allProblems = [
-  { title: 'Electrical', icon: Zap }, { title: 'Flat Tyre', icon: CircleDot },
-  { title: 'Out of Fuel', icon: Fuel }, { title: 'Locked Out', icon: Key },
-  { title: 'Mechanical', icon: Wrench }, { title: 'Accident', icon: AlertTriangle },
+const PROBLEMS = [
+  { id: 'flat_tyre', label: 'Flat Tyre', emoji: '🔧' },
+  { id: 'breakdown', label: 'Breakdown', emoji: '🚗' },
+  { id: 'out_of_fuel', label: 'Out of Fuel', emoji: '⛽' },
+  { id: 'locked_out', label: 'Locked Out', emoji: '🔑' },
+  { id: 'accident', label: 'Accident', emoji: '⚠️' },
+  { id: 'electrical', label: 'Electrical', emoji: '⚡' },
+  { id: 'recovery', label: 'Need Recovery', emoji: '🚛' },
+  { id: 'other', label: 'Other', emoji: '🆘' },
 ];
 
-const issueToServiceMap: Record<string, { categories: string[]; keywords: string[] }> = {
-  'Electrical': { categories: ['Garages & Mechanics', 'Vehicle Servicing', 'Tuning & Performance'], keywords: ['Diagnostics', 'Servicing', 'Electrical'] },
-  'Flat Tyre': { categories: ['Tyres & Wheels', 'Garages & Mechanics', 'Recovery & Roadside Assistance'], keywords: ['Tyre Fitting', 'Puncture Repair', 'Tyres', 'Balancing'] },
-  'Out of Fuel': { categories: ['Recovery & Roadside Assistance', 'Garages & Mechanics'], keywords: ['Recovery', 'Fuel'] },
-  'Locked Out': { categories: ['Recovery & Roadside Assistance', 'Garages & Mechanics'], keywords: ['Locksmith', 'Recovery'] },
-  'Mechanical': { categories: ['Garages & Mechanics', 'Vehicle Servicing', 'Tuning & Performance'], keywords: ['Servicing', 'Engine Rebuild', 'Diagnostics'] },
-  'Accident': { categories: ['Recovery & Roadside Assistance', 'Bodywork & Paint', 'Garages & Mechanics'], keywords: ['Body Restoration', 'Paint', 'Recovery'] },
-};
+const SOSChat = ({ requestId, userId }: { requestId: string; userId: string }) => {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const endRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<any>(null);
 
-function getMatchingServices(services: RevService[], issue: string): RevService[] {
-  const mapping = issueToServiceMap[issue];
-  if (!mapping) return services;
-  const scored = services.map(svc => {
-    let score = 0;
-    if (mapping.categories.includes(svc.category)) score += 2;
-    const svcKeywords = [...svc.serviceTypes, ...svc.tags];
-    for (const kw of mapping.keywords) {
-      if (svcKeywords.some(sk => sk.toLowerCase().includes(kw.toLowerCase()))) score += 1;
-    }
-    return { svc, score };
-  });
-  return scored.filter(s => s.score > 0).sort((a, b) => b.score - a.score || b.svc.rating - a.svc.rating).map(s => s.svc);
-}
+  useEffect(() => {
+    supabase.from('sos_messages')
+      .select('id, message, sender_id, created_at, profiles:sender_id(display_name, avatar_url)')
+      .eq('request_id', requestId)
+      .order('created_at', { ascending: true })
+      .limit(100)
+      .then(({ data }) => {
+        setMessages(data || []);
+        setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      });
 
-const helpSources = [
-  { id: 'members', icon: Users, title: 'Nearby Members', description: 'Broadcasts to members with "Available to Help" on', colorClass: 'bg-routes', cta: 'Alert Nearby Members' },
-  { id: 'services', icon: MapPin, title: 'Recovery Services', description: 'Pans to map with matching services for your issue', colorClass: 'bg-services', cta: 'View Recovery Services' },
-];
+    if (channelRef.current) supabase.removeChannel(channelRef.current);
+    channelRef.current = supabase.channel(`sos-chat-${requestId}-req`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'sos_messages',
+        filter: `request_id=eq.${requestId}`
+      }, async () => {
+        const { data } = await supabase.from('sos_messages')
+          .select('id, message, sender_id, created_at, profiles:sender_id(display_name, avatar_url)')
+          .eq('request_id', requestId)
+          .order('created_at', { ascending: true })
+          .limit(100);
+        setMessages(data || []);
+        setTimeout(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      }).subscribe();
 
-const StolenAlertFlow = ({ onClose }: { onClose: () => void }) => {
-  const { user } = useAuth();
-  const [step, setStep] = useState(0);
-  const navigate = useNavigate();
+    return () => {
+      if (channelRef.current) { supabase.removeChannel(channelRef.current); channelRef.current = null; }
+    };
+  }, [requestId]);
 
-  const handleSend = async () => {
-    setStep(1);
+  const sendMessage = async () => {
+    if (!newMessage.trim() || isSending) return;
+    const msg = newMessage.trim();
+    setNewMessage('');
+    setIsSending(true);
     try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 }));
-      let vehicleId = null;
-      if (user?.id) {
-        const { data: vehicles } = await supabase.from('vehicles').select('id').eq('user_id', user.id).eq('is_primary', true).limit(1);
-        vehicleId = vehicles?.[0]?.id || null;
-      }
-      if (user?.id) {
-        await supabase.from('stolen_vehicle_alerts').insert({
-          user_id: user.id, vehicle_id: vehicleId,
-          last_seen_lat: pos.coords.latitude, last_seen_lng: pos.coords.longitude, status: 'active',
-        });
-      }
-    } catch { /* continue animation regardless */ }
-    setTimeout(() => setStep(2), 1500);
-    setTimeout(() => setStep(3), 3000);
+      await supabase.from('sos_messages').insert({ request_id: requestId, sender_id: userId, message: msg });
+    } catch { toast.error('Failed to send'); }
+    finally { setIsSending(false); }
   };
 
-  const stages = [
-    { label: 'Alerting all members within 50 miles', sub: 'Broadcast sent to nearby members', icon: Radio, color: 'text-routes' },
-    { label: 'Sharing your GPS location', sub: 'GPS coordinates shared with responders', icon: MapPinned, color: 'text-services' },
-    { label: 'Open Emergency Call', sub: 'Tap to call 999', icon: Phone, color: 'text-destructive' },
-  ];
-
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-5 pt-5 pb-3"><h2 className="text-lg font-bold text-destructive flex items-center gap-2"><ShieldAlert className="w-5 h-5" /> Vehicle Stolen</h2></div>
-      <div className="flex-1 px-5 py-4 space-y-4">
-        {step === 0 ? (
-          <>
-            <p className="text-sm text-muted-foreground">This will immediately alert <span className="font-semibold text-foreground">all RevNet members within 50 miles</span> and allow you to call emergency services.</p>
-            <div className="space-y-2">
-              {stages.map((s) => (
-                <div key={s.label} className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 border border-border">
-                  <s.icon className={`w-5 h-5 ${s.color}`} /><span className="text-sm font-medium text-foreground">{s.label}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-[11px] text-muted-foreground">Your vehicle will be added to the RevNet Stolen Vehicle Alert list, visible to all members nearby.</p>
-          </>
-        ) : (
-          <div className="space-y-2">
-            {stages.map((s, i) => {
-              const done = step > i + 1 || (step === 3 && i === 2);
-              const active = step === i + 1;
-              return (
-                <div key={s.label} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${done ? 'bg-primary/5 border-primary/20' : active ? 'bg-muted border-primary/30' : 'bg-muted/50 border-border'}`}>
-                  {active ? <Loader2 className={`w-5 h-5 ${s.color} animate-spin`} /> : done ? <Check className="w-5 h-5 text-primary" /> : <s.icon className={`w-5 h-5 ${s.color}`} />}
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{s.label}</p>
-                    {done && i === 2 ? (
-                      <a href="tel:999" className="text-xs text-destructive underline font-semibold">Tap to call 999</a>
-                    ) : done ? <p className="text-xs text-muted-foreground">{s.sub}</p> : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+    <div className="border border-border/30 rounded-2xl overflow-hidden">
+      <div className="px-4 py-2.5 border-b border-border/20 bg-muted/30 flex items-center gap-2">
+        <MessageCircle className="w-3.5 h-3.5 text-muted-foreground" />
+        <p className="text-xs font-semibold">Chat with helper</p>
+        <p className="text-[10px] text-muted-foreground ml-auto">Private</p>
       </div>
-      <div className="p-5 pt-3 border-t border-border space-y-2">
-        {step === 0 ? (
-          <Button className="w-full h-12 rounded-xl font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={handleSend}>
-            <ShieldAlert className="w-4 h-4 mr-2" /> Send Emergency Alert
-          </Button>
-        ) : step === 3 ? (
-          <div className="space-y-2">
-            <a href="tel:999" className="w-full h-12 rounded-xl font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground flex items-center justify-center gap-2">
-              <Phone className="w-4 h-4" /> Call 999
-            </a>
-            <Button className="w-full h-12 rounded-xl font-semibold" onClick={onClose}>Done</Button>
-            <Button variant="outline" className="w-full h-10 rounded-xl text-sm font-semibold"
-              onClick={() => { onClose(); navigate('/stolen-vehicles'); }}>
-              <Car className="w-4 h-4 mr-2" /> View Stolen Vehicle Alerts
-            </Button>
+      <div className="h-52 overflow-y-auto p-3 space-y-2 bg-background">
+        {messages.length === 0 && <p className="text-xs text-muted-foreground text-center py-6">Your helper will message you here</p>}
+        {messages.map(msg => (
+          <div key={msg.id} className={`flex gap-2 ${msg.sender_id === userId ? 'flex-row-reverse' : 'flex-row'}`}>
+            <div className="w-6 h-6 rounded-full overflow-hidden bg-muted flex-shrink-0 mt-0.5">
+              {msg.profiles?.avatar_url
+                ? <img src={msg.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
+                : <span className="w-full h-full flex items-center justify-center text-[10px] font-bold">{msg.profiles?.display_name?.[0] || '?'}</span>}
+            </div>
+            <div className={`max-w-[75%] px-3 py-2 rounded-2xl text-xs leading-relaxed ${msg.sender_id === userId ? 'bg-destructive text-white' : 'bg-muted text-foreground'}`}>
+              {msg.message}
+            </div>
           </div>
-        ) : null}
+        ))}
+        <div ref={endRef} />
+      </div>
+      <div className="flex gap-2 p-2.5 border-t border-border/20 bg-muted/20">
+        <input
+          value={newMessage}
+          onChange={e => setNewMessage(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }}}
+          placeholder="Message your helper..."
+          className="flex-1 bg-background border border-border/30 rounded-xl px-3 py-2 text-xs outline-none"
+        />
+        <button onClick={sendMessage} disabled={!newMessage.trim() || isSending}
+          className="w-9 h-9 rounded-xl flex items-center justify-center disabled:opacity-40 flex-shrink-0"
+          style={{ background: '#ef4444' }}>
+          <Send className="w-3.5 h-3.5 text-white" />
+        </button>
       </div>
     </div>
   );
 };
 
+interface HelpSheetProps { open: boolean; onOpenChange: (open: boolean) => void; }
+
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
-  const { state, help } = useData();
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [selectedProblem, setSelectedProblem] = useState<string | null>(null);
-  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [step, setStep] = useState(1);
+  const [selectedProblem, setSelectedProblem] = useState<typeof PROBLEMS[0] | null>(null);
   const [details, setDetails] = useState('');
-  const [showStolen, setShowStolen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requestId, setRequestId] = useState<string | null>(null);
+  const [responders, setResponders] = useState<any[]>([]);
+  const [minutesLeft, setMinutesLeft] = useState(30);
+  const [locationReady, setLocationReady] = useState(false);
+  const [stolenVehicle, setStolenVehicle] = useState({ make: '', model: '', colour: '', registration: '', description: '' });
 
-  const handleClose = (isOpen: boolean) => {
-    if (!isOpen) { setSelectedProblem(null); setSelectedSource(null); setDetails(''); setShowStolen(false); }
-    onOpenChange(isOpen);
-  };
+  const expireTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const respondersChannelRef = useRef<any>(null);
+  const latRef = useRef<number | null>(null);
+  const lngRef = useRef<number | null>(null);
 
-  const handleConfirm = async () => {
-    if (selectedSource === 'services' && selectedProblem) {
-      handleClose(false);
-      navigate('/', { state: { category: 'services', sosIssue: selectedProblem } });
-      return;
-    }
-    // Nearby Members flow - insert help request with GPS
-    if (!user?.id || !selectedProblem) return;
-    try {
-      const pos = await new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 }));
-      await supabase.from('help_requests').insert({
-        user_id: user.id, issue_type: selectedProblem.toLowerCase().replace(/ /g, '_'),
-        details, lat: pos.coords.latitude, lng: pos.coords.longitude,
-        help_source: selectedSource || 'members', status: 'active',
-      });
-      toast.success('Help request sent!', { description: 'Nearby members have been alerted' });
-    } catch {
-      toast.error('Could not get your location');
-    }
-    handleClose(false);
-  };
-
-  const canConfirm = selectedProblem && selectedSource && details.trim().length > 0;
-  const activeSource = helpSources.find((s) => s.id === selectedSource);
-  const matchingServices = selectedProblem ? getMatchingServices(state.services, selectedProblem) : [];
-
-  if (showStolen) {
-    return (
-      <Sheet open={open} onOpenChange={handleClose}>
-        <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] flex flex-col p-0 gap-0">
-          <StolenAlertFlow onClose={() => handleClose(false)} />
-        </SheetContent>
-      </Sheet>
+  useEffect(() => {
+    if (!open) return;
+    setLocationReady(false);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { latRef.current = pos.coords.latitude; lngRef.current = pos.coords.longitude; setLocationReady(true); },
+      () => toast.error('Could not get location — please enable GPS'),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
     );
-  }
+  }, [open]);
+
+  useEffect(() => {
+    if (!requestId) return;
+    supabase.from('sos_responses')
+      .select('id, responder_id, status, profiles:responder_id(display_name, avatar_url)')
+      .eq('request_id', requestId).in('status', ['responding', 'arrived']).limit(20)
+      .then(({ data }) => setResponders(data || []));
+
+    if (respondersChannelRef.current) supabase.removeChannel(respondersChannelRef.current);
+    respondersChannelRef.current = supabase.channel(`sos-resp-${requestId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_responses', filter: `request_id=eq.${requestId}` },
+        async () => {
+          const { data } = await supabase.from('sos_responses')
+            .select('id, responder_id, status, profiles:responder_id(display_name, avatar_url)')
+            .eq('request_id', requestId).in('status', ['responding', 'arrived']).limit(20);
+          setResponders(data || []);
+        }).subscribe();
+
+    return () => { if (respondersChannelRef.current) { supabase.removeChannel(respondersChannelRef.current); respondersChannelRef.current = null; } };
+  }, [requestId]);
+
+  useEffect(() => {
+    if (step !== 4) return;
+    setMinutesLeft(30);
+    countdownRef.current = setInterval(() => {
+      setMinutesLeft(prev => { if (prev <= 1) { if (countdownRef.current) clearInterval(countdownRef.current); return 0; } return prev - 1; });
+    }, 60000);
+    return () => { if (countdownRef.current) clearInterval(countdownRef.current); };
+  }, [step]);
+
+  const clearAllTimers = () => {
+    if (expireTimerRef.current) { clearTimeout(expireTimerRef.current); expireTimerRef.current = null; }
+    if (countdownRef.current) { clearInterval(countdownRef.current); countdownRef.current = null; }
+  };
+
+  const handleClose = () => {
+    clearAllTimers();
+    if (respondersChannelRef.current) { supabase.removeChannel(respondersChannelRef.current); respondersChannelRef.current = null; }
+    setStep(1); setSelectedProblem(null); setDetails(''); setRequestId(null);
+    setResponders([]); setMinutesLeft(30); setLocationReady(false);
+    setStolenVehicle({ make: '', model: '', colour: '', registration: '', description: '' });
+    latRef.current = null; lngRef.current = null;
+    onOpenChange(false);
+  };
+
+  const handleSubmitSOS = async () => {
+    if (!selectedProblem || !user?.id || !locationReady || latRef.current === null || lngRef.current === null) {
+      toast.error('Waiting for GPS location — please try again'); return;
+    }
+    setIsSubmitting(true);
+    try {
+      const { data: request, error } = await supabase.from('help_requests').insert({
+        user_id: user.id, issue_type: selectedProblem.id,
+        details: details.trim() || null, lat: latRef.current, lng: lngRef.current,
+        status: 'active', help_source: 'members',
+      }).select('id').single();
+      if (error) throw error;
+      setRequestId(request.id);
+
+      const { data: helpers } = await supabase.from('profiles').select('id')
+        .eq('available_to_help', true).neq('id', user.id).limit(500);
+      if (helpers && helpers.length > 0) {
+        await sendNotificationToMany({
+          userIds: helpers.map((h: any) => h.id),
+          title: '🆘 SOS Alert Nearby',
+          body: `Someone needs help: ${selectedProblem.label}${details ? ` — ${details.slice(0, 60)}` : ''}`,
+          type: 'sos_request', data: { request_id: request.id },
+        });
+      }
+
+      expireTimerRef.current = setTimeout(async () => {
+        try {
+          const { data: cur } = await supabase.from('help_requests').select('status').eq('id', request.id).single();
+          if (cur?.status === 'active') {
+            await supabase.from('help_requests').update({ status: 'expired', resolved_at: new Date().toISOString() }).eq('id', request.id);
+            toast.error('SOS expired after 30 minutes. Call 999 if still needed.', { duration: 10000 });
+            handleClose();
+          }
+        } catch { /* silent */ }
+      }, 30 * 60 * 1000);
+
+      setStep(4);
+      toast.success('SOS sent — nearby members are being notified');
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to send SOS');
+    } finally { setIsSubmitting(false); }
+  };
+
+  const handleResolve = async () => {
+    clearAllTimers();
+    if (requestId) await supabase.from('help_requests').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
+    toast.success('Glad you got help! Stay safe 🙌');
+    handleClose();
+  };
+
+  const handleCancel = async () => {
+    if (!window.confirm('Cancel your SOS request?')) return;
+    clearAllTimers();
+    if (requestId) await supabase.from('help_requests').update({ status: 'cancelled', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
+    toast.info('SOS cancelled');
+    handleClose();
+  };
+
+  const handleStolenVehicle = async () => {
+    if (!stolenVehicle.make || !stolenVehicle.registration) { toast.error('Please enter make and registration'); return; }
+    if (!user?.id) return;
+    setIsSubmitting(true);
+    try {
+      await supabase.from('stolen_vehicle_alerts').insert({
+        user_id: user.id,
+        last_seen_lat: latRef.current, last_seen_lng: lngRef.current,
+        status: 'active',
+        description: `${stolenVehicle.colour} ${stolenVehicle.make} ${stolenVehicle.model} — Reg: ${stolenVehicle.registration}. ${stolenVehicle.description}`.trim(),
+      });
+      const { data: helpers } = await supabase.from('profiles').select('id').eq('available_to_help', true).neq('id', user.id).limit(500);
+      if (helpers && helpers.length > 0) {
+        await sendNotificationToMany({
+          userIds: helpers.map((h: any) => h.id),
+          title: '🚨 Stolen Vehicle Alert',
+          body: `${stolenVehicle.colour} ${stolenVehicle.make} ${stolenVehicle.model} — ${stolenVehicle.registration}`,
+          type: 'stolen_vehicle', data: {},
+        });
+      }
+      toast.success('Alert sent to nearby members');
+      setStep(6);
+    } catch (err: any) { toast.error(err?.message || 'Failed'); }
+    finally { setIsSubmitting(false); }
+  };
 
   return (
-    <Sheet open={open} onOpenChange={handleClose}>
-      <SheetContent side="bottom" className="rounded-t-2xl flex flex-col p-0 gap-0">
-        <div className="px-4 pt-3 pb-1"><h2 className="text-lg font-bold text-foreground">What's up?</h2><p className="text-xs text-muted-foreground">Tell us what's happened.</p></div>
-        <div className="px-4 pb-3 space-y-3 pt-2">
-          <div className="grid grid-cols-3 gap-1.5">
-            {allProblems.map((p) => {
-              const Icon = p.icon;
-              return (
-                <button key={p.title} onClick={() => setSelectedProblem(p.title)}
-                  className={`flex flex-col items-center gap-1 py-2.5 px-1.5 rounded-lg border-2 transition-all ${selectedProblem === p.title ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card hover:border-primary/30'}`}>
-                  <Icon className={`w-5 h-5 ${selectedProblem === p.title ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <span className="text-[10px] font-semibold text-foreground leading-tight">{p.title}</span>
-                </button>
-              );
-            })}
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-foreground">Add details <span className="text-destructive">*</span></p>
-            <Textarea placeholder="Vehicle, location, what you see — helps responders find you fast..." value={details} onChange={(e) => setDetails(e.target.value)}
-              className={`min-h-[60px] text-xs resize-none rounded-lg border-2 bg-muted/30 ${details.trim().length === 0 ? 'border-border focus:border-primary' : 'border-primary/40 focus:border-primary'}`} />
-          </div>
-          <div className={`space-y-1.5 transition-all duration-300 ${selectedProblem ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-            <p className="text-xs font-semibold text-foreground">Who should help?</p>
-            <div className="grid grid-cols-2 gap-1.5">
-              {helpSources.map((source) => {
-                const Icon = source.icon;
-                const isSelected = selectedSource === source.id;
-                const serviceCount = source.id === 'services' && selectedProblem ? matchingServices.length : 0;
-                return (
-                  <button key={source.id} onClick={() => setSelectedSource(source.id)}
-                    className={`relative flex flex-col items-center gap-1.5 p-2.5 rounded-lg border-2 transition-all text-center ${isSelected ? 'border-primary bg-primary/5 shadow-sm' : 'border-border bg-card hover:border-primary/30'}`}>
-                    <div className={`w-8 h-8 rounded-md ${source.colorClass} flex items-center justify-center shrink-0`}><Icon className="w-4 h-4 text-white" /></div>
-                    <p className="text-[11px] font-bold text-foreground leading-tight">{source.title}</p>
-                    <p className="text-[9px] text-muted-foreground leading-tight">
-                      {source.id === 'services' && selectedProblem ? `${serviceCount} matching service${serviceCount !== 1 ? 's' : ''}` : source.description}
-                    </p>
-                    {isSelected && <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center"><Check className="w-2.5 h-2.5 text-primary-foreground" /></div>}
-                  </button>
-                );
-              })}
+    <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
+      <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-border/30 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-destructive/10 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-destructive" />
+            </div>
+            <div>
+              <h2 className="font-bold text-base">
+                {step === 1 && "What's wrong?"}
+                {step === 2 && 'Add details'}
+                {step === 3 && 'Confirm SOS'}
+                {step === 4 && 'Help is coming'}
+                {step === 5 && 'Stolen Vehicle'}
+                {step === 6 && 'Alert Sent'}
+              </h2>
+              <p className="text-[10px] text-muted-foreground">{locationReady ? '📍 Location ready' : '📍 Getting location...'}</p>
             </div>
           </div>
-          <button onClick={() => setShowStolen(true)} className="w-full flex items-center gap-3 p-3.5 rounded-xl bg-destructive/10 border-2 border-destructive/30 hover:bg-destructive/20 transition-colors">
-            <div className="w-10 h-10 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0"><ShieldAlert className="w-5 h-5 text-destructive" /></div>
-            <div className="flex-1 text-left"><span className="text-sm font-bold text-destructive">Vehicle Stolen?</span><p className="text-[10px] text-destructive/70">Alerts all members within 50 miles</p></div>
-            <ArrowRight className="w-4 h-4 text-destructive/60 shrink-0" />
+          <button onClick={handleClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+            <X className="w-4 h-4 text-muted-foreground" />
           </button>
-          <button onClick={() => { handleClose(false); navigate('/stolen-vehicles'); }} className="w-full text-center py-2 text-xs font-semibold text-destructive/70 hover:text-destructive transition-colors">View Stolen Vehicle Alerts</button>
         </div>
-        <div className="px-4 pb-4 pt-2 border-t border-border">
-          <Button className="w-full h-11 rounded-xl text-sm font-semibold" size="lg" disabled={!canConfirm} onClick={handleConfirm}>
-            {canConfirm && activeSource ? <span>{activeSource.cta}</span> : 'Select an issue & help source'}
-          </Button>
+
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+
+          {step === 1 && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                {PROBLEMS.map(p => (
+                  <button key={p.id} onClick={() => { setSelectedProblem(p); setStep(2); }}
+                    className="flex items-center gap-3 p-4 rounded-2xl border border-border/50 bg-card hover:border-destructive/40 hover:bg-destructive/5 transition-all active:scale-95 text-left">
+                    <span className="text-2xl flex-shrink-0">{p.emoji}</span>
+                    <span className="text-sm font-semibold">{p.label}</span>
+                  </button>
+                ))}
+              </div>
+              <button onClick={() => setStep(5)}
+                className="w-full p-4 rounded-2xl border-2 border-destructive/40 bg-destructive/5 text-destructive font-bold text-sm flex items-center justify-center gap-2 active:scale-95">
+                🚨 Vehicle Stolen — Alert Members
+              </button>
+            </div>
+          )}
+
+          {step === 2 && selectedProblem && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/40 border border-border/30">
+                <span className="text-2xl">{selectedProblem.emoji}</span>
+                <span className="font-semibold text-sm">{selectedProblem.label}</span>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground mb-2 block">Describe your situation (optional)</label>
+                <textarea value={details} onChange={e => setDetails(e.target.value)}
+                  placeholder="e.g. On the M25 near junction 10, silver BMW, hazard lights on..."
+                  className="w-full border border-border/40 rounded-xl px-4 py-3 text-sm bg-background resize-none min-h-[100px] outline-none"
+                  maxLength={300} />
+                <p className="text-[10px] text-muted-foreground text-right mt-1">{details.length}/300</p>
+              </div>
+              <p className="text-xs text-muted-foreground bg-muted/30 rounded-xl p-3">
+                🔒 Your exact location is never shown to helpers. They only see distance. You control what you share in chat.
+              </p>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
+                <Button className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold" onClick={() => setStep(3)}>Continue</Button>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && selectedProblem && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl">{selectedProblem.emoji}</span>
+                  <div>
+                    <p className="font-bold text-sm">{selectedProblem.label}</p>
+                    {details && <p className="text-xs text-muted-foreground mt-0.5">{details}</p>}
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {[
+                  { icon: '🔔', text: 'Nearby members with "Available to Help" on are notified' },
+                  { icon: '📏', text: 'Helpers only see how far away you are — not your exact location' },
+                  { icon: '💬', text: 'You connect via private in-app chat' },
+                  { icon: '⏱️', text: 'SOS expires automatically after 30 minutes' },
+                ].map(item => (
+                  <div key={item.text} className="flex items-start gap-3 p-3 rounded-xl bg-muted/30">
+                    <span className="text-base flex-shrink-0">{item.icon}</span>
+                    <p className="text-xs text-muted-foreground">{item.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(2)}>Back</Button>
+                <Button disabled={isSubmitting || !locationReady} onClick={handleSubmitSOS}
+                  className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold">
+                  {isSubmitting ? 'Sending...' : !locationReady ? 'Getting location...' : 'Send SOS'}
+                </Button>
+              </div>
+              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-medium">
+                <Phone className="w-4 h-4" /> Call 999 for emergencies
+              </a>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-4">
+              <div className="text-center py-2">
+                <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-3 relative">
+                  <div className="w-10 h-10 rounded-full bg-destructive/20 animate-ping absolute" />
+                  <AlertTriangle className="w-8 h-8 text-destructive relative z-10" />
+                </div>
+                <h3 className="font-bold text-base">SOS Active</h3>
+                <p className="text-xs text-muted-foreground mt-1">Nearby members are being notified</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Auto-expires in {minutesLeft} min</p>
+              </div>
+              {responders.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold text-green-600 flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5" /> {responders.length} member{responders.length > 1 ? 's' : ''} responding
+                  </p>
+                  {responders.map(r => (
+                    <div key={r.id} className="flex items-center gap-3 p-3 rounded-xl bg-green-500/5 border border-green-500/20">
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-green-100 flex-shrink-0">
+                        {r.profiles?.avatar_url
+                          ? <img src={r.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
+                          : <span className="w-full h-full flex items-center justify-center text-sm font-bold text-green-700">{r.profiles?.display_name?.[0] || '?'}</span>}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{r.profiles?.display_name || 'RevNet Member'}</p>
+                        <p className="text-[10px] text-green-600">{r.status === 'arrived' ? '✅ Arrived' : '🚗 On the way'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-muted/30 text-center">
+                  <p className="text-xs text-muted-foreground animate-pulse">Alerting nearby members...</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">This may take a few minutes</p>
+                </div>
+              )}
+              {requestId && responders.length > 0 && user?.id && (
+                <SOSChat requestId={requestId} userId={user.id} />
+              )}
+              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-destructive/30 text-destructive font-semibold text-sm">
+                <Phone className="w-4 h-4" /> Call 999 (Emergency Services)
+              </a>
+              <Button onClick={handleResolve} className="w-full rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold h-12">
+                <CheckCircle className="w-5 h-5 mr-2" /> I Got Help — Mark Resolved
+              </Button>
+              <button onClick={handleCancel} className="w-full py-2.5 text-xs text-muted-foreground">
+                Cancel SOS Request
+              </button>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="space-y-4">
+              <div className="p-3 rounded-2xl bg-destructive/5 border border-destructive/20">
+                <p className="text-sm font-bold text-destructive">🚨 Stolen Vehicle Alert</p>
+                <p className="text-xs text-muted-foreground mt-1">This will alert all nearby RevNet members who have "Available to Help" on.</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Make *</label>
+                  <input value={stolenVehicle.make} onChange={e => setStolenVehicle(p => ({ ...p, make: e.target.value }))}
+                    placeholder="e.g. BMW" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Model</label>
+                  <input value={stolenVehicle.model} onChange={e => setStolenVehicle(p => ({ ...p, model: e.target.value }))}
+                    placeholder="e.g. M3" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Colour</label>
+                  <input value={stolenVehicle.colour} onChange={e => setStolenVehicle(p => ({ ...p, colour: e.target.value }))}
+                    placeholder="e.g. Black" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Registration *</label>
+                  <input value={stolenVehicle.registration} onChange={e => setStolenVehicle(p => ({ ...p, registration: e.target.value.toUpperCase() }))}
+                    placeholder="e.g. AB12 CDE" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none uppercase" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Additional details</label>
+                <textarea value={stolenVehicle.description} onChange={e => setStolenVehicle(p => ({ ...p, description: e.target.value }))}
+                  placeholder="Distinguishing features, last seen location..."
+                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background resize-none min-h-[80px] outline-none" />
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
+                <Button disabled={isSubmitting || !stolenVehicle.make || !stolenVehicle.registration} onClick={handleStolenVehicle}
+                  className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold">
+                  {isSubmitting ? 'Sending...' : 'Send Alert'}
+                </Button>
+              </div>
+              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-medium">
+                <Phone className="w-4 h-4" /> Call 999 First
+              </a>
+            </div>
+          )}
+
+          {step === 6 && (
+            <div className="space-y-4 text-center py-4">
+              <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+                <span className="text-3xl">🚨</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Alert Sent</h3>
+                <p className="text-sm text-muted-foreground mt-1">Nearby members have been notified</p>
+              </div>
+              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-destructive text-white font-bold text-base">
+                <Phone className="w-5 h-5" /> Call 999 Now
+              </a>
+              <button onClick={handleClose} className="w-full py-2.5 text-sm text-muted-foreground">Close</button>
+            </div>
+          )}
+
         </div>
       </SheetContent>
     </Sheet>
