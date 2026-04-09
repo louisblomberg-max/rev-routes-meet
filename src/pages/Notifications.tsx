@@ -71,6 +71,8 @@ const Notifications = () => {
     // Navigate based on data
     const d = notif.data;
     const safeNav = (r: string) => { if (r?.startsWith('/') && !r.includes('..') && !r.includes('http')) navigate(r); };
+    if (notif.type === 'sos_request' && d?.request_id) { safeNav(`/sos-request/${d.request_id}`); return; }
+    if (notif.type === 'stolen_vehicle') { safeNav('/stolen-vehicles'); return; }
     if (d?.route) safeNav(d.route);
     else if (d?.event) safeNav(`/event/${d.event}`);
     else if (d?.event_id) safeNav(`/event/${d.event_id}`);
