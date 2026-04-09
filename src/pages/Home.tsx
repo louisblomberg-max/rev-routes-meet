@@ -1081,7 +1081,7 @@ const Home = () => {
 
       {/* ═══ Map utility buttons ═══ */}
       {!isNavigating && (
-        <div className="absolute right-3 bottom-24 z-20 flex flex-col items-center gap-2.5">
+        <div className="absolute right-3 bottom-20 z-30 flex flex-col items-center gap-2.5">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
         </div>
