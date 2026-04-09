@@ -61,6 +61,7 @@ const RoutesList = React.lazy(() => import("./pages/RoutesList"));
 const ServicesList = React.lazy(() => import("./pages/ServicesList"));
 const MySavedServices = React.lazy(() => import("./pages/MySavedServices"));
 const ManageServices = React.lazy(() => import("./pages/MyServices"));
+const SOSRequest = React.lazy(() => import("./pages/SOSRequest"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
@@ -138,6 +139,7 @@ const App = () => (
           <Route path="/my-routes" element={<ProtectedRoute><MyRoutes /></ProtectedRoute>} />
           <Route path="/my-services" element={<ProtectedRoute><MySavedServices /></ProtectedRoute>} />
           <Route path="/manage-services" element={<ProtectedRoute><ManageServices /></ProtectedRoute>} />
+          <Route path="/sos-request/:requestId" element={<ProtectedRoute><SOSRequest /></ProtectedRoute>} />
           <Route path="/my-discussions" element={<ProtectedRoute><MyDiscussions /></ProtectedRoute>} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
           <Route path="/forums" element={<ProtectedRoute><Forums /></ProtectedRoute>} />
