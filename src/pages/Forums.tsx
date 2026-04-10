@@ -62,7 +62,7 @@ const Forums = () => {
   });
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">
           <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }} />

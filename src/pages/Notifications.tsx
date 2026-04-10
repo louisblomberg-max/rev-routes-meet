@@ -73,6 +73,20 @@ const Notifications = () => {
     const safeNav = (r: string) => { if (r?.startsWith('/') && !r.includes('..') && !r.includes('http')) navigate(r); };
     if (notif.type === 'sos_request' && d?.request_id) { safeNav(`/sos-request/${d.request_id}`); return; }
     if (notif.type === 'stolen_vehicle') { safeNav('/stolen-vehicles'); return; }
+    if (notif.type === 'new_message' && d?.conversation_id) {
+      const { data: participants } = await supabase
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', d.conversation_id)
+        .neq('user_id', user?.id ?? '')
+        .limit(1);
+      if (participants && participants.length > 0) {
+        navigate(`/messages/${participants[0].user_id}`);
+      } else {
+        navigate('/messages');
+      }
+      return;
+    }
     if (d?.route) safeNav(d.route);
     else if (d?.event) safeNav(`/event/${d.event}`);
     else if (d?.event_id) safeNav(`/event/${d.event_id}`);

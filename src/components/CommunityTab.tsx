@@ -63,6 +63,11 @@ const CommunityTab = () => {
               Find Friends
             </Button>
           </div>
+        ) : !activityLoading && activity.length === 0 && stats.friendsCount > 0 ? (
+          <div className="bg-card rounded-xl p-5 border border-border/50 text-center">
+            <p className="text-sm font-semibold text-foreground">No activity yet</p>
+            <p className="text-xs text-muted-foreground mt-1">Your friends haven't been active recently</p>
+          </div>
         ) : activity.length > 0 ? (
           <div className="space-y-2">
             <p className="text-label text-community">Friend Activity</p>
