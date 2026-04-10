@@ -36,6 +36,7 @@ const OrganizerDashboard = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameRef = useRef<number>();
+  const recentlyScannedRef = useRef<Map<string, number>>(new Map());
 
   const fetchData = useCallback(async () => {
     if (!eventId || !user?.id) return;
@@ -129,17 +130,23 @@ const OrganizerDashboard = () => {
   const handleSendAnnouncement = async () => {
     if (!announcement.trim() || !eventId) return;
     setSendingAnnouncement(true);
-    const atts = attendees.map(a => a.user_id).filter(Boolean);
-    for (const uid of atts) {
-      await supabase.from('notifications').insert({
-        user_id: uid, type: 'event_announcement',
-        title: `Update: ${event?.title}`, body: announcement.trim(),
+    try {
+      const userIds = mergedAttendees.map((a: any) => a.user_id).filter(Boolean);
+      if (userIds.length === 0) { toast.error('No attendees to notify'); return; }
+      await sendNotificationToMany({
+        userIds,
+        title: `📢 ${event?.title || 'Event Update'}`,
+        body: announcement.trim(),
+        type: 'event_announcement',
         data: { event_id: eventId },
       });
+      setAnnouncement('');
+      toast.success(`Announcement sent to ${userIds.length} attendee${userIds.length !== 1 ? 's' : ''}`);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send announcement');
+    } finally {
+      setSendingAnnouncement(false);
     }
-    setAnnouncement('');
-    setSendingAnnouncement(false);
-    toast.success(`Announcement sent to ${atts.length} attendees`);
   };
 
   const handleCancelEvent = async () => {
@@ -161,6 +168,18 @@ const OrganizerDashboard = () => {
 
   const handleScanQR = useCallback(async (token: string) => {
     if (!eventId || isProcessing) return;
+
+    // Ignore same token for 5 seconds to prevent rescanning
+    const now = Date.now();
+    const lastScanned = recentlyScannedRef.current.get(token);
+    if (lastScanned && now - lastScanned < 5000) return;
+    recentlyScannedRef.current.set(token, now);
+
+    // Clean up old entries
+    for (const [t, ts] of recentlyScannedRef.current.entries()) {
+      if (now - ts > 10000) recentlyScannedRef.current.delete(t);
+    }
+
     setIsProcessing(true);
     // Check paid tickets first
     const { data: ticket } = await supabase.from('event_tickets')

@@ -187,7 +187,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         // Only show QR pass if event has limited capacity or is ticketed
         const needsQR = data.is_ticketed || (maxAtt && maxAtt > 0);
         if (needsQR && attendRow?.qr_code_token) {
-          navigate(`/ticket-success?ticket_id=free&event_id=${eventId}&token=${attendRow.qr_code_token}&type=free`);
+          navigate(`/ticket-success?ticket_id=free&event_id=${eventId}&type=free#token=${attendRow.qr_code_token}`);
         }
 
         const creatorId = data.created_by || data.createdBy;

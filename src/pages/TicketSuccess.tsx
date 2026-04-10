@@ -16,7 +16,9 @@ const TicketSuccess = () => {
   const ticketId = searchParams.get('ticket_id');
   const isFreePass = searchParams.get('type') === 'free';
   const freeEventId = searchParams.get('event_id');
-  const freeToken = searchParams.get('token');
+  // Read token from hash fragment to avoid server-side exposure
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const freeToken = searchParams.get('token') || hashParams.get('token');
 
   const [ticket, setTicket] = useState<any>(null);
   const [event, setEvent] = useState<any>(null);

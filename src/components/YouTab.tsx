@@ -239,7 +239,7 @@ const YouTab = () => {
               <button
                 key={t.id}
                 onClick={() => navigate(t.isFree
-                  ? `/ticket-success?ticket_id=free&event_id=${t.event_id}&token=${t.qr_code_token}&type=free`
+                  ? `/ticket-success?ticket_id=free&event_id=${t.event_id}&type=free#token=${t.qr_code_token}`
                   : `/ticket-success?ticket_id=${t.id}`
                 )}
                 className="flex-shrink-0 w-[160px] bg-card rounded-xl border border-border/50 shadow-sm p-3 text-left"
