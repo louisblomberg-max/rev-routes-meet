@@ -355,9 +355,23 @@ export default function Navigation() {
       const arrival = addSeconds(new Date(), route.duration)
       setArrivalTime(format(arrival, 'HH:mm'))
       if (!silent && mode === 'preview') {
-        const coords = route.geometry.coordinates
-        const bounds = coords.reduce((b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]))
-        map.fitBounds(bounds, { padding: { top: 100, bottom: 300, left: 40, right: 40 }, duration: 1000, maxZoom: 16 })
+        const coords = route.geometry.coordinates;
+        const bounds = coords.reduce(
+          (b: mapboxgl.LngLatBounds, c: [number, number]) => b.extend(c),
+          new mapboxgl.LngLatBounds(coords[0], coords[0])
+        );
+        // Wait for map to be fully sized before fitting bounds
+        const safeFit = () => {
+          const canvas = map.getCanvas();
+          if (canvas.offsetWidth === 0 || canvas.offsetHeight === 0) {
+            setTimeout(safeFit, 100);
+            return;
+          }
+          try {
+            map.fitBounds(bounds, { padding: { top: 100, bottom: 300, left: 40, right: 40 }, duration: 1000, maxZoom: 16 });
+          } catch { /* silent — bounds error means map not ready */ }
+        };
+        setTimeout(safeFit, 200);
       }
       announcedDistancesRef.current = new Set()
     } catch (err) {
@@ -382,7 +396,11 @@ export default function Navigation() {
       logoPosition: 'bottom-left',
     })
     mapRef.current = map
+    // Force resize after mount to ensure canvas has correct dimensions
+    setTimeout(() => { map.resize(); }, 100);
+    setTimeout(() => { map.resize(); }, 500);
     map.on('load', () => {
+      map.resize(); // Ensure correct size on load
       if (destLat && destLng) {
         const destEl = document.createElement('div')
         destEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="width:36px;height:36px;background:#CC2222;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 16px rgba(204,34,34,0.5);"></div></div>`
