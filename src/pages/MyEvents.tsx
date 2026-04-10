@@ -72,7 +72,7 @@ const MyEvents = () => {
   useEffect(() => {
     if (!user?.id) return;
     const channel = supabase
-      .channel('my-events-attendees')
+      .channel(`my-events-attendees-${user?.id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_attendees' }, () => {
         fetchHostedAttendees();
       })

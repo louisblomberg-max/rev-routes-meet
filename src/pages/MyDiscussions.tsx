@@ -21,6 +21,7 @@ const MyDiscussions = () => {
   const navigate = useNavigate();
   const { posts, replies, savedPosts, isLoading } = useUserDiscussions();
   const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'saved'>('posts');
+  const [deletedPostIds, setDeletedPostIds] = useState<Set<string>>(new Set());
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -79,8 +80,9 @@ const MyDiscussions = () => {
         ) : (
           <>
             {/* Posts */}
-            {activeTab === 'posts' && (
-              posts.length === 0 ? (
+            {activeTab === 'posts' && (() => {
+              const visiblePosts = posts.filter(p => !deletedPostIds.has(p.id));
+              return visiblePosts.length === 0 ? (
                 <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-8 text-center">
                   <MessageSquare className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
                   <h3 className="font-semibold text-foreground mb-1">No posts yet</h3>
@@ -89,10 +91,10 @@ const MyDiscussions = () => {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {posts.map(post => {
+                  {visiblePosts.map(post => {
                     const typeInfo = getPostTypeInfo(post.type);
                     const categoryInfo = getCategoryInfo(post.category);
-                    const TypeIcon = postTypeIcons[post.type];
+                    const TypeIcon = postTypeIcons[post.type] || MessageSquare;
                     return (
                       <div key={post.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
                         <button onClick={() => navigate(`/forums/thread/${post.id}`)} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
@@ -107,8 +109,8 @@ const MyDiscussions = () => {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>View Post</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => toast.info('Post editing coming soon.')}>Edit Post</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { const { error } = await supabase.from('forum_posts').delete().eq('id', post.id); if (error) { toast.error('Failed to delete post'); return; } toast.success('Post deleted'); window.location.reload(); }}>
+                                <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>Edit Post</DropdownMenuItem>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { const { error } = await supabase.from('forum_posts').delete().eq('id', post.id); if (error) { toast.error('Failed to delete post'); return; } setDeletedPostIds(prev => new Set([...prev, post.id])); toast.success('Post deleted'); }}>
                                   <Trash2 className="w-4 h-4 mr-2" /> Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -125,8 +127,8 @@ const MyDiscussions = () => {
                     );
                   })}
                 </div>
-              )
-            )}
+              );
+            })()}
 
             {/* Replies */}
             {activeTab === 'replies' && (
@@ -169,7 +171,7 @@ const MyDiscussions = () => {
                   {savedPosts.map(post => {
                     const typeInfo = getPostTypeInfo(post.type);
                     const categoryInfo = getCategoryInfo(post.category);
-                    const TypeIcon = postTypeIcons[post.type];
+                    const TypeIcon = postTypeIcons[post.type] || MessageSquare;
                     return (
                       <div key={post.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
                         <button onClick={() => navigate(`/forums/thread/${post.id}`)} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">

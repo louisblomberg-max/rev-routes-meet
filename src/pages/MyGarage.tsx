@@ -437,7 +437,7 @@ const MyGarage = () => {
               )}
 
               <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => navigate('/add/vehicle')}>
-                Edit Preferences
+                Add Vehicle
               </Button>
             </div>
           )}
