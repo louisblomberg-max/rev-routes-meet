@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
 
@@ -9,6 +9,7 @@ export default function RouteMapView() {
   const navigate = useNavigate()
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
+  const [reversed, setReversed] = useState(false)
 
   const geometry = state?.geometry
   const routeName = state?.routeName || 'Route'
@@ -72,34 +73,33 @@ export default function RouteMapView() {
           maxZoom: 14
         })
 
-        // Start marker — green circle with white border
+        const startCoord = reversed ? coords[coords.length - 1] : coords[0]
+        const endCoord = reversed ? coords[0] : coords[coords.length - 1]
+
+        // Start marker — green circle
         const startEl = document.createElement('div')
         startEl.style.cssText = `
-          width: 20px;
-          height: 20px;
+          width: 20px; height: 20px;
           border-radius: 50%;
           background: #22c55e;
           border: 3px solid white;
           box-shadow: 0 2px 8px rgba(34,197,94,0.5);
         `
         new mapboxgl.Marker({ element: startEl, anchor: 'center' })
-          .setLngLat(coords[0])
+          .setLngLat(startCoord)
           .addTo(map)
 
-        // End marker — red teardrop matching navigation destination pin
+        // End marker — red circle
         const endEl = document.createElement('div')
-        endEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;'
-        endEl.innerHTML = `<div style="
-          width: 24px;
-          height: 24px;
+        endEl.style.cssText = `
+          width: 20px; height: 20px;
+          border-radius: 50%;
           background: #d30d37;
           border: 3px solid white;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          box-shadow: 0 3px 12px rgba(211,13,55,0.5);
-        "></div>`
-        new mapboxgl.Marker({ element: endEl, anchor: 'bottom' })
-          .setLngLat(coords[coords.length - 1])
+          box-shadow: 0 2px 8px rgba(211,13,55,0.5);
+        `
+        new mapboxgl.Marker({ element: endEl, anchor: 'center' })
+          .setLngLat(endCoord)
           .addTo(map)
       }
     })
@@ -108,7 +108,7 @@ export default function RouteMapView() {
       try { map.remove() } catch {}
       mapRef.current = null
     }
-  }, [])
+  }, [reversed])
 
   if (!geometry) {
     return (
@@ -130,7 +130,7 @@ export default function RouteMapView() {
 
   return (
     <div className="fixed inset-0 bg-black">
-      <div ref={containerRef} className="absolute inset-0" />
+      <div key={reversed ? 'reversed' : 'normal'} ref={containerRef} className="absolute inset-0" />
 
       {/* Back button */}
       <div className="absolute z-10" style={{ top: 'max(16px, env(safe-area-inset-top))', left: 16 }}>
@@ -148,7 +148,29 @@ export default function RouteMapView() {
         style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom))', zIndex: 10 }}
       >
         <div className="px-4 pt-3 pb-1">
-          <p className="font-bold text-gray-900 text-sm">{routeName}</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-block w-3 h-3 rounded-full bg-green-500 flex-shrink-0" />
+                <p className="text-xs text-gray-500 truncate">
+                  {reversed ? 'End' : 'Start'}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-block w-3 h-3 rounded-full bg-[#d30d37] flex-shrink-0" />
+                <p className="text-xs text-gray-500 truncate">
+                  {reversed ? 'Start' : 'End'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setReversed(r => !r)}
+              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-100 text-gray-700 text-xs font-semibold active:scale-95 transition-all"
+            >
+              ⇅ Reverse
+            </button>
+          </div>
+          <p className="font-bold text-gray-900 text-sm mt-2">{routeName}</p>
           <div className="flex gap-4 mt-1 text-xs text-gray-500">
             {distance && <span>{distance}</span>}
             {duration && <span>~{duration} min</span>}
