@@ -367,7 +367,7 @@ export default function Navigation() {
             return;
           }
           try {
-            map.fitBounds(bounds, { padding: { top: 100, bottom: 300, left: 40, right: 40 }, duration: 1000, maxZoom: 16 });
+            map.fitBounds(bounds, { padding: { top: 80, bottom: 320, left: 50, right: 50 }, duration: 1000, maxZoom: 15 });
           } catch { /* silent — bounds error means map not ready */ }
         };
         setTimeout(safeFit, 200);
@@ -402,8 +402,8 @@ export default function Navigation() {
       map.resize(); // Ensure correct size on load
       if (destLat && destLng) {
         const destEl = document.createElement('div')
-        destEl.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;"><div style="width:36px;height:36px;background:#CC2222;border:3px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 4px 16px rgba(204,34,34,0.5);"></div></div>`
-        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'bottom' }).setLngLat([destLng, destLat]).addTo(map)
+        destEl.style.cssText = 'width:24px;height:24px;background:#22C55E;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(34,197,94,0.6);cursor:pointer;'
+        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'center' }).setLngLat([destLng, destLat]).addTo(map)
       }
       navigator.geolocation.getCurrentPosition(
         pos => { fetchRoute(map, pos.coords.longitude, pos.coords.latitude); map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }) },
