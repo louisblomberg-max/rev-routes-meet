@@ -40,8 +40,6 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const geometry = data.geometry || data.route_data;
   const routeId = data.id || route.id;
 
-  console.log('RouteDetailContent photos:', data.photos, 'full data keys:', Object.keys(data));
-
   // Fetch photos directly from DB to bypass any data passing issues
   useEffect(() => {
     if (!routeId) return;
@@ -126,10 +124,12 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
     map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
     map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
     fullMapInstanceRef.current = map;
+    setTimeout(() => { fullMapInstanceRef.current?.resize(); }, 100);
     map.on('load', () => {
       const canvas = map.getCanvas();
       canvas.style.outline = 'none';
       canvas.style.touchAction = 'none';
+      fullMapInstanceRef.current?.resize();
       if (!geometry) return;
       map.addSource('fr', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry } });
       map.addLayer({ id: 'fr-bg', type: 'line', source: 'fr', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fff', 'line-width': 8, 'line-opacity': 0.9 } });
@@ -143,7 +143,17 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
         new mapboxgl.Marker({ element: mk('#ef4444') }).setLngLat(coords[coords.length - 1]).addTo(map);
       }
     });
-    return () => { map.remove(); fullMapInstanceRef.current = null; };
+    return () => {
+      try {
+        if (fullMapInstanceRef.current) {
+          fullMapInstanceRef.current.remove();
+          fullMapInstanceRef.current = null;
+        }
+      } catch {
+        // Silent — map may already be cleaned up
+        fullMapInstanceRef.current = null;
+      }
+    };
   }, [showFullMap]);
 
   return (
@@ -314,11 +324,11 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
       {/* Full-screen map — rendered via portal to escape bottom sheet */}
       {showFullMap && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999, touchAction: 'none' }}>
-          <div ref={fullMapRef} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, touchAction: 'none' }} />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#000' }}>
+          <div ref={fullMapRef} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
           <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10, pointerEvents: 'auto' }}>
             <button
-              onClick={() => { setShowFullMap(false); fullMapInstanceRef.current?.remove(); fullMapInstanceRef.current = null; }}
+              onClick={() => setShowFullMap(false)}
               style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.25)', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
               ← Back to Route
             </button>
