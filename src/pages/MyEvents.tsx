@@ -149,7 +149,7 @@ const MyEvents = () => {
                   className={`bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden ${activeTab === 'past' ? 'opacity-75' : ''}`}
                 >
                   <button
-                    onClick={() => navigate('/', { state: { showEventId: event.id } })}
+                    onClick={() => navigate(`/event/${event.id}`)}
                     className="w-full p-4 text-left hover:bg-muted/30 transition-colors active:scale-[0.99]"
                   >
                     <div className="flex items-start justify-between gap-3 mb-3">

@@ -25,7 +25,7 @@ export function useUserStatsData() {
           supabase.from('friends').select('user_id', { count: 'exact', head: true }).or(`user_id.eq.${user.id},friend_id.eq.${user.id}`).eq('status', 'accepted'),
           supabase.from('club_memberships').select('club_id', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('event_attendees').select('event_id', { count: 'exact', head: true }).eq('user_id', user.id),
-          supabase.from('routes').select('id', { count: 'exact', head: true }).eq('created_by', user.id),
+          supabase.from('saved_routes').select('route_id', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('saved_services').select('service_id', { count: 'exact', head: true }).eq('user_id', user.id),
           supabase.from('forum_posts').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         ]),
@@ -241,16 +241,49 @@ export function useUserRoutes() {
         supabase.from('saved_routes').select('*, routes(*)').eq('user_id', user.id),
         supabase.from('routes').select('*').eq('created_by', user.id),
       ]);
-      setSaved((savedRes.data || []).map((s: any) => ({
+
+      const savedRoutes = (savedRes.data || []).map((s: any) => ({
         id: s.routes?.id, name: s.routes?.name, type: s.routes?.type || 'Scenic',
         distance: s.routes?.distance_meters ? `${(s.routes.distance_meters / 1609).toFixed(1)} mi` : '—',
         rating: s.routes?.rating || 0, saves: s.routes?.saves || 0, drives: s.routes?.drives || 0, ...s.routes,
-      })).filter((r: any) => r.id));
-      setCreated((createdRes.data || []).map((r: any) => ({
+      })).filter((r: any) => r.id);
+
+      const createdRoutes = (createdRes.data || []).map((r: any) => ({
         ...r, type: r.type || 'Scenic',
         distance: r.distance_meters ? `${(r.distance_meters / 1609).toFixed(1)} mi` : '—',
         rating: r.rating || 0,
-      })));
+      }));
+
+      // Fetch average ratings for all routes from route_reviews
+      const allRouteIds = [...savedRoutes.map((r: any) => r.id), ...createdRoutes.map((r: any) => r.id)];
+      if (allRouteIds.length > 0) {
+        try {
+          const { data: ratingsData } = await supabase
+            .from('route_reviews')
+            .select('route_id, rating')
+            .in('route_id', allRouteIds);
+
+          if (ratingsData && ratingsData.length > 0) {
+            const sumMap: Record<string, number> = {};
+            const countMap: Record<string, number> = {};
+            ratingsData.forEach((r: any) => {
+              sumMap[r.route_id] = (sumMap[r.route_id] || 0) + r.rating;
+              countMap[r.route_id] = (countMap[r.route_id] || 0) + 1;
+            });
+            const withRatings = (routes: any[]) => routes.map(r => ({
+              ...r,
+              rating: countMap[r.id] ? Number((sumMap[r.id] / countMap[r.id]).toFixed(1)) : null,
+            }));
+            setSaved(withRatings(savedRoutes));
+            setCreated(withRatings(createdRoutes));
+            setIsLoading(false);
+            return;
+          }
+        } catch { /* route_reviews table may not exist — fall through */ }
+      }
+
+      setSaved(savedRoutes);
+      setCreated(createdRoutes);
       setIsLoading(false);
     })();
   }, [user?.id]);

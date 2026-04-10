@@ -13,6 +13,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { useGarage, useUserPreferences } from '@/contexts/GarageContext';
 import {
   ENTHUSIAST_TAGS, TRANSMISSION_OPTIONS, DRIVETRAIN_OPTIONS,
@@ -40,6 +42,7 @@ const VEHICLE_TYPE_ICONS: Record<string, string> = {
 
 const MyGarage = () => {
   const navigate = useNavigate();
+  const { user: authUser } = useAuth();
   const {
     vehicles, primaryVehicle, isLoading,
     addVehicle, updateVehicle, deleteVehicle, setPrimaryVehicle,
@@ -114,30 +117,41 @@ const MyGarage = () => {
     });
   };
 
-  const compressImage = (file: File, maxSize = 400): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const url = URL.createObjectURL(file);
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scale = Math.min(maxSize / img.width, maxSize / img.height, 1);
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        URL.revokeObjectURL(url);
-        resolve(canvas.toDataURL('image/jpeg', 0.6));
-      };
-      img.src = url;
-    });
-  };
-
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-    for (const file of Array.from(files)) {
-      const compressed = await compressImage(file);
-      setForm(prev => ({ ...prev, photos: [...prev.photos, compressed] }));
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    if (form.photos.length + files.length > 6) {
+      toast.error('Maximum 6 photos');
+      e.target.value = '';
+      return;
+    }
+    if (!authUser?.id) {
+      toast.error('Please sign in to upload photos');
+      e.target.value = '';
+      return;
+    }
+
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('Each photo must be under 10MB');
+        continue;
+      }
+
+      const ext = file.name.split('.').pop() || 'jpg';
+      const path = `${authUser.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+
+      // Uploads to existing 'vehicles' Supabase storage bucket (defined in supabase/migrations)
+      const { error: uploadError } = await supabase.storage
+        .from('vehicles')
+        .upload(path, file, { contentType: file.type, upsert: false });
+
+      if (uploadError) {
+        toast.error('Failed to upload photo');
+        continue;
+      }
+
+      const { data: urlData } = supabase.storage.from('vehicles').getPublicUrl(path);
+      setForm(prev => ({ ...prev, photos: [...prev.photos, urlData.publicUrl] }));
     }
     e.target.value = '';
   };
