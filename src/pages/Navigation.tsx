@@ -77,6 +77,11 @@ export default function Navigation() {
   const sessionIdRef = useRef<string | null>(null)
   const isFollowingRef = useRef(true)
   const offRouteCountRef = useRef(0)
+  const userLocationRef = useRef<[number, number] | null>(null)
+  const currentHeadingRef = useRef(0)
+  const currentSpeedMphRef = useRef(0)
+  const sharedWithFriendsRef = useRef<string[]>([])
+  const handlePositionUpdateRef = useRef<((pos: GeolocationPosition) => Promise<void>) | null>(null)
 
   const [mode, setMode] = useState<'preview' | 'active' | 'arrived'>('preview')
   const [steps, setSteps] = useState<NavStep[]>([])
@@ -418,12 +423,16 @@ export default function Navigation() {
       })
       const interval = mode === 'active' ? 3000 : 10000
       shareIntervalRef.current = setInterval(async () => {
-        if (!userLocation) return
-        const [lng, lat] = userLocation
+        if (!userLocationRef.current) return
+        const [lng, lat] = userLocationRef.current
         await supabase.from('live_location_sessions').update({
-          last_lat: lat, last_lng: lng, last_heading: currentHeading, bearing: currentHeading,
-          last_updated: new Date().toISOString(), current_speed_mph: currentSpeedMph,
-          is_navigating: mode === 'active', shared_with: sharedWithFriends,
+          last_lat: lat, last_lng: lng,
+          last_heading: currentHeadingRef.current,
+          bearing: currentHeadingRef.current,
+          last_updated: new Date().toISOString(),
+          current_speed_mph: currentSpeedMphRef.current,
+          is_navigating: mode === 'active',
+          shared_with: sharedWithFriendsRef.current,
         }).eq('user_id', user.id)
       }, interval)
       setIsSharingLocation(true)
@@ -438,6 +447,7 @@ export default function Navigation() {
     } catch {}
     setIsSharingLocation(false)
     setSharedWithFriends([])
+    sharedWithFriendsRef.current = []
   }
 
   const toggleFriendSharing = async (friendId: string) => {
@@ -445,6 +455,7 @@ export default function Navigation() {
       ? sharedWithFriends.filter(id => id !== friendId)
       : [...sharedWithFriends, friendId]
     setSharedWithFriends(newSharedWith)
+    sharedWithFriendsRef.current = newSharedWith
     if (newSharedWith.length === 0) {
       await stopSharing()
     } else if (!isSharingLocation) {
@@ -461,6 +472,9 @@ export default function Navigation() {
     setCurrentHeading(heading || 0)
     const speedMph = speed ? Math.round(speed * 2.237) : 0
     setCurrentSpeedMph(speedMph)
+    userLocationRef.current = newLoc
+    currentHeadingRef.current = heading || 0
+    currentSpeedMphRef.current = speedMph
     const map = mapRef.current
     if (!map) return
     if (userMarkerRef.current) {
@@ -541,6 +555,8 @@ export default function Navigation() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [steps, currentStepIndex, destLat, destLng, haversineDistance, speak, buildVoiceInstruction, fetchRoute])
 
+  handlePositionUpdateRef.current = handlePositionUpdate
+
   const handleArrival = async () => {
     if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current)
     window.speechSynthesis?.cancel()
@@ -607,7 +623,7 @@ export default function Navigation() {
       setTimeout(() => speak(`Starting navigation. ${steps[0].maneuver.instruction}`), 800)
     }
     watchIdRef.current = navigator.geolocation.watchPosition(
-      handlePositionUpdate,
+      (pos) => handlePositionUpdateRef.current?.(pos),
       () => toast.error('GPS signal lost — check location settings'),
       { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     )
@@ -718,8 +734,12 @@ export default function Navigation() {
                 </div>
               </div>
 
-              <button onClick={startNavigation} className="w-full py-4 rounded-2xl bg-[#185FA5] text-white font-bold text-base shadow-lg">
-                ▶ Start Navigation
+              <button
+                onClick={startNavigation}
+                disabled={steps.length === 0 || routeLoading}
+                className="w-full py-4 rounded-2xl bg-[#185FA5] text-white font-bold text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {routeLoading ? 'Loading route...' : steps.length === 0 ? 'Calculating route...' : '▶ Start Navigation'}
               </button>
             </div>
           </div>
