@@ -482,7 +482,6 @@ const AddEvent = () => {
 
       // Edit mode — UPDATE existing event
       if (isEdit && editId) {
-        console.log('updating event:', editId)
         const d = validDates[0] || dates[0]
         const dateStart = d?.date ? new Date(`${d.date}T${d.startTime || '10:00'}`) : null
         const dateEnd = d?.date && d.endTime ? new Date(`${d.date}T${d.endTime}`) : null
