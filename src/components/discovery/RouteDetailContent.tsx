@@ -1,7 +1,7 @@
 import { Star, Route, Clock, Navigation, Bookmark, Share2, ArrowLeft } from 'lucide-react';
 import { RevRoute } from '@/models';
 import { toast } from 'sonner';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,7 +30,6 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [dbPhotos, setDbPhotos] = useState<string[]>([]);
   const [showGallery, setShowGallery] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const fullMapRef = useRef<HTMLDivElement>(null);
   const fullMapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -113,48 +112,75 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
     else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied'); }
   };
 
-  // Full-screen map
-  useEffect(() => {
-    if (!showFullMap || !fullMapRef.current || fullMapInstanceRef.current) return;
-    const map = new mapboxgl.Map({
-      container: fullMapRef.current, style: 'mapbox://styles/mapbox/streets-v12',
-      center: [data.lng || -1.5, data.lat || 52.5], zoom: 10,
-      dragPan: true, scrollZoom: true, touchZoomRotate: true, doubleClickZoom: true, keyboard: true, interactive: true,
-    });
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
-    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-    fullMapInstanceRef.current = map;
-    setTimeout(() => { fullMapInstanceRef.current?.resize(); }, 100);
-    map.on('load', () => {
-      const canvas = map.getCanvas();
-      canvas.style.outline = 'none';
-      canvas.style.touchAction = 'none';
-      fullMapInstanceRef.current?.resize();
-      if (!geometry) return;
-      map.addSource('fr', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry } });
-      map.addLayer({ id: 'fr-bg', type: 'line', source: 'fr', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#fff', 'line-width': 8, 'line-opacity': 0.9 } });
-      map.addLayer({ id: 'fr-line', type: 'line', source: 'fr', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#4f7fff', 'line-width': 5 } });
-      const coords = geometry.type === 'LineString' ? geometry.coordinates : geometry.coordinates?.[0] || [];
-      if (coords.length > 1) {
-        const bounds = coords.reduce((b: mapboxgl.LngLatBounds, c: number[]) => b.extend(c as [number, number]), new mapboxgl.LngLatBounds(coords[0], coords[0]));
-        map.fitBounds(bounds, { padding: 60, duration: 800 });
-        const mk = (color: string) => { const el = document.createElement('div'); el.style.cssText = `width:16px;height:16px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);`; return el; };
-        new mapboxgl.Marker({ element: mk('#22c55e') }).setLngLat(coords[0]).addTo(map);
-        new mapboxgl.Marker({ element: mk('#ef4444') }).setLngLat(coords[coords.length - 1]).addTo(map);
-      }
-    });
-    return () => {
+  // Callback ref — fires the instant the div mounts in the DOM
+  const initFullMap = useCallback((container: HTMLDivElement | null) => {
+    if (!container) {
+      // Div unmounted — clean up
       try {
         if (fullMapInstanceRef.current) {
           fullMapInstanceRef.current.remove();
           fullMapInstanceRef.current = null;
         }
       } catch {
-        // Silent — map may already be cleaned up
         fullMapInstanceRef.current = null;
       }
-    };
-  }, [showFullMap]);
+      return;
+    }
+    if (fullMapInstanceRef.current) return; // already initialised
+
+    const map = new mapboxgl.Map({
+      container,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [data.lng || -1.5, data.lat || 52.5],
+      zoom: 10,
+      dragPan: true,
+      scrollZoom: true,
+      touchZoomRotate: true,
+      doubleClickZoom: true,
+      keyboard: true,
+      interactive: true,
+    });
+
+    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
+    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+    fullMapInstanceRef.current = map;
+
+    map.on('load', () => {
+      map.resize();
+      if (!geometry) return;
+      map.addSource('fr', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry } });
+      map.addLayer({
+        id: 'fr-bg', type: 'line', source: 'fr',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#fff', 'line-width': 8, 'line-opacity': 0.9 }
+      });
+      map.addLayer({
+        id: 'fr-line', type: 'line', source: 'fr',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#4f7fff', 'line-width': 5 }
+      });
+      const coords = geometry.type === 'LineString'
+        ? geometry.coordinates
+        : geometry.coordinates?.[0] || [];
+      if (coords.length > 1) {
+        const bounds = coords.reduce(
+          (b: mapboxgl.LngLatBounds, c: number[]) => b.extend(c as [number, number]),
+          new mapboxgl.LngLatBounds(coords[0], coords[0])
+        );
+        map.fitBounds(bounds, {
+          padding: { top: 80, bottom: 100, left: 60, right: 60 },
+          duration: 800
+        });
+        const mk = (color: string) => {
+          const el = document.createElement('div');
+          el.style.cssText = `width:16px;height:16px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
+          return el;
+        };
+        new mapboxgl.Marker({ element: mk('#22c55e') }).setLngLat(coords[0]).addTo(map);
+        new mapboxgl.Marker({ element: mk('#ef4444') }).setLngLat(coords[coords.length - 1]).addTo(map);
+      }
+    });
+  }, [geometry, data.lng, data.lat]);
 
   return (
     <div className="space-y-3">
@@ -325,7 +351,7 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
       {/* Full-screen map — rendered via portal to escape bottom sheet */}
       {showFullMap && createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#000' }}>
-          <div ref={fullMapRef} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
+          <div ref={initFullMap} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
           <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10, pointerEvents: 'auto' }}>
             <button
               onClick={() => setShowFullMap(false)}
