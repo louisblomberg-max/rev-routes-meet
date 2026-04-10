@@ -829,6 +829,8 @@ const Home = () => {
 
   const handleMapTap = async (lngLat: { lng: number; lat: number }) => {
     if (isNavigating) return;
+    // Only navigate on desktop — on mobile use search bar
+    if (window.innerWidth < 768) return;
     const { lng, lat } = lngLat;
 
     try {
@@ -1082,6 +1084,9 @@ const Home = () => {
       {/* ═══ Map utility buttons ═══ */}
       {!isNavigating && (
         <div className="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-2.5">
+          <div className="hidden md:block">
+            <HelpButton onClick={() => setIsHelpOpen(true)} />
+          </div>
           <LocationButton onClick={handleLocateUser} />
         </div>
       )}
