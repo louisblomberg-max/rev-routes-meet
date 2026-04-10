@@ -1036,7 +1036,13 @@ const Home = () => {
               <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
                 <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
               </div>
-              <UniversalSearch onSelectPin={handleSearchSelectPin} variant="mobile" />
+              <UniversalSearch
+                onSelectPin={handleSearchSelectPin}
+                onSelectPlace={(lat, lng, title) => {
+                  navigate('/navigation', { state: { destLat: lat, destLng: lng, destTitle: title } });
+                }}
+                variant="mobile"
+              />
             </div>
             <div className="flex items-center justify-around py-2 px-3">
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
@@ -1053,7 +1059,13 @@ const Home = () => {
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
-            <UniversalSearch onSelectPin={handleSearchSelectPin} variant="desktop" />
+            <UniversalSearch
+              onSelectPin={handleSearchSelectPin}
+              onSelectPlace={(lat, lng, title) => {
+                navigate('/navigation', { state: { destLat: lat, destLng: lng, destTitle: title } });
+              }}
+              variant="desktop"
+            />
           </div>
         </div>
       )}

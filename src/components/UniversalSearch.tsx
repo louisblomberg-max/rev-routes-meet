@@ -15,27 +15,50 @@ interface SearchResult {
   date?: string;
 }
 
+interface PlaceResult {
+  id: string;
+  place_name: string;
+  center: [number, number]; // [lng, lat]
+  place_type: string[];
+}
+
 interface UniversalSearchProps {
   onSelectPin: (id: string, lat: number, lng: number, type: string) => void;
+  onSelectPlace?: (lat: number, lng: number, title: string) => void;
   variant?: 'mobile' | 'desktop';
 }
 
-const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchProps) => {
+const UniversalSearch = ({ onSelectPin, onSelectPlace, variant = 'mobile' }: UniversalSearchProps) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
+  const [placeResults, setPlaceResults] = useState<PlaceResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   const runSearch = useCallback(async (q: string) => {
-    if (q.length < 2) { setResults([]); setIsOpen(false); return; }
+    if (q.length < 2) { setResults([]); setPlaceResults([]); setIsOpen(false); return; }
     setIsLoading(true);
     setIsOpen(true);
 
     const kw = q.replace(/[%_'"\\]/g, ' ').trim().slice(0, 100);
-    if (!kw) { setResults([]); setIsLoading(false); return; }
+    if (!kw) { setResults([]); setPlaceResults([]); setIsLoading(false); return; }
     const allResults: SearchResult[] = [];
+
+    // Mapbox place search — runs alongside existing pin search
+    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (mapboxToken) {
+      try {
+        const geoRes = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(kw)}.json?access_token=${mapboxToken}&country=gb&language=en&limit=3&types=address,poi,place,locality,neighborhood`
+        );
+        const geoData = await geoRes.json();
+        setPlaceResults(geoData.features || []);
+      } catch {
+        setPlaceResults([]);
+      }
+    }
 
     try {
       await Promise.all([
@@ -113,6 +136,7 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
       debounceRef.current = setTimeout(() => runSearch(val), 300);
     } else {
       setResults([]);
+      setPlaceResults([]);
       setIsOpen(false);
     }
   };
@@ -120,6 +144,7 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
   const handleResultTap = (result: SearchResult) => {
     setQuery('');
     setResults([]);
+    setPlaceResults([]);
     setIsOpen(false);
     if (['event', 'route', 'service'].includes(result.type) && result.lat && result.lng) {
       onSelectPin(result.id, result.lat, result.lng, result.type + 's');
@@ -130,7 +155,7 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
     }
   };
 
-  const clear = () => { setQuery(''); setResults([]); setIsOpen(false); };
+  const clear = () => { setQuery(''); setResults([]); setPlaceResults([]); setIsOpen(false); };
 
   const icons: Record<string, string> = { event: '📅', route: '🗺️', service: '🔧', club: '🏎️', user: '👤' };
   const typeColors: Record<string, string> = { event: '#d30d37', route: '#4f7fff', service: '#ff8000', club: '#8b5cf6', user: '#10b981' };
@@ -169,7 +194,7 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
               </div>
             )}
 
-            {!isLoading && results.length === 0 && (
+            {!isLoading && results.length === 0 && placeResults.length === 0 && (
               <div className="px-4 py-4 text-center">
                 <p className="text-sm text-muted-foreground">No results for &ldquo;{query}&rdquo;</p>
               </div>
@@ -195,9 +220,48 @@ const UniversalSearch = ({ onSelectPin, variant = 'mobile' }: UniversalSearchPro
               </button>
             ))}
 
-            {!isLoading && results.length > 0 && (
+            {placeResults.length > 0 && (
+              <div className="border-t border-border/20">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider px-3 pt-2 pb-1">
+                  Places
+                </p>
+                {placeResults.map(place => (
+                  <button
+                    key={place.id}
+                    onClick={() => {
+                      const [lng, lat] = place.center;
+                      setQuery('');
+                      setResults([]);
+                      setPlaceResults([]);
+                      setIsOpen(false);
+                      if (onSelectPlace) {
+                        onSelectPlace(lat, lng, place.place_name);
+                      }
+                    }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm">📍</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {place.place_name.split(',')[0]}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {place.place_name.split(',').slice(1).join(',').trim()}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 flex items-center gap-1 bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold">Navigate</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {!isLoading && (results.length > 0 || placeResults.length > 0) && (
               <div className="px-4 py-2 border-t border-border/20 bg-muted/20">
-                <p className="text-[10px] text-muted-foreground text-center">{results.length} result{results.length !== 1 ? 's' : ''}</p>
+                <p className="text-[10px] text-muted-foreground text-center">{results.length + placeResults.length} result{(results.length + placeResults.length) !== 1 ? 's' : ''}</p>
               </div>
             )}
           </div>
