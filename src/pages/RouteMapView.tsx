@@ -72,23 +72,33 @@ export default function RouteMapView() {
           maxZoom: 14
         })
 
-        const mk = (color: string) => {
-          const el = document.createElement('div')
-          el.style.cssText = `
-            width: 20px; height: 20px;
-            border-radius: 50%;
-            background: ${color};
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          `
-          return el
-        }
-
-        new mapboxgl.Marker({ element: mk('#22c55e'), anchor: 'center' })
+        // Start marker — green circle with white border
+        const startEl = document.createElement('div')
+        startEl.style.cssText = `
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #22c55e;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(34,197,94,0.5);
+        `
+        new mapboxgl.Marker({ element: startEl, anchor: 'center' })
           .setLngLat(coords[0])
           .addTo(map)
 
-        new mapboxgl.Marker({ element: mk('#d30d37'), anchor: 'center' })
+        // End marker — red teardrop matching navigation destination pin
+        const endEl = document.createElement('div')
+        endEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;'
+        endEl.innerHTML = `<div style="
+          width: 24px;
+          height: 24px;
+          background: #d30d37;
+          border: 3px solid white;
+          border-radius: 50% 50% 50% 0;
+          transform: rotate(-45deg);
+          box-shadow: 0 3px 12px rgba(211,13,55,0.5);
+        "></div>`
+        new mapboxgl.Marker({ element: endEl, anchor: 'bottom' })
           .setLngLat(coords[coords.length - 1])
           .addTo(map)
       }
