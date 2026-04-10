@@ -830,13 +830,30 @@ const Home = () => {
       }
     }
     if (navState.showRouteId) {
-      const route = state.routes.find(r => r.id === navState.showRouteId);
-      if (route) {
-        setSelectedDetail({ type: 'route', data: route });
+      const routeId = navState.showRouteId;
+      const cached = state.routes.find(r => r.id === routeId);
+      if (cached) {
+        setSelectedDetail({ type: 'route', data: cached });
         setActiveCategory('routes');
-        if (route.lat && route.lng && map) {
-          map.flyTo({ center: [route.lng, route.lat], zoom: 14, duration: 1500 });
+        if (cached.lat && cached.lng && map) {
+          map.flyTo({ center: [cached.lng, cached.lat], zoom: 14, duration: 1500 });
         }
+      } else {
+        // Route not in discovery cache (private, filtered out, etc) — fetch directly
+        supabase
+          .from('routes')
+          .select('*')
+          .eq('id', routeId)
+          .single()
+          .then(({ data: fetched }) => {
+            if (fetched) {
+              setSelectedDetail({ type: 'route', data: fetched as any });
+              setActiveCategory('routes');
+              if (fetched.lat && fetched.lng && map) {
+                map.flyTo({ center: [fetched.lng, fetched.lat], zoom: 14, duration: 1500 });
+              }
+            }
+          });
       }
     }
 
