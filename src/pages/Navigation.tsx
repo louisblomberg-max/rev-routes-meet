@@ -327,11 +327,34 @@ export default function Navigation() {
       (map.getSource('route') as mapboxgl.GeoJSONSource).setData(geojson)
     } else {
       map.addSource('route', { type: 'geojson', data: geojson })
-      map.addLayer({ id: 'route-shadow', type: 'line', source: 'route', paint: { 'line-color': '#000000', 'line-width': 12, 'line-opacity': 0.15, 'line-blur': 3 }, layout: { 'line-join': 'round', 'line-cap': 'round' } })
-      map.addLayer({ id: 'route-outline', type: 'line', source: 'route', paint: { 'line-color': '#0A3D6B', 'line-width': 11 }, layout: { 'line-join': 'round', 'line-cap': 'round' } })
-      map.addLayer({ id: 'route-fill', type: 'line', source: 'route', paint: { 'line-color': '#185FA5', 'line-width': 7 }, layout: { 'line-join': 'round', 'line-cap': 'round' } })
-      map.addSource('route-travelled', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } } })
-      map.addLayer({ id: 'route-travelled', type: 'line', source: 'route-travelled', paint: { 'line-color': '#64748B', 'line-width': 7 }, layout: { 'line-join': 'round', 'line-cap': 'round' } })
+      // Outer glow
+      map.addLayer({
+        id: 'route-outline',
+        type: 'line',
+        source: 'route',
+        paint: { 'line-color': '#0A3D6B', 'line-width': 6, 'line-opacity': 0.4 },
+        layout: { 'line-join': 'round', 'line-cap': 'round' }
+      })
+      // Main route line — thinner and sharper
+      map.addLayer({
+        id: 'route-fill',
+        type: 'line',
+        source: 'route',
+        paint: { 'line-color': '#185FA5', 'line-width': 4 },
+        layout: { 'line-join': 'round', 'line-cap': 'round' }
+      })
+      // Travelled portion
+      map.addSource('route-travelled', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: [] } }
+      })
+      map.addLayer({
+        id: 'route-travelled',
+        type: 'line',
+        source: 'route-travelled',
+        paint: { 'line-color': '#94A3B8', 'line-width': 4 },
+        layout: { 'line-join': 'round', 'line-cap': 'round' }
+      })
     }
   }, [])
 
@@ -366,11 +389,21 @@ export default function Navigation() {
             setTimeout(safeFit, 100);
             return;
           }
+          map.resize(); // ensure canvas dimensions are current
           try {
-            map.fitBounds(bounds, { padding: { top: 80, bottom: 320, left: 50, right: 50 }, duration: 1000, maxZoom: 15 });
-          } catch { /* silent — bounds error means map not ready */ }
+            map.fitBounds(bounds, {
+              padding: {
+                top: 120,
+                bottom: Math.round(window.innerHeight * 0.58),
+                left: 60,
+                right: 60
+              },
+              duration: 1200,
+              maxZoom: 14
+            });
+          } catch { /* silent */ }
         };
-        setTimeout(safeFit, 200);
+        setTimeout(safeFit, 300);
       }
       announcedDistancesRef.current = new Set()
     } catch (err) {
@@ -402,8 +435,20 @@ export default function Navigation() {
       map.resize(); // Ensure correct size on load
       if (destLat && destLng) {
         const destEl = document.createElement('div')
-        destEl.style.cssText = 'width:24px;height:24px;background:#22C55E;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(34,197,94,0.6);cursor:pointer;'
-        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'center' }).setLngLat([destLng, destLat]).addTo(map)
+        destEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
+        destEl.innerHTML = `
+          <div style="
+            width:28px;height:28px;
+            background:#d30d37;
+            border:3px solid white;
+            border-radius:50% 50% 50% 0;
+            transform:rotate(-45deg);
+            box-shadow:0 3px 12px rgba(211,13,55,0.5);
+          "></div>
+        `
+        destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'bottom' })
+          .setLngLat([destLng, destLat])
+          .addTo(map)
       }
       navigator.geolocation.getCurrentPosition(
         pos => { fetchRoute(map, pos.coords.longitude, pos.coords.latitude); map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }) },
@@ -501,18 +546,62 @@ export default function Navigation() {
       if (arrow) arrow.style.transform = `rotate(${heading || 0}deg)`
     } else {
       const el = document.createElement('div')
-      el.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;'
-      const accuracyCircle = document.createElement('div')
-      accuracyCircle.style.cssText = `position:absolute;width:60px;height:60px;border-radius:50%;background:rgba(24,95,165,0.15);border:1px solid rgba(24,95,165,0.3);`
-      el.appendChild(accuracyCircle)
+      el.style.cssText = 'position:relative;display:flex;align-items:center;justify-content:center;width:32px;height:32px;'
+
+      // Pulse ring
+      const pulse = document.createElement('div')
+      pulse.style.cssText = `
+        position:absolute;
+        width:32px;height:32px;
+        border-radius:50%;
+        background:rgba(24,95,165,0.2);
+        border:2px solid rgba(24,95,165,0.4);
+        animation:user-location-pulse 2s ease-out infinite;
+      `
+      el.appendChild(pulse)
+
+      // Direction arrow
       const arrow = document.createElement('div')
       arrow.className = 'user-arrow'
-      arrow.style.cssText = `width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #185FA5;position:absolute;top:-14px;transform:rotate(${heading || 0}deg);transform-origin:center 20px;transition:transform 0.3s ease;`
+      arrow.style.cssText = `
+        position:absolute;
+        width:0;height:0;
+        border-left:6px solid transparent;
+        border-right:6px solid transparent;
+        border-bottom:14px solid #185FA5;
+        top:-10px;
+        transform:rotate(${heading || 0}deg);
+        transform-origin:center 14px;
+        transition:transform 0.3s ease;
+      `
       el.appendChild(arrow)
+
+      // Centre dot
       const dot = document.createElement('div')
-      dot.style.cssText = `width:20px;height:20px;background:#185FA5;border:3px solid white;border-radius:50%;box-shadow:0 3px 12px rgba(24,95,165,0.6);position:relative;z-index:2;`
+      dot.style.cssText = `
+        width:16px;height:16px;
+        background:#185FA5;
+        border:3px solid white;
+        border-radius:50%;
+        box-shadow:0 2px 8px rgba(24,95,165,0.6);
+        position:relative;z-index:2;
+      `
       el.appendChild(dot)
-      userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat(newLoc).addTo(map)
+
+      // Add pulse animation if not already in DOM
+      if (!document.getElementById('user-location-pulse-style')) {
+        const style = document.createElement('style')
+        style.id = 'user-location-pulse-style'
+        style.textContent = `@keyframes user-location-pulse {
+          0% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(2.2); opacity: 0; }
+        }`
+        document.head.appendChild(style)
+      }
+
+      userMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(newLoc)
+        .addTo(map)
     }
     if (isFollowingRef.current) {
       map.easeTo({ center: newLoc, bearing: heading || 0, pitch: 55, zoom: 17, duration: 500 })
