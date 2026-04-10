@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Ruler, Star, Car, Bike, Share2, Bookmark, Flag, Mountain, Gauge, AlertTriangle, Clock, Send } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
 import BackButton from '@/components/BackButton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
