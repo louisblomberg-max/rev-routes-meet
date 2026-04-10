@@ -805,6 +805,13 @@ const Home = () => {
       setTimeout(() => refreshPins(), 500);
     }
 
+    // Clear any leaked vaul body styles before opening sheet
+    if (navState.showServiceId || navState.showEventId || navState.showRouteId) {
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+      document.body.style.touchAction = '';
+    }
+
     if (navState.showServiceId) {
       const service = state.services.find(s => s.id === navState.showServiceId);
       if (service) {
@@ -967,7 +974,15 @@ const Home = () => {
     handlePinClickRef.current = handlePinClick;
   });
 
-  const handleCloseDetail = () => setSelectedDetail(null);
+  const handleCloseDetail = useCallback(() => {
+    setSelectedDetail(null);
+    // Defensive reset — vaul 0.9.x leaks body styles on rapid close or unmount race
+    setTimeout(() => {
+      document.body.style.overflow = '';
+      document.body.style.pointerEvents = '';
+      document.body.style.touchAction = '';
+    }, 350);
+  }, []);
 
   const handleSearchSelectPin = useCallback((id: string, lat: number, lng: number, type: string) => {
     if (mapRef.current) {
@@ -980,10 +995,14 @@ const Home = () => {
     }, 1200);
   }, [handlePinClick]);
 
-  const handleViewFull = (type: string, id: string) => {
+  const handleViewFull = useCallback((type: string, id: string) => {
     setSelectedDetail(null);
+    // Reset body styles before navigation — vaul may not clean up if parent unmounts
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    document.body.style.touchAction = '';
     navigate(`/${type}/${id}`);
-  };
+  }, [navigate]);
 
   /* ── Fix 8 — Filter badge count ── */
   const activeFilterCount = useMemo(() => {
