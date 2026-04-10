@@ -20,6 +20,12 @@ const ForumThread = () => {
   const [comments, setComments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [votedPostIds, setVotedPostIds] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('revnet_voted_posts');
+      return new Set(stored ? JSON.parse(stored) : []);
+    } catch { return new Set(); }
+  });
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -45,10 +51,36 @@ const ForumThread = () => {
   };
 
   const handleUpvote = async () => {
-    if (!post) return;
-    const newUpvotes = (post.upvotes || 0) + 1;
-    setPost({ ...post, upvotes: newUpvotes });
-    await supabase.from('forum_posts').update({ upvotes: newUpvotes }).eq('id', post.id);
+    if (!post?.id) return;
+    if (votedPostIds.has(post.id)) { toast('You already voted on this post'); return; }
+    const newVoted = new Set([...votedPostIds, post.id]);
+    setVotedPostIds(newVoted);
+    localStorage.setItem('revnet_voted_posts', JSON.stringify([...newVoted]));
+    await supabase.from('forum_posts').update({ upvotes: (post.upvotes || 0) + 1 }).eq('id', post.id);
+    setPost((prev: any) => prev ? { ...prev, upvotes: (prev.upvotes || 0) + 1 } : prev);
+  };
+
+  const handleDownvote = async () => {
+    if (!post?.id) return;
+    if (votedPostIds.has(post.id)) { toast('You already voted on this post'); return; }
+    const newVoted = new Set([...votedPostIds, post.id]);
+    setVotedPostIds(newVoted);
+    localStorage.setItem('revnet_voted_posts', JSON.stringify([...newVoted]));
+    await supabase.from('forum_posts').update({ upvotes: Math.max(0, (post.upvotes || 0) - 1) }).eq('id', post.id);
+    setPost((prev: any) => prev ? { ...prev, upvotes: Math.max(0, (prev.upvotes || 0) - 1) } : prev);
+  };
+
+  const handleCommentUpvote = async (commentId: string, currentUpvotes: number) => {
+    if (!user?.id) { toast.error('Sign in to upvote'); return; }
+    const { error: voteError } = await supabase.from('forum_comments')
+      .update({ upvotes: (currentUpvotes || 0) + 1 })
+      .eq('id', commentId);
+    if (voteError) { toast.error('Failed to upvote'); return; }
+    const { data } = await supabase.from('forum_comments')
+      .select('*, profiles(username, avatar_url, display_name)')
+      .eq('post_id', id!)
+      .order('created_at');
+    setComments(data || []);
   };
 
   if (isLoading) {
@@ -105,7 +137,7 @@ const ForumThread = () => {
             <div className="flex items-center gap-1 bg-muted rounded-full px-3 py-1.5">
               <button className="p-0.5 hover:text-primary" onClick={handleUpvote}><ArrowUp className="w-5 h-5" /></button>
               <span className="text-sm font-medium px-1">{post.upvotes || 0}</span>
-              <button className="p-0.5 hover:text-destructive" onClick={async () => { if (!post) return; const newUpvotes = Math.max(0, (post.upvotes || 0) - 1); setPost({ ...post, upvotes: newUpvotes }); await supabase.from('forum_posts').update({ upvotes: newUpvotes }).eq('id', post.id); }}><ArrowDown className="w-5 h-5" /></button>
+              <button className="p-0.5 hover:text-destructive" onClick={handleDownvote}><ArrowDown className="w-5 h-5" /></button>
             </div>
             <div className="flex items-center gap-1.5 text-muted-foreground"><MessageCircle className="w-5 h-5" /><span className="text-sm">{comments.length}</span></div>
             <button className="p-2 hover:bg-muted rounded-full ml-auto" onClick={() => { if (navigator.share) navigator.share({ title: post.title, url: window.location.href }).catch(() => {}); else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); } }}><Share2 className="w-5 h-5 text-muted-foreground" /></button>
@@ -127,7 +159,7 @@ const ForumThread = () => {
                   </div>
                   <p className="text-sm text-foreground mb-3">{comment.body}</p>
                   <div className="flex items-center gap-1">
-                    <button className="p-1 hover:bg-muted rounded"><ArrowUp className="w-4 h-4 text-muted-foreground" /></button>
+                    <button className="p-1 hover:bg-muted rounded" onClick={() => handleCommentUpvote(comment.id, comment.upvotes || 0)}><ArrowUp className="w-4 h-4 text-muted-foreground" /></button>
                     <span className="text-xs text-muted-foreground">{comment.upvotes || 0}</span>
                   </div>
                 </div>

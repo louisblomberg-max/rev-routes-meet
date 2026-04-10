@@ -81,7 +81,18 @@ const MyClubs = () => {
                   Discover Clubs
                 </Button>
               )}
-              <Button onClick={() => navigate('/add/club')} className="bg-clubs hover:bg-clubs/90 text-clubs-foreground">
+              <Button
+                onClick={() => {
+                  if (currentPlan !== 'club') {
+                    toast.error('Creating clubs requires Club & Business plan', {
+                      action: { label: 'Upgrade', onClick: () => navigate('/subscription') }
+                    });
+                    return;
+                  }
+                  navigate('/add/club');
+                }}
+                className="bg-clubs hover:bg-clubs/90 text-clubs-foreground"
+              >
                 <Plus className="w-4 h-4 mr-1" /> Create Club
               </Button>
             </div>

@@ -12,7 +12,7 @@ const Forums = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'relevant' | 'newest' | 'upvoted'>('relevant');
+  const [sortBy, setSortBy] = useState<'newest' | 'upvoted'>('newest');
   const [posts, setPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +27,6 @@ const Forums = () => {
   ];
 
   const sortOptions = [
-    { id: 'relevant', label: 'Relevant' },
     { id: 'newest', label: 'Newest' },
     { id: 'upvoted', label: 'Top' },
   ];
@@ -37,8 +36,7 @@ const Forums = () => {
     setError(null);
     let query = supabase.from('forum_posts').select('*, profiles(username, avatar_url, display_name)');
     if (selectedCategory) query = query.eq('category', selectedCategory);
-    if (sortBy === 'newest') query = query.order('created_at', { ascending: false });
-    else if (sortBy === 'upvoted') query = query.order('upvotes', { ascending: false });
+    if (sortBy === 'upvoted') query = query.order('upvotes', { ascending: false });
     else query = query.order('created_at', { ascending: false });
 
     const { data, error: err } = await query;
