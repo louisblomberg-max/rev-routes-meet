@@ -847,10 +847,37 @@ const Home = () => {
           .single()
           .then(({ data: fetched }) => {
             if (fetched) {
-              setSelectedDetail({ type: 'route', data: fetched as any });
+              const normalised = {
+                ...fetched,
+                id: fetched.id,
+                name: fetched.name,
+                description: fetched.description || '',
+                type: fetched.type || '',
+                difficulty: fetched.difficulty || '',
+                distance: fetched.distance_meters ? `${(fetched.distance_meters / 1000).toFixed(1)} km` : '',
+                distance_meters: fetched.distance_meters,
+                duration_minutes: fetched.duration_minutes,
+                durationMinutes: fetched.duration_minutes,
+                vehicleType: fetched.vehicle_type || '',
+                surfaceType: fetched.surface_type || '',
+                surface_type: fetched.surface_type,
+                safetyTags: fetched.safety_tags || [],
+                lat: fetched.lat,
+                lng: fetched.lng,
+                createdBy: fetched.created_by || '',
+                created_by: fetched.created_by,
+                rating: fetched.rating,
+                geometry: fetched.geometry,
+                photos: fetched.photos || [],
+                polyline: fetched.geometry ? JSON.stringify(fetched.geometry) : null,
+                visibility: fetched.visibility || 'public',
+                createdAt: fetched.created_at || '',
+                elevationGain: fetched.elevation_gain,
+              } as any;
+              setSelectedDetail({ type: 'route', data: normalised });
               setActiveCategory('routes');
-              if (fetched.lat && fetched.lng && map) {
-                map.flyTo({ center: [fetched.lng, fetched.lat], zoom: 14, duration: 1500 });
+              if (normalised.lat && normalised.lng && map) {
+                map.flyTo({ center: [normalised.lng, normalised.lat], zoom: 14, duration: 1500 });
               }
             }
           });
