@@ -27,6 +27,13 @@ const MyEvents = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past' | 'saved'>('upcoming');
   const [attendeeMap, setAttendeeMap] = useState<Record<string, any[]>>({});
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const [eventCredits, setEventCredits] = useState<number>(0);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase.from('profiles').select('free_event_credits').eq('id', user.id).single()
+      .then(({ data }) => { if (data?.free_event_credits !== undefined && data.free_event_credits !== null) setEventCredits(data.free_event_credits); });
+  }, [user?.id]);
 
   const hosted = upcoming.filter(e => e.isHost);
 
@@ -94,7 +101,7 @@ const MyEvents = () => {
           <div className="flex items-center gap-2">
             {currentPlan === 'free' && (
               <span className="text-xs px-2 py-0.5 rounded-full" style={{ backgroundColor: '#fce8ed', color: '#d30d37' }}>
-                {user?.eventCredits || 0} credit{(user?.eventCredits || 0) !== 1 ? 's' : ''}
+                {eventCredits} credit{eventCredits !== 1 ? 's' : ''}
               </span>
             )}
             <Button size="sm" onClick={() => navigate('/add/event')} className="gap-1.5 rounded-lg">

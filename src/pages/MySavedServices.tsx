@@ -24,7 +24,7 @@ const MySavedServices = () => {
     <div className="mobile-container bg-background min-h-screen">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
-          <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" />
+          <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} />
           <div>
             <h1 className="text-lg font-bold text-foreground">Saved Services</h1>
             <p className="text-xs text-muted-foreground">{saved.length} saved</p>

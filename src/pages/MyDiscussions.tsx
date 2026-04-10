@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MessageSquare, Plus, ThumbsUp, MessageCircle, HelpCircle, Lightbulb, Trash2, MoreHorizontal, Clock, Bookmark } from 'lucide-react';
+import { MessageSquare, Plus, ThumbsUp, MessageCircle, HelpCircle, Lightbulb, Trash2, MoreHorizontal, Clock } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,8 @@ const postTypeIcons = {
 
 const MyDiscussions = () => {
   const navigate = useNavigate();
-  const { posts, replies, savedPosts, isLoading } = useUserDiscussions();
-  const [activeTab, setActiveTab] = useState<'posts' | 'replies' | 'saved'>('posts');
+  const { posts, replies, isLoading } = useUserDiscussions();
+  const [activeTab, setActiveTab] = useState<'posts' | 'replies'>('posts');
   const [deletedPostIds, setDeletedPostIds] = useState<Set<string>>(new Set());
 
   const formatDate = (dateString: string) => {
@@ -36,7 +36,6 @@ const MyDiscussions = () => {
   const tabs = [
     { id: 'posts' as const, label: 'Posts', count: posts.length },
     { id: 'replies' as const, label: 'Replies', count: replies.length },
-    { id: 'saved' as const, label: 'Saved', count: savedPosts.length },
   ];
 
   return (
@@ -44,7 +43,7 @@ const MyDiscussions = () => {
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" />
+            <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} />
             <div>
               <h1 className="text-lg font-bold text-foreground">My Discussions</h1>
               <p className="text-xs text-muted-foreground">{posts.length} posts, {replies.length} replies</p>
@@ -108,9 +107,17 @@ const MyDiscussions = () => {
                                 <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0" onClick={(e) => e.stopPropagation()}><MoreHorizontal className="w-4 h-4" /></Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>View Post</DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>Edit Post</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={async () => { const { error } = await supabase.from('forum_posts').delete().eq('id', post.id); if (error) { toast.error('Failed to delete post'); return; } setDeletedPostIds(prev => new Set([...prev, post.id])); toast.success('Post deleted'); }}>
+                                <DropdownMenuItem onClick={() => navigate(`/forums/thread/${post.id}`)}>View Thread</DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={async () => {
+                                    if (!window.confirm('Delete this post? This cannot be undone.')) return;
+                                    const { error } = await supabase.from('forum_posts').delete().eq('id', post.id);
+                                    if (error) { toast.error('Failed to delete post'); return; }
+                                    setDeletedPostIds(prev => new Set([...prev, post.id]));
+                                    toast.success('Post deleted');
+                                  }}
+                                >
                                   <Trash2 className="w-4 h-4 mr-2" /> Delete
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
@@ -157,44 +164,6 @@ const MyDiscussions = () => {
               )
             )}
 
-            {/* Saved */}
-            {activeTab === 'saved' && (
-              savedPosts.length === 0 ? (
-                <div className="bg-card rounded-2xl border border-border/50 shadow-sm p-8 text-center">
-                  <Bookmark className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                  <h3 className="font-semibold text-foreground mb-1">No saved posts</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Save posts you want to read later</p>
-                  <Button variant="outline" onClick={() => navigate('/forums')}>Browse Forums</Button>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {savedPosts.map(post => {
-                    const typeInfo = getPostTypeInfo(post.type);
-                    const categoryInfo = getCategoryInfo(post.category);
-                    const TypeIcon = postTypeIcons[post.type] || MessageSquare;
-                    return (
-                      <div key={post.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-                        <button onClick={() => navigate(`/forums/thread/${post.id}`)} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
-                          <div className="flex items-center gap-2 flex-wrap mb-2">
-                            <Badge className={`text-[10px] py-0 h-5 ${typeInfo.color}`}><TypeIcon className="w-3 h-3 mr-1" />{typeInfo.label}</Badge>
-                            <Badge variant="outline" className="text-[10px] py-0 h-5">{categoryInfo.name}</Badge>
-                          </div>
-                          <h3 className="font-bold text-foreground mb-1 line-clamp-2">{post.title}</h3>
-                          <p className="text-xs text-muted-foreground mb-2">by {post.author}</p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5" /><span>{post.upvotes}</span></div>
-                            <div className="flex items-center gap-1"><MessageCircle className="w-3.5 h-3.5" /><span>{post.comments} replies</span></div>
-                          </div>
-                        </button>
-                        <div className="border-t border-border/30">
-                          <button onClick={() => toast.info('Unsave feature coming soon.')} className="w-full py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">Unsave</button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )
-            )}
           </>
         )}
       </div>

@@ -17,7 +17,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useGarage, useUserPreferences } from '@/contexts/GarageContext';
 import {
-  ENTHUSIAST_TAGS, TRANSMISSION_OPTIONS, DRIVETRAIN_OPTIONS,
+  TRANSMISSION_OPTIONS, DRIVETRAIN_OPTIONS,
   getRecommendationBullets,
 } from '@/models/garage';
 import type { GarageVehicle } from '@/models/garage';
@@ -39,6 +39,15 @@ const VIS_CONFIG = {
 const VEHICLE_TYPE_ICONS: Record<string, string> = {
   car: '🚗', motorcycle: '🏍️', van: '🚐', truck: '🚛', classic: '🏆', other: '🚙',
 };
+
+const VEHICLE_TYPES = [
+  { id: 'car', label: 'Car', emoji: '🚗' },
+  { id: 'motorcycle', label: 'Motorcycle', emoji: '🏍️' },
+  { id: 'van', label: 'Van', emoji: '🚐' },
+  { id: 'truck', label: 'Truck', emoji: '🚛' },
+  { id: 'classic', label: 'Classic', emoji: '🏆' },
+  { id: 'other', label: 'Other', emoji: '🚙' },
+];
 
 const MyGarage = () => {
   const navigate = useNavigate();
@@ -241,6 +250,7 @@ const MyGarage = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm('Remove this vehicle from your garage? This cannot be undone.')) return;
     try {
       await deleteVehicle(id);
       toast.success('Vehicle removed');
@@ -467,11 +477,7 @@ const MyGarage = () => {
           <div className="py-5 px-2 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
             {/* Vehicle Type */}
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { id: 'car', label: 'Car', icon: '🚗' },
-                { id: 'motorcycle', label: 'Motorcycle', icon: '🏍️' },
-                { id: 'other', label: 'Other', icon: '🚙' },
-              ].map((t) => (
+              {VEHICLE_TYPES.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => {
@@ -486,7 +492,7 @@ const MyGarage = () => {
                       : 'border-border/50 bg-card text-muted-foreground'
                   }`}
                 >
-                  <span className="text-lg">{t.icon}</span>
+                  <span className="text-lg">{t.emoji}</span>
                   <span className="text-[10px]">{t.label}</span>
                 </button>
               ))}

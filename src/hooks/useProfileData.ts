@@ -169,8 +169,8 @@ export function useUserEvents() {
 
   useEffect(() => {
     if (!user?.id) { setIsLoading(false); return; }
-    const now = new Date().toISOString();
-    (async () => {
+    const load = async () => {
+      const now = new Date().toISOString();
       const [attendingRes, hostingRes, savedRes] = await Promise.all([
         supabase.from('event_attendees').select('event_id, events(*)').eq('user_id', user.id),
         supabase.from('events').select('*').eq('created_by', user.id),
@@ -200,7 +200,12 @@ export function useUserEvents() {
       setPast(unique.filter(e => e.date_start && new Date(e.date_start) < new Date(now)));
       setSaved(savedEvents);
       setIsLoading(false);
-    })();
+    };
+    load();
+
+    const visibilityHandler = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', visibilityHandler);
+    return () => document.removeEventListener('visibilitychange', visibilityHandler);
   }, [user?.id]);
 
   return { upcoming, past, saved, isLoading, error: null };
@@ -214,14 +219,19 @@ export function useUserSavedServices() {
 
   useEffect(() => {
     if (!user?.id) { setIsLoading(false); return; }
-    (async () => {
+    const load = async () => {
       const { data } = await supabase.from('saved_services').select('*, services(*)').eq('user_id', user.id);
       setSaved((data || []).map((s: any) => ({
         id: s.services?.id, name: s.services?.name, category: s.services?.service_type || 'Service',
         rating: s.services?.rating || 0, address: s.services?.address || '', ...s.services,
       })).filter((s: any) => s.id));
       setIsLoading(false);
-    })();
+    };
+    load();
+
+    const visibilityHandler = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', visibilityHandler);
+    return () => document.removeEventListener('visibilitychange', visibilityHandler);
   }, [user?.id]);
 
   return { saved, isLoading };
@@ -236,7 +246,7 @@ export function useUserRoutes() {
 
   useEffect(() => {
     if (!user?.id) { setIsLoading(false); return; }
-    (async () => {
+    const load = async () => {
       const [savedRes, createdRes] = await Promise.all([
         supabase.from('saved_routes').select('*, routes(*)').eq('user_id', user.id),
         supabase.from('routes').select('*').eq('created_by', user.id),
@@ -285,7 +295,12 @@ export function useUserRoutes() {
       setSaved(savedRoutes);
       setCreated(createdRoutes);
       setIsLoading(false);
-    })();
+    };
+    load();
+
+    const visibilityHandler = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', visibilityHandler);
+    return () => document.removeEventListener('visibilitychange', visibilityHandler);
   }, [user?.id]);
 
   return { saved, created, isLoading, error: null };
@@ -296,12 +311,11 @@ export function useUserDiscussions() {
   const { user } = useAuth();
   const [posts, setPosts] = useState<any[]>([]);
   const [replies, setReplies] = useState<any[]>([]);
-  const [savedPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!user?.id) { setIsLoading(false); return; }
-    (async () => {
+    const load = async () => {
       const [postsRes, repliesRes] = await Promise.all([
         supabase.from('forum_posts').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
         supabase.from('forum_comments').select('*, forum_posts(title, id)').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -316,8 +330,13 @@ export function useUserDiscussions() {
         content: r.body, upvotes: r.upvotes || 0, createdAt: r.created_at,
       })));
       setIsLoading(false);
-    })();
+    };
+    load();
+
+    const visibilityHandler = () => { if (document.visibilityState === 'visible') load(); };
+    document.addEventListener('visibilitychange', visibilityHandler);
+    return () => document.removeEventListener('visibilitychange', visibilityHandler);
   }, [user?.id]);
 
-  return { posts, replies, savedPosts, isLoading, error: null };
+  return { posts, replies, isLoading, error: null };
 }
