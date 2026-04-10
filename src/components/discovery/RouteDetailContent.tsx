@@ -1,12 +1,10 @@
-import { Star, Route, Clock, Navigation, Bookmark, Share2, ArrowLeft } from 'lucide-react';
+import { Star, Route, Clock, Navigation, Bookmark, Share2 } from 'lucide-react';
 import { RevRoute } from '@/models';
 import { toast } from 'sonner';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import mapboxgl from 'mapbox-gl';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || '';
 
 interface RouteDetailContentProps {
   route: RevRoute;
@@ -18,7 +16,7 @@ interface RouteDetailContentProps {
 }
 
 const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave }: RouteDetailContentProps) => {
-  const [showFullMap, setShowFullMap] = useState(false);
+  const navigate = useNavigate();
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [reviews, setReviews] = useState<any[]>([]);
   const [userReview, setUserReview] = useState<any>(null);
@@ -30,7 +28,6 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [dbPhotos, setDbPhotos] = useState<string[]>([]);
   const [showGallery, setShowGallery] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const fullMapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
 
@@ -111,76 +108,6 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
     if (navigator.share) navigator.share({ title: route.name, text: `Check out ${route.name} on RevNet` }).catch(() => {});
     else { navigator.clipboard.writeText(window.location.href); toast.success('Link copied'); }
   };
-
-  // Callback ref — fires the instant the div mounts in the DOM
-  const initFullMap = useCallback((container: HTMLDivElement | null) => {
-    if (!container) {
-      // Div unmounted — clean up
-      try {
-        if (fullMapInstanceRef.current) {
-          fullMapInstanceRef.current.remove();
-          fullMapInstanceRef.current = null;
-        }
-      } catch {
-        fullMapInstanceRef.current = null;
-      }
-      return;
-    }
-    if (fullMapInstanceRef.current) return; // already initialised
-
-    const map = new mapboxgl.Map({
-      container,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [data.lng || -1.5, data.lat || 52.5],
-      zoom: 10,
-      dragPan: true,
-      scrollZoom: true,
-      touchZoomRotate: true,
-      doubleClickZoom: true,
-      keyboard: true,
-      interactive: true,
-    });
-
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: false }), 'bottom-right');
-    map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
-    fullMapInstanceRef.current = map;
-
-    map.on('load', () => {
-      map.resize();
-      if (!geometry) return;
-      map.addSource('fr', { type: 'geojson', data: { type: 'Feature', properties: {}, geometry } });
-      map.addLayer({
-        id: 'fr-bg', type: 'line', source: 'fr',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#fff', 'line-width': 8, 'line-opacity': 0.9 }
-      });
-      map.addLayer({
-        id: 'fr-line', type: 'line', source: 'fr',
-        layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#4f7fff', 'line-width': 5 }
-      });
-      const coords = geometry.type === 'LineString'
-        ? geometry.coordinates
-        : geometry.coordinates?.[0] || [];
-      if (coords.length > 1) {
-        const bounds = coords.reduce(
-          (b: mapboxgl.LngLatBounds, c: number[]) => b.extend(c as [number, number]),
-          new mapboxgl.LngLatBounds(coords[0], coords[0])
-        );
-        map.fitBounds(bounds, {
-          padding: { top: 80, bottom: 100, left: 60, right: 60 },
-          duration: 800
-        });
-        const mk = (color: string) => {
-          const el = document.createElement('div');
-          el.style.cssText = `width:16px;height:16px;border-radius:50%;background:${color};border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3);`;
-          return el;
-        };
-        new mapboxgl.Marker({ element: mk('#22c55e') }).setLngLat(coords[0]).addTo(map);
-        new mapboxgl.Marker({ element: mk('#ef4444') }).setLngLat(coords[coords.length - 1]).addTo(map);
-      }
-    });
-  }, [geometry, data.lng, data.lat]);
 
   return (
     <div className="space-y-3">
@@ -287,7 +214,18 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
       {/* Buttons */}
       <div className="flex gap-2">
         {geometry && (
-          <button onClick={() => setShowFullMap(true)} className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-routes/30 bg-routes/5 text-routes flex items-center justify-center gap-1.5">
+          <button
+            onClick={() => navigate('/route-map', {
+              state: {
+                geometry,
+                routeName: route.name,
+                distance: data.distance_meters ? `${(data.distance_meters / 1000).toFixed(1)} km` : null,
+                duration: data.duration_minutes || null,
+                difficulty: route.difficulty || null,
+              }
+            })}
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-routes/30 bg-routes/5 text-routes flex items-center justify-center gap-1.5"
+          >
             <Route className="w-3.5 h-3.5" /> View Route
           </button>
         )}
@@ -347,29 +285,6 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
         {reviews.length === 0 && !isEditingReview && <p className="text-[10px] text-muted-foreground text-center py-1">No reviews yet</p>}
       </div>
-
-      {/* Full-screen map — rendered via portal to escape bottom sheet */}
-      {showFullMap && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999, background: '#000' }}>
-          <div ref={initFullMap} style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }} />
-          <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10, pointerEvents: 'auto' }}>
-            <button
-              onClick={() => setShowFullMap(false)}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 16px', borderRadius: 12, background: 'white', boxShadow: '0 4px 12px rgba(0,0,0,0.25)', fontSize: 14, fontWeight: 600, border: 'none', cursor: 'pointer', WebkitTapHighlightColor: 'transparent' }}>
-              ← Back to Route
-            </button>
-          </div>
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', padding: '12px 16px', paddingBottom: 'max(12px, env(safe-area-inset-bottom))', borderTop: '1px solid #eee', zIndex: 10, pointerEvents: 'none' }}>
-            <p style={{ fontWeight: 700, fontSize: 14, margin: 0 }}>{route.name}</p>
-            <div style={{ display: 'flex', gap: 16, marginTop: 4, fontSize: 12, color: '#888' }}>
-              {data.distance_meters && <span>{(data.distance_meters / 1000).toFixed(1)} km</span>}
-              {data.duration_minutes && <span>~{data.duration_minutes} min</span>}
-              {route.difficulty && <span style={{ textTransform: 'capitalize' }}>{route.difficulty}</span>}
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
 
       {/* Full screen photo gallery */}
       {showGallery && createPortal(

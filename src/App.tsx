@@ -62,6 +62,7 @@ const ServicesList = React.lazy(() => import("./pages/ServicesList"));
 const MySavedServices = React.lazy(() => import("./pages/MySavedServices"));
 const ManageServices = React.lazy(() => import("./pages/MyServices"));
 const SOSRequest = React.lazy(() => import("./pages/SOSRequest"));
+const RouteMapView = React.lazy(() => import("./pages/RouteMapView"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
@@ -175,6 +176,7 @@ const App = () => (
           <Route path="/add/listing" element={<ProtectedRoute><CreateListing /></ProtectedRoute>} />
           <Route path="/friends" element={<Navigate to="/my-friends" replace />} />
           <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
+          <Route path="/route-map" element={<ProtectedRoute><RouteMapView /></ProtectedRoute>} />
           <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/ticket-success" element={<ProtectedRoute><TicketSuccess /></ProtectedRoute>} />
