@@ -9,7 +9,7 @@ import {
   Shirt,
   Watch,
   SlidersHorizontal,
-  Heart,
+  Bookmark,
   Plus,
   TrendingUp,
   Clock,
@@ -711,7 +711,7 @@ const MarketplaceTab = () => {
                   onClick={() => toggleSaved(featuredListing.id)}
                   className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center hover:bg-white/30 transition-all"
                 >
-                  <Heart className={`w-5 h-5 ${savedListings.includes(featuredListing.id) ? 'fill-red-500 text-red-500' : 'text-white'}`} />
+                  <Bookmark className={`w-5 h-5 ${savedListings.includes(featuredListing.id) ? 'fill-current text-white' : 'text-white'}`} />
                 </button>
               </div>
             </div>
@@ -763,7 +763,7 @@ const MarketplaceTab = () => {
                       }}
                       className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-white/80 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 text-red-500' : 'text-muted-foreground'}`} />
+                      <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current text-foreground' : 'text-muted-foreground'}`} />
                     </button>
                     <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-lg bg-gradient-to-r ${category?.gradient || 'from-gray-500 to-gray-600'} text-[10px] font-semibold text-white`}>
                       {listing.category}
@@ -815,7 +815,7 @@ const MarketplaceTab = () => {
           <div className="bg-card border border-border/50 rounded-xl p-4 shadow-elevated flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-marketplace flex items-center justify-center">
-                <Heart className="w-5 h-5 text-marketplace-foreground fill-current" />
+                <Bookmark className="w-5 h-5 text-marketplace-foreground fill-current" />
               </div>
               <div>
                 <p className="text-sm font-bold text-foreground">{savedListings.length} saved items</p>

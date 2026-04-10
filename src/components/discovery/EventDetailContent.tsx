@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Bookmark, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -270,12 +271,14 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
               isSaved ? 'bg-events/10 border-events text-events' : 'bg-muted/50 border-border/50 text-muted-foreground'
             }`}
           >
-            {isSaved ? '♥' : '♡'}
+            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
           </button>
           <button
             onClick={handleShare}
             className="w-9 h-9 rounded-xl flex items-center justify-center border bg-muted/50 border-border/50 text-muted-foreground"
-          >↗</button>
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

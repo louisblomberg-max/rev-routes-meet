@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Globe, Clock, Star, Bookmark, BookmarkCheck, Flag, Shield } from 'lucide-react';
+import { MapPin, Phone, Globe, Clock, Star, Bookmark, BookmarkCheck, Share2, Flag, Shield } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,15 @@ const ServiceDetail = () => {
     };
     fetchService();
   }, [id, user?.id]);
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({ title: service?.name, url: window.location.href }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied');
+    }
+  };
 
   const toggleSave = async () => {
     if (!user?.id || !id) return;
@@ -159,6 +168,9 @@ const ServiceDetail = () => {
           <Button variant="outline" className="flex-1" onClick={toggleSave}>
             {isSaved ? <BookmarkCheck className="w-4 h-4 mr-1" /> : <Bookmark className="w-4 h-4 mr-1" />}
             {isSaved ? 'Saved' : 'Save'}
+          </Button>
+          <Button variant="outline" className="flex-1" onClick={handleShare}>
+            <Share2 className="w-4 h-4 mr-1" /> Share
           </Button>
           {service.lat && service.lng && (
             <div className="flex-1">
