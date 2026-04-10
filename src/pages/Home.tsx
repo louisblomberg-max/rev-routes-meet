@@ -107,6 +107,30 @@ const Home = () => {
   /* ── Search state ── */
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Reset body styles on mount — defensive cleanup in case any
+  // previous sheet/modal left styles that block map interaction
+  useEffect(() => {
+    document.body.style.overflow = '';
+    document.body.style.touchAction = '';
+    document.body.style.pointerEvents = '';
+  }, []);
+
+  // Reset body styles when user returns to tab
+  // Recovers from sheets that didn't clean up properly
+  useEffect(() => {
+    const reset = () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.style.pointerEvents = '';
+    };
+    document.addEventListener('visibilitychange', reset);
+    window.addEventListener('focus', reset);
+    return () => {
+      document.removeEventListener('visibilitychange', reset);
+      window.removeEventListener('focus', reset);
+    };
+  }, []);
+
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -1007,7 +1031,6 @@ const Home = () => {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
           100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
         }
-        .mapboxgl-marker { z-index: 10 !important; }
       `}</style>
       <MapView
         onMapTap={(lngLat) => {
