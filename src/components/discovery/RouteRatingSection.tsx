@@ -25,8 +25,8 @@ const RouteRatingSection = ({ routeId, currentRating }: RouteRatingSectionProps)
       toast.error('You must be signed in to rate a route');
       return;
     }
-    const { error } = await supabase.from('route_ratings').upsert(
-      { route_id: routeId, user_id: user.id, rating: userRating },
+    const { error } = await supabase.from('route_reviews').upsert(
+      { route_id: routeId, user_id: user.id, rating: userRating, review_text: null },
       { onConflict: 'route_id,user_id' }
     );
     if (error) {

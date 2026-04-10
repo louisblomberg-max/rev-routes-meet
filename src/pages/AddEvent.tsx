@@ -391,40 +391,37 @@ const AddEvent = () => {
 
   // Validation
   const validate = (): boolean => {
-    console.log('validate called', { title, description: description.trim().split(/\s+/).length, eventTypes, location, locationLat, locationLng, dates, unlimitedSpaces, maxAttendees, entryType })
-    if (!title.trim()) { console.log('FAIL: no title'); toast.error('Please enter an event name'); return false }
+    if (!title.trim()) { toast.error('Please enter an event name'); return false }
     if (!description.trim() || description.trim().split(/\s+/).length < 15) {
-      console.log('FAIL: description too short'); toast.error('Description must be at least 15 words'); return false
+      toast.error('Description must be at least 15 words'); return false
     }
-    if (eventTypes.length === 0) { console.log('FAIL: no event types'); toast.error('Please select at least one event type'); return false }
-    if (!location.trim()) { console.log('FAIL: no location'); toast.error('Please enter a location'); return false }
-    if (!locationLat || !locationLng) { console.log('FAIL: no lat/lng'); toast.error('Please select a location from the dropdown'); return false }
+    if (eventTypes.length === 0) { toast.error('Please select at least one event type'); return false }
+    if (!location.trim()) { toast.error('Please enter a location'); return false }
+    if (!locationLat || !locationLng) { toast.error('Please select a location from the dropdown'); return false }
     const validDatesList = dates.filter(d => d.date)
-    if (validDatesList.length === 0) { console.log('FAIL: no dates'); toast.error('Please add at least one date'); return false }
-    if (!unlimitedSpaces && !maxAttendees) { console.log('FAIL: no max attendees'); toast.error('Please enter max attendees or enable unlimited spaces'); return false }
+    if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
+    if (!unlimitedSpaces && !maxAttendees) { toast.error('Please enter max attendees or enable unlimited spaces'); return false }
     if (entryType === 'ticketed') {
       const isPro = userPlan === 'pro' || userPlan === 'club' || userPlan === 'organiser';
       if (!isPro) {
-        console.log('FAIL: ticketed requires pro'); toast.error('Selling tickets requires Pro Driver or Club & Business plan'); return false
+        toast.error('Selling tickets requires Pro Driver or Club & Business plan'); return false
       }
       if (!ticketPrice || Number(ticketPrice) < 1) {
-        console.log('FAIL: ticket price'); toast.error('Minimum ticket price is £1.00'); return false
+        toast.error('Minimum ticket price is £1.00'); return false
       }
       if (!hasStripeConnect) {
-        console.log('FAIL: no stripe'); toast.error('Please connect your bank account to sell tickets'); return false
+        toast.error('Please connect your bank account to sell tickets'); return false
       }
     }
     if (visibility === 'club' && !clubId) {
-      console.log('FAIL: no club'); toast.error('Please select a club'); return false
+      toast.error('Please select a club'); return false
     }
-    console.log('validation passed')
     return true
   }
 
   // Main publish handler — no timeout, explicit error handling at every step
   const handlePublish = async () => {
-    console.log('handlePublish start')
-    if (!validate()) { console.log('validation failed'); return }
+    if (!validate()) { return }
     if (!user?.id) { toast.error('Please sign in'); return }
 
     setSaving(true)
@@ -433,22 +430,18 @@ const AddEvent = () => {
       // Get session — use getSession (fast) not refreshSession (can hang)
       const { data: sessionData } = await supabase.auth.getSession()
       const userId = sessionData?.session?.user?.id || user.id
-      console.log('userId:', userId)
 
       // Upload banner if new file selected
       let bannerUrl: string | null = null
       if (bannerFile) {
-        console.log('uploading banner...')
         const ext = bannerFile.name.split('.').pop() || 'jpg'
         const path = `${userId}/${Date.now()}-banner.${ext}`
         const { error: bannerErr } = await supabase.storage.from('events').upload(path, bannerFile, { upsert: true, contentType: bannerFile.type || 'image/heic' })
         if (bannerErr) {
-          console.error('banner upload error:', bannerErr)
           toast.error('Banner upload failed: ' + bannerErr.message)
         } else {
           const { data: bu } = supabase.storage.from('events').getPublicUrl(path)
           bannerUrl = bu.publicUrl
-          console.log('banner uploaded:', bannerUrl)
         }
       } else if (bannerPreview && bannerPreview.startsWith('http')) {
         bannerUrl = bannerPreview // existing banner from edit mode
@@ -463,13 +456,10 @@ const AddEvent = () => {
         if (!pe) {
           const { data: pu } = supabase.storage.from('events').getPublicUrl(path)
           uploadedPhotoUrls.push(pu.publicUrl)
-        } else {
-          console.warn('photo upload failed:', pe.message)
         }
       }
 
       const validDates = dates.filter(d => d.date)
-      console.log('validDates:', validDates.length)
 
       // Credit check for free users (skip for edits)
       const isPaidPlan = userPlan === 'pro' || userPlan === 'club'
@@ -503,7 +493,6 @@ const AddEvent = () => {
         }).eq('id', editId).eq('created_by', userId)
 
         if (updateError) {
-          console.error('update error:', updateError)
           toast.error('Failed to update: ' + updateError.message)
           setSaving(false)
           return
@@ -516,8 +505,6 @@ const AddEvent = () => {
       }
 
       // CREATE new event(s)
-      console.log('creating', validDates.length, 'event(s)...')
-
       const eventPayloads = validDates.map(d => ({
         created_by: userId,
         title: title.trim(), description: description.trim(),
@@ -544,10 +531,7 @@ const AddEvent = () => {
       const { data: newEvents, error: insertError } = await supabase
         .from('events').insert(eventPayloads).select()
 
-      console.log('insert result:', { count: newEvents?.length, insertError })
-
       if (insertError) {
-        console.error('insert error:', insertError)
         toast.error('Failed to publish: ' + insertError.message)
         setSaving(false)
         return
@@ -562,9 +546,7 @@ const AddEvent = () => {
           }))
         )
         if (ticketRows.length > 0) {
-          supabase.from('event_ticket_types').insert(ticketRows).then(({ error: te }) => {
-            if (te) console.warn('ticket types error:', te.message)
-          })
+          supabase.from('event_ticket_types').insert(ticketRows).then(() => {})
         }
       }
 
@@ -584,7 +566,6 @@ const AddEvent = () => {
           .then(() => {}).catch(() => {})
       }
 
-      console.log('publish complete')
       toast.success(validDates.length > 1 ? `${validDates.length} events published!` : 'Event published!')
       navigate('/', { replace: true, state: { refreshMap: true } })
 

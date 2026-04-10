@@ -344,7 +344,6 @@ const AddService = () => {
     setIsSubmitting(true);
     try {
       const { data: profile } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
-      console.log('user plan:', profile?.plan);
       const canCreate = profile?.plan === 'club' || profile?.plan === 'organiser';
       if (!isEdit && !canCreate) {
         setShowPaywall(true);

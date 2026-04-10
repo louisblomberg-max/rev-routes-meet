@@ -42,13 +42,13 @@ const SupportLegalSettings = () => {
       icon: FileText,
       label: 'Terms of Service',
       description: 'Our terms and conditions',
-      action: () => window.open('https://revnet.club/terms', '_blank'),
+      action: () => navigate('/terms'),
     },
     {
       icon: Shield,
       label: 'Privacy Policy',
       description: 'How we handle your data',
-      action: () => window.open('https://revnet.club/privacy', '_blank'),
+      action: () => navigate('/privacy'),
     },
     {
       icon: Scale,

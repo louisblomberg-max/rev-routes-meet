@@ -78,6 +78,8 @@ const OrganizerDashboard = React.lazy(() => import("./pages/OrganizerDashboard")
 const NavigationPage = React.lazy(() => import("./pages/Navigation"));
 const You = React.lazy(() => import("./pages/You"));
 const Subscription = React.lazy(() => import("./pages/Subscription"));
+const Privacy = React.lazy(() => import("./pages/Privacy"));
+const Terms = React.lazy(() => import("./pages/Terms"));
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,10 @@ const App = () => (
       <BrowserRouter>
         <Suspense fallback={<LoadingSpinner />}>
         <Routes>
+          {/* Public legal pages */}
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+
           {/* Auth (not protected) */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />

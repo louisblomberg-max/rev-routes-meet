@@ -9,7 +9,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 type AuthMode = 'landing' | 'signin' | 'signup';
 
-const LOGO_URL = 'https://zwfbncnephciqywnmdns.supabase.co/storage/v1/object/public/logo/logo.png';
+const LOGO_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logo/logo.png`;
 
 const FEATURE_PILLS = ['Map', 'Events', 'Routes', 'Clubs', 'Convoy', 'SOS'];
 
