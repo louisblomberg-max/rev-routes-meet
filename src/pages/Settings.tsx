@@ -80,7 +80,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="mobile-container bg-background h-screen flex flex-col">
+    <div className="mobile-container bg-background h-screen flex flex-col md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="px-4 pt-4 pb-2 safe-top">
         <div className="flex items-center gap-3">

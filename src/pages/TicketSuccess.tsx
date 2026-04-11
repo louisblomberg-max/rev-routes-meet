@@ -74,7 +74,7 @@ const TicketSuccess = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Skeleton className="w-16 h-16 rounded-full mb-4" />
         <Skeleton className="h-6 w-48 mb-2" />
         <Skeleton className="h-4 w-32" />
@@ -84,7 +84,7 @@ const TicketSuccess = () => {
 
   if (!ticket || !event) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 text-center md:max-w-2xl md:mx-auto">
         <Calendar className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold mb-1">Ticket not found</h2>
         <p className="text-sm text-muted-foreground mb-6">This ticket may not exist or you don't have access.</p>
@@ -96,7 +96,7 @@ const TicketSuccess = () => {
   const refNumber = ticket.id.slice(-8).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-6 py-12" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="min-h-screen flex flex-col items-center px-6 py-12 md:max-w-2xl md:mx-auto" style={{ backgroundColor: '#f3f3e8' }}>
       {/* Success header */}
       <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: '#dcfce7' }}>
         <Check className="w-10 h-10" style={{ color: '#16a34a' }} />

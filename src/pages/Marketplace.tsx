@@ -46,7 +46,7 @@ const Marketplace = () => {
     .filter(l => l.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="px-4 pt-4 pb-4 safe-top sticky top-0 bg-background z-10">
         <div className="flex items-center gap-4 mb-4">

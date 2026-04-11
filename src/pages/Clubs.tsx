@@ -177,7 +177,7 @@ export default function Clubs() {
   const displayClubs = activeTab === 'my' ? myClubs : clubs
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-3 px-4 pt-12 pb-3 safe-top">

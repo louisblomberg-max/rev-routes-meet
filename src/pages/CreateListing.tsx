@@ -70,7 +70,7 @@ const CreateListing = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-12 pb-3 safe-top flex items-center gap-3 border-b border-border/50">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
         <h1 className="font-bold">Sell Something</h1>
