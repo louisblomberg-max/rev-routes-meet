@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { X, Phone, CheckCircle, AlertTriangle, Users, Send, MessageCircle } from 'lucide-react';
+import { Phone, CheckCircle, AlertTriangle, Users, Send, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { sendNotificationToMany } from '@/utils/sendNotification';
@@ -286,9 +286,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
               <p className="text-[10px] text-muted-foreground">{locationReady ? '📍 Location ready' : '📍 Getting location...'}</p>
             </div>
           </div>
-          <button onClick={handleClose} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-            <X className="w-4 h-4 text-muted-foreground" />
-          </button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
