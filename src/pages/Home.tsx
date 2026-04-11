@@ -119,9 +119,11 @@ const Home = () => {
   // Recovers from sheets that didn't clean up properly
   useEffect(() => {
     const reset = () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-      document.body.style.pointerEvents = '';
+      if (!document.querySelector('[data-vaul-drawer][data-state="open"]')) {
+        document.body.style.overflow = '';
+        document.body.style.touchAction = '';
+        document.body.style.pointerEvents = '';
+      }
     };
     document.addEventListener('visibilitychange', reset);
     window.addEventListener('focus', reset);
@@ -1025,7 +1027,7 @@ const Home = () => {
       document.body.style.overflow = '';
       document.body.style.pointerEvents = '';
       document.body.style.touchAction = '';
-    }, 350);
+    }, 100);
   }, []);
 
   const handleSearchSelectPin = useCallback((id: string, lat: number, lng: number, type: string) => {
