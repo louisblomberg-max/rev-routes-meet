@@ -112,6 +112,35 @@ export default function Navigation() {
   const destLng = state?.destLng as number | undefined
   const destTitle = (state?.destTitle as string) || 'Destination'
   const routeId = state?.routeId as string | undefined
+  const stateGeometry = state?.geometry as any
+
+  const [isReversed, setIsReversed] = useState(false)
+  const reverseInitRef = useRef(false)
+
+  // Effective start/end derived from geometry + reversed state.
+  // When a route geometry is provided, "start" is geometry[0] and "end" is the last coord.
+  // When reversed, start and end swap.
+  const effectiveCoords = useMemo(() => {
+    const coords = stateGeometry?.coordinates
+    if (!coords || coords.length < 2) return null
+    const first = coords[0]
+    const last = coords[coords.length - 1]
+    return isReversed
+      ? { startLng: last[0], startLat: last[1], destLng: first[0], destLat: first[1] }
+      : { startLng: first[0], startLat: first[1], destLng: last[0], destLat: last[1] }
+  }, [stateGeometry, isReversed])
+
+  // Effective destination — falls back to state.destLat/Lng when no geometry
+  const effectiveDestLat = effectiveCoords?.destLat ?? destLat
+  const effectiveDestLng = effectiveCoords?.destLng ?? destLng
+
+  // Ref so handlePositionUpdate's reroute call always sees the latest effective dest
+  const effectiveDestRef = useRef<{ lng: number; lat: number } | null>(null)
+  useEffect(() => {
+    if (effectiveDestLat != null && effectiveDestLng != null) {
+      effectiveDestRef.current = { lng: effectiveDestLng, lat: effectiveDestLat }
+    }
+  }, [effectiveDestLat, effectiveDestLng])
 
   // Guard: if no destination provided, show error screen
   if (!destLat || !destLng) {
@@ -358,12 +387,19 @@ export default function Navigation() {
     }
   }, [])
 
-  const fetchRoute = useCallback(async (map: mapboxgl.Map, originLng: number, originLat: number, silent = false) => {
-    if (!destLat || !destLng) return
+  const fetchRoute = useCallback(async (
+    map: mapboxgl.Map,
+    originLng: number,
+    originLat: number,
+    fetchDestLng: number,
+    fetchDestLat: number,
+    silent = false
+  ) => {
+    if (!fetchDestLat || !fetchDestLng) return
     if (!silent) setRouteLoading(true)
     try {
       const res = await fetch(
-        `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${originLng},${originLat};${destLng},${destLat}?steps=true&geometries=geojson&overview=full&voice_instructions=true&banner_instructions=true&voice_units=imperial&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
+        `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${originLng},${originLat};${fetchDestLng},${fetchDestLat}?steps=true&geometries=geojson&overview=full&voice_instructions=true&banner_instructions=true&voice_units=imperial&access_token=${import.meta.env.VITE_MAPBOX_TOKEN}`
       )
       const data = await res.json()
       if (!data.routes?.length) { toast.error('Could not find a route to this location'); return }
@@ -411,7 +447,7 @@ export default function Navigation() {
     } finally {
       if (!silent) setRouteLoading(false)
     }
-  }, [destLat, destLng, drawRoute, mode])
+  }, [drawRoute, mode])
 
   // Init map
   useEffect(() => {
@@ -433,7 +469,7 @@ export default function Navigation() {
     setTimeout(() => { map.resize(); }, 500);
     map.on('load', () => {
       map.resize(); // Ensure correct size on load
-      if (destLat && destLng) {
+      if (effectiveDestLat != null && effectiveDestLng != null) {
         const destEl = document.createElement('div')
         destEl.style.cssText = 'display:flex;flex-direction:column;align-items:center;cursor:pointer;'
         destEl.innerHTML = `
@@ -447,12 +483,28 @@ export default function Navigation() {
           "></div>
         `
         destMarkerRef.current = new mapboxgl.Marker({ element: destEl, anchor: 'bottom' })
-          .setLngLat([destLng, destLat])
+          .setLngLat([effectiveDestLng, effectiveDestLat])
           .addTo(map)
       }
       navigator.geolocation.getCurrentPosition(
-        pos => { fetchRoute(map, pos.coords.longitude, pos.coords.latitude); map.flyTo({ center: [pos.coords.longitude, pos.coords.latitude], zoom: 14 }) },
-        () => { if (destLng && destLat) fetchRoute(map, destLng - 0.01, destLat - 0.01) },
+        pos => {
+          const userLng = pos.coords.longitude
+          const userLat = pos.coords.latitude
+          let originLng = userLng
+          let originLat = userLat
+          // Feature 1: if user is within 500m of route start, begin navigating along the route
+          // immediately rather than routing them to the start point first.
+          if (effectiveCoords) {
+            const distToStart = haversineDistance(userLat, userLng, effectiveCoords.startLat, effectiveCoords.startLng)
+            if (distToStart < 500) {
+              originLng = effectiveCoords.startLng
+              originLat = effectiveCoords.startLat
+            }
+          }
+          fetchRoute(map, originLng, originLat, effectiveDestLng!, effectiveDestLat!)
+          map.flyTo({ center: [userLng, userLat], zoom: 14 })
+        },
+        () => { if (effectiveDestLng != null && effectiveDestLat != null) fetchRoute(map, effectiveDestLng - 0.01, effectiveDestLat - 0.01, effectiveDestLng, effectiveDestLat) },
         { timeout: 8000, enableHighAccuracy: false }
       )
     })
@@ -466,6 +518,44 @@ export default function Navigation() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Re-fetch route + reposition destination marker when user toggles reverse in preview mode
+  useEffect(() => {
+    if (!reverseInitRef.current) {
+      reverseInitRef.current = true
+      return
+    }
+    if (mode !== 'preview') return
+    if (effectiveDestLat == null || effectiveDestLng == null) return
+    const map = mapRef.current
+    if (!map) return
+
+    // Reposition the destination marker
+    if (destMarkerRef.current) {
+      destMarkerRef.current.setLngLat([effectiveDestLng, effectiveDestLat])
+    }
+
+    // Re-fetch the route from the new origin (user GPS or new start) to the new destination
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const userLng = pos.coords.longitude
+        const userLat = pos.coords.latitude
+        let originLng = userLng
+        let originLat = userLat
+        if (effectiveCoords) {
+          const distToStart = haversineDistance(userLat, userLng, effectiveCoords.startLat, effectiveCoords.startLng)
+          if (distToStart < 500) {
+            originLng = effectiveCoords.startLng
+            originLat = effectiveCoords.startLat
+          }
+        }
+        fetchRoute(map, originLng, originLat, effectiveDestLng, effectiveDestLat)
+      },
+      () => fetchRoute(map, effectiveDestLng - 0.01, effectiveDestLat - 0.01, effectiveDestLng, effectiveDestLat),
+      { timeout: 8000, enableHighAccuracy: false }
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isReversed])
 
   const stopSharingCleanup = async () => {
     if (!user?.id) return
@@ -648,7 +738,8 @@ export default function Navigation() {
           offRouteCountRef.current = 0
           setIsRerouting(true)
           speak('Rerouting')
-          await fetchRoute(map, longitude, latitude, true)
+          const ed = effectiveDestRef.current
+          if (ed) await fetchRoute(map, longitude, latitude, ed.lng, ed.lat, true)
           setIsRerouting(false)
         }
       } else { offRouteCountRef.current = 0 }
@@ -782,9 +873,19 @@ export default function Navigation() {
                   <span className="text-lg">📍</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg font-bold text-gray-900 truncate">{destTitle}</h2>
+                  <h2 className="text-lg font-bold text-gray-900 truncate">{destTitle}{isReversed ? ' (reversed)' : ''}</h2>
                   <p className="text-xs text-gray-500">Tap Start to begin navigation</p>
                 </div>
+                {stateGeometry && (
+                  <button
+                    onClick={() => setIsReversed(r => !r)}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 active:scale-95 transition-all"
+                    title="Reverse route"
+                  >
+                    <span className="text-base leading-none">⇅</span>
+                    <span className="text-xs font-semibold text-gray-700">Reverse</span>
+                  </button>
+                )}
               </div>
 
               {totalDistanceRemaining > 0 && (
