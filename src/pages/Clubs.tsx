@@ -203,7 +203,7 @@ export default function Clubs() {
               className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
             >
               <Plus className="w-3.5 h-3.5" />
-              Add Club
+              Create
             </button>
           </div>
         </div>
