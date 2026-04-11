@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
+import { usePlan } from '@/contexts/PlanContext'
 import { Search, Plus, Users, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -28,6 +29,7 @@ const SORT_OPTIONS = [
 export default function Clubs() {
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { currentPlan } = usePlan()
   const [clubs, setClubs] = useState<any[]>([])
   const [myClubIds, setMyClubIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +38,6 @@ export default function Clubs() {
   const [sortBy, setSortBy] = useState('members')
   const [activeTab, setActiveTab] = useState<'discover' | 'my'>('discover')
   const [myClubs, setMyClubs] = useState<any[]>([])
-  const [userPlan, setUserPlan] = useState('free')
   const [inviteCode, setInviteCode] = useState('')
   const [showInviteInput, setShowInviteInput] = useState(false)
   const [suggestedClubs, setSuggestedClubs] = useState<any[]>([])
@@ -45,13 +46,6 @@ export default function Clubs() {
   useEffect(() => {
     if (!user?.id) return
     const load = async () => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('plan')
-        .eq('id', user.id)
-        .single()
-      setUserPlan(profile?.plan || 'free')
-
       const { data: memberships } = await supabase
         .from('club_memberships')
         .select('club_id')
@@ -192,7 +186,7 @@ export default function Clubs() {
             </button>
             <button
               onClick={() => {
-                if (userPlan === 'club') {
+                if (currentPlan === 'club') {
                   navigate('/add/club')
                 } else {
                   toast.info('Creating clubs requires a Club/Business plan', {
@@ -353,7 +347,7 @@ export default function Clubs() {
                 >
                   Discover Clubs
                 </button>
-                {userPlan === 'club' ? (
+                {currentPlan === 'club' ? (
                   <button
                     onClick={() => navigate('/add/club')}
                     className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"

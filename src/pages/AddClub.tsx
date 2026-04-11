@@ -129,7 +129,16 @@ export default function AddClub() {
         return
       }
 
-      // Owner membership is auto-created by database trigger
+      // Explicitly insert owner membership as a fallback in case the DB trigger is missing.
+      // Idempotent via upsert on the (user_id, club_id) composite key.
+      await supabase
+        .from('club_memberships')
+        .upsert({
+          club_id: newClub.id,
+          user_id: user!.id,
+          role: 'owner',
+        }, { onConflict: 'user_id,club_id' })
+
       toast.success(`${name} is live! 🎉`)
       navigate(`/club/${newClub.id}`, { replace: true })
     } catch (err: any) {
@@ -149,7 +158,7 @@ export default function AddClub() {
         <p className="text-sm text-muted-foreground mb-6 text-center">Creating and managing clubs requires the Club & Business plan.</p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
-          <Button onClick={() => navigate('/subscription')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
+          <Button onClick={() => navigate('/upgrade')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
         </div>
       </div>
     );
