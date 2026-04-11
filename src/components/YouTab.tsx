@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Car, Users, Route, Calendar, UsersRound, Settings, ShoppingBag, ChevronRight, Crown, MessageSquare, Lock, MapPin, Share2, Pencil, Sparkles, Star, Building2, LifeBuoy, Wrench } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, Settings, ChevronRight, Crown, MessageSquare, Lock, MapPin, Share2, Pencil, Sparkles, Star, Building2, Wrench } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUserStats } from '@/hooks/useUserStats';
 import { useCurrentUser } from '@/hooks/useProfileData';
@@ -17,10 +15,7 @@ const YouTab = () => {
   const { currentPlan, hasAccess, getPlanLabel, getRequiredPlan, effectivePlan } = usePlan();
   const { user } = useCurrentUser();
   const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
-  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
-  const [helpDistance, setHelpDistance] = useState(10);
   const [freeEventCredits, setFreeEventCredits] = useState<number | null>(null);
-  const [detailsLoaded, setDetailsLoaded] = useState(false);
   const [myTickets, setMyTickets] = useState<any[]>([]);
 
   useEffect(() => {
@@ -29,16 +24,13 @@ const YouTab = () => {
     (async () => {
       try {
         const result = await Promise.race([
-          supabase.from('profiles').select('available_to_help, help_radius_miles, free_event_credits').eq('id', user.id).single(),
+          supabase.from('profiles').select('free_event_credits').eq('id', user.id).single(),
           new Promise<null>(r => setTimeout(() => r(null), 3000)),
         ]);
         if (result && 'data' in result && result.data) {
-          setIsAvailableToHelp(result.data.available_to_help || false);
-          setHelpDistance(result.data.help_radius_miles || 10);
           setFreeEventCredits(result.data.free_event_credits ?? 0);
         }
       } catch { /* defaults */ }
-      setDetailsLoaded(true);
     })();
     // Tickets — race against 3s timeout
     (async () => {
@@ -59,27 +51,6 @@ const YouTab = () => {
       } catch { /* empty */ }
     })();
   }, [user?.id]);
-
-  const handleAvailableToggle = async (v: boolean) => {
-    const prev = isAvailableToHelp;
-    setIsAvailableToHelp(v);
-    if (!user?.id) return;
-    const { error } = await supabase.from('profiles').update({ available_to_help: v }).eq('id', user.id);
-    if (error) {
-      setIsAvailableToHelp(prev);
-      toast.error('Failed to save. Please try again.');
-    }
-  };
-  const handleHelpDistanceCommit = async (v: number[]) => {
-    const prev = helpDistance;
-    setHelpDistance(v[0]);
-    if (!user?.id) return;
-    const { error } = await supabase.from('profiles').update({ help_radius_miles: v[0] }).eq('id', user.id);
-    if (error) {
-      setHelpDistance(prev);
-      toast.error('Failed to save. Please try again.');
-    }
-  };
 
   const planBadge = {
     free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
@@ -253,46 +224,6 @@ const YouTab = () => {
           </div>
         </div>
       )}
-
-      {/* ── Available to Help ── */}
-      <div className="px-4 pt-3">
-        <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-          <div className="w-full flex items-center gap-3 px-4 py-3">
-            <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${isAvailableToHelp ? 'bg-primary/10' : 'bg-muted'}`}>
-              <LifeBuoy className={`w-4 h-4 transition-colors ${isAvailableToHelp ? 'text-primary' : 'text-muted-foreground'}`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-sm font-semibold text-foreground">Available to Help</span>
-            </div>
-          <Switch
-              checked={isAvailableToHelp}
-              onCheckedChange={handleAvailableToggle}
-              className="data-[state=checked]:bg-primary"
-            />
-          </div>
-          {isAvailableToHelp && (
-            <div className="px-4 pb-3 pt-0">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-xs text-muted-foreground">Helping within</span>
-                <span className="text-xs font-bold text-primary">{helpDistance} miles</span>
-              </div>
-              <Slider
-                value={[helpDistance]}
-                onValueChange={(v) => setHelpDistance(v[0])}
-                onValueCommit={handleHelpDistanceCommit}
-                min={1}
-                max={50}
-                step={1}
-                className="w-full"
-              />
-              <div className="flex justify-between mt-1">
-                <span className="text-[10px] text-muted-foreground">1 mi</span>
-                <span className="text-[10px] text-muted-foreground">50 mi</span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* ── 6 Action Tiles (2×3) ── */}
       <div className="px-4 pt-4 flex-1">

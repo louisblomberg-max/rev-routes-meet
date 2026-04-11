@@ -10,6 +10,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { formatDistanceToNow } from 'date-fns';
 
 interface HelpRequest {
@@ -57,25 +59,41 @@ const SosFeed = () => {
   const [respondingIds, setRespondingIds] = useState<Set<string>>(new Set());
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [myActiveRequest, setMyActiveRequest] = useState<HelpRequest | null>(null);
+  const [isAvailableToHelp, setIsAvailableToHelp] = useState(false);
+  const [helpDistance, setHelpDistance] = useState(10);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
   const userLocationRef = useRef<{ lat: number; lng: number } | null>(null);
+  const isAvailableRef = useRef(isAvailableToHelp);
+  const helpDistanceRef = useRef(helpDistance);
+  useEffect(() => { isAvailableRef.current = isAvailableToHelp; }, [isAvailableToHelp]);
+  useEffect(() => { helpDistanceRef.current = helpDistance; }, [helpDistance]);
 
-  const fetchRequests = useCallback(async (silent = false) => {
+  const fetchRequests = useCallback(async (
+    silent = false,
+    availableToHelp: boolean = isAvailableRef.current,
+    radiusMiles: number = helpDistanceRef.current,
+  ) => {
     if (!silent) setLoading(true);
     try {
+      // When toggle is OFF, browse cap is 50 miles. When ON, use the user's chosen radius.
+      const effectiveRadius = availableToHelp ? radiusMiles : 50;
+      // Approx degrees per mile: ~0.0145 lat, ~0.0181 lng (UK latitude)
+      const latDelta = effectiveRadius * 0.0145;
+      const lngDelta = effectiveRadius * 0.0181;
+
       let query = supabase
         .from('help_requests')
         .select('*, profiles(username, display_name, avatar_url)')
         .eq('status', 'active')
         .order('created_at', { ascending: false });
 
-      // Server-side bounding box filter (~50 miles) when user location is known
       const loc = userLocationRef.current;
       if (loc) {
         query = query
-          .gte('lat', loc.lat - 0.72)
-          .lte('lat', loc.lat + 0.72)
-          .gte('lng', loc.lng - 1.0)
-          .lte('lng', loc.lng + 1.0);
+          .gte('lat', loc.lat - latDelta)
+          .lte('lat', loc.lat + latDelta)
+          .gte('lng', loc.lng - lngDelta)
+          .lte('lng', loc.lng + lngDelta);
       }
 
       const { data, error } = await query;
@@ -89,9 +107,9 @@ const SosFeed = () => {
         isResponding: false,
       }));
 
-      // Client-side fine filter to within 50 miles if user location known
+      // Client-side fine filter to the effective radius
       const filtered = userLocationRef.current
-        ? mapped.filter(r => (r.distanceMiles ?? 0) <= 50)
+        ? mapped.filter(r => (r.distanceMiles ?? 0) <= effectiveRadius)
         : mapped;
 
       filtered.sort((a, b) => {
@@ -111,26 +129,73 @@ const SosFeed = () => {
       setLoading(false);
       setRefreshing(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  // Mount: get location, fetch, subscribe to realtime
+  const toggleAvailableToHelp = async (value: boolean) => {
+    setIsAvailableToHelp(value);
+    if (!user?.id) return;
+    await supabase.from('profiles').update({ available_to_help: value }).eq('id', user.id);
+    if (value) {
+      toast.success(`You are now available to help within ${helpDistance} miles`);
+    } else {
+      toast('You are no longer marked as available to help');
+    }
+  };
+
+  const updateHelpDistance = async (miles: number) => {
+    setHelpDistance(miles);
+    if (!user?.id) return;
+    await supabase.from('profiles').update({ help_radius_miles: miles }).eq('id', user.id);
+  };
+
+  // Mount: get location + prefs, fetch, subscribe to realtime
   useEffect(() => {
     let cancelled = false;
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
+    const loadPrefs = async () => {
+      if (!user?.id) {
+        setPrefsLoaded(true);
+        return;
+      }
+      try {
+        const { data: prefs } = await supabase
+          .from('profiles')
+          .select('available_to_help, help_radius_miles')
+          .eq('id', user.id)
+          .single();
         if (cancelled) return;
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        userLocationRef.current = loc;
-        setUserLocation(loc);
-        fetchRequests();
-      },
-      () => {
-        if (cancelled) return;
-        fetchRequests();
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+        if (prefs) {
+          const av = prefs.available_to_help || false;
+          const rm = prefs.help_radius_miles || 10;
+          setIsAvailableToHelp(av);
+          setHelpDistance(rm);
+          isAvailableRef.current = av;
+          helpDistanceRef.current = rm;
+        }
+      } catch { /* defaults */ }
+      setPrefsLoaded(true);
+    };
+
+    const init = async () => {
+      await loadPrefs();
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          if (cancelled) return;
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          userLocationRef.current = loc;
+          setUserLocation(loc);
+          fetchRequests();
+        },
+        () => {
+          if (cancelled) return;
+          fetchRequests();
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    };
+
+    init();
 
     const channel = supabase
       .channel('sos-feed-realtime')
@@ -138,13 +203,16 @@ const SosFeed = () => {
         const newRow = payload.new;
         if (!newRow || newRow.status !== 'active') return;
 
-        // Compute distance if location known
+        // Only add to list + show toast if user is Available to Help AND within their radius
+        const available = isAvailableRef.current;
+        const radius = helpDistanceRef.current;
+
         const distanceMiles = userLocationRef.current
           ? haversineKm(userLocationRef.current.lat, userLocationRef.current.lng, newRow.lat, newRow.lng) * 0.621371
           : undefined;
 
-        // Skip if outside 50 miles
-        if (distanceMiles != null && distanceMiles > 50) return;
+        if (!available) return; // Browse-only mode: no live additions, no notifications
+        if (distanceMiles != null && distanceMiles > radius) return;
 
         setRequests(prev => {
           if (prev.some(r => r.id === newRow.id)) return prev;
@@ -177,6 +245,14 @@ const SosFeed = () => {
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-fetch whenever toggle or radius changes so the feed reflects the new filter
+  useEffect(() => {
+    if (prefsLoaded) {
+      fetchRequests(true, isAvailableToHelp, helpDistance);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAvailableToHelp, helpDistance, prefsLoaded]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -300,7 +376,11 @@ const SosFeed = () => {
                 </span>
               )}
             </h1>
-            <p className="text-xs text-muted-foreground">{userLocation ? 'Within 50 miles' : 'All active requests'}</p>
+            <p className="text-xs text-muted-foreground">
+              {userLocation
+                ? (isAvailableToHelp ? `Within ${helpDistance} miles` : 'Within 50 miles')
+                : 'All active requests'}
+            </p>
           </div>
           <button
             onClick={handleRefresh}
@@ -311,6 +391,51 @@ const SosFeed = () => {
           </button>
         </div>
       </div>
+
+      {/* Available to Help card */}
+      {!prefsLoaded ? (
+        <div className="mx-4 mt-3 mb-1">
+          <Skeleton className="h-20 w-full rounded-xl" />
+        </div>
+      ) : (
+        <div className="mx-4 mt-3 mb-1">
+          <div className={`bg-card rounded-xl shadow-sm overflow-hidden border ${isAvailableToHelp ? 'border-l-4 border-l-green-500 border-y border-r border-border/50' : 'border-border/50'}`}>
+            <div className="flex items-center gap-3 p-4">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-foreground">Available to Help</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Receive notifications and filter requests by your radius</p>
+              </div>
+              <Switch
+                checked={isAvailableToHelp}
+                onCheckedChange={toggleAvailableToHelp}
+                className="data-[state=checked]:bg-green-600"
+              />
+            </div>
+            {isAvailableToHelp && (
+              <div className="px-4 pb-4 pt-0">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground">Help radius</span>
+                  <span className="text-xs font-medium text-foreground">{helpDistance} miles</span>
+                </div>
+                <Slider
+                  value={[helpDistance]}
+                  min={1}
+                  max={50}
+                  step={1}
+                  onValueChange={(v) => setHelpDistance(v[0])}
+                  onValueCommit={(v) => updateHelpDistance(v[0])}
+                  className="w-full"
+                />
+                <div className="flex justify-between mt-1.5">
+                  <span className="text-[10px] text-muted-foreground">1 mi</span>
+                  <span className="text-[10px] text-muted-foreground">25 mi</span>
+                  <span className="text-[10px] text-muted-foreground">50 mi</span>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Own active request banner */}
       {myActiveRequest && (
@@ -452,7 +577,9 @@ const SosFeed = () => {
               );
             })}
             <p className="text-[11px] text-center text-muted-foreground mt-4 px-4">
-              Showing active requests within 50 miles • Updates in real time
+              {isAvailableToHelp
+                ? `Showing requests within ${helpDistance} miles • Updates in real time`
+                : 'Showing all nearby requests • Turn on Available to Help for notifications'}
             </p>
           </>
         )}
