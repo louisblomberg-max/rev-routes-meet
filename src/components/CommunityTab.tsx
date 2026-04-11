@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Users, MessageSquare, Mail, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useUserStats } from '@/hooks/useUserStats';
 import { supabase } from '@/integrations/supabase/client';
 
 const CommunityTab = () => {
   const navigate = useNavigate();
-  const stats = useUserStats();
   const [sosCount, setSosCount] = useState(0);
 
   useEffect(() => {
@@ -70,27 +68,6 @@ const CommunityTab = () => {
             </button>
           );
         })}
-      </div>
-
-      {/* Quick Stats */}
-      <div className="px-4 mt-4">
-        <div className="bg-card rounded-xl p-3 border border-border/50 shadow-card">
-          <p className="text-label mb-2 text-community">Your Activity</p>
-          <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => navigate('/my-clubs')} className="text-center hover:bg-community-muted rounded-lg py-1 transition-colors">
-              <p className="text-xl font-black text-community">{stats.clubsCount}</p>
-              <p className="text-caption">Clubs</p>
-            </button>
-            <button onClick={() => navigate('/my-discussions')} className="text-center border-x border-border/50 hover:bg-community-muted rounded-lg py-1 transition-colors">
-              <p className="text-xl font-black text-community">{stats.discussionsCount}</p>
-              <p className="text-caption">Posts</p>
-            </button>
-            <button onClick={() => navigate('/my-friends')} className="text-center hover:bg-community-muted rounded-lg py-1 transition-colors">
-              <p className="text-xl font-black text-community">{stats.friendsCount}</p>
-              <p className="text-caption">Friends</p>
-            </button>
-          </div>
-        </div>
       </div>
 
       <div className="h-4" />
