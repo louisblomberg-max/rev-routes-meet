@@ -195,7 +195,9 @@ export default function Clubs() {
                 if (userPlan === 'club') {
                   navigate('/add/club')
                 } else {
-                  navigate('/upgrade')
+                  toast.info('Creating clubs requires a Club/Business plan', {
+                    action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                  })
                 }
               }}
               className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
@@ -360,7 +362,7 @@ export default function Clubs() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => navigate('/upgrade')}
+                    onClick={() => toast.info('Creating clubs requires a Club/Business plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
                     className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
                   >
                     ⭐ Create a club — Club / Business plan
