@@ -158,9 +158,6 @@ const Home = () => {
     distance: 0, types: [], openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  // Re-open filter panel whenever a new category is selected
-  useEffect(() => { setFiltersOpen(true); }, [activeCategory]);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -1095,7 +1092,7 @@ const Home = () => {
   }
 
   return (
-    <div className="mobile-container !overflow-visible md:fixed md:inset-0 md:max-w-none" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+    <div className="mobile-container !overflow-visible" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
       <style>{`
         @keyframes friend-pulse {
           0% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
@@ -1146,9 +1143,9 @@ const Home = () => {
 
       {/* ═══ DESKTOP: Floating search pill ═══ */}
       {!isNavigating && (
-        <div className="hidden md:block fixed top-4 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 pointer-events-none" style={{ zIndex: 10000 }}>
+        <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 min-w-[520px] max-w-[640px] pointer-events-none" style={{ zIndex: 10000 }}>
           <div
-            className="flex items-center gap-3 px-5 py-2.5 pointer-events-auto"
+            className="flex items-center gap-2 px-4 py-2 pointer-events-auto"
             style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
           >
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
@@ -1163,57 +1160,35 @@ const Home = () => {
         </div>
       )}
 
-      {/* ═══ DESKTOP: Floating category chips ═══ */}
+      {/* ═══ DESKTOP: Floating category chips (no container) ═══ */}
       {!isNavigating && (
         <div
-          className="hidden md:flex fixed left-0 right-0 justify-center"
+          className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-[320px]"
           style={{ top: '72px', zIndex: 9999, pointerEvents: 'none' }}
         >
-          <div style={{ pointerEvents: 'auto' }}>
+          <div style={{ pointerEvents: 'auto', width: '100%' }}>
             <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
           </div>
         </div>
       )}
 
-      {/* ═══ Filter panels — bottom sheet on mobile, right side panel on desktop ═══ */}
-      {!isNavigating && activeCategory && filtersOpen && (
-        <div
-          className="absolute left-0 right-0 z-30 pointer-events-none md:fixed md:left-auto md:right-0 md:top-0 md:bottom-0 md:h-full md:w-[360px] md:translate-x-0"
-          style={{ top: '120px' }}
-        >
-          <div className="px-3 pt-2 pointer-events-auto md:px-0 md:pt-0 md:h-full md:bg-background md:border-l md:border-border/50 md:shadow-2xl md:overflow-y-auto md:z-50">
-            {/* Desktop close button */}
-            <div className="hidden md:flex items-center justify-between px-4 py-3 border-b border-border/30 sticky top-0 bg-background z-10">
-              <h3 className="text-sm font-bold text-foreground capitalize">{activeCategory} filters</h3>
-              <button
-                onClick={() => setFiltersOpen(false)}
-                className="w-8 h-8 rounded-lg bg-muted/50 border border-border/50 hover:bg-muted flex items-center justify-center"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
-            </div>
-            <div className="md:px-3 md:py-3">
-              {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
-              {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
-              {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
-            </div>
+      {/* ═══ UNIFIED: Filter panels — works on both mobile and desktop ═══ */}
+      {!isNavigating && activeCategory && (
+        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: '120px' }}>
+          <div className="px-3 pt-2 pointer-events-auto">
+            {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
+            {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
+            {activeCategory === 'services' && <ServicesFiltersPanel filters={servicesFilters} onFiltersChange={setServicesFilters} />}
           </div>
         </div>
-      )}
-
-      {/* Desktop: re-open filter panel button when closed */}
-      {!isNavigating && activeCategory && !filtersOpen && (
-        <button
-          onClick={() => setFiltersOpen(true)}
-          className="hidden md:flex fixed right-4 top-20 z-30 items-center gap-1.5 px-3 py-2 rounded-xl bg-background border border-border/50 shadow-lg text-xs font-semibold text-foreground hover:bg-muted/50"
-        >
-          Filters
-        </button>
       )}
 
       {/* ═══ Map utility buttons ═══ */}
       {!isNavigating && (
         <div className="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-2.5">
+          <div className="hidden md:block">
+            <HelpButton onClick={() => setIsHelpOpen(true)} />
+          </div>
           <LocationButton onClick={handleLocateUser} />
         </div>
       )}
@@ -1278,9 +1253,9 @@ const Home = () => {
         </div>
       )}
 
-      {/* SOS button — fixed above bottom nav (mobile) / lower right corner (desktop) */}
+      {/* SOS button — fixed above bottom nav, all screen sizes */}
       {!isNavigating && activeTab === 'discovery' && (
-        <div className="fixed bottom-24 right-4 z-30 md:bottom-8 md:right-6">
+        <div className="fixed bottom-24 right-4 z-30 md:hidden">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
         </div>
       )}

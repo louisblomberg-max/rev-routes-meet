@@ -122,8 +122,8 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
 
   return (
     <Drawer open={!!item} onClose={onClose} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DrawerContent className="max-h-[85vh] bg-card border-t border-border/50 rounded-t-2xl md:fixed md:left-4 md:top-4 md:bottom-4 md:right-auto md:w-[400px] md:max-h-none md:rounded-2xl md:rounded-t-2xl md:border md:border-border/50 md:shadow-2xl">
-        <div className="flex justify-center pt-3 pb-1 md:hidden">
+      <DrawerContent className="max-h-[85vh] bg-card border-t border-border/50 rounded-t-2xl">
+        <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-muted-foreground/20 rounded-full" />
         </div>
 
@@ -134,7 +134,7 @@ const DetailBottomSheet = ({ item, onClose, onViewFull }: DetailBottomSheetProps
           <X className="w-4 h-4 text-muted-foreground" />
         </button>
 
-        <div className="overflow-y-auto px-5 pb-6 max-h-[calc(85vh-24px)] md:max-h-full md:pt-12">
+        <div className="overflow-y-auto px-5 pb-6 max-h-[calc(85vh-24px)]">
           {item.type === 'event' && (
             <EventDetailContent
               event={item.data}
