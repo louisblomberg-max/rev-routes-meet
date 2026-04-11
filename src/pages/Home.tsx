@@ -1077,9 +1077,11 @@ const Home = () => {
   if (activeTab !== 'discovery') {
     return (
       <div className="mobile-container">
+        <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'community' && <CommunityTab />}
         {activeTab === 'marketplace' && <MarketplaceTab />}
         {activeTab === 'you' && <YouTab />}
+        </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         <div className="hidden md:block">
