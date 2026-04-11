@@ -735,15 +735,13 @@ const Home = () => {
   }, [pins, activeCategory, searchQuery, applyEventFilters, applyRouteFilters, applyServiceFilters]);
 
   useEffect(() => {
-    const m = mapRef.current;
-    if (!m) return;
-
-    if (m.loaded()) {
+    // Small delay prevents the marker teardown/rebuild from
+    // firing while the bottom sheet is still animating closed
+    const timer = setTimeout(() => {
       renderMarkers();
-    } else {
-      m.once('load', renderMarkers);
-    }
-  }, [renderMarkers]);
+    }, selectedDetail ? 0 : 50);
+    return () => clearTimeout(timer);
+  }, [renderMarkers, selectedDetail]);
 
   // Re-render markers when user returns to tab
   useEffect(() => {
@@ -1201,7 +1199,26 @@ const Home = () => {
       )}
 
       {!isNavigating && selectedDetail && (
-        <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
+        <DetailBottomSheet
+          item={selectedDetail}
+          onClose={() => {
+            setSelectedDetail(null);
+            // Force vaul backdrop removal and restore map pointer events
+            setTimeout(() => {
+              document.querySelectorAll('[data-vaul-overlay]').forEach(el => {
+                (el as HTMLElement).style.pointerEvents = 'none';
+                (el as HTMLElement).style.display = 'none';
+              });
+              document.querySelectorAll('[data-vaul-drawer]').forEach(el => {
+                (el as HTMLElement).style.pointerEvents = 'none';
+              });
+              if (mapRef.current) {
+                mapRef.current.getCanvas().style.pointerEvents = 'auto';
+              }
+            }, 300);
+          }}
+          onViewFull={handleViewFull}
+        />
       )}
 
       {/* Tap-to-navigate popup */}
