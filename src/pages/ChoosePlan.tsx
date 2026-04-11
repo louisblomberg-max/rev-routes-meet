@@ -140,7 +140,7 @@ const ChoosePlan = () => {
   const selectedPlan = PLANS.find(p => p.id === selected)!;
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
       <div className="flex-1 overflow-y-auto pb-48">
         {/* Header */}
         <div className="px-6 pt-8 pb-4 text-center safe-top">

@@ -209,7 +209,7 @@ const Conversation = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="min-h-screen bg-background flex flex-col md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
           <div className="flex items-center gap-3 px-4 py-3">
             <BackButton className="w-10 h-10 rounded-full bg-card" onClick={() => navigate('/messages')} />
@@ -225,7 +225,7 @@ const Conversation = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">

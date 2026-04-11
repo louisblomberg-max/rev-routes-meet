@@ -85,7 +85,7 @@ const ForumThread = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
+      <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
         <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
           <div className="flex items-center gap-4"><BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" onClick={() => navigate('/forums')} /><h1 className="text-lg font-semibold text-foreground">Thread</h1></div>
         </div>
@@ -96,7 +96,7 @@ const ForumThread = () => {
 
   if (error || !post) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col">
+      <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
         <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
           <div className="flex items-center gap-4"><BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" onClick={() => navigate('/forums')} /><h1 className="text-lg font-semibold text-foreground">Thread</h1></div>
         </div>
@@ -116,7 +116,7 @@ const ForumThread = () => {
   const authorName = post.profiles?.display_name || post.profiles?.username || 'Unknown';
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center gap-4"><BackButton className="w-10 h-10 rounded-full bg-card shadow-sm border border-border/50" onClick={() => navigate('/forums')} /><h1 className="text-lg font-semibold text-foreground line-clamp-1">Thread</h1></div>
       </div>

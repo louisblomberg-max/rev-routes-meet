@@ -143,7 +143,7 @@ export default function AddClub() {
 
   if (currentPlan !== 'club') {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold text-foreground mb-1">Club & Business Plan Required</h2>
         <p className="text-sm text-muted-foreground mb-6 text-center">Creating and managing clubs requires the Club & Business plan.</p>
@@ -156,7 +156,7 @@ export default function AddClub() {
   }
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80" iconClassName="w-4 h-4" />

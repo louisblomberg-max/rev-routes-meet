@@ -131,7 +131,7 @@ const Notifications = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
       <div className="flex items-center gap-3 px-4 pt-12 pb-4 safe-top border-b border-border/50">
         <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
         <h1 className="heading-md text-foreground flex-1">Notifications</h1>

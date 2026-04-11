@@ -33,7 +33,7 @@ const PaymentSuccess = () => {
   }, [setPlan]);
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 text-center">
+    <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 text-center md:max-w-2xl md:mx-auto">
       <div className="w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-6">
         <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
       </div>

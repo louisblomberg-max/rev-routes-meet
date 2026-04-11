@@ -101,7 +101,7 @@ export default function Subscription() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A1628] text-white">
+    <div className="min-h-screen bg-[#0A1628] text-white md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-20 bg-[#0A1628]/90 backdrop-blur-xl border-b border-white/10 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">

@@ -179,7 +179,7 @@ const AddVehicle = () => {
   const canSave = !!selectedMake && !!selectedModel && !!selectedYear;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="px-5 pt-12 pb-4 safe-top">
         <div className="flex items-center gap-3 mb-5">

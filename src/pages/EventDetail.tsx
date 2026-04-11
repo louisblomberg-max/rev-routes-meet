@@ -109,7 +109,7 @@ const EventDetail = () => {
 
   if (eventLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen">
+      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
         <Skeleton className="h-52 w-full" />
         <div className="px-4 pt-4 space-y-4">
           <Skeleton className="h-8 w-3/4" />
@@ -122,7 +122,7 @@ const EventDetail = () => {
 
   if (!event) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6">
+      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Calendar className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold text-foreground mb-1">Event not found</h2>
         <p className="text-sm text-muted-foreground mb-6">This event may have been removed or doesn't exist.</p>
@@ -218,7 +218,7 @@ const EventDetail = () => {
     : event.entryFee || 'Free';
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
       {/* Header Image */}
       <div className="relative h-52 bg-gradient-to-br from-primary to-primary/60 overflow-hidden">
         {(event.bannerImage || event.photos?.[0]) && (

@@ -95,7 +95,7 @@ const PlanBillingSettings = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen pb-8">
+      <div className="mobile-container bg-background min-h-screen pb-8 md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
           <div className="px-4 py-3 flex items-center gap-3">
             <BackButton className="w-9 h-9 rounded-full bg-muted/80" />
@@ -112,7 +112,7 @@ const PlanBillingSettings = () => {
   }
 
   return (
-    <div className="mobile-container bg-background min-h-screen pb-8">
+    <div className="mobile-container bg-background min-h-screen pb-8 md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-full bg-muted/80 hover:bg-muted" />

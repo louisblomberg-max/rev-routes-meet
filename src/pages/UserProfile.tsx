@@ -145,7 +145,7 @@ const UserProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen">
+      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
         <div className="px-4 pt-12 pb-4 safe-top"><BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" /></div>
         <div className="flex flex-col items-center px-6 py-8 space-y-4">
           <Skeleton className="w-24 h-24 rounded-full" />
@@ -159,7 +159,7 @@ const UserProfile = () => {
 
   if (error || !profile) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-4">
+      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-4 md:max-w-2xl md:mx-auto">
         <AlertTriangle className="w-10 h-10 text-destructive mb-3" />
         <p className="font-semibold text-foreground mb-1">{error || 'User not found'}</p>
         <Button variant="outline" onClick={fetchData} className="mt-3 gap-2"><RotateCcw className="w-4 h-4" /> Retry</Button>
@@ -171,7 +171,7 @@ const UserProfile = () => {
   const planLabel = PLAN_LABELS[profile.plan] || 'Explorer';
 
   return (
-    <div className="mobile-container bg-background min-h-screen pb-8">
+    <div className="mobile-container bg-background min-h-screen pb-8 md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-12 pb-2 safe-top">
         <BackButton className="w-9 h-9 rounded-lg bg-card border border-border/50" iconClassName="w-4 h-4" />
       </div>
