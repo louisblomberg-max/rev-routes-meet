@@ -31,6 +31,35 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
 
+  const cleanupBodyStyles = () => {
+    setTimeout(() => {
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('style');
+      const drawer = document.querySelector('[data-vaul-drawer]') as HTMLElement;
+      if (drawer) {
+        drawer.style.pointerEvents = 'auto';
+        drawer.style.touchAction = 'auto';
+        drawer.style.removeProperty('pointer-events');
+        drawer.style.removeProperty('touch-action');
+      }
+    }, 50);
+  };
+
+  useEffect(() => {
+    if (!showGallery) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowGallery(false);
+        cleanupBodyStyles();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showGallery]);
+
   const data = route as any;
   const propsPhotos: string[] = data.photos || [];
   const geometry = data.geometry || data.route_data;
@@ -284,7 +313,7 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', paddingTop: 'max(48px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.9)', flexShrink: 0 }}>
             <button
-              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowGallery(false); }}
+              onClick={(e) => { e.stopPropagation(); e.preventDefault(); setShowGallery(false); cleanupBodyStyles(); }}
               style={{ color: 'white', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               ← Back

@@ -36,6 +36,36 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const [galleryIndex, setGalleryIndex] = useState(0);
   const touchStartX = useRef(0);
 
+  const cleanupBodyStyles = () => {
+    setTimeout(() => {
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('style');
+      const drawer = document.querySelector('[data-vaul-drawer]') as HTMLElement;
+      if (drawer) {
+        drawer.style.pointerEvents = 'auto';
+        drawer.style.touchAction = 'auto';
+        drawer.style.removeProperty('pointer-events');
+        drawer.style.removeProperty('touch-action');
+      }
+    }, 50);
+  };
+
+  useEffect(() => {
+    if (!showImageViewer && !showGallery) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowImageViewer(false);
+        setShowGallery(false);
+        cleanupBodyStyles();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showImageViewer, showGallery]);
+
   // Normalize — event may come from pin data or direct
   const data = event.data || event;
   const eventId = event.id || data.id;
@@ -488,11 +518,11 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
       {showImageViewer && createPortal(
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
-          onClick={() => setShowImageViewer(false)}
+          onClick={() => { setShowImageViewer(false); cleanupBodyStyles(); }}
         >
           <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
             <button
-              onClick={() => setShowImageViewer(false)}
+              onClick={() => { setShowImageViewer(false); cleanupBodyStyles(); }}
               style={{ color: 'white', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
             >
               ← Back
@@ -518,7 +548,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', paddingTop: 'max(48px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.9)', flexShrink: 0 }}>
             <button
-              onClick={(e) => { e.stopPropagation(); setShowGallery(false); }}
+              onClick={(e) => { e.stopPropagation(); setShowGallery(false); cleanupBodyStyles(); }}
               style={{ color: 'white', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
               ← Back

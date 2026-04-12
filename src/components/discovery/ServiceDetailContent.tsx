@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapPin, Star, Clock, Phone, Globe, Navigation, Bookmark, Share2, Shield, BadgeCheck, Send } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,7 +23,44 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
   const [reviewRating, setReviewRating] = useState(0);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showCoverViewer, setShowCoverViewer] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+  const touchStartX = useRef(0);
   const serviceId = (service as any).id;
+
+  const coverUrl = (service as any).cover_url || service.coverImage || '';
+  const galleryImages: string[] = (service as any).gallery_images || service.galleryImages || [];
+
+  const cleanupBodyStyles = () => {
+    setTimeout(() => {
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('style');
+      const drawer = document.querySelector('[data-vaul-drawer]') as HTMLElement;
+      if (drawer) {
+        drawer.style.pointerEvents = 'auto';
+        drawer.style.touchAction = 'auto';
+        drawer.style.removeProperty('pointer-events');
+        drawer.style.removeProperty('touch-action');
+      }
+    }, 50);
+  };
+
+  useEffect(() => {
+    if (!showCoverViewer && !showGallery) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowCoverViewer(false);
+        setShowGallery(false);
+        cleanupBodyStyles();
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [showCoverViewer, showGallery]);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setCurrentUserId(data.user?.id || null));
@@ -79,10 +117,13 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
 
   return (
     <div className="space-y-4">
-      {/* Banner */}
-      <div className="relative h-36 -mx-5 -mt-1 rounded-t-2xl overflow-hidden">
-        {((service as any).cover_url || service.coverImage) ? (
-          <img src={(service as any).cover_url || service.coverImage} alt={service.name} className="w-full h-full object-cover" />
+      {/* Banner — tappable when cover image exists */}
+      <div
+        className={`relative h-36 -mx-5 -mt-1 rounded-t-2xl overflow-hidden ${coverUrl ? 'cursor-pointer' : ''}`}
+        onClick={() => { if (coverUrl) setShowCoverViewer(true); }}
+      >
+        {coverUrl ? (
+          <img src={coverUrl} alt={service.name} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-services/80 to-services/40 flex items-center justify-center">
             {service.logo ? (
@@ -97,6 +138,16 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
           {((service as any).tagline || service.tagline) && <p className="text-xs text-white/80">{(service as any).tagline || service.tagline}</p>}
         </div>
       </div>
+
+      {/* View all photos button */}
+      {galleryImages.length > 0 && (
+        <button
+          onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
+          style={{ width: '100%', padding: '8px', fontSize: '12px', fontWeight: 600, color: '#ff8000', border: '1px solid rgba(255,128,0,0.2)', borderRadius: '12px', background: 'rgba(255,128,0,0.05)', cursor: 'pointer' }}
+        >
+          View all {galleryImages.length} photo{galleryImages.length !== 1 ? 's' : ''}
+        </button>
+      )}
 
       {/* Status + category */}
       <div className="flex flex-wrap items-center gap-2">
@@ -241,6 +292,93 @@ const ServiceDetailContent = ({ service, onNavigate, onViewFull, isSaved, onTogg
           </div>
         ))}
       </div>
+
+      {/* Full screen cover image viewer */}
+      {showCoverViewer && coverUrl && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'black', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+          onClick={() => { setShowCoverViewer(false); cleanupBodyStyles(); }}
+        >
+          <div style={{ position: 'absolute', top: 'max(48px, env(safe-area-inset-top))', left: 16, zIndex: 10 }}>
+            <button
+              onClick={() => { setShowCoverViewer(false); cleanupBodyStyles(); }}
+              style={{ color: 'white', background: 'rgba(0,0,0,0.5)', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              ← Back
+            </button>
+          </div>
+          <img
+            src={coverUrl}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+            onClick={(e) => e.stopPropagation()}
+            alt=""
+          />
+        </div>,
+        document.body
+      )}
+
+      {/* Full screen photo gallery */}
+      {showGallery && galleryImages.length > 0 && createPortal(
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 999999, background: '#000', display: 'flex', flexDirection: 'column', pointerEvents: 'all' }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', paddingTop: 'max(48px, env(safe-area-inset-top))', background: 'rgba(0,0,0,0.9)', flexShrink: 0 }}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowGallery(false); cleanupBodyStyles(); }}
+              style={{ color: 'white', background: 'none', border: 'none', fontSize: '14px', fontWeight: 600, cursor: 'pointer', padding: '8px 0', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              ← Back
+            </button>
+            <span style={{ color: 'white', fontSize: '13px' }}>{galleryIndex + 1} / {galleryImages.length}</span>
+            <span style={{ width: '60px' }} />
+          </div>
+
+          <div
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}
+            onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+            onTouchEnd={(e) => {
+              const diff = touchStartX.current - e.changedTouches[0].clientX;
+              if (diff > 50 && galleryIndex < galleryImages.length - 1) setGalleryIndex(prev => prev + 1);
+              if (diff < -50 && galleryIndex > 0) setGalleryIndex(prev => prev - 1);
+            }}
+          >
+            <img
+              key={galleryIndex}
+              src={galleryImages[galleryIndex]}
+              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', display: 'block', pointerEvents: 'none', userSelect: 'none' }}
+              alt=""
+            />
+            {galleryIndex > 0 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev - 1); }}
+                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all', WebkitTapHighlightColor: 'transparent' }}
+              >‹</button>
+            )}
+            {galleryIndex < galleryImages.length - 1 && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(prev => prev + 1); }}
+                style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', width: '44px', height: '44px', borderRadius: '50%', background: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', fontSize: '24px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, pointerEvents: 'all', WebkitTapHighlightColor: 'transparent' }}
+              >›</button>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px', padding: '10px 16px', paddingBottom: 'max(10px, env(safe-area-inset-bottom))', background: 'rgba(0,0,0,0.9)', overflowX: 'auto', flexShrink: 0, WebkitOverflowScrolling: 'touch' }}>
+            {galleryImages.map((p, i) => (
+              <button
+                key={i}
+                onClick={(e) => { e.stopPropagation(); setGalleryIndex(i); }}
+                style={{ flexShrink: 0, width: '52px', height: '52px', borderRadius: '8px', overflow: 'hidden', border: i === galleryIndex ? '2px solid #ff8000' : '2px solid rgba(255,255,255,0.2)', padding: 0, cursor: 'pointer', background: 'none' }}
+              >
+                <img src={p} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} alt="" />
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
