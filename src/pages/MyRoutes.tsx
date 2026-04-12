@@ -109,7 +109,7 @@ const MyRoutes = () => {
           <div className="space-y-3">
             {displayRoutes.map(route => (
               <div key={route.id} className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-                <button onClick={() => navigate(`/route/${route.id}`)} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
+                <button onClick={() => navigate('/route-map', { state: { routeId: route.id } })} className="w-full p-4 text-left hover:bg-muted/30 transition-colors">
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex-1 min-w-0">
                       <Badge className={`text-[10px] py-0 h-5 mb-1.5 ${routeTypeColors[route.type] || 'bg-muted text-foreground'}`}>{route.type}</Badge>
@@ -135,7 +135,7 @@ const MyRoutes = () => {
                             state: { destLat: route.lat, destLng: route.lng, destTitle: route.name, routeId: route.id }
                           });
                         } else {
-                          navigate(`/route/${route.id}`);
+                          navigate('/route-map', { state: { routeId: route.id } });
                           toast('Opening route details');
                         }
                       }}
@@ -150,7 +150,7 @@ const MyRoutes = () => {
                 )}
                 {activeTab === 'created' && (
                   <div className="flex border-t border-border/30 divide-x divide-border/30">
-                    <button onClick={() => navigate(`/route/${route.id}`)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
+                    <button onClick={() => navigate('/route-map', { state: { routeId: route.id } })} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-primary hover:bg-primary/5 transition-colors">
                       <Route className="w-4 h-4" /> View
                     </button>
                     <button onClick={() => navigate(`/add/route?edit=${route.id}`)} className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 transition-colors">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import mapboxgl from 'mapbox-gl'
+import { supabase } from '@/integrations/supabase/client'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || ''
 
@@ -10,12 +11,37 @@ export default function RouteMapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
   const [reversed, setReversed] = useState(false)
+  const [fetchedRoute, setFetchedRoute] = useState<any>(null)
+  const [loading, setLoading] = useState(false)
 
-  const geometry = state?.geometry
-  const routeName = state?.routeName || 'Route'
-  const distance = state?.distance
-  const duration = state?.duration
-  const difficulty = state?.difficulty
+  // If only routeId is provided (no geometry), fetch the route from DB
+  useEffect(() => {
+    if (state?.geometry || !state?.routeId) return;
+    setLoading(true);
+    supabase
+      .from('routes')
+      .select('id, name, geometry, route_data, distance_meters, duration_minutes, difficulty')
+      .eq('id', state.routeId)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setFetchedRoute({
+            geometry: data.geometry || data.route_data,
+            routeName: data.name || 'Route',
+            distance: data.distance_meters ? `${(data.distance_meters / 1000).toFixed(1)} km` : null,
+            duration: data.duration_minutes || null,
+            difficulty: data.difficulty || null,
+          });
+        }
+        setLoading(false);
+      });
+  }, [state?.routeId, state?.geometry]);
+
+  const geometry = state?.geometry || fetchedRoute?.geometry
+  const routeName = state?.routeName || fetchedRoute?.routeName || 'Route'
+  const distance = state?.distance || fetchedRoute?.distance
+  const duration = state?.duration || fetchedRoute?.duration
+  const difficulty = state?.difficulty || fetchedRoute?.difficulty
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -108,9 +134,9 @@ export default function RouteMapView() {
       try { map.remove() } catch {}
       mapRef.current = null
     }
-  }, [reversed])
+  }, [reversed, geometry])
 
-  if (!geometry) {
+  if (!geometry && !loading) {
     return (
       <div className="fixed inset-0 bg-background flex items-center justify-center">
         <div className="text-center px-8">
