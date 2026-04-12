@@ -1,4 +1,4 @@
-import { MessageCircle, Route, Calendar, Users, Share2, MapPin, Crown, Sparkles, Star, Pencil, Camera, Building2, AlertCircle, RotateCcw } from 'lucide-react';
+import { MessageCircle, Route, Calendar, Users, Share2, MapPin, Crown, Sparkles, Star, Pencil, Camera, Building2, AlertCircle, RotateCcw, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useState, useEffect, useRef } from 'react';
@@ -88,6 +88,10 @@ const Profile = () => {
   const plan = profile?.plan || 'free';
 
   const [editForm, setEditForm] = useState({ displayName: '', username: '', bio: '', location: '' });
+  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
+  const [usernameChecking, setUsernameChecking] = useState(false);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const usernameCheckTimer = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (profile) {
@@ -97,8 +101,64 @@ const Profile = () => {
         bio: profile.bio || '',
         location: profile.location || '',
       });
+      setUsernameAvailable(null);
+      setUsernameError(null);
     }
   }, [profile]);
+
+  // Debounced username validation + availability check
+  useEffect(() => {
+    const val = editForm.username;
+    clearTimeout(usernameCheckTimer.current);
+
+    // Same as current profile — no check needed
+    if (val === (profile?.username || '')) {
+      setUsernameAvailable(null);
+      setUsernameError(null);
+      setUsernameChecking(false);
+      return;
+    }
+
+    if (!val || val.length < 3) {
+      setUsernameAvailable(null);
+      setUsernameError(val.length > 0 ? 'Minimum 3 characters' : null);
+      setUsernameChecking(false);
+      return;
+    }
+    if (val.length > 20) {
+      setUsernameError('Maximum 20 characters');
+      setUsernameAvailable(null);
+      setUsernameChecking(false);
+      return;
+    }
+    if (!/^[a-z0-9_]+$/.test(val)) {
+      setUsernameError('Only lowercase letters, numbers and underscores');
+      setUsernameAvailable(null);
+      setUsernameChecking(false);
+      return;
+    }
+    if (val.startsWith('_') || val.endsWith('_')) {
+      setUsernameError('Cannot start or end with underscore');
+      setUsernameAvailable(null);
+      setUsernameChecking(false);
+      return;
+    }
+
+    setUsernameError(null);
+    setUsernameChecking(true);
+    usernameCheckTimer.current = setTimeout(async () => {
+      const { data: existing } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('username', val)
+        .neq('id', authUser?.id || '')
+        .maybeSingle();
+      setUsernameAvailable(!existing);
+      setUsernameChecking(false);
+    }, 500);
+
+    return () => clearTimeout(usernameCheckTimer.current);
+  }, [editForm.username, profile?.username, authUser?.id]);
 
   const planBadge = {
     free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
@@ -120,25 +180,22 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     if (!authUser?.id) return;
-    if (!editForm.username?.trim()) {
-      toast.error('Username is required');
-      return;
-    }
+    const uname = editForm.username.trim();
+    if (!uname || uname.length < 3) { toast.error('Username must be at least 3 characters'); return; }
+    if (!/^[a-z0-9_]+$/.test(uname)) { toast.error('Username can only contain lowercase letters, numbers and underscores'); return; }
+    if (uname.startsWith('_') || uname.endsWith('_')) { toast.error('Username cannot start or end with underscore'); return; }
 
-    // Check username uniqueness if changed
-    if (editForm.username !== profile?.username) {
+    // Server-side uniqueness check as safety net
+    if (uname !== profile?.username) {
       const { data: existing, error: checkError } = await supabase
         .from('profiles')
         .select('id')
-        .eq('username', editForm.username.toLowerCase())
+        .eq('username', uname)
         .neq('id', authUser.id)
         .maybeSingle();
 
       if (checkError) { toast.error('Failed to check username availability'); return; }
-      if (existing) {
-        toast.error('This username is already taken');
-        return;
-      }
+      if (existing) { toast.error('This username is already taken'); return; }
     }
 
     const { error } = await supabase.from('profiles').update({
@@ -296,10 +353,29 @@ const Profile = () => {
             </div>
             <div className="space-y-4">
               <div className="space-y-2"><Label htmlFor="displayName">Display Name</Label><Input id="displayName" value={editForm.displayName} onChange={e => setEditForm({ ...editForm, displayName: e.target.value })} className="h-11" /></div>
-              <div className="space-y-2"><Label htmlFor="username">Username</Label><Input id="username" value={editForm.username} onChange={e => setEditForm({ ...editForm, username: e.target.value })} className="h-11" /></div>
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="relative">
+                  <Input
+                    id="username"
+                    value={editForm.username}
+                    onChange={e => setEditForm({ ...editForm, username: e.target.value.toLowerCase().replace(/\s/g, '') })}
+                    maxLength={20}
+                    className="h-11 pr-10"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    {usernameChecking && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
+                    {!usernameChecking && usernameAvailable === true && <CheckCircle className="w-4 h-4 text-green-600" />}
+                    {!usernameChecking && usernameAvailable === false && <XCircle className="w-4 h-4 text-destructive" />}
+                  </div>
+                </div>
+                {usernameError && <p className="text-xs text-destructive">{usernameError}</p>}
+                {!usernameChecking && !usernameError && usernameAvailable === false && <p className="text-xs text-destructive">Username already taken</p>}
+                {!usernameChecking && !usernameError && usernameAvailable === true && <p className="text-xs text-green-600">Username available</p>}
+              </div>
               <div className="space-y-2"><Label htmlFor="bio">Bio</Label><Textarea id="bio" value={editForm.bio} onChange={e => setEditForm({ ...editForm, bio: e.target.value })} rows={3} /></div>
               <div className="space-y-2"><Label htmlFor="location">Location</Label><Input id="location" value={editForm.location} onChange={e => setEditForm({ ...editForm, location: e.target.value })} className="h-11" /></div>
-              <Button className="w-full" onClick={handleSaveProfile}>Save Changes</Button>
+              <Button className="w-full" onClick={handleSaveProfile} disabled={usernameChecking || usernameAvailable === false || !!usernameError}>Save Changes</Button>
             </div>
           </div>
         </SheetContent>
