@@ -20,7 +20,7 @@ export default function RouteMapView() {
     setLoading(true);
     supabase
       .from('routes')
-      .select('id, name, geometry, route_data, distance_meters, duration_minutes, difficulty')
+      .select('*')
       .eq('id', state.routeId)
       .single()
       .then(({ data }) => {
