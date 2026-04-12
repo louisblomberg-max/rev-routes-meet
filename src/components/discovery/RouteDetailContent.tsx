@@ -53,20 +53,7 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
 
   const photos = dbPhotos.length > 0 ? dbPhotos : propsPhotos;
 
-  // Lock body scroll while gallery is open
-  useEffect(() => {
-    if (showGallery) {
-      document.body.style.overflow = 'hidden';
-      document.body.style.touchAction = 'none';
-    } else {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.touchAction = '';
-    };
-  }, [showGallery]);
+
 
   useEffect(() => { supabase.auth.getUser().then(({ data: d }) => setCurrentUserId(d.user?.id || null)); }, []);
 

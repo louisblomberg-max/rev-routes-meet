@@ -59,15 +59,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
   const bannerUrl: string = dbBanner || data.banner_url || data.bannerImage || '';
   const additionalPhotos: string[] = dbPhotos.length > 0 ? dbPhotos : (data.photos || []);
 
-  // Lock body scroll while viewer/gallery is open
-  useEffect(() => {
-    if (showGallery || showImageViewer) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [showGallery, showImageViewer]);
+
 
   useEffect(() => {
     if (!eventId || !userId) return;

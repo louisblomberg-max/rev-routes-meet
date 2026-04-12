@@ -107,23 +107,40 @@ const Home = () => {
   /* ── Search state ── */
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Reset body styles on mount — defensive cleanup in case any
-  // previous sheet/modal left styles that block map interaction
   useEffect(() => {
+    // Clear any leftover body styles from previous sessions
     document.body.style.overflow = '';
     document.body.style.touchAction = '';
     document.body.style.pointerEvents = '';
+
+    // Recurring safety net — clears body styles every 2 seconds when no sheet is open
+    // This catches cumulative leaks from rapid open/close sequences
+    const interval = setInterval(() => {
+      const hasOpenDrawer = document.querySelector('[data-vaul-drawer][data-state="open"]');
+      if (!hasOpenDrawer) {
+        if (document.body.style.pointerEvents === 'none') {
+          document.body.style.pointerEvents = '';
+        }
+        if (document.body.style.overflow === 'hidden') {
+          document.body.style.overflow = '';
+        }
+        if (document.body.style.touchAction === 'none') {
+          document.body.style.touchAction = '';
+        }
+      }
+    }, 2000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  // Reset body styles when user returns to tab
-  // Recovers from sheets that didn't clean up properly
   useEffect(() => {
     const reset = () => {
-      if (!document.querySelector('[data-vaul-drawer][data-state="open"]')) {
-        document.body.style.overflow = '';
-        document.body.style.touchAction = '';
-        document.body.style.pointerEvents = '';
-      }
+      // Always reset on tab return — if a sheet was open when they left
+      // it will be gone when they come back so the styles are always stale
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+      document.body.style.pointerEvents = '';
+      document.body.removeAttribute('data-scroll-locked');
     };
     document.addEventListener('visibilitychange', reset);
     window.addEventListener('focus', reset);
@@ -1022,12 +1039,19 @@ const Home = () => {
 
   const handleCloseDetail = useCallback(() => {
     setSelectedDetail(null);
-    // Defensive reset — vaul 0.9.x leaks body styles on rapid close or unmount race
+    // Immediately clear all body styles vaul may have set
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+    document.body.style.touchAction = '';
+    // Belt-and-braces: clear again after vaul animation completes
     setTimeout(() => {
       document.body.style.overflow = '';
       document.body.style.pointerEvents = '';
       document.body.style.touchAction = '';
-    }, 100);
+      // Also nuke any residual vaul attributes on body
+      document.body.removeAttribute('data-scroll-locked');
+      document.body.removeAttribute('style');
+    }, 350);
   }, []);
 
   const handleSearchSelectPin = useCallback((id: string, lat: number, lng: number, type: string) => {
