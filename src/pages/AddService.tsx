@@ -392,7 +392,7 @@ const AddService = () => {
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-services/10 text-services border border-services/20">Club Plan</span>
           ) : (
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50 cursor-pointer"
-              onClick={() => navigate('/subscription')}>Upgrade</span>
+              onClick={() => navigate('/upgrade')}>Upgrade</span>
           )}
         </div>
       </div>

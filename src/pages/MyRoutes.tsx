@@ -61,7 +61,7 @@ const MyRoutes = () => {
           <Button size="sm" onClick={() => {
             if (currentPlan === 'free') {
               toast.info('Creating routes requires Pro Driver. Upgrade to unlock unlimited routes.', {
-                action: { label: 'Upgrade', onClick: () => navigate('/subscription') },
+                action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
               });
             } else {
               navigate('/add/route');

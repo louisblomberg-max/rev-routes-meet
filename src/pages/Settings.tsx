@@ -102,7 +102,7 @@ const Settings = () => {
           </div>
         ) : (
           <button
-            onClick={() => navigate('/subscription')}
+            onClick={() => navigate('/upgrade')}
             className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3 hover:bg-primary/5 transition-colors"
           >
             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -132,7 +132,7 @@ const Settings = () => {
                   if (section.id === 'support') navigate('/settings/support');
                   if (section.id === 'faq') navigate('/settings/faq');
                   if (section.id === 'howto') navigate('/settings/howto');
-                  if (section.id === 'devtools') navigate('/settings/devtools');
+                  if (import.meta.env.DEV && section.id === 'devtools') navigate('/settings/devtools');
                 }}
                 className="w-full flex items-center gap-3 px-3 py-3 hover:bg-muted/50 transition-colors"
               >
@@ -149,8 +149,8 @@ const Settings = () => {
           })}
         </div>
 
-        {/* Dev Plan Switcher — admin only */}
-        {isAdmin && (
+        {/* Dev Plan Switcher — admin only, dev builds only */}
+        {import.meta.env.DEV && isAdmin && (
           <div className="mt-3">
             <div className="bg-card rounded-xl border border-dashed border-amber-400/60 shadow-sm overflow-hidden">
               <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2">

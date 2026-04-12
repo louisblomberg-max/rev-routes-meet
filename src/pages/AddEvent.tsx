@@ -466,7 +466,7 @@ const AddEvent = () => {
       if (!isEdit && !isPaidPlan && userCredits <= 0) {
         setSaving(false)
         toast.error('You need event credits or a Pro plan to publish events')
-        navigate('/subscription', { state: { feature: 'events' } })
+        navigate('/upgrade', { state: { feature: 'events' } })
         return
       }
 

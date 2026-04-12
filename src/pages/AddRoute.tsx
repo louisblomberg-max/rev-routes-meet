@@ -62,7 +62,7 @@ const AddRoute = () => {
         <p className="text-sm text-muted-foreground mb-6 text-center">Creating routes requires Pro Driver or Club & Business.</p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
-          <Button onClick={() => navigate('/subscription')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
+          <Button onClick={() => navigate('/upgrade')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
         </div>
       </div>
     );

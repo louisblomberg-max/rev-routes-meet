@@ -144,6 +144,13 @@ const SectionCard = ({ children, className = '' }: { children: React.ReactNode; 
 
 const DevTools = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   const { user: authUser, updateProfile, logout } = useAuth();
   const { setPlan, setSubscriptionStatus, currentPlan, effectivePlan, getPlanLabel } = usePlan();
   const { state, events: eventsRepo, routes: routesRepo, services: servicesRepo } = useData();

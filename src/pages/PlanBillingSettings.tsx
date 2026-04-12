@@ -136,7 +136,7 @@ const PlanBillingSettings = () => {
                   {currentPlan === 'pro' && 'Create routes, events & live features'}
                   {currentPlan === 'club' && 'Full access including club management & ticketing'}
                 </p>
-                <Button size="sm" className="h-8" onClick={() => navigate('/subscription')}>
+                <Button size="sm" className="h-8" onClick={() => navigate('/upgrade')}>
                   <Crown className="w-3.5 h-3.5 mr-1.5" />Change plan
                 </Button>
               </div>
@@ -177,7 +177,7 @@ const PlanBillingSettings = () => {
                 const Icon = feature.icon;
                 const requiredPlan = FEATURE_REQUIREMENTS[feature.featureId] as PlanId;
                 return (
-                  <button key={`locked-${feature.featureId}-${idx}`} onClick={() => navigate('/subscription')} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
+                  <button key={`locked-${feature.featureId}-${idx}`} onClick={() => navigate('/upgrade')} className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted/50 transition-colors opacity-50">
                     <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center"><Icon className="w-3.5 h-3.5 text-muted-foreground" /></div>
                     <span className="flex-1 text-left text-sm text-muted-foreground">{feature.label}</span>
                     <div className="flex items-center gap-1.5">
@@ -221,7 +221,7 @@ const PlanBillingSettings = () => {
       <div className="px-4 pt-6">
         <h2 className="text-sm font-semibold text-foreground mb-3">Manage plan</h2>
         <div className="space-y-2">
-          <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/subscription')}>
+          <Button variant="outline" className="w-full justify-start" onClick={() => navigate('/upgrade')}>
             <Crown className="w-3.5 h-3.5 mr-1.5" />Change plan
           </Button>
           {currentPlan !== 'free' && (
