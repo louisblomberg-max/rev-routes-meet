@@ -30,6 +30,13 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
   const [galleryIndex, setGalleryIndex] = useState(0);
   const galleryScrollRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
 
   const cleanupBodyStyles = () => {
     setTimeout(() => {
@@ -245,9 +252,11 @@ const RouteDetailContent = ({ route, onNavigate, onClose, isSaved, onToggleSave 
             <Route className="w-3.5 h-3.5" /> View Route
           </button>
         )}
-        <button onClick={onNavigate} className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-routes text-white flex items-center justify-center gap-1.5">
-          <Navigation className="w-3.5 h-3.5" /> Navigate
-        </button>
+        {isMobile && (
+          <button onClick={onNavigate} className="flex-1 py-2.5 rounded-xl text-xs font-semibold bg-routes text-white flex items-center justify-center gap-1.5">
+            <Navigation className="w-3.5 h-3.5" /> Navigate
+          </button>
+        )}
       </div>
 
       {/* Reviews */}

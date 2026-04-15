@@ -1,13 +1,16 @@
 /**
  * Reusable Navigate button pair for detail pages.
- * Triggers Mapbox Directions navigation + offers external maps fallback.
+ * - Desktop: hidden (navigation is mobile-only)
+ * - Native app: navigates to /navigation with destination state
+ * - Mobile web: prompts to open app, with fallback to in-browser navigation
  */
 
+import { useState, useEffect } from 'react';
 import { useNavigate as useRouterNavigate } from 'react-router-dom';
-import { useNavigation } from '@/contexts/NavigationContext';
 import { openExternalMaps, NavigationDestination } from '@/services/navigationService';
 import { Button } from '@/components/ui/button';
-import { Navigation, ExternalLink, Loader2 } from 'lucide-react';
+import { Navigation, ExternalLink, Loader2, Smartphone } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface NavigateButtonProps {
   destination: NavigationDestination;
@@ -16,28 +19,57 @@ interface NavigateButtonProps {
 
 const NavigateButton = ({ destination, colorClass = 'bg-routes hover:bg-routes/90' }: NavigateButtonProps) => {
   const routerNavigate = useRouterNavigate();
-  const { startNavigation, status } = useNavigation();
-  const isLoading = status === 'loading';
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
-  const handleNavigate = async () => {
-    await startNavigation(destination);
-    // Go to home/discovery so user sees the map
-    routerNavigate('/');
+  useEffect(() => {
+    const handler = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  if (isDesktop) return null;
+
+  let isNativeApp = false;
+  try {
+    const Capacitor = (window as any).Capacitor;
+    isNativeApp = Capacitor?.isNativePlatform?.() ?? false;
+  } catch { /* not native */ }
+
+  const navState = {
+    destLat: destination.lat,
+    destLng: destination.lng,
+    destTitle: destination.title,
+  };
+
+  const handleNavigate = () => {
+    routerNavigate('/navigation', { state: navState });
+  };
+
+  const handleMobileWebNavigate = () => {
+    toast('For the best experience, use the RevNet app', {
+      duration: 8000,
+      action: {
+        label: 'Navigate anyway',
+        onClick: handleNavigate,
+      },
+    });
+    // Try deep link — falls back silently if app not installed
+    const deepLink = `revnet://navigate?lat=${destination.lat}&lng=${destination.lng}&title=${encodeURIComponent(destination.title)}`;
+    window.location.href = deepLink;
   };
 
   return (
     <div className="flex gap-2">
       <Button
-        onClick={handleNavigate}
-        disabled={isLoading}
+        onClick={isNativeApp ? handleNavigate : handleMobileWebNavigate}
         className={`flex-1 py-6 text-lg gap-2 ${colorClass} text-white`}
       >
-        {isLoading ? (
-          <Loader2 className="w-5 h-5 animate-spin" />
-        ) : (
+        {isNativeApp ? (
           <Navigation className="w-5 h-5" />
+        ) : (
+          <Smartphone className="w-5 h-5" />
         )}
-        {isLoading ? 'Getting route...' : 'Navigate'}
+        Navigate
       </Button>
       <Button
         onClick={() => openExternalMaps(destination)}
