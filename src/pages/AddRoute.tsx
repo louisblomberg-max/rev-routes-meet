@@ -59,7 +59,7 @@ const AddRoute = () => {
       <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold mb-1">Pro Driver Required</h2>
-        <p className="text-sm text-muted-foreground mb-6 text-center">Creating routes requires Pro Driver or Club & Business.</p>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Creating routes requires the Pro Driver plan or above.</p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
           <Button onClick={() => navigate('/upgrade')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>

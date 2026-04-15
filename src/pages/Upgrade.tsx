@@ -1,4 +1,4 @@
-import { Check, Star, Crown, Building2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Star, Crown, Building2, Sparkles, Users, ChevronDown, ChevronUp } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -11,10 +11,115 @@ import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 import { getPriceId } from '@/config/stripe';
 
+const plans = [
+  {
+    id: 'free' as PlanId,
+    name: 'Explorer',
+    icon: Sparkles,
+    color: 'text-muted-foreground',
+    bgColor: 'bg-muted',
+    borderColor: 'border-border/50',
+    price: { monthly: 0, annual: 0 },
+    description: 'Free forever',
+    popular: false,
+    trial: null,
+    features: [
+      'Full map — discover events, routes and services',
+      'Navigate any route with turn by turn directions',
+      'Attend free and ticketed events',
+      'Join up to 3 clubs',
+      'Read and post in forums',
+      'Message up to 10 people',
+      'Add 2 vehicles to your garage',
+      'Buy and sell on the marketplace',
+      'Save up to 10 events, routes and services',
+      'SOS breakdown help — free for everyone',
+    ],
+    cta: "Get started — it's free",
+    ctaSubtext: null,
+  },
+  {
+    id: 'pro' as PlanId,
+    name: 'Pro Driver',
+    icon: Star,
+    color: 'text-primary',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary',
+    price: { monthly: 4.99, annual: 39.99 },
+    description: 'For active enthusiasts',
+    popular: true,
+    trial: { days: 7, requiresCard: false },
+    features: [
+      'Everything in Explorer',
+      'Create and publish unlimited routes',
+      'Import GPX files',
+      'Live location sharing with friends',
+      'Convoy mode — see all members live on group drives',
+      'Unlimited club memberships',
+      'Unlimited direct messaging',
+      'Unlimited forum posts',
+      '5 vehicles in your garage',
+      'Save unlimited events, routes and services',
+    ],
+    cta: 'Try free for 7 days',
+    ctaSubtext: 'No credit card needed',
+  },
+  {
+    id: 'club' as PlanId,
+    name: 'Club',
+    icon: Users,
+    color: 'text-clubs',
+    bgColor: 'bg-clubs/10',
+    borderColor: 'border-clubs/30',
+    price: { monthly: 9.99, annual: 79.99 },
+    description: 'For club organisers',
+    popular: false,
+    trial: { days: 30, requiresCard: false },
+    features: [
+      'Everything in Pro Driver',
+      'Create and manage your own club',
+      'Unlimited club members',
+      'Club feed — posts, photos and updates',
+      'Club polls and announcements',
+      'Member management — approve, roles, remove',
+      'Club shared routes and garage',
+      'Create unlimited events',
+      'Sell tickets — RevNet takes 5%',
+      'Organiser dashboard — attendees and sales',
+      'Club analytics — member growth and attendance',
+      'Verified club badge',
+    ],
+    cta: 'Try free for 30 days',
+    ctaSubtext: 'No credit card needed',
+  },
+  {
+    id: 'business' as PlanId,
+    name: 'Business',
+    icon: Building2,
+    color: 'text-services',
+    bgColor: 'bg-services/10',
+    borderColor: 'border-services/30',
+    price: { monthly: 19.99, annual: 159.99 },
+    description: 'For automotive businesses',
+    popular: false,
+    trial: null,
+    features: [
+      'Everything in Club',
+      'Full service listing on the map',
+      'Featured placement in your area',
+      'Verified business badge',
+      'Business analytics dashboard',
+      'Priority customer support',
+    ],
+    cta: 'Start today',
+    ctaSubtext: null,
+  },
+];
+
 const Upgrade = () => {
   const navigate = useNavigate();
   const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
 
@@ -22,76 +127,15 @@ const Upgrade = () => {
     setExpandedPlans(prev => ({ ...prev, [planId]: !prev[planId] }));
   };
 
-  const plans = [
-    {
-      id: 'free' as PlanId,
-      name: 'Free Member',
-      icon: Sparkles,
-      color: 'text-muted-foreground',
-      bgColor: 'bg-muted',
-      borderColor: 'border-border/50',
-      price: { monthly: 0, yearly: 0 },
-      savingsBadge: null,
-      features: [
-        'Browse routes, events & services',
-        '1 free event post included',
-        'Additional events £2.99 each',
-        'Join clubs & forums',
-        'Basic messaging',
-        'Save & bookmark content',
-      ],
-      recommended: false,
-    },
-    {
-      id: 'pro' as PlanId,
-      name: 'Pro Driver',
-      icon: Star,
-      color: 'text-primary',
-      bgColor: 'bg-primary/10',
-      borderColor: 'border-primary',
-      price: { monthly: 3.99, yearly: 43.99 },
-      savingsBadge: 'Save 8%',
-      features: [
-        'Everything in Explorer, plus:',
-        'Unlimited event posts',
-        'Create & publish routes',
-        'Host unlimited events',
-        'Live location sharing',
-        'SOS breakdown help',
-        'Garage showcase',
-        'Priority visibility',
-      ],
-      recommended: true,
-    },
-    {
-      id: 'club' as PlanId,
-      name: 'Club / Business',
-      icon: Building2,
-      color: 'text-clubs',
-      bgColor: 'bg-clubs/10',
-      borderColor: 'border-clubs/30',
-      price: { monthly: 5.99, yearly: 63.99 },
-      savingsBadge: 'Save 11%',
-      features: [
-        'Everything in Pro, plus:',
-        'Create & manage clubs',
-        'Event ticketing with Stripe payouts',
-        'Business & service listings',
-        'Analytics & insights',
-        'Featured placement',
-        'Verified badge',
-      ],
-      recommended: false,
-    },
-  ];
+  const planOrder: PlanId[] = ['free', 'pro', 'club', 'business'];
 
   const handleSelectPlan = async (planId: PlanId) => {
     if (planId === currentPlan) return;
-    
+
     if (planId === 'free') {
       setPlan(planId);
       setSubscriptionStatus('active');
-      toast.success('Downgraded to Free');
+      toast.success('Downgraded to Explorer');
       return;
     }
 
@@ -106,7 +150,7 @@ const Upgrade = () => {
 
     setLoading(true);
     try {
-      const priceId = getPriceId(planId as 'pro' | 'club', billingCycle);
+      const priceId = getPriceId(planId as 'pro' | 'club' | 'business', billingCycle);
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: planId },
       });
@@ -148,35 +192,41 @@ const Upgrade = () => {
           <span className={`text-sm transition-colors ${billingCycle === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
             Monthly
           </span>
-          <Switch 
-            checked={billingCycle === 'yearly'} 
+          <Switch
+            checked={billingCycle === 'yearly'}
             onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
           />
           <span className={`text-sm transition-colors ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-            Yearly
+            Annual
           </span>
         </div>
+
+        {billingCycle === 'yearly' && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl px-4 py-2.5 text-center">
+            <p className="text-sm font-medium text-green-700 dark:text-green-400">Pay annually — get 2 months free</p>
+          </div>
+        )}
 
         <div className="space-y-3">
           {plans.map((plan) => {
             const Icon = plan.icon;
             const isCurrentPlan = plan.id === currentPlan;
-            const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.yearly;
-            
+            const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.annual;
+
             return (
-              <Card 
-                key={plan.id} 
+              <Card
+                key={plan.id}
                 className={`relative overflow-hidden transition-all ${
                   isCurrentPlan
                     ? 'border-primary border-2 shadow-md ring-2 ring-primary/20'
-                    : plan.recommended && !isCurrentPlan
-                      ? `${plan.borderColor} border-2 shadow-md` 
+                    : plan.popular && !isCurrentPlan
+                      ? `${plan.borderColor} border-2 shadow-md`
                       : 'border-border/50'
                 }`}
               >
-                {plan.recommended && !isCurrentPlan && (
+                {plan.popular && !isCurrentPlan && (
                   <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg">
-                    ⭐ Most Popular
+                    Most Popular
                   </div>
                 )}
                 {isCurrentPlan && (
@@ -192,6 +242,7 @@ const Upgrade = () => {
                     </div>
                     <div>
                       <h3 className="font-bold text-foreground">{plan.name}</h3>
+                      <p className="text-[11px] text-muted-foreground">{plan.description}</p>
                       <div className="flex items-baseline gap-1">
                         <span className="text-xl font-bold text-foreground">
                           {price === 0 ? 'Free' : `£${price.toFixed(2)}`}
@@ -202,35 +253,38 @@ const Upgrade = () => {
                           </span>
                         )}
                       </div>
-                      {billingCycle === 'yearly' && plan.savingsBadge && (
-                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          {plan.savingsBadge}
+                      {billingCycle === 'yearly' && plan.price.monthly > 0 && (
+                        <p className="text-[10px] text-muted-foreground">or £{plan.price.monthly.toFixed(2)}/month</p>
+                      )}
+                      {plan.trial && (
+                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 mt-0.5">
+                          {plan.trial.days} day free trial — no card needed
                         </Badge>
                       )}
                     </div>
                   </div>
-                  
+
                   <ul className="space-y-2 mb-4">
-                    {(expandedPlans[plan.id] 
-                      ? plan.features 
-                      : plan.features.slice(0, plan.recommended ? 5 : 4)
+                    {(expandedPlans[plan.id]
+                      ? plan.features
+                      : plan.features.slice(0, plan.popular ? 5 : 4)
                     ).map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-xs">
                         <Check className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
                           idx === 0 && plan.id !== 'free' ? 'opacity-0' : plan.color
                         }`} />
                         <span className={`${
-                          idx === 0 && plan.id !== 'free' 
-                            ? 'font-medium text-foreground' 
+                          idx === 0 && plan.id !== 'free'
+                            ? 'font-medium text-foreground'
                             : 'text-muted-foreground'
                         }`}>
                           {feature}
                         </span>
                       </li>
                     ))}
-                    {plan.features.length > (plan.recommended ? 5 : 4) && (
+                    {plan.features.length > (plan.popular ? 5 : 4) && (
                       <li>
-                        <button 
+                        <button
                           onClick={() => togglePlanExpanded(plan.id)}
                           className="flex items-center gap-1 text-xs text-primary font-medium pl-5 hover:text-primary/80 transition-colors"
                         >
@@ -242,32 +296,31 @@ const Upgrade = () => {
                           ) : (
                             <>
                               <ChevronDown className="w-3.5 h-3.5" />
-                              +{plan.features.length - (plan.recommended ? 5 : 4)} more features
+                              +{plan.features.length - (plan.popular ? 5 : 4)} more features
                             </>
                           )}
                         </button>
                       </li>
                     )}
                   </ul>
-                  
-                  <Button 
-                    variant={isCurrentPlan ? 'secondary' : plan.recommended ? 'default' : 'outline'}
+
+                  <Button
+                    variant={isCurrentPlan ? 'secondary' : plan.popular ? 'default' : 'outline'}
                     size="sm"
-                    className={`w-full h-10 ${plan.recommended && !isCurrentPlan ? 'font-semibold' : ''}`}
+                    className={`w-full h-10 ${plan.popular && !isCurrentPlan ? 'font-semibold' : ''}`}
                     disabled={isCurrentPlan || loading}
                     onClick={() => handleSelectPlan(plan.id)}
                   >
-                    {isCurrentPlan 
+                    {isCurrentPlan
                       ? '✓ Current Plan'
-                      : ['free', 'pro', 'club'].indexOf(plan.id) < ['free', 'pro', 'club'].indexOf(currentPlan)
+                      : planOrder.indexOf(plan.id) < planOrder.indexOf(currentPlan)
                         ? `Downgrade to ${plan.name}`
-                        : plan.id === 'pro'
-                          ? 'Upgrade to Pro'
-                          : plan.id === 'club'
-                            ? 'Upgrade to Club'
-                            : 'Select'
+                        : plan.cta
                     }
                   </Button>
+                  {!isCurrentPlan && plan.ctaSubtext && (
+                    <p className="text-[10px] text-muted-foreground text-center mt-1">{plan.ctaSubtext}</p>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -281,7 +334,7 @@ const Upgrade = () => {
           </p>
         </div>
 
-        <button 
+        <button
           onClick={() => navigate('/settings/billing')}
           className="w-full text-sm text-primary font-medium hover:text-primary/80 transition-colors py-2"
         >

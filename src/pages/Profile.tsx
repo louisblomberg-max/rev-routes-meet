@@ -163,7 +163,8 @@ const Profile = () => {
   const planBadge = {
     free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
     pro: { label: 'Pro Driver', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
-    club: { label: 'Club & Business', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground' },
+    club: { label: 'Club', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground' },
+    business: { label: 'Business', icon: Building2, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
   };
   const currentBadge = planBadge[plan as keyof typeof planBadge] || planBadge.free;
   const BadgeIcon = currentBadge.icon;

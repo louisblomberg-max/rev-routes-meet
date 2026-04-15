@@ -650,12 +650,11 @@ const Onboarding = () => {
                 <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.pro.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Explorer</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Unlimited event posts</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create & share routes</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Live location sharing</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> SOS breakdown help</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Garage showcase</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Priority visibility</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create unlimited routes</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Import GPX files</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Live location & convoy mode</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Unlimited clubs & messaging</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> 5 vehicles in garage</li>
                 </ul>
                 <div className="flex gap-2 mt-4">
                   <Button onClick={() => handlePlanSelect('pro', 'monthly')} disabled={isSubmitting}
@@ -664,22 +663,21 @@ const Onboarding = () => {
                   </Button>
                   <Button onClick={() => handlePlanSelect('pro', 'yearly')} disabled={isSubmitting}
                     className="flex-1 h-10 rounded-xl text-sm font-semibold" style={{ backgroundColor: '#d30d37' }}>
-                    {isSubmitting && selectedPlan === 'pro' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · Save 8%`}
+                    {isSubmitting && selectedPlan === 'pro' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
                   </Button>
                 </div>
               </div>
 
-              {/* Club Business */}
+              {/* Club */}
               <div className="bg-card rounded-2xl p-4 border border-border/50">
-                <h3 className="text-base font-semibold">Club & Business</h3>
+                <h3 className="text-base font-semibold">Club</h3>
                 <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.club.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Pro</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Pro Driver</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create & manage clubs</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Event ticketing</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Service listings</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Analytics</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Verified badge</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create unlimited events</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Sell tickets — 5% commission</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Analytics & verified badge</li>
                 </ul>
                 <div className="flex gap-2 mt-4">
                   <Button onClick={() => handlePlanSelect('club', 'monthly')} disabled={isSubmitting}
@@ -688,7 +686,7 @@ const Onboarding = () => {
                   </Button>
                   <Button onClick={() => handlePlanSelect('club', 'yearly')} disabled={isSubmitting}
                     variant="outline" className="flex-1 h-10 rounded-xl text-sm font-semibold">
-                    {isSubmitting && selectedPlan === 'club' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · Save 11%`}
+                    {isSubmitting && selectedPlan === 'club' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
                   </Button>
                 </div>
               </div>

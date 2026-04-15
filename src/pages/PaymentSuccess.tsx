@@ -24,7 +24,7 @@ const PaymentSuccess = () => {
 
       if (data?.plan) {
         setPlan(data.plan as PlanId);
-        const labels: Record<string, string> = { pro: 'Pro Driver', club: 'Club / Business' };
+        const labels: Record<string, string> = { pro: 'Pro Driver', club: 'Club', business: 'Business' };
         setPlanName(labels[data.plan] || 'Pro');
       }
     };

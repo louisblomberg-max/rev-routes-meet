@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X, Star, Building2, Sparkles, Shield, CreditCard, ChevronRight, Crown, Zap, Loader2 } from 'lucide-react';
+import { Check, X, Star, Building2, Sparkles, Users, Shield, CreditCard, ChevronRight, Crown, Zap, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useOnboarding, TOTAL_ONBOARDING_STEPS } from '@/contexts/OnboardingContext';
 import { toast } from 'sonner';
 
-type PlanId = 'free' | 'pro' | 'club';
+type PlanId = 'free' | 'pro' | 'club' | 'business';
 
 const withTimeout = async <T,>(promise: Promise<T>, ms: number, msg: string): Promise<T> => {
   let tid: ReturnType<typeof setTimeout> | undefined;
@@ -17,47 +17,64 @@ const withTimeout = async <T,>(promise: Promise<T>, ms: number, msg: string): Pr
 
 const PLANS = [
   {
-    id: 'free' as PlanId, name: 'Explorer', tagline: 'Browse and discover', icon: Sparkles,
+    id: 'free' as PlanId, name: 'Explorer', tagline: 'Free forever', icon: Sparkles,
     price: { monthly: 0, yearly: 0 },
+    trial: null,
     features: [
-      { label: 'Browse routes, events & services', included: true },
-      { label: 'Join clubs & forums', included: true },
-      { label: 'Basic messaging', included: true },
-      { label: 'Save & bookmark content', included: true },
-      { label: 'Create & publish routes', included: false },
-      { label: 'Live location & safety', included: false },
+      { label: 'Full map — discover events, routes and services', included: true },
+      { label: 'Navigate any route with turn by turn directions', included: true },
+      { label: 'Attend free and ticketed events', included: true },
+      { label: 'Join up to 3 clubs', included: true },
+      { label: 'SOS breakdown help — free for everyone', included: true },
+      { label: 'Create and publish routes', included: false },
+      { label: 'Live location sharing', included: false },
     ],
   },
   {
-    id: 'pro' as PlanId, name: 'Pro Driver', tagline: 'Create, share & connect', icon: Star, popular: true,
-    price: { monthly: 3.99, yearly: 43.07 },
+    id: 'pro' as PlanId, name: 'Pro Driver', tagline: 'For active enthusiasts', icon: Star, popular: true,
+    price: { monthly: 4.99, yearly: 39.99 },
+    trial: { days: 7, requiresCard: false },
     features: [
       { label: 'Everything in Explorer', included: true },
-      { label: 'Create & publish routes', included: true },
-      { label: 'Host unlimited events', included: true },
-      { label: 'Live location sharing', included: true },
-      { label: 'SOS breakdown help', included: true },
-      { label: 'Garage showcase', included: true },
-      { label: 'Priority visibility', included: true },
+      { label: 'Create and publish unlimited routes', included: true },
+      { label: 'Import GPX files', included: true },
+      { label: 'Live location sharing with friends', included: true },
+      { label: 'Convoy mode — group drives', included: true },
+      { label: 'Unlimited clubs, messaging and forums', included: true },
+      { label: '5 vehicles in your garage', included: true },
     ],
   },
   {
-    id: 'club' as PlanId, name: 'Club / Business', tagline: 'Organise & grow', icon: Building2,
-    price: { monthly: 6.99, yearly: 75.49 },
+    id: 'club' as PlanId, name: 'Club', tagline: 'For club organisers', icon: Users,
+    price: { monthly: 9.99, yearly: 79.99 },
+    trial: { days: 30, requiresCard: false },
     features: [
-      { label: 'Everything in Pro', included: true },
-      { label: 'Create & manage clubs', included: true },
-      { label: 'Event ticketing', included: true },
-      { label: 'Business / service listings', included: true },
-      { label: 'Analytics & insights', included: true },
-      { label: 'Featured placement', included: true },
-      { label: 'Verified badge', included: true },
+      { label: 'Everything in Pro Driver', included: true },
+      { label: 'Create and manage your own club', included: true },
+      { label: 'Create unlimited events', included: true },
+      { label: 'Sell tickets — RevNet takes 5%', included: true },
+      { label: 'Organiser dashboard and analytics', included: true },
+      { label: 'Member management', included: true },
+      { label: 'Verified club badge', included: true },
+    ],
+  },
+  {
+    id: 'business' as PlanId, name: 'Business', tagline: 'For automotive businesses', icon: Building2,
+    price: { monthly: 19.99, yearly: 159.99 },
+    trial: null,
+    features: [
+      { label: 'Everything in Club', included: true },
+      { label: 'Full service listing on the map', included: true },
+      { label: 'Featured placement in your area', included: true },
+      { label: 'Verified business badge', included: true },
+      { label: 'Business analytics dashboard', included: true },
+      { label: 'Priority customer support', included: true },
     ],
   },
 ];
 
 export interface PlanSelection {
-  plan: 'free' | 'pro' | 'club';
+  plan: 'free' | 'pro' | 'club' | 'business';
   billingCycle: 'monthly' | 'yearly';
 }
 
@@ -131,14 +148,19 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
           <p className="text-sm text-black/50 max-w-[280px] mx-auto">Unlock the full RevNet experience. Cancel anytime.</p>
         </div>
 
-        <div className="flex items-center justify-center gap-3 mb-5 animate-fade-up">
+        <div className="flex items-center justify-center gap-3 mb-3 animate-fade-up">
           <span className={`text-sm transition-colors ${billing === 'monthly' ? 'font-semibold text-black' : 'text-black/50'}`}>Monthly</span>
           <Switch checked={billing === 'yearly'} onCheckedChange={(c) => setBilling(c ? 'yearly' : 'monthly')} disabled={loading} />
           <span className={`text-sm transition-colors ${billing === 'yearly' ? 'font-semibold text-black' : 'text-black/50'}`}>
-            Yearly
-            <Badge variant="secondary" className="ml-1.5 text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-0">Save 20%</Badge>
+            Annual
           </span>
         </div>
+
+        {billing === 'yearly' && (
+          <div className="bg-green-100/80 rounded-xl px-3 py-2 text-center mb-4 animate-fade-up">
+            <p className="text-xs font-medium text-green-800">Pay annually — get 2 months free</p>
+          </div>
+        )}
 
         <div className="space-y-3 animate-fade-up">
           {PLANS.map((plan) => {
@@ -149,7 +171,7 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
             return (
               <button key={plan.id} onClick={() => !loading && setSelected(plan.id)} disabled={loading}
                 className={`w-full text-left rounded-2xl border-2 p-4 transition-all relative overflow-hidden ${isSelected ? 'border-primary bg-white shadow-lg' : 'border-black/10 bg-white/80 hover:border-black/20'} ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                {plan.popular && (
+                {(plan as any).popular && (
                   <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-2.5 py-1 rounded-bl-xl flex items-center gap-1">
                     <Zap className="w-3 h-3" /> Most Popular
                   </div>
@@ -165,8 +187,18 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
                   <div className="text-right shrink-0">
                     <span className="text-lg font-bold text-black">{planPrice === 0 ? 'Free' : `£${planPrice.toFixed(2)}`}</span>
                     {planPrice > 0 && <p className="text-[10px] text-black/50">/ {billing === 'monthly' ? 'month' : 'year'}</p>}
+                    {billing === 'yearly' && plan.price.monthly > 0 && (
+                      <p className="text-[9px] text-black/40">or £{plan.price.monthly.toFixed(2)}/mo</p>
+                    )}
                   </div>
                 </div>
+                {plan.trial && (
+                  <div className="mb-2">
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-green-100 text-green-700 border-0">
+                      {plan.trial.days} day free trial — no card needed
+                    </Badge>
+                  </div>
+                )}
                 <ul className="space-y-1.5">
                   {plan.features.map((f, i) => (
                     <li key={i} className="flex items-center gap-2 text-xs">
@@ -193,10 +225,10 @@ const PlanStep = ({ onComplete }: PlanStepProps) => {
       {/* Sticky CTA */}
       <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
         <Button onClick={handleContinue} disabled={loading} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
-          {loading ? (<><Loader2 className="w-5 h-5 animate-spin" /> Saving…</>) : selected === 'free' ? (<>Continue with Free <ChevronRight className="w-5 h-5" /></>) : (<>Start {selectedPlan.name} <ChevronRight className="w-5 h-5" /></>)}
+          {loading ? (<><Loader2 className="w-5 h-5 animate-spin" /> Saving…</>) : selected === 'free' ? (<>Continue with Explorer <ChevronRight className="w-5 h-5" /></>) : (<>Start {selectedPlan.name} <ChevronRight className="w-5 h-5" /></>)}
         </Button>
         {selected !== 'free' && !loading && (
-          <button onClick={handleFree} className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors">Continue with Free instead</button>
+          <button onClick={handleFree} className="w-full text-xs text-black/50 mt-2 py-1 hover:text-black transition-colors">Continue with Explorer instead</button>
         )}
         {selected === 'free' && !loading && (
           <button onClick={back} className="w-full text-sm text-black/50 mt-2 py-2">Back</button>

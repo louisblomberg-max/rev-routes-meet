@@ -20,7 +20,7 @@ const PLAN_FEATURES: Record<PlanId, { label: string; icon: any; route?: string; 
   free: [
     { label: 'Browse routes, events & services', icon: Route, route: '/', featureId: 'browse_routes' },
     { label: '1 free event post included', icon: CalendarIcon, featureId: 'browse_events' },
-    { label: 'Additional events £2.99 each', icon: CreditCard, featureId: 'browse_services' },
+    { label: 'Additional events £5.99 each', icon: CreditCard, featureId: 'browse_services' },
     { label: 'Join clubs & forums', icon: Users, route: '/clubs', featureId: 'join_clubs' },
     { label: 'Basic messaging', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
     { label: 'Save & bookmark content', icon: Route, route: '/my-routes', featureId: 'save_routes' },
@@ -63,8 +63,9 @@ const PlanBillingSettings = () => {
   const billingCycle = subData?.billing_cycle || 'monthly';
   const plans = [
     { id: 'free' as PlanId, name: 'Explorer (Free)', price: { monthly: 0, yearly: 0 } },
-    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 3.99, yearly: 43.99 } },
-    { id: 'club' as PlanId, name: 'Organiser', price: { monthly: 5.99, yearly: 63.99 } },
+    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 4.99, yearly: 39.99 } },
+    { id: 'club' as PlanId, name: 'Club', price: { monthly: 9.99, yearly: 79.99 } },
+    { id: 'business' as PlanId, name: 'Business', price: { monthly: 19.99, yearly: 159.99 } },
   ];
   const currentPlanData = plans.find(p => p.id === currentPlan) || plans[0];
   const price = billingCycle === 'monthly' ? currentPlanData.price.monthly : currentPlanData.price.yearly;

@@ -159,7 +159,7 @@ const Settings = () => {
               </div>
               <div className="p-3 space-y-3">
                 <div className="flex gap-1.5">
-                  {(['free', 'pro', 'club'] as PlanId[]).map((plan) => (
+                  {(['free', 'pro', 'club', 'business'] as PlanId[]).map((plan) => (
                     <button
                       key={plan}
                       onClick={() => {

@@ -17,41 +17,52 @@ export interface FeatureAccess {
 export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
   // Free features
   'browse_map': 'free',
-  'browse_routes': 'free',
-  'browse_events': 'free',
-  'browse_services': 'free',
+  'view_routes': 'free',
+  'navigate_routes': 'free',
+  'attend_events': 'free',
+  'buy_marketplace': 'free',
+  'sell_marketplace': 'free',
   'join_clubs': 'free',
-  'join_forums': 'free',
+  'read_forums': 'free',
   'basic_messaging': 'free',
-  'save_routes': 'free',
-  'save_events': 'free',
-  'my_friends': 'free',
-  'my_discussions': 'free',
-  'post_questions': 'free',
-  'post_replies': 'free',
-  'garage_showcase': 'free',
-  'create_events': 'free',        // free gets 1 credit, pro/club unlimited
-  'offer_sos_help': 'free',
-  'receive_sos_notifications': 'free',
+  'basic_garage': 'free',
+  'save_items': 'free',
+  'offer_sos': 'free',
+  'request_sos': 'free',
   // Pro Driver features
   'create_routes': 'pro',
+  'import_gpx': 'pro',
   'live_location': 'pro',
   'convoy_mode': 'pro',
-  'request_sos': 'pro',
-  'ticketed_events': 'pro',
-  'create_marketplace_listing': 'pro',
-  // Club & Business features
-  'create_services': 'club',
-  'create_clubs': 'club',
+  'unlimited_clubs': 'pro',
+  'unlimited_messaging': 'pro',
+  'unlimited_forums': 'pro',
+  'extended_garage': 'pro',
+  'unlimited_saves': 'pro',
+  'boost_marketplace': 'pro',
+  // Club features
+  'create_club': 'club',
   'manage_club': 'club',
-  'analytics': 'club',
-  'verified_badge': 'club',
+  'club_feed': 'club',
+  'club_events': 'club',
+  'sell_tickets': 'club',
+  'organiser_dashboard': 'club',
+  'club_analytics': 'club',
+  'verified_club_badge': 'club',
+  'create_events': 'club',
+  // Business features
+  'service_listing': 'business',
+  'business_analytics': 'business',
+  'featured_placement': 'business',
+  'verified_business_badge': 'business',
+  'priority_support': 'business',
 };
 
 const PLAN_HIERARCHY: Record<PlanId, number> = {
   free: 0,
   pro: 1,
   club: 2,
+  business: 3,
 };
 
 interface PlanContextType {
@@ -105,7 +116,6 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   // These setters only update local state for UI purposes (e.g. onboarding selection preview).
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
-    // Do NOT write to profiles or subscriptions — server-side only
   };
 
   const setBillingCycle = (cycle: BillingCycle) => {
@@ -128,18 +138,19 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const getPlanLabel = (plan: PlanId): string => {
     const labels: Record<PlanId, string> = {
-      free: 'Free',
+      free: 'Explorer',
       pro: 'Pro Driver',
-      club: 'Club / Business',
+      club: 'Club',
+      business: 'Business',
     };
     return labels[plan];
   };
 
   return (
-    <PlanContext.Provider value={{ 
-      currentPlan, billingCycle, subscriptionStatus, 
-      setPlan, setBillingCycle, setSubscriptionStatus, 
-      hasAccess, getRequiredPlan, getPlanLabel, effectivePlan 
+    <PlanContext.Provider value={{
+      currentPlan, billingCycle, subscriptionStatus,
+      setPlan, setBillingCycle, setSubscriptionStatus,
+      hasAccess, getRequiredPlan, getPlanLabel, effectivePlan
     }}>
       {children}
     </PlanContext.Provider>

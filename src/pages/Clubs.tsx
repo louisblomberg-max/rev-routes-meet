@@ -189,7 +189,7 @@ export default function Clubs() {
                 if (currentPlan === 'club') {
                   navigate('/add/club')
                 } else {
-                  toast.info('Creating clubs requires a Club/Business plan', {
+                  toast.info('Creating clubs requires a Club plan', {
                     action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
                   })
                 }
@@ -356,10 +356,10 @@ export default function Clubs() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => toast.info('Creating clubs requires a Club/Business plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
+                    onClick={() => toast.info('Creating clubs requires a Club plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
                     className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
                   >
-                    ⭐ Create a club — Club / Business plan
+                    ⭐ Create a club — Club plan
                   </button>
                 )}
               </>

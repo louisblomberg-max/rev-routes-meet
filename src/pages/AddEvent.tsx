@@ -404,7 +404,7 @@ const AddEvent = () => {
     if (entryType === 'ticketed') {
       const isPro = userPlan === 'pro' || userPlan === 'club' || userPlan === 'organiser';
       if (!isPro) {
-        toast.error('Selling tickets requires Pro Driver or Club & Business plan'); return false
+        toast.error('Selling tickets requires the Club plan or above'); return false
       }
       if (!ticketPrice || Number(ticketPrice) < 1) {
         toast.error('Minimum ticket price is £1.00'); return false

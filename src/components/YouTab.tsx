@@ -55,7 +55,8 @@ const YouTab = () => {
   const planBadge = {
     free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground border-0' },
     pro: { label: 'Pro Driver', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground border-0' },
-    club: { label: 'Club & Business', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground border-0' },
+    club: { label: 'Club', icon: Building2, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground border-0' },
+    business: { label: 'Business', icon: Building2, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground border-0' },
   };
 
   const badge = planBadge[currentPlan];
@@ -138,7 +139,7 @@ const YouTab = () => {
                   <p className="text-[11px] text-muted-foreground mt-1">
                     {freeEventCredits > 0
                       ? `${freeEventCredits} free event post remaining`
-                      : '0 free posts — £2.99 per event'}
+                      : '0 free posts — £5.99 per event'}
                   </p>
                 )}
               </div>

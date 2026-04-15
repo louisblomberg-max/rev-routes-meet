@@ -12,7 +12,7 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
 
   const handleClick = () => {
     if (!canSOS) {
-      toast.error('SOS requires Pro Driver or Club & Business plan', {
+      toast.error('SOS requires Pro Driver or above', {
         action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
         duration: 4000,
       });

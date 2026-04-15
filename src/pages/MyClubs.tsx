@@ -30,7 +30,7 @@ const MyClubs = () => {
           </div>
           <Button size="sm" onClick={() => {
             if (currentPlan !== 'club') {
-              toast.info('Creating clubs requires a Club/Business plan', {
+              toast.info('Creating clubs requires a Club plan', {
                 action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
               });
               return;
@@ -85,7 +85,7 @@ const MyClubs = () => {
               <Button
                 onClick={() => {
                   if (currentPlan !== 'club') {
-                    toast.info('Creating clubs requires a Club/Business plan', {
+                    toast.info('Creating clubs requires a Club plan', {
                       action: { label: 'Upgrade', onClick: () => navigate('/upgrade') }
                     });
                     return;

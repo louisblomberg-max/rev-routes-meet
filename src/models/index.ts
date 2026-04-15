@@ -21,7 +21,7 @@ export interface User {
   routeCredits: number;
 }
 
-export type PlanId = 'free' | 'pro' | 'club';
+export type PlanId = 'free' | 'pro' | 'club' | 'business';
 
 export interface UserPreferences {
   mapStyle: 'standard' | 'night' | 'satellite';

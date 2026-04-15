@@ -340,7 +340,7 @@ const AddService = () => {
       return;
     }
 
-    // Services require Club & Business plan
+    // Services require Business plan
     setIsSubmitting(true);
     try {
       const { data: profile } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
