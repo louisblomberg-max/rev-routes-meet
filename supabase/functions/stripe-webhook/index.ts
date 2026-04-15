@@ -95,11 +95,11 @@ serve(async (req) => {
           const billingCycle = interval === "year" ? "yearly" : "monthly";
 
           // Determine plan from price
-          const proPrices = ["price_1TEA0oRdtkGP5enY8IV9H8O8", "price_1TEA16RdtkGP5enYQp4d3D0H"];
-          const clubPrices = ["price_1TEA1SRdtkGP5enYw6c3hiTs", "price_1TEA1jRdtkGP5enYuuGccgS9"];
+          const proPrices = ["price_1TMa1ORdtkGP5enYDSGCiONH", "price_1TMa1gRdtkGP5enYVOQ3tlml"];
+          const clubPrices = ["price_1TMa2FRdtkGP5enYyUWS9wVL", "price_1TMa2pRdtkGP5enYoaflZI5M"];
           const businessPrices: string[] = [
-            "", // business_monthly — TODO: add real Stripe price ID
-            "", // business_yearly — TODO: add real Stripe price ID
+            "price_1TMa37RdtkGP5enYFNGPw6gE",
+            "price_1TMa3VRdtkGP5enYMvaHECON",
           ];
           let plan = "free";
           if (proPrices.includes(priceId)) plan = "pro";

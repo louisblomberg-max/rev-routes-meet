@@ -3,13 +3,13 @@
 // ============================
 
 export const STRIPE_PRICES = {
-  pro_monthly: 'price_1TEA0oRdtkGP5enY8IV9H8O8',
-  pro_yearly: 'price_1TEA16RdtkGP5enYQp4d3D0H',
-  club_monthly: 'price_1TEA1SRdtkGP5enYw6c3hiTs',
-  club_yearly: 'price_1TEA1jRdtkGP5enYuuGccgS9',
-  business_monthly: '', // TODO: Add Stripe price ID
-  business_yearly: '', // TODO: Add Stripe price ID
-  event_post: 'price_1TE9kBRdtkGP5enY431JMZaB',
+  pro_monthly: 'price_1TMa1ORdtkGP5enYDSGCiONH',
+  pro_yearly: 'price_1TMa1gRdtkGP5enYVOQ3tlml',
+  club_monthly: 'price_1TMa2FRdtkGP5enYyUWS9wVL',
+  club_yearly: 'price_1TMa2pRdtkGP5enYoaflZI5M',
+  business_monthly: 'price_1TMa37RdtkGP5enYFNGPw6gE',
+  business_yearly: 'price_1TMa3VRdtkGP5enYMvaHECON',
+  event_post: 'price_1TMa3oRdtkGP5enYIwOkBxDn',
 } as const;
 
 export const PLAN_PRICES = {
