@@ -15,7 +15,6 @@ import {
   ImagePlus, RefreshCw, Info, Banknote,
   CreditCard, Eye, Globe, UsersRound, Tag, Map
 } from 'lucide-react'
-import CreationPaywallSheet from '@/components/CreationPaywallSheet'
 
 const EVENT_TYPES = [
   'Meets', 'Shows', 'Drive', 'Track Day', 'Motorsport', 'Autojumble', 'Off-Road', 'Other'
@@ -52,11 +51,7 @@ const AddEvent = () => {
   const pickerMarkerRef = useRef<mapboxgl.Marker | null>(null)
 
   const [saving, setSaving] = useState(false)
-  const [showPaywall, setShowPaywall] = useState(false)
 
-  // Credits and plan
-  const [userCredits, setUserCredits] = useState(0)
-  const [userPlan, setUserPlan] = useState('free')
   const [hasStripeConnect, setHasStripeConnect] = useState(false)
   const [myClubs, setMyClubs] = useState<{ id: string; name: string }[]>([])
   const [showMapPicker, setShowMapPicker] = useState(false)
@@ -161,12 +156,10 @@ const AddEvent = () => {
     const load = async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('free_event_credits, plan, stripe_connect_account_id')
+        .select('stripe_connect_account_id')
         .eq('id', user.id)
         .single()
       if (profile) {
-        setUserCredits(profile.free_event_credits || 0)
-        setUserPlan(profile.plan || 'free')
         setHasStripeConnect(!!profile.stripe_connect_account_id)
       }
       const { data: clubData } = await supabase
@@ -347,13 +340,9 @@ const AddEvent = () => {
     toast.success(`Generated ${generated.length} dates`)
   }, [dates, recurringFrequency, recurringCount])
 
-  // Credit cost calculation
+  // Date count
   const validDates = dates.filter(d => d.date)
   const dateCount = validDates.length
-  const isPaidPlan = userPlan === 'enthusiast' || userPlan === 'organiser'
-  const creditsToUse = isPaidPlan ? 0 : Math.min(userCredits, dateCount)
-  const datesToPay = isPaidPlan ? 0 : Math.max(0, dateCount - userCredits)
-  const totalCost = datesToPay * 2.99
 
   // Banner and photo upload handlers
   const handleBannerSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -402,10 +391,6 @@ const AddEvent = () => {
     if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
     if (!unlimitedSpaces && !maxAttendees) { toast.error('Please enter max attendees or enable unlimited spaces'); return false }
     if (entryType === 'ticketed') {
-      const isPro = userPlan === 'enthusiast' || userPlan === 'enthusiast' || userPlan === 'organiser';
-      if (!isPro) {
-        toast.error('Selling tickets requires the Enthusiast plan'); return false
-      }
       if (!ticketPrice || Number(ticketPrice) < 1) {
         toast.error('Minimum ticket price is £1.00'); return false
       }
@@ -462,14 +447,6 @@ const AddEvent = () => {
       const validDates = dates.filter(d => d.date)
 
       // Credit check for free users (skip for edits)
-      const isPaidPlan = userPlan === 'enthusiast' || userPlan === 'enthusiast'
-      if (!isEdit && !isPaidPlan && userCredits <= 0) {
-        setSaving(false)
-        toast.error('You need event credits or the Enthusiast plan to publish events')
-        navigate('/upgrade', { state: { feature: 'events' } })
-        return
-      }
-
       // Edit mode — UPDATE existing event
       if (isEdit && editId) {
         const d = validDates[0] || dates[0]
@@ -558,14 +535,6 @@ const AddEvent = () => {
         p_data: { event_id: newEvents?.[0]?.id }
       }).then(() => {}).catch(() => {})
 
-      // Deduct credit for free users (fire and forget)
-      if (!isPaidPlan) {
-        supabase.from('profiles')
-          .update({ free_event_credits: Math.max(0, userCredits - 1) })
-          .eq('id', userId)
-          .then(() => {}).catch(() => {})
-      }
-
       toast.success(validDates.length > 1 ? `${validDates.length} events published!` : 'Event published!')
       navigate('/', { replace: true, state: { refreshMap: true } })
 
@@ -588,13 +557,6 @@ const AddEvent = () => {
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton />
           <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
-          {(userPlan === 'enthusiast' || userPlan === 'enthusiast') ? (
-            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-events/10 text-events border border-events/20">Unlimited</span>
-          ) : (
-            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50">
-              {userCredits} credit{userCredits !== 1 ? 's' : ''} left
-            </span>
-          )}
         </div>
       </div>
 
@@ -1328,33 +1290,9 @@ const AddEvent = () => {
               <span className="text-muted-foreground">Dates to publish</span>
               <span className="font-medium">{dateCount}</span>
             </div>
-            {!isPaidPlan && (
-              <>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Free credits available</span>
-                  <span className="font-medium">{userCredits}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Credits used</span>
-                  <span className="font-medium text-green-600">{creditsToUse} free</span>
-                </div>
-                {datesToPay > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Additional cost</span>
-                    <span className="font-medium text-red-500">£{totalCost.toFixed(2)}</span>
-                  </div>
-                )}
-              </>
-            )}
-            {isPaidPlan && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Enthusiast plan</span>
-                <span className="font-medium text-green-600">Unlimited — included</span>
-              </div>
-            )}
             <div className="border-t border-border/30 pt-2 flex justify-between text-sm font-semibold">
               <span>Total</span>
-              <span>{isPaidPlan || datesToPay === 0 ? 'Free' : `£${totalCost.toFixed(2)}`}</span>
+              <span>Free</span>
             </div>
           </div>
         </div>
@@ -1374,11 +1312,6 @@ const AddEvent = () => {
         </div>
       </div>
 
-      <CreationPaywallSheet
-        open={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        type="event"
-      />
     </div>
   )
 }

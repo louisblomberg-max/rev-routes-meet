@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Route, Star, Plus, Clock, Bookmark, PenLine, ChevronRight, Navigation, Trash2, MoreHorizontal, Lock } from 'lucide-react';
+import { Route, Star, Plus, Clock, Bookmark, PenLine, ChevronRight, Navigation, Trash2, MoreHorizontal } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import { toast } from 'sonner';
 import { useUserRoutes } from '@/hooks/useProfileData';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const routeTypeColors: Record<string, string> = {
@@ -23,7 +22,6 @@ const routeTypeColors: Record<string, string> = {
 const MyRoutes = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentPlan } = usePlan();
   const { saved, created, isLoading } = useUserRoutes();
   const { routes: routesRepo } = useData();
   const [activeTab, setActiveTab] = useState<'saved' | 'created'>('saved');
@@ -58,16 +56,7 @@ const MyRoutes = () => {
               <p className="text-xs text-muted-foreground">{saved.length} saved, {created.length} created</p>
             </div>
           </div>
-          <Button size="sm" onClick={() => {
-            if (currentPlan === 'free') {
-              toast.info('Creating routes requires the Enthusiast plan. Upgrade to unlock unlimited routes.', {
-                action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-              });
-            } else {
-              navigate('/add/route');
-            }
-          }} className="gap-1.5 rounded-lg">
-            {currentPlan === 'free' && <Lock className="w-3.5 h-3.5" />}
+          <Button size="sm" onClick={() => navigate('/add/route')} className="gap-1.5 rounded-lg">
             <Plus className="w-4 h-4" /> Create
           </Button>
         </div>

@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Shield, Bell, Settings2, User, Users, CreditCard, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen, FlaskConical, Trash2, Crown } from 'lucide-react';
+import { Shield, Bell, Settings2, User, Users, LifeBuoy, ChevronRight, LogOut, HelpCircle, BookOpen, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { usePlan, PlanId } from '@/contexts/PlanContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,13 +15,10 @@ import BackButton from '@/components/BackButton';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { currentPlan, setPlan, subscriptionStatus, setSubscriptionStatus, effectivePlan, getPlanLabel } = usePlan();
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
-  const [userPlanLabel, setUserPlanLabel] = useState('Free');
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -31,26 +26,22 @@ const Settings = () => {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('is_admin, plan')
+          .select('is_admin')
           .eq('id', user.id)
           .maybeSingle();
         if (error) throw error;
         setIsAdmin(profile?.is_admin === true);
-        setUserPlanLabel(getPlanLabel((profile?.plan || 'free') as PlanId));
       } catch {
         toast.error('Failed to load profile');
-      } finally {
-        setIsLoadingProfile(false);
       }
     })();
-  }, [user?.id, getPlanLabel]);
+  }, [user?.id]);
 
   const settingsSections = [
     { id: 'privacy', icon: Shield, label: 'Privacy & Safety', description: 'Visibility, location, blocked users', color: 'bg-primary/10', iconColor: 'text-primary' },
     { id: 'notifications', icon: Bell, label: 'Notifications', description: 'Push, email, quiet hours', color: 'bg-events/10', iconColor: 'text-events' },
     { id: 'preferences', icon: Settings2, label: 'App Preferences', description: 'Units, map style, navigation', color: 'bg-routes/10', iconColor: 'text-routes' },
     { id: 'account', icon: User, label: 'Account', description: 'Profile, email, password', color: 'bg-muted', iconColor: 'text-foreground/70' },
-    { id: 'billing', icon: CreditCard, label: 'Plan & Billing', description: 'Plan, upgrade, history', color: 'bg-services/10', iconColor: 'text-services' },
     { id: 'social', icon: Users, label: 'Social & Discovery', description: 'Invite, find friends, requests', color: 'bg-clubs/10', iconColor: 'text-clubs' },
     { id: 'support', icon: LifeBuoy, label: 'Support & Legal', description: 'Help, feedback, terms', color: 'bg-muted', iconColor: 'text-muted-foreground' },
     { id: 'faq', icon: HelpCircle, label: 'FAQ', description: 'Common questions answered', color: 'bg-primary/10', iconColor: 'text-primary' },
@@ -91,31 +82,6 @@ const Settings = () => {
 
       {/* Settings Sections */}
       <div className="px-4 pt-3 flex-1 overflow-y-auto">
-        {/* Subscription row */}
-        {isLoadingProfile ? (
-          <div className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3">
-            <Skeleton className="w-9 h-9 rounded-lg" />
-            <div className="flex-1 space-y-1.5">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-          </div>
-        ) : (
-          <button
-            onClick={() => navigate('/upgrade')}
-            className="w-full bg-card rounded-xl border border-primary/30 shadow-sm flex items-center gap-3 px-3 py-3 mb-3 hover:bg-primary/5 transition-colors"
-          >
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-              <Crown className="w-[18px] h-[18px] text-primary" />
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              <p className="text-sm font-medium text-foreground leading-tight">Your Plan</p>
-              <p className="text-xs text-muted-foreground truncate">{userPlanLabel}</p>
-            </div>
-            <span className="text-xs font-semibold text-primary bg-primary/10 px-2 py-1 rounded-lg">Manage plan</span>
-          </button>
-        )}
-
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden divide-y divide-border/30">
           {settingsSections.map((section) => {
             const Icon = section.icon;
@@ -127,7 +93,6 @@ const Settings = () => {
                   if (section.id === 'notifications') navigate('/settings/notifications');
                   if (section.id === 'preferences') navigate('/settings/preferences');
                   if (section.id === 'account') navigate('/settings/account');
-                  if (section.id === 'billing') navigate('/settings/billing');
                   if (section.id === 'social') navigate('/settings/social');
                   if (section.id === 'support') navigate('/settings/support');
                   if (section.id === 'faq') navigate('/settings/faq');
@@ -148,52 +113,6 @@ const Settings = () => {
             );
           })}
         </div>
-
-        {/* Dev Plan Switcher — admin only, dev builds only */}
-        {import.meta.env.DEV && isAdmin && (
-          <div className="mt-3">
-            <div className="bg-card rounded-xl border border-dashed border-amber-400/60 shadow-sm overflow-hidden">
-              <div className="px-3 py-2 bg-amber-50 dark:bg-amber-900/20 flex items-center gap-2">
-                <FlaskConical className="w-4 h-4 text-amber-600" />
-                <span className="text-xs font-semibold text-amber-700 dark:text-amber-400">Dev: Plan Switcher</span>
-              </div>
-              <div className="p-3 space-y-3">
-                <div className="flex gap-1.5">
-                  {(['free', 'enthusiast', 'business'] as PlanId[]).map((plan) => (
-                    <button
-                      key={plan}
-                      onClick={() => {
-                        setPlan(plan);
-                        toast.success(`Plan set to ${getPlanLabel(plan)}`);
-                      }}
-                      className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-all ${
-                        currentPlan === plan
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                      }`}
-                    >
-                      {getPlanLabel(plan)}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Subscription active</span>
-                  <Switch
-                    checked={subscriptionStatus === 'active'}
-                    onCheckedChange={(checked) => {
-                      setSubscriptionStatus(checked ? 'active' : 'inactive');
-                      toast.success(checked ? 'Subscription activated' : 'Subscription deactivated — treated as Free');
-                    }}
-                    className="scale-90"
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  Effective plan: <span className="font-semibold text-foreground">{getPlanLabel(effectivePlan)}</span>
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Bottom buttons */}
         <div className="mt-6 space-y-3 pb-8">

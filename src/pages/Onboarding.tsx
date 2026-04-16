@@ -9,9 +9,7 @@ import { toast } from 'sonner';
 import { validateImageFile } from '@/lib/utils';
 import { Camera, Check, X, Bell, MapPin, Plus, Trash2, ChevronDown } from 'lucide-react';
 import { getMakesByType, getModelsByMake, getVariantsByModel, getYearsByModel, searchMakes, type VehicleMake } from '@/data/vehicles';
-import { PLAN_PRICES, getPriceId } from '@/config/stripe';
-
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 5;
 
 const VEHICLE_TYPES = [
   { id: 'car', label: 'Car' },
@@ -71,10 +69,6 @@ const Onboarding = () => {
   const [vehPlate, setVehPlate] = useState('');
   const [vehVisibility, setVehVisibility] = useState<'public' | 'friends' | 'private'>('public');
   const [makeSearch, setMakeSearch] = useState('');
-
-  // Step 5: Plan
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'enthusiast' | 'business'>('free');
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
     if (user?.onboardingComplete) {
@@ -179,13 +173,13 @@ const Onboarding = () => {
       setStep(3);
     } else if (step === 3) {
       setStep(4);
-    } else if (step === 4) {
-      setStep(5);
     }
   };
 
   const handleSkip = () => {
-    if (step < TOTAL_STEPS - 1) {
+    if (step === TOTAL_STEPS - 1) {
+      handleComplete();
+    } else if (step < TOTAL_STEPS - 1) {
       setStep(step + 1);
     }
   };
@@ -199,21 +193,15 @@ const Onboarding = () => {
 
   const handleLocationPermission = () => {
     navigator.geolocation.getCurrentPosition(
-      () => setStep(5),
-      () => setStep(5),
+      () => handleComplete(),
+      () => handleComplete(),
       { enableHighAccuracy: true, timeout: 12000 },
     );
     // Always advance after 12s
-    setTimeout(() => setStep(5), 12000);
+    setTimeout(() => handleComplete(), 12000);
   };
 
-  const handlePlanSelect = async (plan: 'free' | 'enthusiast' | 'business', cycle?: 'monthly' | 'yearly') => {
-    setSelectedPlan(plan);
-    if (cycle) setBillingCycle(cycle);
-    await handleComplete(plan, cycle || billingCycle);
-  };
-
-  const handleComplete = async (plan: 'free' | 'enthusiast' | 'business' = selectedPlan, cycle: 'monthly' | 'yearly' = billingCycle) => {
+  const handleComplete = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
@@ -302,31 +290,11 @@ const Onboarding = () => {
       }, { onConflict: 'user_id' });
       if (prefError) { /* non-blocking */ }
 
-      // 6. Handle plan selection
+      // 6. Complete onboarding
       clearTimeout(completeTimeout);
-      if (plan === 'free' || !plan) {
-        updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: avatarUrl || user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
-        navigate('/', { replace: true });
-        toast.success('Welcome to RevNet!');
-      } else {
-        // Paid plan — create Stripe checkout
-        const priceId = getPriceId(plan, cycle);
-        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-          body: {
-            price_id: priceId,
-            user_id: userId,
-            success_url: `${window.location.origin}/payment-success`,
-            cancel_url: `${window.location.origin}/onboarding`,
-          },
-        });
-        if (error || !data?.url) {
-          toast.error('Payment setup failed. You can upgrade later from settings.');
-          updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: avatarUrl || user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
-          navigate('/', { replace: true });
-          return;
-        }
-        window.location.href = data.url;
-      }
+      updateProfile({ onboardingComplete: true, isProfileComplete: true, username: username.trim(), avatar: avatarUrl || user?.avatar, displayName: displayName.trim(), bio: bio.trim(), location: location.trim() });
+      navigate('/', { replace: true });
+      toast.success('Welcome to RevNet!');
     } catch (err: any) {
       clearTimeout(completeTimeout);
       toast.error(err?.message || 'Something went wrong. Please try again.');
@@ -616,59 +584,6 @@ const Onboarding = () => {
             </div>
           )}
 
-          {/* ═══ Step 5: Choose Plan ═══ */}
-          {step === 5 && (
-            <div className="flex flex-col gap-4">
-              <div className="text-center">
-                <h2 className="text-xl font-bold text-foreground">Choose your plan</h2>
-                <p className="text-sm text-muted-foreground mt-1">You can change this anytime</p>
-              </div>
-
-              {/* Explorer (Free) */}
-              <div className="bg-card rounded-2xl p-4 border border-border/50">
-                <h3 className="text-base font-semibold">Explorer</h3>
-                <p className="text-2xl font-bold mt-1">Free</p>
-                <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Browse all events, routes & services</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> 1 free event post</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Join clubs and forums</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Basic messaging</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Save content</li>
-                </ul>
-                <Button onClick={() => handlePlanSelect('free')} variant="outline" disabled={isSubmitting}
-                  className="w-full h-10 rounded-xl mt-4 text-sm font-semibold">
-                  {isSubmitting && selectedPlan === 'free' ? 'Setting up…' : 'Continue Free'}
-                </Button>
-              </div>
-
-              {/* Enthusiast */}
-              <div className="bg-card rounded-2xl p-4 border-2" style={{ borderColor: '#d30d37' }}>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold">Enthusiast</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#d30d37' }}>MOST POPULAR</span>
-                </div>
-                <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.enthusiast.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
-                <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Explorer</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Unlimited navigation</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create routes and events</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Live location & convoy mode</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create and manage clubs</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Full garage — unlimited vehicles</li>
-                </ul>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={() => handlePlanSelect('enthusiast', 'monthly')} disabled={isSubmitting}
-                    className="flex-1 h-10 rounded-xl text-sm font-semibold" style={{ backgroundColor: '#d30d37' }}>
-                    {isSubmitting && selectedPlan === 'enthusiast' && billingCycle === 'monthly' ? 'Setting up…' : 'Monthly'}
-                  </Button>
-                  <Button onClick={() => handlePlanSelect('enthusiast', 'yearly')} disabled={isSubmitting}
-                    className="flex-1 h-10 rounded-xl text-sm font-semibold" style={{ backgroundColor: '#d30d37' }}>
-                    {isSubmitting && selectedPlan === 'enthusiast' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
         </div>
       </div>

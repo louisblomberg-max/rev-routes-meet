@@ -21,7 +21,7 @@ export interface User {
   routeCredits: number;
 }
 
-export type PlanId = 'free' | 'enthusiast' | 'business';
+export type PlanId = 'free';
 
 export interface UserPreferences {
   mapStyle: 'standard' | 'night' | 'satellite';
@@ -41,16 +41,6 @@ export interface LiveFeatures {
   locationSharingEnabled: boolean;
   groupDrivesCount: number;
   breakdownHelpCount: number;
-}
-
-// ---- Subscription Plans ----
-export interface SubscriptionPlan {
-  id: PlanId;
-  name: string;
-  price: number; // monthly in GBP, 0 for free
-  features: string[];
-  eventCreditsPerMonth: number; // -1 = unlimited
-  routeCreditsPerMonth: number;
 }
 
 // ---- Vehicles / Garage ----

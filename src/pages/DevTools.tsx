@@ -2,7 +2,7 @@
 // Dev Tools — Switch Users, Reset Data, QA Checklist, Random Content Generator
 // ============================
 import { useState, useEffect } from 'react';
-import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, Crown, CreditCard, AlertTriangle, MapPin, Shuffle } from 'lucide-react';
+import { FlaskConical, User, RotateCcw, CheckSquare, ChevronRight, Zap, AlertTriangle, MapPin, Shuffle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import { useData } from '@/contexts/DataContext';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -152,7 +151,6 @@ const DevTools = () => {
   }, [navigate]);
 
   const { user: authUser, updateProfile, logout } = useAuth();
-  const { setPlan, setSubscriptionStatus, currentPlan, effectivePlan, getPlanLabel } = usePlan();
   const { state, events: eventsRepo, routes: routesRepo, services: servicesRepo } = useData();
 
   const [profiles, setProfiles] = useState<ProfilePreset[]>([]);
@@ -287,11 +285,7 @@ const DevTools = () => {
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Plan</span>
-              <p className="font-bold text-foreground">{getPlanLabel(effectivePlan)}</p>
-            </div>
-            <div className="bg-muted/40 rounded-xl p-2.5">
-              <span className="text-muted-foreground">Event Credits</span>
-              <p className="font-bold text-foreground">{authUser?.eventCredits ?? 0}{authUser?.eventCredits === -1 ? ' (∞)' : ''}</p>
+              <p className="font-bold text-foreground">Free (all features)</p>
             </div>
             <div className="bg-muted/40 rounded-xl p-2.5">
               <span className="text-muted-foreground">Events</span>

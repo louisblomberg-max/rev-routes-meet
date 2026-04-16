@@ -2,10 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
 import mapboxgl from 'mapbox-gl';
-import { ArrowLeft, Upload, Pencil, Undo2, Trash2, Lock, MapPin, Clock, Route, Camera } from 'lucide-react';
+import { ArrowLeft, Upload, Pencil, Undo2, Trash2, MapPin, Clock, Route, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,7 +18,6 @@ const SURFACES = ['Tarmac', 'Gravel', 'Dirt', 'Mixed'];
 const AddRoute = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { currentPlan } = usePlan();
   const [searchParams] = useSearchParams();
   const editId = searchParams.get('edit');
   const isEdit = !!editId;
@@ -52,21 +50,6 @@ const AddRoute = () => {
     if (step === 1) { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }
     else setStep(step - 1);
   };
-
-  // Plan gate
-  if (currentPlan === 'free') {
-    return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
-        <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
-        <h2 className="text-lg font-bold mb-1">Enthusiast Plan Required</h2>
-        <p className="text-sm text-muted-foreground mb-6 text-center">Creating routes requires the Enthusiast plan.</p>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
-          <Button onClick={() => navigate('/upgrade')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>
-        </div>
-      </div>
-    );
-  }
 
   // Load edit data
   // eslint-disable-next-line react-hooks/rules-of-hooks
@@ -233,9 +216,6 @@ const AddRoute = () => {
         <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={goBack} className="w-9 h-9 rounded-xl bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Route' : 'Create Route'}</h1>
-          {(currentPlan === 'enthusiast') && (
-            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-routes/10 text-routes border border-routes/20">Unlimited</span>
-          )}
           <span className="text-xs text-muted-foreground">Step {step}/3</span>
         </div>
         {/* Step indicator */}

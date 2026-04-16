@@ -15,9 +15,7 @@ import { toast } from 'sonner';
 // TODO: Add validateImageFile from '@/lib/utils' when cover upload is connected to real file input
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePlan } from '@/contexts/PlanContext';
 import LocationPicker from '@/components/LocationPicker';
-import CreationPaywallSheet from '@/components/CreationPaywallSheet';
 
 const SERVICE_CATEGORIES = [
   'Garages & Mechanics',
@@ -119,8 +117,6 @@ const AddService = () => {
   const { services: servicesRepo, state } = useData();
   const { user: authUser } = useAuth();
   const currentUser = authUser;
-  const { effectivePlan: currentPlan } = usePlan();
-  const [showPaywall, setShowPaywall] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -340,22 +336,6 @@ const AddService = () => {
       return;
     }
 
-    // Services require Business plan
-    setIsSubmitting(true);
-    try {
-      const { data: profile } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
-      const canCreate = profile?.plan === 'business';
-      if (!isEdit && !canCreate) {
-        setShowPaywall(true);
-        setIsSubmitting(false);
-        return;
-      }
-    } catch {
-      toast.error('Could not verify plan');
-      setIsSubmitting(false);
-      return;
-    }
-
     await saveService();
   };
 
@@ -388,12 +368,6 @@ const AddService = () => {
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
           <h1 className="text-lg font-bold text-foreground flex-1">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
-          {currentPlan === 'business' ? (
-            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-services/10 text-services border border-services/20">Club Plan</span>
-          ) : (
-            <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50 cursor-pointer"
-              onClick={() => navigate('/upgrade')}>Upgrade</span>
-          )}
         </div>
       </div>
 
@@ -662,11 +636,6 @@ const AddService = () => {
         </div>
       </div>
 
-      <CreationPaywallSheet
-        open={showPaywall}
-        onClose={() => setShowPaywall(false)}
-        type="service"
-      />
     </div>
   );
 };

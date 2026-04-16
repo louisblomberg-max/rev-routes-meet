@@ -9,8 +9,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate as useRouterNavigate } from 'react-router-dom';
 import { openExternalMaps, NavigationDestination } from '@/services/navigationService';
 import { Button } from '@/components/ui/button';
-import { Navigation, ExternalLink, Loader2, Smartphone } from 'lucide-react';
-import { toast } from 'sonner';
+import { Navigation, ExternalLink } from 'lucide-react';
 
 interface NavigateButtonProps {
   destination: NavigationDestination;
@@ -45,30 +44,13 @@ const NavigateButton = ({ destination, colorClass = 'bg-routes hover:bg-routes/9
     routerNavigate('/navigation', { state: navState });
   };
 
-  const handleMobileWebNavigate = () => {
-    toast('For the best experience, use the RevNet app', {
-      duration: 8000,
-      action: {
-        label: 'Navigate anyway',
-        onClick: handleNavigate,
-      },
-    });
-    // Try deep link — falls back silently if app not installed
-    const deepLink = `revnet://navigate?lat=${destination.lat}&lng=${destination.lng}&title=${encodeURIComponent(destination.title)}`;
-    window.location.href = deepLink;
-  };
-
   return (
     <div className="flex gap-2">
       <Button
-        onClick={isNativeApp ? handleNavigate : handleMobileWebNavigate}
+        onClick={handleNavigate}
         className={`flex-1 py-6 text-lg gap-2 ${colorClass} text-white`}
       >
-        {isNativeApp ? (
-          <Navigation className="w-5 h-5" />
-        ) : (
-          <Smartphone className="w-5 h-5" />
-        )}
+        <Navigation className="w-5 h-5" />
         Navigate
       </Button>
       <Button

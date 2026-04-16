@@ -29,8 +29,6 @@ export interface OnboardingData {
   vehicles: OnboardingVehicle[];
   notificationsEnabled: boolean;
   locationPermissionStatus: 'not_requested' | 'allowed' | 'denied' | 'skipped';
-  plan: 'free' | 'pro' | 'club';
-  billingCycle: 'monthly' | 'yearly';
 }
 
 const DEFAULT_DATA: OnboardingData = {
@@ -41,12 +39,10 @@ const DEFAULT_DATA: OnboardingData = {
   vehicles: [],
   notificationsEnabled: false,
   locationPermissionStatus: 'not_requested',
-  plan: 'free',
-  billingCycle: 'yearly',
 };
 
-// 6 steps: 0=Profile, 1=Username, 2=Garage, 3=Notifications, 4=Location, 5=Plan
-export const TOTAL_ONBOARDING_STEPS = 6;
+// 5 steps: 0=Profile, 1=Username, 2=Garage, 3=Notifications, 4=Location
+export const TOTAL_ONBOARDING_STEPS = 5;
 
 const STORAGE_KEY = 'revnet_onboarding_state';
 

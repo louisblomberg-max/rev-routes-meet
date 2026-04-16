@@ -1,5 +1,3 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -11,87 +9,9 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const anonClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: claimsData, error: claimsError } = await anonClient.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const userId = claimsData.claims.sub;
-    const { plan, billingCycle } = await req.json();
-
-    const serviceClient = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
-
-    // SECURITY: Never activate a paid plan directly.
-    // Free plan → set active immediately.
-    // Paid plan → keep plan as 'free', store desired plan in pending_plan,
-    //             set status to 'pending_payment'. Activation only via Stripe/RevenueCat webhook.
-    if (plan && plan !== "free") {
-      const { error: subError } = await serviceClient
-        .from("subscriptions")
-        .update({
-          plan: "free",
-          pending_plan: plan,
-          billing_cycle: billingCycle || "monthly",
-          status: "pending_payment",
-        })
-        .eq("user_id", userId);
-
-      if (subError) {
-        console.error("Subscription update error:", subError);
-        return new Response(JSON.stringify({ error: "Failed to update subscription" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    } else {
-      // Free plan — just ensure it's set correctly
-      const { error: subError } = await serviceClient
-        .from("subscriptions")
-        .update({
-          plan: "free",
-          pending_plan: null,
-          billing_cycle: billingCycle || "monthly",
-          status: "active",
-        })
-        .eq("user_id", userId);
-
-      if (subError) {
-        console.error("Subscription update error:", subError);
-      }
-    }
-
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    console.error("complete-onboarding error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+  // Everything is free now — just return success
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

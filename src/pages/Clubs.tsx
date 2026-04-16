@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
-import { usePlan } from '@/contexts/PlanContext'
 import { Search, Plus, Users, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,7 +28,6 @@ const SORT_OPTIONS = [
 export default function Clubs() {
   const navigate = useNavigate()
   const { user } = useAuth()
-  const { currentPlan } = usePlan()
   const [clubs, setClubs] = useState<any[]>([])
   const [myClubIds, setMyClubIds] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -185,15 +183,7 @@ export default function Clubs() {
               Join with code
             </button>
             <button
-              onClick={() => {
-                if (currentPlan === 'enthusiast') {
-                  navigate('/add/club')
-                } else {
-                  toast.info('Creating clubs requires the Enthusiast plan', {
-                    action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-                  })
-                }
-              }}
+              onClick={() => navigate('/add/club')}
               className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -347,21 +337,12 @@ export default function Clubs() {
                 >
                   Discover Clubs
                 </button>
-                {currentPlan === 'enthusiast' ? (
-                  <button
-                    onClick={() => navigate('/add/club')}
-                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
-                  >
-                    Create a club
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => toast.info('Creating clubs requires the Enthusiast plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
-                    className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
-                  >
-                    ⭐ Create a club — Enthusiast plan
-                  </button>
-                )}
+                <button
+                  onClick={() => navigate('/add/club')}
+                  className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
+                >
+                  Create a club
+                </button>
               </>
             )}
           </div>

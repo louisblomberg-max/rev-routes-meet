@@ -1,4 +1,4 @@
-import { MessageCircle, Route, Calendar, Users, Share2, MapPin, Crown, Sparkles, Star, Pencil, Camera, Building2, AlertCircle, RotateCcw, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { MessageCircle, Route, Calendar, Users, Share2, MapPin, Pencil, Camera, AlertCircle, RotateCcw, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BackButton from '@/components/BackButton';
 import { useState, useEffect, useRef } from 'react';
@@ -85,7 +85,7 @@ const Profile = () => {
   const avatar = profile?.avatar_url || authUser?.avatar || null;
   const location = profile?.location || '';
   const bio = profile?.bio || '';
-  const plan = profile?.plan || 'free';
+
 
   const [editForm, setEditForm] = useState({ displayName: '', username: '', bio: '', location: '' });
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -159,14 +159,6 @@ const Profile = () => {
 
     return () => clearTimeout(usernameCheckTimer.current);
   }, [editForm.username, profile?.username, authUser?.id]);
-
-  const planBadge = {
-    free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
-    enthusiast: { label: 'Enthusiast', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
-    business: { label: 'Business', icon: Building2, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
-  };
-  const currentBadge = planBadge[plan as keyof typeof planBadge] || planBadge.free;
-  const BadgeIcon = currentBadge.icon;
 
   const handleShare = async () => {
     const url = `${window.location.origin}/user/${username}`;
@@ -287,8 +279,7 @@ const Profile = () => {
                   <Camera className="w-3.5 h-3.5" />
                 </button>
               </div>
-              <div className="flex-1 pb-1 flex items-center justify-between">
-                <Badge className={`${currentBadge.className} gap-1 px-2 py-0.5 text-xs`}><BadgeIcon className="w-3 h-3" />{currentBadge.label}</Badge>
+              <div className="flex-1 pb-1 flex items-center justify-end">
                 <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-8 px-3 text-xs"><Pencil className="w-3 h-3 mr-1.5" />Edit</Button>
               </div>
             </div>

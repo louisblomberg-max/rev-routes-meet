@@ -22,11 +22,9 @@ const NotificationSettings = React.lazy(() => import("./pages/NotificationSettin
 const AppPreferencesSettings = React.lazy(() => import("./pages/AppPreferencesSettings"));
 const AccountSettings = React.lazy(() => import("./pages/AccountSettings"));
 const SocialDiscoverySettings = React.lazy(() => import("./pages/SocialDiscoverySettings"));
-const PlanBillingSettings = React.lazy(() => import("./pages/PlanBillingSettings"));
 const FAQSettings = React.lazy(() => import("./pages/FAQSettings"));
 const HowToUseSettings = React.lazy(() => import("./pages/HowToUseSettings"));
 const SupportLegalSettings = React.lazy(() => import("./pages/SupportLegalSettings"));
-const Upgrade = React.lazy(() => import("./pages/Upgrade"));
 const MyGarage = React.lazy(() => import("./pages/MyGarage"));
 const MyFriends = React.lazy(() => import("./pages/MyFriends"));
 const MyEvents = React.lazy(() => import("./pages/MyEvents"));
@@ -67,13 +65,11 @@ const RouteMapView = React.lazy(() => import("./pages/RouteMapView"));
 const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
-const ChoosePlan = React.lazy(() => import("./pages/ChoosePlan"));
 const DevTools = React.lazy(() => import("./pages/DevTools"));
 const StolenVehicles = React.lazy(() => import("./pages/StolenVehicles"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 const ListingDetail = React.lazy(() => import("./pages/ListingDetail"));
 const CreateListing = React.lazy(() => import("./pages/CreateListing"));
-const PaymentSuccess = React.lazy(() => import("./pages/PaymentSuccess"));
 const TicketSuccess = React.lazy(() => import("./pages/TicketSuccess"));
 const OrganizerDashboard = React.lazy(() => import("./pages/OrganizerDashboard"));
 const NavigationPage = React.lazy(() => import("./pages/Navigation"));
@@ -112,7 +108,6 @@ const App = () => (
           {/* Auth (not protected) */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/choose-plan" element={<ChoosePlan />} />
 
           {/* Onboarding (not protected) */}
           <Route path="/onboarding" element={<Onboarding />} />
@@ -135,12 +130,10 @@ const App = () => (
           <Route path="/settings/notifications" element={<ProtectedRoute><NotificationSettings /></ProtectedRoute>} />
           <Route path="/settings/preferences" element={<ProtectedRoute><AppPreferencesSettings /></ProtectedRoute>} />
           <Route path="/settings/account" element={<ProtectedRoute><AccountSettings /></ProtectedRoute>} />
-          <Route path="/settings/billing" element={<ProtectedRoute><PlanBillingSettings /></ProtectedRoute>} />
           <Route path="/settings/social" element={<ProtectedRoute><SocialDiscoverySettings /></ProtectedRoute>} />
           <Route path="/settings/faq" element={<ProtectedRoute><FAQSettings /></ProtectedRoute>} />
           <Route path="/settings/howto" element={<ProtectedRoute><HowToUseSettings /></ProtectedRoute>} />
           <Route path="/settings/support" element={<ProtectedRoute><SupportLegalSettings /></ProtectedRoute>} />
-          <Route path="/upgrade" element={<ProtectedRoute><Upgrade /></ProtectedRoute>} />
           <Route path="/my-garage" element={<ProtectedRoute><MyGarage /></ProtectedRoute>} />
           <Route path="/my-friends" element={<ProtectedRoute><MyFriends /></ProtectedRoute>} />
           <Route path="/my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
@@ -185,8 +178,7 @@ const App = () => (
           <Route path="/friends" element={<Navigate to="/my-friends" replace />} />
           <Route path="/navigation" element={<ProtectedRoute><NavigationPage /></ProtectedRoute>} />
           <Route path="/route-map" element={<ProtectedRoute><RouteMapView /></ProtectedRoute>} />
-          <Route path="/subscription" element={<Navigate to="/upgrade" replace />} />
-          <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/subscription" element={<Navigate to="/" replace />} />
           <Route path="/ticket-success" element={<ProtectedRoute><TicketSuccess /></ProtectedRoute>} />
           <Route path="/event/:id/manage" element={<ProtectedRoute><OrganizerDashboard /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />

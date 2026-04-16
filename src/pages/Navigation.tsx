@@ -237,7 +237,7 @@ export default function Navigation() {
     const load = async () => {
       const { data: profile } = await supabase
         .from('profiles').select('plan').eq('id', user.id).single()
-      setCanShare(profile?.plan === 'enthusiast')
+      setCanShare(true)
 
       const { data: friendsData } = await supabase
         .from('friends')
@@ -1061,12 +1061,6 @@ export default function Navigation() {
                 <p className="text-xs text-green-300 flex-1">Sharing with {sharedWithFriends.length} friend{sharedWithFriends.length !== 1 ? 's' : ''}</p>
                 <button onClick={stopSharing} className="text-xs text-red-400 font-semibold">Stop</button>
               </div>
-            )}
-
-            {!canShare && (
-              <button onClick={() => navigate('/upgrade')} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#185FA5] to-[#3B6D11] text-white text-xs font-bold mb-3">
-                ⭐ Upgrade to Pro — Share location with friends
-              </button>
             )}
 
             <button onClick={handleStopNavigation} className="w-full py-3.5 rounded-2xl bg-red-600 text-white font-bold text-sm">
