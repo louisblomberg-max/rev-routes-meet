@@ -9,12 +9,12 @@ interface ProfileHeaderProps {
 
 const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
   const planBadge = {
-    free: { label: 'Free', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
+    free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
     enthusiast: { label: 'Enthusiast', icon: Crown, className: 'bg-gradient-to-r from-events to-primary text-primary-foreground' },
-    pro: { label: 'Pro', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
+    business: { label: 'Business', icon: Star, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
   };
 
-  const currentBadge = planBadge[profile.plan];
+  const currentBadge = planBadge[profile.plan as keyof typeof planBadge] ?? planBadge.free;
   const BadgeIcon = currentBadge.icon;
 
   return (

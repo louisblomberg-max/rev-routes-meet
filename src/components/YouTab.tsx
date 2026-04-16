@@ -58,7 +58,7 @@ const YouTab = () => {
     business: { label: 'Business', icon: Building2, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground border-0' },
   };
 
-  const badge = planBadge[currentPlan];
+  const badge = planBadge[currentPlan as keyof typeof planBadge] ?? planBadge.free;
   const BadgeIcon = badge.icon;
 
   const tiles = [
@@ -166,7 +166,7 @@ const YouTab = () => {
               >
                 <Share2 className="w-4 h-4 text-muted-foreground" />
               </button>
-              {effectivePlan !== 'enthusiast' && (
+              {effectivePlan === 'free' && (
                 <button
                   onClick={() => navigate('/upgrade')}
                   className="h-9 px-3.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-1.5 hover:bg-primary/90 transition-colors active:scale-[0.98]"

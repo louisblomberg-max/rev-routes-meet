@@ -94,6 +94,15 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const [billingCycle, setBillingCycleState] = useState<BillingCycle>('yearly');
   const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>('active');
 
+  const normalisePlan = (plan: string): PlanId => {
+    if (plan === 'pro') return 'enthusiast';
+    if (plan === 'club') return 'enthusiast';
+    if (plan === 'organiser') return 'enthusiast';
+    if (plan === 'enthusiast') return 'enthusiast';
+    if (plan === 'business') return 'business';
+    return 'free';
+  };
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -107,7 +116,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
       if (error) return;
 
       if (data) {
-        setCurrentPlan((data.plan as PlanId) || 'free');
+        setCurrentPlan(normalisePlan(data.plan || 'free'));
         setBillingCycleState((data.billing_cycle as BillingCycle) || 'monthly');
         setSubscriptionStatusState((data.status as SubscriptionStatus) || 'active');
       }
