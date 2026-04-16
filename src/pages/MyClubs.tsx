@@ -29,15 +29,15 @@ const MyClubs = () => {
             </div>
           </div>
           <Button size="sm" onClick={() => {
-            if (currentPlan !== 'club') {
-              toast.info('Creating clubs requires a Club plan', {
+            if (currentPlan !== 'enthusiast') {
+              toast.info('Creating clubs requires the Enthusiast plan', {
                 action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
               });
               return;
             }
             navigate('/add/club');
           }} className="gap-1.5 rounded-lg bg-clubs hover:bg-clubs/90 text-clubs-foreground">
-            {currentPlan !== 'club' && <Lock className="w-3.5 h-3.5" />}
+            {currentPlan !== 'enthusiast' && <Lock className="w-3.5 h-3.5" />}
             <Plus className="w-4 h-4" /> Create
           </Button>
         </div>
@@ -84,8 +84,8 @@ const MyClubs = () => {
               )}
               <Button
                 onClick={() => {
-                  if (currentPlan !== 'club') {
-                    toast.info('Creating clubs requires a Club plan', {
+                  if (currentPlan !== 'enthusiast') {
+                    toast.info('Creating clubs requires the Enthusiast plan', {
                       action: { label: 'Upgrade', onClick: () => navigate('/upgrade') }
                     });
                     return;

@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-const PLAN_LABELS: Record<string, string> = { free: 'Explorer', pro: 'Pro Driver', club: 'Organiser' };
+const PLAN_LABELS: Record<string, string> = { free: 'Explorer', enthusiast: 'Enthusiast', business: 'Business' };
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -185,8 +185,8 @@ const UserProfile = () => {
         <h1 className="text-xl font-bold text-foreground mt-3">{displayName}</h1>
         <p className="text-sm text-muted-foreground">@{profile.username || 'user'}</p>
         <Badge variant="secondary" className="mt-2 gap-1">
-          {profile.plan === 'pro' && <Star className="w-3 h-3" />}
-          {profile.plan === 'club' && <Crown className="w-3 h-3" />}
+          {profile.plan === 'enthusiast' && <Star className="w-3 h-3" />}
+          {profile.plan === 'business' && <Crown className="w-3 h-3" />}
           {planLabel}
         </Badge>
         {profile.location && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2"><MapPin className="w-3 h-3" />{profile.location}</p>}

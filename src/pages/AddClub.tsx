@@ -150,12 +150,12 @@ export default function AddClub() {
 
   const canProceedStep1 = name.trim().length > 0 && handle.trim().length > 0 && clubType
 
-  if (currentPlan !== 'club') {
+  if (currentPlan !== 'enthusiast') {
     return (
       <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Lock className="w-16 h-16 text-muted-foreground/30 mb-4" />
-        <h2 className="text-lg font-bold text-foreground mb-1">Club Plan Required</h2>
-        <p className="text-sm text-muted-foreground mb-6 text-center">Creating and managing clubs requires the Club plan.</p>
+        <h2 className="text-lg font-bold text-foreground mb-1">Enthusiast Plan Required</h2>
+        <p className="text-sm text-muted-foreground mb-6 text-center">Creating and managing clubs requires the Enthusiast plan.</p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => navigate(-1)}>Back</Button>
           <Button onClick={() => navigate('/upgrade')} style={{ backgroundColor: '#d30d37' }} className="text-white">Upgrade</Button>

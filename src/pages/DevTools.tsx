@@ -352,8 +352,8 @@ const DevTools = () => {
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${planColor[profile.plan || 'free'] || planColor.free}`}>
-                    {profile.plan === 'pro' ? <Crown className="w-4 h-4" /> :
-                     profile.plan === 'club' ? <CreditCard className="w-4 h-4" /> :
+                    {profile.plan === 'enthusiast' ? <Crown className="w-4 h-4" /> :
+                     profile.plan === 'business' ? <CreditCard className="w-4 h-4" /> :
                      <User className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">

@@ -20,7 +20,7 @@ export const usePaywall = () => {
   const { user, updateProfile } = useAuth();
 
   const canCreateEvent = (): PaywallCheck => {
-    if (effectivePlan === 'pro' || effectivePlan === 'club') {
+    if (effectivePlan === 'enthusiast') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
     const credits = user?.eventCredits ?? 0;
@@ -31,7 +31,7 @@ export const usePaywall = () => {
   };
 
   const canCreateRoute = (): PaywallCheck => {
-    if (effectivePlan === 'pro' || effectivePlan === 'club') {
+    if (effectivePlan === 'enthusiast') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
     const credits = user?.routeCredits ?? 0;
@@ -42,14 +42,14 @@ export const usePaywall = () => {
   };
 
   const canCreateService = (): PaywallCheck => {
-    if (effectivePlan === 'club') {
+    if (effectivePlan === 'business') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
     return { allowed: false, reason: 'service_plan', creditsRemaining: 0 };
   };
 
   const canCreateClub = (): PaywallCheck => {
-    if (effectivePlan === 'club') {
+    if (effectivePlan === 'enthusiast') {
       return { allowed: true, reason: null, creditsRemaining: -1 };
     }
     return { allowed: false, reason: 'club_plan', creditsRemaining: 0 };

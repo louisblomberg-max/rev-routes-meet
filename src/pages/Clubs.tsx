@@ -186,10 +186,10 @@ export default function Clubs() {
             </button>
             <button
               onClick={() => {
-                if (currentPlan === 'club') {
+                if (currentPlan === 'enthusiast') {
                   navigate('/add/club')
                 } else {
-                  toast.info('Creating clubs requires a Club plan', {
+                  toast.info('Creating clubs requires the Enthusiast plan', {
                     action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
                   })
                 }
@@ -347,7 +347,7 @@ export default function Clubs() {
                 >
                   Discover Clubs
                 </button>
-                {currentPlan === 'club' ? (
+                {currentPlan === 'enthusiast' ? (
                   <button
                     onClick={() => navigate('/add/club')}
                     className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
@@ -356,10 +356,10 @@ export default function Clubs() {
                   </button>
                 ) : (
                   <button
-                    onClick={() => toast.info('Creating clubs requires a Club plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
+                    onClick={() => toast.info('Creating clubs requires the Enthusiast plan', { action: { label: 'Upgrade', onClick: () => navigate('/upgrade') } })}
                     className="mt-2 w-full px-6 py-2.5 rounded-xl border border-border/50 text-sm font-medium text-muted-foreground"
                   >
-                    ⭐ Create a club — Club plan
+                    ⭐ Create a club — Enthusiast plan
                   </button>
                 )}
               </>

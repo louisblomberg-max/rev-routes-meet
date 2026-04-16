@@ -23,7 +23,7 @@ const PAYWALL_CONFIG: Record<PaywallType, {
   showPayOnce: boolean;
   payOnceLabel: string;
   payOncePrice: string;
-  upgradePlan: 'pro' | 'club';
+  upgradePlan: 'enthusiast' | 'business';
   upgradePlanLabel: string;
   monthlyPrice: string;
   yearlyPrice: string;
@@ -38,43 +38,41 @@ const PAYWALL_CONFIG: Record<PaywallType, {
     showPayOnce: true,
     payOnceLabel: 'Pay £5.99 — Publish this event',
     payOncePrice: '£5.99',
-    upgradePlan: 'club',
-    upgradePlanLabel: 'Club',
-    monthlyPrice: '£9.99/month',
-    yearlyPrice: '£79.99/year',
+    upgradePlan: 'enthusiast',
+    upgradePlanLabel: 'Enthusiast',
+    monthlyPrice: '£7.99/month',
+    yearlyPrice: '£63.99/year',
     yearlySaving: '2 months free',
     features: [
-      'Unlimited event publishing',
+      'Create unlimited free and ticketed events',
       'Sell tickets — 5% commission',
       'Organiser dashboard',
-      'Club analytics',
-      'Everything in Pro Driver',
+      'Everything in Enthusiast',
     ],
   },
   route: {
-    heading: 'Pro Driver Required',
-    subheading: 'Creating and publishing routes requires a Pro Driver subscription',
+    heading: 'Enthusiast Plan Required',
+    subheading: 'Creating and publishing routes requires the Enthusiast plan',
     icon: Route,
     accentClass: 'text-routes',
     showPayOnce: false,
     payOnceLabel: '',
     payOncePrice: '',
-    upgradePlan: 'pro',
-    upgradePlanLabel: 'Pro Driver',
-    monthlyPrice: '£4.99/month',
-    yearlyPrice: '£39.99/year',
+    upgradePlan: 'enthusiast',
+    upgradePlanLabel: 'Enthusiast',
+    monthlyPrice: '£7.99/month',
+    yearlyPrice: '£63.99/year',
     yearlySaving: '2 months free',
     features: [
       'Create unlimited routes',
       'Import GPX files',
-      'Live location sharing',
-      'Convoy mode',
-      'Unlimited clubs and messaging',
+      'Unlimited navigation',
+      'Live location and convoy mode',
     ],
   },
   service: {
     heading: 'Business Plan Required',
-    subheading: 'Creating service and business listings requires the Business plan',
+    subheading: 'Service listings require the Business plan — managed from the website dashboard',
     icon: Building,
     accentClass: 'text-services',
     showPayOnce: false,
@@ -86,29 +84,28 @@ const PAYWALL_CONFIG: Record<PaywallType, {
     yearlyPrice: '£159.99/year',
     yearlySaving: '2 months free',
     features: [
-      'Full service listing on the map',
+      'Service listing on the RevNet map',
       'Featured placement',
       'Verified business badge',
       'Business analytics',
-      'Everything in Club',
     ],
   },
   club: {
-    heading: 'Club Plan Required',
-    subheading: 'Creating and managing clubs requires the Club plan',
+    heading: 'Enthusiast Plan Required',
+    subheading: 'Creating clubs requires the Enthusiast plan',
     icon: Users,
     accentClass: 'text-clubs',
     showPayOnce: false,
     payOnceLabel: '',
     payOncePrice: '',
-    upgradePlan: 'club',
-    upgradePlanLabel: 'Club',
-    monthlyPrice: '£9.99/month',
-    yearlyPrice: '£79.99/year',
+    upgradePlan: 'enthusiast',
+    upgradePlanLabel: 'Enthusiast',
+    monthlyPrice: '£7.99/month',
+    yearlyPrice: '£63.99/year',
     yearlySaving: '2 months free',
     features: [
-      'Create & manage clubs',
-      'Event ticketing — 5% commission',
+      'Create and manage your own club',
+      'Club feed and announcements',
       'Analytics dashboard',
       'Verified badge',
     ],
@@ -145,8 +142,8 @@ const CreationPaywallSheet = ({ open, onClose, type }: CreationPaywallSheetProps
     setLoading(true);
     try {
       const priceId = billing === 'monthly'
-        ? (config.upgradePlan === 'pro' ? STRIPE_PRICES.pro_monthly : STRIPE_PRICES.club_monthly)
-        : (config.upgradePlan === 'pro' ? STRIPE_PRICES.pro_yearly : STRIPE_PRICES.club_yearly);
+        ? (config.upgradePlan === 'enthusiast' ? STRIPE_PRICES.enthusiast_monthly : STRIPE_PRICES.business_monthly)
+        : (config.upgradePlan === 'enthusiast' ? STRIPE_PRICES.enthusiast_yearly : STRIPE_PRICES.business_yearly);
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: config.upgradePlan },

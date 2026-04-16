@@ -95,16 +95,17 @@ serve(async (req) => {
           const billingCycle = interval === "year" ? "yearly" : "monthly";
 
           // Determine plan from price
-          const proPrices = ["price_1TMa1ORdtkGP5enYDSGCiONH", "price_1TMa1gRdtkGP5enYVOQ3tlml"];
-          const clubPrices = ["price_1TMa2FRdtkGP5enYyUWS9wVL", "price_1TMa2pRdtkGP5enYoaflZI5M"];
-          const businessPrices: string[] = [
+          const enthusiastPrices = [
+            "price_1TMa1ORdtkGP5enYDSGCiONH",
+            "price_1TMa1gRdtkGP5enYVOQ3tlml",
+          ];
+          const businessPrices = [
             "price_1TMa37RdtkGP5enYFNGPw6gE",
             "price_1TMa3VRdtkGP5enYMvaHECON",
           ];
           let plan = "free";
-          if (proPrices.includes(priceId)) plan = "pro";
-          if (clubPrices.includes(priceId)) plan = "club";
-          if (businessPrices.filter(Boolean).length > 0 && businessPrices.includes(priceId)) plan = "business";
+          if (enthusiastPrices.includes(priceId)) plan = "enthusiast";
+          if (businessPrices.includes(priceId)) plan = "business";
 
           log("Activating subscription", { userId, plan, billingCycle });
 

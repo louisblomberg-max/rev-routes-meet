@@ -18,29 +18,29 @@ import { format } from 'date-fns';
 
 const PLAN_FEATURES: Record<PlanId, { label: string; icon: any; route?: string; featureId: string }[]> = {
   free: [
-    { label: 'Browse routes, events & services', icon: Route, route: '/', featureId: 'browse_routes' },
-    { label: '1 free event post included', icon: CalendarIcon, featureId: 'browse_events' },
-    { label: 'Additional events £5.99 each', icon: CreditCard, featureId: 'browse_services' },
-    { label: 'Join clubs & forums', icon: Users, route: '/clubs', featureId: 'join_clubs' },
-    { label: 'Basic messaging', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
-    { label: 'Save & bookmark content', icon: Route, route: '/my-routes', featureId: 'save_routes' },
+    { label: 'Full map and navigation (3 free)', icon: Route, route: '/', featureId: 'browse_map' },
+    { label: 'Attend events', icon: CalendarIcon, featureId: 'attend_events' },
+    { label: 'Join up to 2 clubs', icon: Users, route: '/clubs', featureId: 'join_clubs' },
+    { label: 'Forums — read and post', icon: MessageSquare, route: '/forums', featureId: 'read_forums' },
+    { label: 'Message up to 5 people', icon: MessageSquare, route: '/messages', featureId: 'basic_messaging' },
+    { label: '1 vehicle in garage', icon: Car, route: '/my-garage', featureId: 'basic_garage' },
+    { label: 'SOS breakdown help', icon: Shield, featureId: 'request_sos' },
   ],
-  pro: [
-    { label: 'Unlimited event posts', icon: CalendarIcon, featureId: 'create_events' },
-    { label: 'Create & publish routes', icon: Route, route: '/add/route', featureId: 'create_routes' },
-    { label: 'Host unlimited events', icon: CalendarIcon, featureId: 'create_events' },
-    { label: 'Live location sharing', icon: MapPin, featureId: 'live_location' },
-    { label: 'SOS breakdown help', icon: Shield, featureId: 'breakdown_help' },
-    { label: 'Garage showcase', icon: Car, route: '/my-garage', featureId: 'garage_showcase' },
-    { label: 'Priority visibility', icon: Eye, featureId: 'priority_visibility' },
+  enthusiast: [
+    { label: 'Unlimited navigation', icon: Route, featureId: 'unlimited_navigation' },
+    { label: 'Create unlimited routes', icon: Route, route: '/add/route', featureId: 'create_routes' },
+    { label: 'Create free and ticketed events', icon: CalendarIcon, featureId: 'create_events' },
+    { label: 'Live location and convoy mode', icon: MapPin, featureId: 'live_location' },
+    { label: 'Create and manage clubs', icon: Users, route: '/add/club', featureId: 'create_club' },
+    { label: 'Full garage — unlimited vehicles', icon: Car, route: '/my-garage', featureId: 'unlimited_garage' },
+    { label: 'Sell on marketplace — 3% commission', icon: Store, featureId: 'sell_marketplace' },
   ],
-  club: [
-    { label: 'Create & manage clubs', icon: Users, route: '/add/club', featureId: 'create_clubs' },
-    { label: 'Event ticketing with Stripe payouts', icon: Ticket, featureId: 'event_ticketing' },
-    { label: 'Business & service listings', icon: Store, route: '/add/service', featureId: 'business_listings' },
-    { label: 'Analytics & insights', icon: BarChart3, featureId: 'analytics' },
+  business: [
+    { label: 'Service listing on the map', icon: Store, route: '/add/service', featureId: 'service_listing' },
     { label: 'Featured placement', icon: MapPin, featureId: 'featured_placement' },
-    { label: 'Verified badge', icon: BadgeCheck, featureId: 'verified_badge' },
+    { label: 'Verified business badge', icon: BadgeCheck, featureId: 'verified_business_badge' },
+    { label: 'Business analytics', icon: BarChart3, featureId: 'business_analytics' },
+    { label: 'Customer enquiries', icon: MessageSquare, featureId: 'business_enquiries' },
   ],
 };
 
@@ -63,8 +63,7 @@ const PlanBillingSettings = () => {
   const billingCycle = subData?.billing_cycle || 'monthly';
   const plans = [
     { id: 'free' as PlanId, name: 'Explorer (Free)', price: { monthly: 0, yearly: 0 } },
-    { id: 'pro' as PlanId, name: 'Pro Driver', price: { monthly: 4.99, yearly: 39.99 } },
-    { id: 'club' as PlanId, name: 'Club', price: { monthly: 9.99, yearly: 79.99 } },
+    { id: 'enthusiast' as PlanId, name: 'Enthusiast', price: { monthly: 7.99, yearly: 63.99 } },
     { id: 'business' as PlanId, name: 'Business', price: { monthly: 19.99, yearly: 159.99 } },
   ];
   const currentPlanData = plans.find(p => p.id === currentPlan) || plans[0];
@@ -72,10 +71,10 @@ const PlanBillingSettings = () => {
 
   const accessibleFeatures = [
     ...PLAN_FEATURES.free,
-    ...(currentPlan === 'pro' || currentPlan === 'club' ? PLAN_FEATURES.pro : []),
-    ...(currentPlan === 'club' ? PLAN_FEATURES.club : []),
+    ...(currentPlan === 'enthusiast' ? PLAN_FEATURES.enthusiast : []),
+    ...(currentPlan === 'business' ? PLAN_FEATURES.business : []),
   ];
-  const lockedFeatures = currentPlan === 'free' ? [...PLAN_FEATURES.pro, ...PLAN_FEATURES.club] : currentPlan === 'pro' ? PLAN_FEATURES.club : [];
+  const lockedFeatures = currentPlan === 'free' ? [...PLAN_FEATURES.enthusiast] : [];
 
   const formatNextBilling = () => {
     if (!subData?.current_period_end) return currentPlan === 'free' ? 'N/A (Free plan)' : 'Not set';
@@ -134,8 +133,8 @@ const PlanBillingSettings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground mb-3">
                   {currentPlan === 'free' && 'Browse, discover & join — upgrade for more'}
-                  {currentPlan === 'pro' && 'Create routes, events & live features'}
-                  {currentPlan === 'club' && 'Full access including club management & ticketing'}
+                  {currentPlan === 'enthusiast' && 'Full access — routes, events, clubs, live features'}
+                  {currentPlan === 'business' && 'Business listing and analytics'}
                 </p>
                 <Button size="sm" className="h-8" onClick={() => navigate('/upgrade')}>
                   <Crown className="w-3.5 h-3.5 mr-1.5" />Change plan

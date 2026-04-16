@@ -15,54 +15,61 @@ export interface FeatureAccess {
 }
 
 export const FEATURE_REQUIREMENTS: Record<string, PlanId> = {
-  // Free features
+  // Free features — available to all
   'browse_map': 'free',
   'view_routes': 'free',
-  'navigate_routes': 'free',
+  'view_events': 'free',
+  'view_services': 'free',
+  'search_content': 'free',
   'attend_events': 'free',
-  'buy_marketplace': 'free',
-  'sell_marketplace': 'free',
-  'join_clubs': 'free',
+  'buy_tickets': 'free',
   'read_forums': 'free',
+  'post_forums': 'free',
+  'join_clubs': 'free',
   'basic_messaging': 'free',
+  'view_profiles': 'free',
+  'friend_system': 'free',
   'basic_garage': 'free',
-  'save_items': 'free',
+  'buy_marketplace': 'free',
   'offer_sos': 'free',
   'request_sos': 'free',
-  // Pro Driver features
-  'create_routes': 'pro',
-  'import_gpx': 'pro',
-  'live_location': 'pro',
-  'convoy_mode': 'pro',
-  'unlimited_clubs': 'pro',
-  'unlimited_messaging': 'pro',
-  'unlimited_forums': 'pro',
-  'extended_garage': 'pro',
-  'unlimited_saves': 'pro',
-  'boost_marketplace': 'pro',
-  // Club features
-  'create_club': 'club',
-  'manage_club': 'club',
-  'club_feed': 'club',
-  'club_events': 'club',
-  'sell_tickets': 'club',
-  'organiser_dashboard': 'club',
-  'club_analytics': 'club',
-  'verified_club_badge': 'club',
-  'create_events': 'club',
-  // Business features
+  'navigate_routes': 'free', // limited to 3 uses then locked
+
+  // Enthusiast features
+  'unlimited_navigation': 'enthusiast',
+  'create_routes': 'enthusiast',
+  'import_gpx': 'enthusiast',
+  'route_analytics': 'enthusiast',
+  'create_events': 'enthusiast',
+  'sell_tickets': 'enthusiast',
+  'organiser_dashboard': 'enthusiast',
+  'live_location': 'enthusiast',
+  'convoy_mode': 'enthusiast',
+  'unlimited_clubs': 'enthusiast',
+  'create_club': 'enthusiast',
+  'manage_club': 'enthusiast',
+  'club_feed': 'enthusiast',
+  'unlimited_messaging': 'enthusiast',
+  'unlimited_garage': 'enthusiast',
+  'full_garage_features': 'enthusiast',
+  'sell_marketplace': 'enthusiast',
+  'boost_marketplace': 'enthusiast',
+  'unlimited_saves': 'enthusiast',
+
+  // Business features — website only
   'service_listing': 'business',
+  'business_profile': 'business',
   'business_analytics': 'business',
-  'featured_placement': 'business',
+  'business_enquiries': 'business',
+  'business_reviews': 'business',
+  'business_promotions': 'business',
   'verified_business_badge': 'business',
-  'priority_support': 'business',
 };
 
 const PLAN_HIERARCHY: Record<PlanId, number> = {
   free: 0,
-  pro: 1,
-  club: 2,
-  business: 3,
+  enthusiast: 1,
+  business: 2,
 };
 
 interface PlanContextType {
@@ -87,7 +94,6 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const [billingCycle, setBillingCycleState] = useState<BillingCycle>('yearly');
   const [subscriptionStatus, setSubscriptionStatusState] = useState<SubscriptionStatus>('active');
 
-  // Load subscription from Supabase when user changes
   useEffect(() => {
     if (!user?.id) return;
 
@@ -112,8 +118,6 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
 
   const effectivePlan: PlanId = subscriptionStatus === 'inactive' ? 'free' : currentPlan;
 
-  // SECURITY: Plan changes must go through payment flow (Stripe/RevenueCat), never written directly.
-  // These setters only update local state for UI purposes (e.g. onboarding selection preview).
   const setPlan = (plan: PlanId) => {
     setCurrentPlan(plan);
   };
@@ -139,8 +143,7 @@ export const PlanProvider = ({ children }: { children: ReactNode }) => {
   const getPlanLabel = (plan: PlanId): string => {
     const labels: Record<PlanId, string> = {
       free: 'Explorer',
-      pro: 'Pro Driver',
-      club: 'Club',
+      enthusiast: 'Enthusiast',
       business: 'Business',
     };
     return labels[plan];

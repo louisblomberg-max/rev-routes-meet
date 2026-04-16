@@ -350,7 +350,7 @@ const AddEvent = () => {
   // Credit cost calculation
   const validDates = dates.filter(d => d.date)
   const dateCount = validDates.length
-  const isPaidPlan = userPlan === 'pro' || userPlan === 'organiser'
+  const isPaidPlan = userPlan === 'enthusiast' || userPlan === 'organiser'
   const creditsToUse = isPaidPlan ? 0 : Math.min(userCredits, dateCount)
   const datesToPay = isPaidPlan ? 0 : Math.max(0, dateCount - userCredits)
   const totalCost = datesToPay * 2.99
@@ -402,9 +402,9 @@ const AddEvent = () => {
     if (validDatesList.length === 0) { toast.error('Please add at least one date'); return false }
     if (!unlimitedSpaces && !maxAttendees) { toast.error('Please enter max attendees or enable unlimited spaces'); return false }
     if (entryType === 'ticketed') {
-      const isPro = userPlan === 'pro' || userPlan === 'club' || userPlan === 'organiser';
+      const isPro = userPlan === 'enthusiast' || userPlan === 'enthusiast' || userPlan === 'organiser';
       if (!isPro) {
-        toast.error('Selling tickets requires the Club plan or above'); return false
+        toast.error('Selling tickets requires the Enthusiast plan'); return false
       }
       if (!ticketPrice || Number(ticketPrice) < 1) {
         toast.error('Minimum ticket price is £1.00'); return false
@@ -462,10 +462,10 @@ const AddEvent = () => {
       const validDates = dates.filter(d => d.date)
 
       // Credit check for free users (skip for edits)
-      const isPaidPlan = userPlan === 'pro' || userPlan === 'club'
+      const isPaidPlan = userPlan === 'enthusiast' || userPlan === 'enthusiast'
       if (!isEdit && !isPaidPlan && userCredits <= 0) {
         setSaving(false)
-        toast.error('You need event credits or a Pro plan to publish events')
+        toast.error('You need event credits or the Enthusiast plan to publish events')
         navigate('/upgrade', { state: { feature: 'events' } })
         return
       }
@@ -588,7 +588,7 @@ const AddEvent = () => {
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton />
           <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Event' : 'Add Event'}</h1>
-          {(userPlan === 'pro' || userPlan === 'club') ? (
+          {(userPlan === 'enthusiast' || userPlan === 'enthusiast') ? (
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-events/10 text-events border border-events/20">Unlimited</span>
           ) : (
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50">
@@ -1348,7 +1348,7 @@ const AddEvent = () => {
             )}
             {isPaidPlan && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Pro plan</span>
+                <span className="text-muted-foreground">Enthusiast plan</span>
                 <span className="font-medium text-green-600">Unlimited — included</span>
               </div>
             )}

@@ -2,7 +2,7 @@
 // Subscription Plan Definitions
 // ============================
 
-export type PlanId = 'free' | 'pro' | 'club' | 'business';
+export type PlanId = 'free' | 'enthusiast' | 'business';
 
 export const PLANS = {
   free: {
@@ -17,29 +17,17 @@ export const PLANS = {
     description: 'Free forever',
     popular: false,
   },
-  pro: {
-    id: 'pro' as PlanId,
-    name: 'Pro Driver',
-    monthlyPrice: 4.99,
-    annualPrice: 39.99,
-    annualMonthlyEquivalent: 3.33,
+  enthusiast: {
+    id: 'enthusiast' as PlanId,
+    name: 'Enthusiast',
+    monthlyPrice: 7.99,
+    annualPrice: 63.99,
+    annualMonthlyEquivalent: 5.33,
     trialDays: 7,
     trialRequiresCard: false,
     color: '#d30d37',
     description: 'For active enthusiasts',
     popular: true,
-  },
-  club: {
-    id: 'club' as PlanId,
-    name: 'Club',
-    monthlyPrice: 9.99,
-    annualPrice: 79.99,
-    annualMonthlyEquivalent: 6.67,
-    trialDays: 30,
-    trialRequiresCard: false,
-    color: '#7C3AED',
-    description: 'For club organisers',
-    popular: false,
   },
   business: {
     id: 'business' as PlanId,
@@ -58,3 +46,6 @@ export const PLANS = {
 export const EVENT_POST_ONE_TIME_COST_GBP = 5.99;
 export const MARKETPLACE_COMMISSION_PERCENT = 3;
 export const TICKET_COMMISSION_PERCENT = 5;
+export const SOS_SUBSCRIPTION_PRICE_GBP = 1.99;
+export const SOS_FREE_MEMBER_THRESHOLD = 50000;
+export const FREE_NAVIGATION_LIMIT = 3;

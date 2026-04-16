@@ -13,8 +13,8 @@ import BackButton from '@/components/BackButton';
 
 const PLAN_CONFIG: Record<string, { label: string; icon: typeof Crown; className: string }> = {
   free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
-  pro: { label: 'Pro Driver', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
-  club: { label: 'Organiser', icon: Crown, className: 'bg-gradient-to-r from-clubs to-primary text-primary-foreground' },
+  enthusiast: { label: 'Enthusiast', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
+  business: { label: 'Business', icon: Crown, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
 };
 
 const You = () => {

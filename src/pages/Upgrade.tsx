@@ -1,4 +1,4 @@
-import { Check, Star, Crown, Building2, Sparkles, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Check, Star, Crown, Building2, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -24,72 +24,46 @@ const plans = [
     popular: false,
     trial: null,
     features: [
-      'Full map — discover events, routes and services',
-      'Navigate any route with turn by turn directions',
+      'Full map — browse events, routes and services',
+      'Navigate routes — 3 free navigations included',
       'Attend free and ticketed events',
-      'Join up to 3 clubs',
-      'Read and post in forums',
-      'Message up to 10 people',
-      'Add 2 vehicles to your garage',
-      'Buy and sell on the marketplace',
-      'Save up to 10 events, routes and services',
+      'Buy on the marketplace',
+      'Join up to 2 clubs',
+      'Full forum access — read and post',
+      'Message up to 5 people',
+      '1 vehicle in your garage',
       'SOS breakdown help — free for everyone',
     ],
     cta: "Get started — it's free",
     ctaSubtext: null,
   },
   {
-    id: 'pro' as PlanId,
-    name: 'Pro Driver',
+    id: 'enthusiast' as PlanId,
+    name: 'Enthusiast',
     icon: Star,
     color: 'text-primary',
     bgColor: 'bg-primary/10',
     borderColor: 'border-primary',
-    price: { monthly: 4.99, annual: 39.99 },
+    price: { monthly: 7.99, annual: 63.99 },
     description: 'For active enthusiasts',
     popular: true,
     trial: { days: 7, requiresCard: false },
     features: [
       'Everything in Explorer',
+      'Unlimited navigation — turn by turn, voice, rerouting',
       'Create and publish unlimited routes',
       'Import GPX files',
+      'Create free and ticketed events',
+      'Sell tickets — RevNet takes 5%',
+      'Organiser dashboard and QR check-in',
       'Live location sharing with friends',
-      'Convoy mode — see all members live on group drives',
-      'Unlimited club memberships',
-      'Unlimited direct messaging',
-      'Unlimited forum posts',
-      '5 vehicles in your garage',
-      'Save unlimited events, routes and services',
+      'Convoy mode — group drives with live tracking',
+      'Create and manage your own club',
+      'Unlimited clubs, messaging and saves',
+      'Full garage — unlimited vehicles, mods, photos, history',
+      'Sell on the marketplace — RevNet takes 3%',
     ],
     cta: 'Try free for 7 days',
-    ctaSubtext: 'No credit card needed',
-  },
-  {
-    id: 'club' as PlanId,
-    name: 'Club',
-    icon: Users,
-    color: 'text-clubs',
-    bgColor: 'bg-clubs/10',
-    borderColor: 'border-clubs/30',
-    price: { monthly: 9.99, annual: 79.99 },
-    description: 'For club organisers',
-    popular: false,
-    trial: { days: 30, requiresCard: false },
-    features: [
-      'Everything in Pro Driver',
-      'Create and manage your own club',
-      'Unlimited club members',
-      'Club feed — posts, photos and updates',
-      'Club polls and announcements',
-      'Member management — approve, roles, remove',
-      'Club shared routes and garage',
-      'Create unlimited events',
-      'Sell tickets — RevNet takes 5%',
-      'Organiser dashboard — attendees and sales',
-      'Club analytics — member growth and attendance',
-      'Verified club badge',
-    ],
-    cta: 'Try free for 30 days',
     ctaSubtext: 'No credit card needed',
   },
   {
@@ -104,21 +78,26 @@ const plans = [
     popular: false,
     trial: null,
     features: [
-      'Everything in Club',
-      'Full service listing on the map',
+      'Service listing on the RevNet map',
       'Featured placement in your area',
       'Verified business badge',
-      'Business analytics dashboard',
-      'Priority customer support',
+      'Business profile — photos, hours, contact',
+      'Customer enquiries direct to your dashboard',
+      'Member reviews and public replies',
+      'Analytics — views, saves, enquiries',
+      'Monthly performance summary',
+      'Promotion boost — £4.99 per activation',
     ],
-    cta: 'Start today',
-    ctaSubtext: null,
+    cta: 'List your business',
+    ctaSubtext: 'Managed from the website dashboard',
   },
 ];
 
+const planOrder: PlanId[] = ['free', 'enthusiast', 'business'];
+
 const Upgrade = () => {
   const navigate = useNavigate();
-  const { currentPlan, setPlan, setSubscriptionStatus, effectivePlan } = usePlan();
+  const { currentPlan, setPlan, setSubscriptionStatus } = usePlan();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly');
   const [expandedPlans, setExpandedPlans] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
@@ -126,8 +105,6 @@ const Upgrade = () => {
   const togglePlanExpanded = (planId: string) => {
     setExpandedPlans(prev => ({ ...prev, [planId]: !prev[planId] }));
   };
-
-  const planOrder: PlanId[] = ['free', 'pro', 'club', 'business'];
 
   const handleSelectPlan = async (planId: PlanId) => {
     if (planId === currentPlan) return;
@@ -139,7 +116,6 @@ const Upgrade = () => {
       return;
     }
 
-    // Check for native platform
     try {
       const Capacitor = (window as any).Capacitor;
       if (Capacitor.isNativePlatform()) {
@@ -150,7 +126,7 @@ const Upgrade = () => {
 
     setLoading(true);
     try {
-      const priceId = getPriceId(planId as 'pro' | 'club' | 'business', billingCycle);
+      const priceId = getPriceId(planId as 'enthusiast' | 'business', billingCycle);
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: planId },
       });
@@ -158,7 +134,7 @@ const Upgrade = () => {
       if (data?.url) {
         window.location.href = data.url;
       }
-    } catch (err) {
+    } catch {
       toast.error('Failed to start checkout');
     } finally {
       setLoading(false);
@@ -189,16 +165,9 @@ const Upgrade = () => {
         </div>
 
         <div className="flex items-center justify-center gap-3 py-2">
-          <span className={`text-sm transition-colors ${billingCycle === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-            Monthly
-          </span>
-          <Switch
-            checked={billingCycle === 'yearly'}
-            onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')}
-          />
-          <span className={`text-sm transition-colors ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
-            Annual
-          </span>
+          <span className={`text-sm transition-colors ${billingCycle === 'monthly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>Monthly</span>
+          <Switch checked={billingCycle === 'yearly'} onCheckedChange={(checked) => setBillingCycle(checked ? 'yearly' : 'monthly')} />
+          <span className={`text-sm transition-colors ${billingCycle === 'yearly' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>Annual</span>
         </div>
 
         {billingCycle === 'yearly' && (
@@ -214,25 +183,16 @@ const Upgrade = () => {
             const price = billingCycle === 'monthly' ? plan.price.monthly : plan.price.annual;
 
             return (
-              <Card
-                key={plan.id}
-                className={`relative overflow-hidden transition-all ${
-                  isCurrentPlan
-                    ? 'border-primary border-2 shadow-md ring-2 ring-primary/20'
-                    : plan.popular && !isCurrentPlan
-                      ? `${plan.borderColor} border-2 shadow-md`
-                      : 'border-border/50'
-                }`}
-              >
+              <Card key={plan.id} className={`relative overflow-hidden transition-all ${
+                isCurrentPlan ? 'border-primary border-2 shadow-md ring-2 ring-primary/20'
+                  : plan.popular && !isCurrentPlan ? `${plan.borderColor} border-2 shadow-md` : 'border-border/50'
+              }`}>
                 {plan.popular && !isCurrentPlan && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg">
-                    Most Popular
-                  </div>
+                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg">Most Popular</div>
                 )}
                 {isCurrentPlan && (
                   <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-semibold px-2.5 py-1 rounded-bl-lg flex items-center gap-1">
-                    <Check className="w-3 h-3" />
-                    Active Plan
+                    <Check className="w-3 h-3" /> Active Plan
                   </div>
                 )}
                 <CardContent className="p-4">
@@ -244,14 +204,8 @@ const Upgrade = () => {
                       <h3 className="font-bold text-foreground">{plan.name}</h3>
                       <p className="text-[11px] text-muted-foreground">{plan.description}</p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-xl font-bold text-foreground">
-                          {price === 0 ? 'Free' : `£${price.toFixed(2)}`}
-                        </span>
-                        {price > 0 && (
-                          <span className="text-xs text-muted-foreground">
-                            / {billingCycle === 'monthly' ? 'month' : 'year'}
-                          </span>
-                        )}
+                        <span className="text-xl font-bold text-foreground">{price === 0 ? 'Free' : `£${price.toFixed(2)}`}</span>
+                        {price > 0 && <span className="text-xs text-muted-foreground">/ {billingCycle === 'monthly' ? 'month' : 'year'}</span>}
                       </div>
                       {billingCycle === 'yearly' && plan.price.monthly > 0 && (
                         <p className="text-[10px] text-muted-foreground">or £{plan.price.monthly.toFixed(2)}/month</p>
@@ -263,47 +217,21 @@ const Upgrade = () => {
                       )}
                     </div>
                   </div>
-
                   <ul className="space-y-2 mb-4">
-                    {(expandedPlans[plan.id]
-                      ? plan.features
-                      : plan.features.slice(0, plan.popular ? 5 : 4)
-                    ).map((feature, idx) => (
+                    {(expandedPlans[plan.id] ? plan.features : plan.features.slice(0, plan.popular ? 5 : 4)).map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-xs">
-                        <Check className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${
-                          idx === 0 && plan.id !== 'free' ? 'opacity-0' : plan.color
-                        }`} />
-                        <span className={`${
-                          idx === 0 && plan.id !== 'free'
-                            ? 'font-medium text-foreground'
-                            : 'text-muted-foreground'
-                        }`}>
-                          {feature}
-                        </span>
+                        <Check className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${idx === 0 && plan.id !== 'free' ? 'opacity-0' : plan.color}`} />
+                        <span className={idx === 0 && plan.id !== 'free' ? 'font-medium text-foreground' : 'text-muted-foreground'}>{feature}</span>
                       </li>
                     ))}
                     {plan.features.length > (plan.popular ? 5 : 4) && (
                       <li>
-                        <button
-                          onClick={() => togglePlanExpanded(plan.id)}
-                          className="flex items-center gap-1 text-xs text-primary font-medium pl-5 hover:text-primary/80 transition-colors"
-                        >
-                          {expandedPlans[plan.id] ? (
-                            <>
-                              <ChevronUp className="w-3.5 h-3.5" />
-                              Show less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown className="w-3.5 h-3.5" />
-                              +{plan.features.length - (plan.popular ? 5 : 4)} more features
-                            </>
-                          )}
+                        <button onClick={() => togglePlanExpanded(plan.id)} className="flex items-center gap-1 text-xs text-primary font-medium pl-5 hover:text-primary/80 transition-colors">
+                          {expandedPlans[plan.id] ? <><ChevronUp className="w-3.5 h-3.5" /> Show less</> : <><ChevronDown className="w-3.5 h-3.5" /> +{plan.features.length - (plan.popular ? 5 : 4)} more features</>}
                         </button>
                       </li>
                     )}
                   </ul>
-
                   <Button
                     variant={isCurrentPlan ? 'secondary' : plan.popular ? 'default' : 'outline'}
                     size="sm"
@@ -311,16 +239,10 @@ const Upgrade = () => {
                     disabled={isCurrentPlan || loading}
                     onClick={() => handleSelectPlan(plan.id)}
                   >
-                    {isCurrentPlan
-                      ? '✓ Current Plan'
-                      : planOrder.indexOf(plan.id) < planOrder.indexOf(currentPlan)
-                        ? `Downgrade to ${plan.name}`
-                        : plan.cta
-                    }
+                    {isCurrentPlan ? '✓ Current Plan'
+                      : planOrder.indexOf(plan.id) < planOrder.indexOf(currentPlan) ? `Downgrade to ${plan.name}` : plan.cta}
                   </Button>
-                  {!isCurrentPlan && plan.ctaSubtext && (
-                    <p className="text-[10px] text-muted-foreground text-center mt-1">{plan.ctaSubtext}</p>
-                  )}
+                  {!isCurrentPlan && plan.ctaSubtext && <p className="text-[10px] text-muted-foreground text-center mt-1">{plan.ctaSubtext}</p>}
                 </CardContent>
               </Card>
             );
@@ -328,16 +250,9 @@ const Upgrade = () => {
         </div>
 
         <div className="bg-muted/30 rounded-xl p-4 text-center">
-          <p className="text-xs text-muted-foreground leading-relaxed">
-            Cancel anytime. No hidden fees.<br />
-            Your data stays yours, always.
-          </p>
+          <p className="text-xs text-muted-foreground leading-relaxed">Cancel anytime. No hidden fees.<br />Your data stays yours, always.</p>
         </div>
-
-        <button
-          onClick={() => navigate('/settings/billing')}
-          className="w-full text-sm text-primary font-medium hover:text-primary/80 transition-colors py-2"
-        >
+        <button onClick={() => navigate('/settings/billing')} className="w-full text-sm text-primary font-medium hover:text-primary/80 transition-colors py-2">
           View billing history & manage subscription →
         </button>
       </div>

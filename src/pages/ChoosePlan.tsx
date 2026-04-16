@@ -29,38 +29,21 @@ const PLANS = [
     ],
   },
   {
-    id: 'pro' as PlanId,
-    name: 'Pro Driver',
+    id: 'enthusiast' as PlanId,
+    name: 'Enthusiast',
     tagline: 'For active enthusiasts',
     icon: Star,
     popular: true,
-    price: { monthly: 4.99, yearly: 39.99 },
+    price: { monthly: 7.99, yearly: 63.99 },
     savingsBadge: '2 months free',
     features: [
       { label: 'Everything in Explorer', included: true },
-      { label: 'Create and publish unlimited routes', included: true },
-      { label: 'Import GPX files', included: true },
-      { label: 'Live location sharing with friends', included: true },
-      { label: 'Convoy mode', included: true },
-      { label: 'Unlimited clubs, messaging and forums', included: true },
-      { label: '5 vehicles in your garage', included: true },
-    ],
-  },
-  {
-    id: 'club' as PlanId,
-    name: 'Club',
-    tagline: 'For club organisers',
-    icon: Users,
-    price: { monthly: 9.99, yearly: 79.99 },
-    savingsBadge: '2 months free',
-    features: [
-      { label: 'Everything in Pro Driver', included: true },
-      { label: 'Create and manage your own club', included: true },
-      { label: 'Create unlimited events', included: true },
-      { label: 'Sell tickets — 5% commission', included: true },
-      { label: 'Organiser dashboard and analytics', included: true },
-      { label: 'Member management', included: true },
-      { label: 'Verified club badge', included: true },
+      { label: 'Unlimited navigation — turn by turn', included: true },
+      { label: 'Create unlimited routes and events', included: true },
+      { label: 'Live location and convoy mode', included: true },
+      { label: 'Create and manage clubs', included: true },
+      { label: 'Full garage — unlimited vehicles', included: true },
+      { label: 'Sell on marketplace — 3% commission', included: true },
     ],
   },
   {
@@ -71,11 +54,11 @@ const PLANS = [
     price: { monthly: 19.99, yearly: 159.99 },
     savingsBadge: '2 months free',
     features: [
-      { label: 'Everything in Club', included: true },
-      { label: 'Full service listing on the map', included: true },
-      { label: 'Featured placement', included: true },
+      { label: 'Service listing on the RevNet map', included: true },
+      { label: 'Featured placement in your area', included: true },
       { label: 'Verified business badge', included: true },
       { label: 'Business analytics dashboard', included: true },
+      { label: 'Customer enquiries and reviews', included: true },
       { label: 'Priority customer support', included: true },
     ],
   },
@@ -99,7 +82,7 @@ const ChoosePlan = () => {
   const navigate = useNavigate();
   const { setPlan } = usePlan();
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
-  const [selected, setSelected] = useState<PlanId>('pro');
+  const [selected, setSelected] = useState<PlanId>('enthusiast');
   const [loading, setLoading] = useState(false);
 
   const handleContinue = async () => {
@@ -128,7 +111,7 @@ const ChoosePlan = () => {
         return;
       }
 
-      const priceId = getPriceId(selected as 'pro' | 'club', billing);
+      const priceId = getPriceId(selected as 'enthusiast' | 'business', billing);
 
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: selected },

@@ -73,7 +73,7 @@ const Onboarding = () => {
   const [makeSearch, setMakeSearch] = useState('');
 
   // Step 5: Plan
-  const [selectedPlan, setSelectedPlan] = useState<'free' | 'pro' | 'club'>('free');
+  const [selectedPlan, setSelectedPlan] = useState<'free' | 'enthusiast' | 'business'>('free');
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   useEffect(() => {
@@ -207,13 +207,13 @@ const Onboarding = () => {
     setTimeout(() => setStep(5), 12000);
   };
 
-  const handlePlanSelect = async (plan: 'free' | 'pro' | 'club', cycle?: 'monthly' | 'yearly') => {
+  const handlePlanSelect = async (plan: 'free' | 'enthusiast' | 'business', cycle?: 'monthly' | 'yearly') => {
     setSelectedPlan(plan);
     if (cycle) setBillingCycle(cycle);
     await handleComplete(plan, cycle || billingCycle);
   };
 
-  const handleComplete = async (plan: 'free' | 'pro' | 'club' = selectedPlan, cycle: 'monthly' | 'yearly' = billingCycle) => {
+  const handleComplete = async (plan: 'free' | 'enthusiast' | 'business' = selectedPlan, cycle: 'monthly' | 'yearly' = billingCycle) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
@@ -641,52 +641,29 @@ const Onboarding = () => {
                 </Button>
               </div>
 
-              {/* Pro Driver */}
+              {/* Enthusiast */}
               <div className="bg-card rounded-2xl p-4 border-2" style={{ borderColor: '#d30d37' }}>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-base font-semibold">Pro Driver</h3>
+                  <h3 className="text-base font-semibold">Enthusiast</h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: '#d30d37' }}>MOST POPULAR</span>
                 </div>
-                <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.pro.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
+                <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.enthusiast.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
                 <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Explorer</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create unlimited routes</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Import GPX files</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Unlimited navigation</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create routes and events</li>
                   <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Live location & convoy mode</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Unlimited clubs & messaging</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> 5 vehicles in garage</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create and manage clubs</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Full garage — unlimited vehicles</li>
                 </ul>
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={() => handlePlanSelect('pro', 'monthly')} disabled={isSubmitting}
+                  <Button onClick={() => handlePlanSelect('enthusiast', 'monthly')} disabled={isSubmitting}
                     className="flex-1 h-10 rounded-xl text-sm font-semibold" style={{ backgroundColor: '#d30d37' }}>
-                    {isSubmitting && selectedPlan === 'pro' && billingCycle === 'monthly' ? 'Setting up…' : 'Monthly'}
+                    {isSubmitting && selectedPlan === 'enthusiast' && billingCycle === 'monthly' ? 'Setting up…' : 'Monthly'}
                   </Button>
-                  <Button onClick={() => handlePlanSelect('pro', 'yearly')} disabled={isSubmitting}
+                  <Button onClick={() => handlePlanSelect('enthusiast', 'yearly')} disabled={isSubmitting}
                     className="flex-1 h-10 rounded-xl text-sm font-semibold" style={{ backgroundColor: '#d30d37' }}>
-                    {isSubmitting && selectedPlan === 'pro' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Club */}
-              <div className="bg-card rounded-2xl p-4 border border-border/50">
-                <h3 className="text-base font-semibold">Club</h3>
-                <p className="text-2xl font-bold mt-1">£{PLAN_PRICES.club.monthly}<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
-                <ul className="mt-3 space-y-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Everything in Pro Driver</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create & manage clubs</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Create unlimited events</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Sell tickets — 5% commission</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-green-600 flex-shrink-0" /> Analytics & verified badge</li>
-                </ul>
-                <div className="flex gap-2 mt-4">
-                  <Button onClick={() => handlePlanSelect('club', 'monthly')} disabled={isSubmitting}
-                    variant="outline" className="flex-1 h-10 rounded-xl text-sm font-semibold">
-                    {isSubmitting && selectedPlan === 'club' && billingCycle === 'monthly' ? 'Setting up…' : 'Monthly'}
-                  </Button>
-                  <Button onClick={() => handlePlanSelect('club', 'yearly')} disabled={isSubmitting}
-                    variant="outline" className="flex-1 h-10 rounded-xl text-sm font-semibold">
-                    {isSubmitting && selectedPlan === 'club' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
+                    {isSubmitting && selectedPlan === 'enthusiast' && billingCycle === 'yearly' ? 'Setting up…' : `Yearly · 2 months free`}
                   </Button>
                 </div>
               </div>

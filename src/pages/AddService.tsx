@@ -344,7 +344,7 @@ const AddService = () => {
     setIsSubmitting(true);
     try {
       const { data: profile } = await supabase.from('profiles').select('plan').eq('id', currentUser.id).single();
-      const canCreate = profile?.plan === 'club' || profile?.plan === 'organiser';
+      const canCreate = profile?.plan === 'business';
       if (!isEdit && !canCreate) {
         setShowPaywall(true);
         setIsSubmitting(false);
@@ -388,7 +388,7 @@ const AddService = () => {
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80 hover:bg-muted" />
           <h1 className="text-lg font-bold text-foreground flex-1">{isEdit ? 'Edit Service' : 'Add Service'}</h1>
-          {currentPlan === 'club' ? (
+          {currentPlan === 'business' ? (
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-services/10 text-services border border-services/20">Club Plan</span>
           ) : (
             <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-muted text-muted-foreground border border-border/50 cursor-pointer"

@@ -60,7 +60,7 @@ const MyRoutes = () => {
           </div>
           <Button size="sm" onClick={() => {
             if (currentPlan === 'free') {
-              toast.info('Creating routes requires Pro Driver. Upgrade to unlock unlimited routes.', {
+              toast.info('Creating routes requires the Enthusiast plan. Upgrade to unlock unlimited routes.', {
                 action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
               });
             } else {

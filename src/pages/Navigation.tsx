@@ -237,7 +237,7 @@ export default function Navigation() {
     const load = async () => {
       const { data: profile } = await supabase
         .from('profiles').select('plan').eq('id', user.id).single()
-      setCanShare(profile?.plan === 'pro' || profile?.plan === 'club')
+      setCanShare(profile?.plan === 'enthusiast')
 
       const { data: friendsData } = await supabase
         .from('friends')

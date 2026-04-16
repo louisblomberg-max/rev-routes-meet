@@ -27,38 +27,24 @@ const PLANS = [
     price: { monthly: 0, yearly: 0 },
     features: [
       'Free forever',
-      'Full map and navigation',
+      'Full map — 3 free navigations',
       'Attend events',
-      'Join up to 3 clubs',
+      'Join up to 2 clubs',
       'SOS breakdown help',
     ],
   },
   {
-    id: 'pro' as PlanId,
-    name: 'Pro Driver',
+    id: 'enthusiast' as PlanId,
+    name: 'Enthusiast',
     icon: Zap,
-    price: { monthly: 4.99, yearly: 39.99 },
+    price: { monthly: 7.99, yearly: 63.99 },
     features: [
       'Everything in Explorer',
-      'Create unlimited routes',
-      'Import GPX files',
-      'Live location sharing',
-      'Convoy mode',
-      'Unlimited clubs and messaging',
-    ],
-  },
-  {
-    id: 'club' as PlanId,
-    name: 'Club',
-    icon: Building2,
-    price: { monthly: 9.99, yearly: 79.99 },
-    features: [
-      'Everything in Pro Driver',
+      'Unlimited navigation',
+      'Create routes and events',
+      'Live location and convoy mode',
       'Create and manage clubs',
-      'Create unlimited events',
-      'Sell tickets — 5% commission',
-      'Organiser dashboard and analytics',
-      'Verified club badge',
+      'Full garage and marketplace',
     ],
   },
   {
@@ -100,7 +86,7 @@ export default function Subscription() {
 
     setLoading(true);
     try {
-      const priceId = getPriceId(planId as 'pro' | 'club', billing);
+      const priceId = getPriceId(planId as 'enthusiast' | 'business', billing);
       const { data, error } = await supabase.functions.invoke('create-checkout-session', {
         body: { price_id: priceId, plan: planId },
       });
@@ -158,8 +144,8 @@ export default function Subscription() {
             const Icon = plan.icon;
             const price = billing === 'monthly' ? plan.price.monthly : plan.price.yearly;
             const isUpgrade = !isCurrent && plan.id !== 'free';
-            const isPro = plan.id === 'pro';
-            const isOrganiser = plan.id === 'club';
+            const isEnthusiast = plan.id === 'enthusiast';
+            const isBusiness = plan.id === 'business';
 
             return (
               <div
@@ -167,7 +153,7 @@ export default function Subscription() {
                 className={`relative rounded-2xl border p-5 transition-all ${
                   isCurrent
                     ? 'border-[#185FA5] bg-[#185FA5]/15 ring-1 ring-[#185FA5]/40'
-                    : isPro
+                    : isEnthusiast
                       ? 'border-[#185FA5]/50 bg-white/[0.04]'
                       : 'border-white/10 bg-white/[0.02]'
                 }`}
@@ -177,7 +163,7 @@ export default function Subscription() {
                     <Check className="w-3 h-3" /> Current plan
                   </div>
                 )}
-                {isPro && !isCurrent && (
+                {isEnthusiast && !isCurrent && (
                   <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-full">
                     ⭐ Most popular
                   </div>
@@ -185,10 +171,10 @@ export default function Subscription() {
 
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    plan.id === 'free' ? 'bg-white/10' : isPro ? 'bg-[#185FA5]/20' : 'bg-purple-500/20'
+                    plan.id === 'free' ? 'bg-white/10' : isEnthusiast ? 'bg-[#185FA5]/20' : 'bg-purple-500/20'
                   }`}>
                     <Icon className={`w-5 h-5 ${
-                      plan.id === 'free' ? 'text-white/60' : isPro ? 'text-[#185FA5]' : 'text-purple-400'
+                      plan.id === 'free' ? 'text-white/60' : isEnthusiast ? 'text-[#185FA5]' : 'text-purple-400'
                     }`} />
                   </div>
                   <div>
@@ -210,7 +196,7 @@ export default function Subscription() {
                   {plan.features.map((feat, i) => (
                     <li key={i} className="flex items-center gap-2 text-sm">
                       <Check className={`w-3.5 h-3.5 shrink-0 ${
-                        plan.id === 'free' ? 'text-white/30' : isPro ? 'text-[#185FA5]' : 'text-purple-400'
+                        plan.id === 'free' ? 'text-white/30' : isEnthusiast ? 'text-[#185FA5]' : 'text-purple-400'
                       }`} />
                       <span className="text-white/70">{feat}</span>
                     </li>
@@ -226,7 +212,7 @@ export default function Subscription() {
                     disabled={loading}
                     onClick={() => handleUpgrade(plan.id)}
                     className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${
-                      isPro
+                      isEnthusiast
                         ? 'bg-[#185FA5] hover:bg-[#1a6bbf] text-white shadow-lg shadow-[#185FA5]/30'
                         : 'bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-600/30'
                     } disabled:opacity-50`}
