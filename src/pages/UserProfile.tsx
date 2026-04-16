@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
-const PLAN_LABELS: Record<string, string> = { free: 'Explorer', enthusiast: 'Enthusiast', business: 'Business' };
+// No plan labels — all users are free
 
 const UserProfile = () => {
   const { id } = useParams();
@@ -168,7 +168,6 @@ const UserProfile = () => {
   }
 
   const displayName = profile.display_name || profile.username || 'User';
-  const planLabel = PLAN_LABELS[profile.plan] || 'Explorer';
 
   return (
     <div className="mobile-container bg-background min-h-screen pb-8 md:max-w-2xl md:mx-auto">
@@ -184,11 +183,6 @@ const UserProfile = () => {
         </Avatar>
         <h1 className="text-xl font-bold text-foreground mt-3">{displayName}</h1>
         <p className="text-sm text-muted-foreground">@{profile.username || 'user'}</p>
-        <Badge variant="secondary" className="mt-2 gap-1">
-          {profile.plan === 'enthusiast' && <Star className="w-3 h-3" />}
-          {profile.plan === 'business' && <Crown className="w-3 h-3" />}
-          {planLabel}
-        </Badge>
         {profile.location && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2"><MapPin className="w-3 h-3" />{profile.location}</p>}
         {profile.bio && <p className="text-sm text-foreground/80 text-center mt-3 max-w-sm">{profile.bio}</p>}
       </div>

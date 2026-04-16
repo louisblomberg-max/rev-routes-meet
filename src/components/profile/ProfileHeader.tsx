@@ -8,14 +8,7 @@ interface ProfileHeaderProps {
 }
 
 const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
-  const planBadge = {
-    free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
-    enthusiast: { label: 'Enthusiast', icon: Crown, className: 'bg-gradient-to-r from-events to-primary text-primary-foreground' },
-    business: { label: 'Business', icon: Star, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
-  };
-
-  const currentBadge = planBadge[profile.plan as keyof typeof planBadge] ?? planBadge.free;
-  const BadgeIcon = currentBadge.icon;
+  // No plan badges — everyone is a RevNet member
 
   return (
     <div className="bg-card rounded-2xl border border-border/30 shadow-sm overflow-hidden">
@@ -34,10 +27,6 @@ const ProfileHeader = ({ profile }: ProfileHeaderProps) => {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-lg font-bold text-foreground">{profile.displayName}</h1>
-              <Badge className={`${currentBadge.className} gap-1 px-2 py-0.5`}>
-                <BadgeIcon className="w-3 h-3" />
-                {currentBadge.label}
-              </Badge>
             </div>
             <p className="text-sm text-muted-foreground">@{profile.username}</p>
             

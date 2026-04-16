@@ -20,7 +20,7 @@ export interface UserProfile {
   avatar: string | null;
   location?: string;
   bio?: string;
-  plan: 'free' | 'enthusiast' | 'business';
+  plan: 'free';
   stats: {
     eventsAttended: number;
     routesSaved: number;

@@ -258,7 +258,6 @@ const DevTools = () => {
     { label: 'Add Route', route: '/add/route', color: 'text-routes' },
     { label: 'Add Service', route: '/add/service', color: 'text-services' },
     { label: 'Add Club', route: '/add/club', color: 'text-clubs' },
-    { label: 'Upgrade / Plans', route: '/upgrade', color: 'text-primary' },
     { label: 'Profile', route: '/profile', color: 'text-foreground' },
     { label: 'Settings', route: '/settings', color: 'text-foreground' },
   ];
@@ -346,9 +345,7 @@ const DevTools = () => {
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${planColor[profile.plan || 'free'] || planColor.free}`}>
-                    {profile.plan === 'enthusiast' ? <Crown className="w-4 h-4" /> :
-                     profile.plan === 'business' ? <CreditCard className="w-4 h-4" /> :
-                     <User className="w-4 h-4" />}
+                    <User className="w-4 h-4" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-foreground">{profile.display_name || profile.username || 'Unknown'}</p>

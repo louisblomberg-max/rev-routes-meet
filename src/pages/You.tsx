@@ -11,11 +11,7 @@ import { toast } from 'sonner';
 import { Pencil, Car, Plus, Calendar, Route, Users, Crown, Star, Sparkles } from 'lucide-react';
 import BackButton from '@/components/BackButton';
 
-const PLAN_CONFIG: Record<string, { label: string; icon: typeof Crown; className: string }> = {
-  free: { label: 'Explorer', icon: Sparkles, className: 'bg-muted text-muted-foreground' },
-  enthusiast: { label: 'Enthusiast', icon: Star, className: 'bg-gradient-to-r from-routes to-clubs text-primary-foreground' },
-  business: { label: 'Business', icon: Crown, className: 'bg-gradient-to-r from-services to-primary text-primary-foreground' },
-};
+// No plan tiers — RevNet is free for everyone
 
 const You = () => {
   const navigate = useNavigate();
@@ -76,9 +72,6 @@ const You = () => {
   const username = profile?.username || authUser?.username;
   const avatar = profile?.avatar_url || authUser?.avatar;
   const bio = profile?.bio;
-  const plan = profile?.plan || 'free';
-  const planConfig = PLAN_CONFIG[plan] || PLAN_CONFIG.free;
-  const PlanIcon = planConfig.icon;
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
@@ -99,9 +92,6 @@ const You = () => {
         <div className="text-center">
           <h2 className="text-lg font-bold text-foreground">{displayName}</h2>
           {username && <p className="text-sm text-muted-foreground">@{username}</p>}
-          <Badge className={`${planConfig.className} gap-1 mt-1.5`}>
-            <PlanIcon className="w-3 h-3" /> {planConfig.label}
-          </Badge>
           {bio && <p className="text-sm text-foreground/80 mt-2 max-w-xs">{bio}</p>}
         </div>
 

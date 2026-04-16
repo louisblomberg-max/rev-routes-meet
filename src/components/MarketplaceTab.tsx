@@ -27,7 +27,6 @@ import { useNavigate } from 'react-router-dom';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { supabase } from '@/integrations/supabase/client';
-import { usePlan } from '@/contexts/PlanContext';
 import { toast } from 'sonner';
 
 interface MarketplaceFilters {
@@ -39,37 +38,13 @@ interface MarketplaceFilters {
   sellerType: string | null;
   negotiable: boolean;
 }
-// Gated create button for marketplace
 const MarketplaceCreateButton = ({ navigate }: { navigate: (path: string) => void }) => {
-  const { hasAccess, getPlanLabel, getRequiredPlan } = usePlan();
-  const allowed = hasAccess('create_marketplace_listing');
-  
-  const handleClick = () => {
-    if (!allowed) {
-      const required = getRequiredPlan('create_marketplace_listing');
-      toast.info(`This requires ${getPlanLabel(required)}`, {
-        description: 'Upgrade your plan to create listings.',
-        action: {
-          label: 'Upgrade',
-          onClick: () => navigate('/upgrade'),
-        },
-      });
-      return;
-    }
-    navigate('/add/listing');
-  };
-
   return (
-    <button 
-      onClick={handleClick}
-      className={`relative w-11 h-11 rounded-xl bg-marketplace flex items-center justify-center shadow-sm hover:bg-marketplace/90 active:scale-[0.98] transition-all ${!allowed ? 'opacity-70' : ''}`}
+    <button
+      onClick={() => navigate('/add/listing')}
+      className="relative w-11 h-11 rounded-xl bg-marketplace flex items-center justify-center shadow-sm hover:bg-marketplace/90 active:scale-[0.98] transition-all"
     >
       <Plus className="w-5 h-5 text-marketplace-foreground" />
-      {!allowed && (
-        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-muted border border-background flex items-center justify-center">
-          <Lock className="w-2.5 h-2.5 text-muted-foreground" />
-        </div>
-      )}
     </button>
   );
 };
