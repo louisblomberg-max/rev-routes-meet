@@ -6,6 +6,7 @@
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Calendar, Route, Users, Wrench, ShoppingBag, Shield } from 'lucide-react';
 
 interface CreateSheetProps {
   open: boolean;
@@ -19,31 +20,36 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
     {
       id: 'event',
       label: 'Event',
-      emoji: '📅',
+      icon: Calendar,
+      color: '#CC2B2B',
       action: () => { onOpenChange(false); navigate('/add/event'); },
     },
     {
       id: 'route',
       label: 'Route',
-      emoji: '🛣️',
+      icon: Route,
+      color: '#4f7fff',
       action: () => { onOpenChange(false); navigate('/add/route'); },
     },
     {
       id: 'club',
       label: 'Club',
-      emoji: '👥',
+      icon: Users,
+      color: '#274C77',
       action: () => { onOpenChange(false); navigate('/add/club'); },
     },
     {
       id: 'service',
       label: 'Service',
-      emoji: '🏢',
+      icon: Wrench,
+      color: '#ff8000',
       action: () => { onOpenChange(false); window.open('https://revnet.club/add-service', '_blank'); },
     },
     {
       id: 'listing',
       label: 'Listing',
-      emoji: '📋',
+      icon: ShoppingBag,
+      color: '#8C867E',
       action: () => {
         toast.info('Marketplace coming soon!', { description: 'Buy and sell will be available in the next update.' });
         onOpenChange(false);
@@ -52,7 +58,8 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
     {
       id: 'insurance',
       label: 'Insurance',
-      emoji: '🛡️',
+      icon: Shield,
+      color: '#059669',
       action: () => {
         toast.info('Insurance hub coming soon!', { description: 'Compare quotes and manage policies.' });
         onOpenChange(false);
@@ -62,46 +69,68 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="rounded-t-2xl px-5 pb-8 pt-3">
+      <SheetContent side="bottom" className="rounded-t-3xl border-0">
         <div className="flex justify-center mb-4">
           <div className="w-10 h-1 bg-muted-foreground/20 rounded-full" />
         </div>
-        <h2 style={{ fontSize: 18, fontWeight: 800, color: '#111', textAlign: 'center', marginBottom: 20, letterSpacing: '-0.3px' }}>
+        <h2 style={{
+          fontSize: 18,
+          fontWeight: 800,
+          color: '#111',
+          textAlign: 'center',
+          marginBottom: 20,
+          letterSpacing: '-0.3px',
+        }}>
           Create
         </h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-          {tiles.map((tile, index) => (
-            <button
-              key={tile.id}
-              onClick={tile.action}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 8,
-                padding: 16,
-                borderRadius: 18,
-                border: '1px solid #E8E4DC',
-                background: '#FFFFFF',
-                cursor: 'pointer',
-              }}
-              className="active:scale-[0.97] transition-transform"
-            >
-              <div style={{
-                width: 48,
-                height: 48,
-                borderRadius: 14,
-                background: '#F2EFE9',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 22,
-              }}>
-                {tile.emoji}
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: '#111' }}>{tile.label}</span>
-            </button>
-          ))}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gap: 12,
+          paddingBottom: 20,
+        }}>
+          {tiles.map((tile) => {
+            const Icon = tile.icon;
+            return (
+              <button
+                key={tile.id}
+                onClick={tile.action}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: 16,
+                  borderRadius: 18,
+                  border: '1px solid #E8E4DC',
+                  background: '#FFFFFF',
+                  cursor: 'pointer',
+                }}
+                className="active:scale-[0.97] transition-all hover:shadow-md hover:border-border"
+              >
+                <div style={{
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: '#F8F7F4',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid #F0EDE6',
+                }}>
+                  <Icon size={22} color={tile.color} strokeWidth={2} />
+                </div>
+                <span style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: '#111',
+                  lineHeight: 1.2,
+                }}>
+                  {tile.label}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </SheetContent>
     </Sheet>
