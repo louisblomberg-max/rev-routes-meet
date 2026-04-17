@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Search, Plus, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 export default function CommunityForumsView() {
@@ -8,17 +8,36 @@ export default function CommunityForumsView() {
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'newest' | 'upvoted'>('newest');
+  const [filters, setFilters] = useState({ category: 'all', sort: 'newest', time: 'all' });
+
+  const filterOptions = {
+    category: [
+      { value: 'all', label: 'All Categories' },
+      { value: 'general', label: 'General' },
+      { value: 'mods', label: 'Mods & Tuning' },
+      { value: 'troubleshooting', label: 'Troubleshooting' },
+      { value: 'buying', label: 'Buying & Selling' },
+      { value: 'track', label: 'Track & Motorsport' },
+      { value: 'insurance', label: 'Insurance' },
+    ],
+    sort: [
+      { value: 'newest', label: 'Newest' },
+      { value: 'upvoted', label: 'Top Rated' },
+    ],
+    time: [
+      { value: 'all', label: 'All Time' },
+      { value: 'day', label: 'Today' },
+      { value: 'week', label: 'This Week' },
+      { value: 'month', label: 'This Month' },
+    ],
+  };
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      let query = supabase
-        .from('forum_posts')
-        .select('*, profiles:user_id(display_name, avatar_url, username)');
-      if (selectedCategory) query = query.eq('category', selectedCategory);
-      if (sortBy === 'upvoted') query = query.order('upvotes', { ascending: false });
+      let query = supabase.from('forum_posts').select('*, profiles:user_id(display_name, avatar_url, username)');
+      if (filters.category !== 'all') query = query.eq('category', filters.category);
+      if (filters.sort === 'upvoted') query = query.order('upvotes', { ascending: false });
       else query = query.order('created_at', { ascending: false });
       query = query.limit(30);
       const { data } = await query;
@@ -26,185 +45,106 @@ export default function CommunityForumsView() {
       setLoading(false);
     };
     load();
-  }, [selectedCategory, sortBy]);
+  }, [filters.category, filters.sort]);
 
   const timeAgo = (dateStr: string) => {
     const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
     if (mins < 60) return `${mins}m`;
     const hours = Math.floor(mins / 60);
     if (hours < 24) return `${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `${days}d`;
+    return `${Math.floor(hours / 24)}d`;
   };
 
-  const filteredPosts = searchQuery.trim()
+  const filtered = searchQuery.trim()
     ? posts.filter(p => p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || p.body?.toLowerCase().includes(searchQuery.toLowerCase()))
     : posts;
 
+  const selectStyle: React.CSSProperties = {
+    background: '#FFFFFF', border: '1px solid #E8E4DC', borderRadius: 8,
+    padding: '8px 28px 8px 10px', fontSize: 13, fontWeight: 600, color: '#111',
+    cursor: 'pointer', outline: 'none', appearance: 'none',
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%238C867E'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat', backgroundPosition: 'right 6px center', backgroundSize: '14px',
+  };
+
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
-      {/* Search bar */}
-      <div style={{ padding: '12px 16px 8px', position: 'relative' }}>
-        <Search size={16} strokeWidth={2} color="#8C867E" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search forums"
-          style={{
-            width: '100%',
-            background: '#F2EFE9',
-            border: 'none',
-            borderRadius: 12,
-            padding: '11px 14px 11px 38px',
-            fontSize: 14,
-            color: '#4A443D',
-            outline: 'none',
-          }}
-        />
-      </div>
-
-      {/* Filter pills */}
-      <div style={{ display: 'flex', gap: 8, padding: '4px 16px 12px' }}>
-        <button
-          onClick={() => {
-            const cats: (string | null)[] = [null, 'general', 'mods', 'troubleshooting', 'buying', 'track', 'insurance'];
-            const idx = cats.indexOf(selectedCategory);
-            setSelectedCategory(cats[(idx + 1) % cats.length]);
-          }}
-          style={{
-            flex: 1,
-            background: '#FFFFFF',
-            border: '1px solid #E8E4DC',
-            borderRadius: 12,
-            padding: '8px 11px',
-            textAlign: 'left' as const,
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>CATEGORY</div>
-          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>{selectedCategory ? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) : 'All'} &#9662;</div>
-        </button>
-        <button
-          onClick={() => setSortBy(prev => prev === 'newest' ? 'upvoted' : 'newest')}
-          style={{
-            flex: 1,
-            background: '#FFFFFF',
-            border: '1px solid #E8E4DC',
-            borderRadius: 12,
-            padding: '8px 11px',
-            textAlign: 'left' as const,
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>SORT</div>
-          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>{sortBy === 'newest' ? 'New' : 'Top'} &#9662;</div>
-        </button>
-        <button
-          style={{
-            flex: 1,
-            background: '#FFFFFF',
-            border: '1px solid #E8E4DC',
-            borderRadius: 12,
-            padding: '8px 11px',
-            textAlign: 'left' as const,
-            cursor: 'pointer',
-          }}
-        >
-          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>TIME</div>
-          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>Week &#9662;</div>
-        </button>
-      </div>
-
-      {/* Section header with create button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 12px' }}>
-        <div style={{ fontSize: 11, fontWeight: 700, color: '#B0A89E', letterSpacing: '0.6px', textTransform: 'uppercase' as const }}>
-          {filteredPosts.length} threads
+      <div style={{ background: '#FFFFFF', padding: 16, borderBottom: '1px solid #F0EDE6' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: '#111', letterSpacing: '-0.3px' }}>Forum</h2>
+          <button
+            onClick={() => navigate('/forums/create')}
+            style={{
+              background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 22,
+              padding: '10px 16px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 6,
+              boxShadow: '0 2px 6px rgba(204,43,43,0.28)',
+            }}
+          >
+            <Plus size={16} /> New Topic
+          </button>
         </div>
-        <button
-          onClick={() => navigate('/forums/create')}
-          style={{
-            background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 22,
-            padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: 5,
-            boxShadow: '0 2px 6px rgba(204,43,43,0.28)',
-          }}
-        >
-          <Plus size={14} />
-          New Topic
-        </button>
+
+        {/* Search */}
+        <div style={{ position: 'relative', marginBottom: 12 }}>
+          <Search size={18} color="#8C867E" style={{ position: 'absolute', left: 14, top: 13 }} />
+          <input
+            value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search discussions..."
+            style={{ width: '100%', background: '#F8F7F4', border: '1px solid #F0EDE6', borderRadius: 12, padding: '12px 16px 12px 44px', fontSize: 15, color: '#111', outline: 'none' }}
+          />
+        </div>
+
+        {/* Dropdown filters */}
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(Object.entries(filterOptions) as [string, { value: string; label: string }[]][]).map(([key, options]) => (
+            <select key={key} value={filters[key as keyof typeof filters]} onChange={e => setFilters(prev => ({ ...prev, [key]: e.target.value }))} style={{ ...selectStyle, flex: 1 }}>
+              {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+          ))}
+        </div>
       </div>
 
-      {/* Thread list */}
-      {loading ? (
-        [1, 2, 3].map((i) => (
-          <div key={i} style={{ background: '#F0EDE6', borderRadius: 16, height: 100, margin: '0 16px 8px' }} />
-        ))
-      ) : filteredPosts.length === 0 ? (
-        <p style={{ fontSize: 14, color: '#8C867E', padding: '32px 16px', textAlign: 'center' }}>
-          No threads yet. Start the conversation.
-        </p>
-      ) : (
-        filteredPosts.map((post) => {
+      {/* Posts */}
+      <div style={{ padding: '12px 16px' }}>
+        {loading ? [1, 2, 3].map(i => (
+          <div key={i} style={{ background: '#F8F7F4', borderRadius: 16, height: 96, marginBottom: 12 }} />
+        )) : filtered.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '48px 20px', color: '#8C867E' }}>
+            <MessageSquare size={48} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 16px' }} />
+            <p style={{ margin: 0, fontWeight: 600, fontSize: 15 }}>No discussions yet</p>
+            <p style={{ margin: '4px 0 0', fontSize: 13 }}>Start the first conversation!</p>
+          </div>
+        ) : filtered.map(post => {
           const author = post.profiles || {};
           const initials = (author.display_name || author.username || '?')[0].toUpperCase();
           return (
-            <button
-              key={post.id}
-              onClick={() => navigate(`/forums/thread/${post.id}`)}
-              style={{
-                background: '#FFFFFF',
-                border: '1px solid #E8E4DC',
-                borderRadius: 16,
-                padding: 12,
-                cursor: 'pointer',
-                textAlign: 'left' as const,
-                width: 'calc(100% - 32px)',
-                marginLeft: 16,
-                marginRight: 16,
-                marginBottom: 8,
-                display: 'block',
-              }}
-            >
-              {/* Top row */}
+            <button key={post.id} onClick={() => navigate(`/forums/thread/${post.id}`)} style={{
+              width: '100%', background: '#FFFFFF', border: '1px solid #E8E4DC', borderRadius: 16,
+              padding: 14, cursor: 'pointer', textAlign: 'left' as const, marginBottom: 12, display: 'block',
+            }} className="hover:shadow-md transition-shadow">
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                 <div style={{
-                  width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                  backgroundColor: '#CC2B2B',
+                  width: 28, height: 28, borderRadius: '50%', flexShrink: 0, backgroundColor: '#CC2B2B',
                   backgroundImage: author.avatar_url ? `url(${author.avatar_url})` : undefined,
                   backgroundSize: 'cover', backgroundPosition: 'center',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: '#fff',
-                }}>
-                  {!author.avatar_url && initials}
-                </div>
-                <span style={{ fontSize: 12, color: '#4A443D', fontWeight: 600 }}>
-                  {author.display_name || author.username || 'User'}
-                </span>
-                <span style={{ fontSize: 11, color: '#8C867E' }}>· {timeAgo(post.created_at)}</span>
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff',
+                }}>{!author.avatar_url && initials}</div>
+                <span style={{ fontSize: 13, color: '#4A443D', fontWeight: 600 }}>{author.display_name || author.username || 'User'}</span>
+                <span style={{ fontSize: 12, color: '#8C867E' }}>· {timeAgo(post.created_at)}</span>
                 <span style={{ marginLeft: 'auto' }} />
-                <span style={{
-                  fontSize: 10, fontWeight: 700, color: '#4A443D',
-                  background: '#F2EFE9', padding: '2px 8px', borderRadius: 5,
-                  letterSpacing: '0.3px', textTransform: 'uppercase' as const,
-                }}>
-                  {post.category || 'GENERAL'}
-                </span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#4A443D', background: '#F2EFE9', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.3px', textTransform: 'uppercase' as const }}>{post.category || 'general'}</span>
               </div>
-
-              {/* Title */}
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#111', lineHeight: 1.3 }}>
-                {post.title}
-              </div>
-
-              {/* Bottom meta */}
-              <div style={{ display: 'flex', gap: 14, marginTop: 10, fontSize: 12, color: '#8C867E' }}>
-                <span>&#9650; <span style={{ fontWeight: 600 }}>{post.upvote_count || 0}</span></span>
-                <span>{post.reply_count || 0} replies</span>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#111', lineHeight: 1.35, marginBottom: 10 }}>{post.title}</div>
+              <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#8C867E' }}>
+                <span>▲ <span style={{ fontWeight: 600 }}>{post.upvotes || 0}</span></span>
+                <span>{post.comment_count || 0} replies</span>
               </div>
             </button>
           );
-        })
-      )}
+        })}
+      </div>
     </div>
   );
 }
