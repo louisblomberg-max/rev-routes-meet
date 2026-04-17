@@ -13,13 +13,12 @@ import ClubGarage from '@/components/clubs/ClubGarage'
 import ClubRoutes from '@/components/clubs/ClubRoutes'
 
 const TABS = [
-  { id: 'feed', label: 'Feed', icon: '📝' },
-  { id: 'events', label: 'Events', icon: '📅' },
-  { id: 'garage', label: 'Garage', icon: '🚗' },
-  { id: 'routes', label: 'Routes', icon: '🗺' },
-  { id: 'members', label: 'Members', icon: '👥' },
-  { id: 'leaderboard', label: 'Top', icon: '🏆' },
-  { id: 'about', label: 'About', icon: 'ℹ️' },
+  { id: 'feed', label: 'Feed' },
+  { id: 'events', label: 'Events' },
+  { id: 'routes', label: 'Routes' },
+  { id: 'members', label: 'Members' },
+  { id: 'garage', label: 'Garage' },
+  { id: 'about', label: 'About' },
 ]
 
 export default function ClubProfile() {
@@ -364,20 +363,22 @@ export default function ClubProfile() {
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="w-full py-3 rounded-2xl bg-foreground text-background text-sm font-bold disabled:opacity-50"
+            className="w-full py-3 px-6 text-sm font-bold disabled:opacity-50"
+            style={{ backgroundColor: '#CC2B2B', color: 'white', borderRadius: 22 }}
           >
             {joining ? 'Joining...' : club.join_mode === 'approval' ? 'Request to Join' : 'Join Club'}
           </button>
         ) : (
           <div className="flex gap-2">
-            <div className="flex-1 py-2.5 rounded-xl bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-center text-xs font-semibold border border-green-200 dark:border-green-800 flex items-center justify-center gap-1.5">
+            <div className="flex-1 py-2.5 text-center text-xs font-semibold flex items-center justify-center gap-1.5" style={{ border: '1.5px solid #CC2B2B', color: '#CC2B2B', borderRadius: 22 }}>
               <span>✓</span>
               {membership.role === 'owner' ? 'Owner' : membership.role === 'admin' ? 'Admin' : 'Member'}
             </div>
             {membership.role !== 'owner' && (
               <button
                 onClick={handleLeave}
-                className="px-4 py-2.5 rounded-xl border border-border text-xs text-muted-foreground font-medium"
+                className="px-4 py-2.5 text-xs font-medium"
+                style={{ border: '1.5px solid #E8E4DC', color: '#8C867E', borderRadius: 22 }}
               >
                 Leave
               </button>
@@ -393,13 +394,12 @@ export default function ClubProfile() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-3 text-xs font-semibold border-b-2 transition-all ${
-                activeTab === tab.id
-                  ? 'border-foreground text-foreground'
-                  : 'border-transparent text-muted-foreground'
-              }`}
+              className="flex-shrink-0 px-3 py-3 text-[13px] font-semibold transition-all"
+              style={{
+                color: activeTab === tab.id ? '#CC2B2B' : '#B0A89E',
+                borderBottom: activeTab === tab.id ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
+              }}
             >
-              {tab.icon}
               {tab.label}
             </button>
           ))}
@@ -422,9 +422,6 @@ export default function ClubProfile() {
         )}
         {activeTab === 'members' && (
           <ClubMembers clubId={clubId!} isAdmin={isAdmin} currentUserId={user?.id} />
-        )}
-        {activeTab === 'leaderboard' && (
-          <ClubLeaderboard clubId={clubId!} currentUserId={user?.id} />
         )}
         {activeTab === 'about' && (
           <div className="space-y-4">
@@ -541,6 +538,10 @@ export default function ClubProfile() {
                 <span className="text-muted-foreground">›</span>
               </button>
             )}
+
+            <div className="mt-4">
+              <ClubLeaderboard clubId={clubId!} currentUserId={user?.id} />
+            </div>
           </div>
         )}
       </div>

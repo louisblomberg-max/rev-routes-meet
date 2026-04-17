@@ -18,7 +18,7 @@ interface ClubCardProps {
 
 const ClubCard = ({ club, onClick }: ClubCardProps) => {
   return (
-    <button onClick={onClick} className="w-full text-left rounded-2xl overflow-hidden border border-border/50 bg-card hover:border-border active:scale-[0.99] transition-all duration-200">
+    <button onClick={onClick} className="w-full text-left overflow-hidden bg-card hover:border-border active:scale-[0.99] transition-all duration-200" style={{ borderRadius: 16, border: '1px solid #E8E4DC' }}>
       <div className="relative w-full h-20">
         {club.cover_url ? (
           <img src={club.cover_url} className="w-full h-full object-cover" alt="" />

@@ -2,20 +2,19 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Plus, Users, Star } from 'lucide-react'
+import { Search, Users, Star } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import BackButton from '@/components/BackButton'
 
 const CLUB_TYPES = [
   { id: 'all', label: 'All' },
-  { id: 'make_model', label: 'Make & Model' },
+  { id: 'make_model', label: 'Cars' },
+  { id: 'motorcycles', label: 'Bikes' },
+  { id: 'classics', label: 'Classic' },
+  { id: 'track_racing', label: 'Track' },
   { id: 'regional', label: 'Regional' },
-  { id: 'track_racing', label: 'Track & Racing' },
-  { id: 'off_road', label: 'Off Road' },
-  { id: 'classics', label: 'Classics' },
-  { id: 'electric', label: 'Electric' },
-  { id: 'motorcycles', label: 'Motorcycles' },
+  { id: 'off_road', label: 'Off-Road' },
   { id: 'general', label: 'General' },
 ]
 
@@ -182,36 +181,27 @@ export default function Clubs() {
             >
               Join with code
             </button>
-            <button
-              onClick={() => navigate('/add/club')}
-              className="h-9 px-3 rounded-xl bg-foreground flex items-center gap-1.5 text-background text-xs font-semibold"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Create
-            </button>
           </div>
         </div>
 
         {/* Tab switcher */}
-        <div className="px-4 pb-3">
-          <div className="flex bg-muted rounded-lg p-1">
-            {[
-              { id: 'discover' as const, label: 'Discover' },
-              { id: 'my' as const, label: 'My Clubs' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-card text-foreground shadow-sm'
-                    : 'text-muted-foreground'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div className="px-4 pb-0 flex border-b" style={{ borderColor: '#E8E4DC' }}>
+          {[
+            { id: 'discover' as const, label: 'Discover' },
+            { id: 'my' as const, label: 'My Clubs' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="pb-3 px-4 text-sm font-semibold transition-all"
+              style={{
+                color: activeTab === tab.id ? '#CC2B2B' : '#B0A89E',
+                borderBottom: activeTab === tab.id ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Search */}
@@ -233,11 +223,11 @@ export default function Clubs() {
               <button
                 key={type.id}
                 onClick={() => setActiveType(type.id)}
-                className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
-                  activeType === type.id
-                    ? 'bg-foreground text-background border-foreground'
-                    : 'bg-muted/50 text-muted-foreground border-border/50'
-                }`}
+                className="flex-shrink-0 transition-all"
+                style={activeType === type.id
+                  ? { backgroundColor: '#CC2B2B', borderColor: '#CC2B2B', color: '#FFF', borderRadius: 22, padding: '6px 14px', fontSize: 13, fontWeight: 600, boxShadow: '0 2px 6px rgba(204,43,43,0.3)' }
+                  : { backgroundColor: '#FFF', border: '1.5px solid #DDD9D0', color: '#4A443D', borderRadius: 22, padding: '6px 14px', fontSize: 13, fontWeight: 600 }
+                }
               >
                 {type.label}
               </button>
@@ -434,11 +424,16 @@ function ClubDiscoveryCard({ club, isMember, onJoin, onView }: any) {
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); if (!isMember) onJoin() }}
-            className={`px-4 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+            className="flex-shrink-0"
+            style={
               isMember
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800'
-                : 'bg-foreground text-background'
-            }`}
+                ? { backgroundColor: 'white', border: '1.5px solid #CC2B2B', color: '#CC2B2B', borderRadius: 22, padding: '7px 16px', fontSize: 13, fontWeight: 700 }
+                : club.join_mode === 'approval'
+                  ? { backgroundColor: 'white', border: '1.5px solid #CC2B2B', color: '#CC2B2B', borderRadius: 22, padding: '7px 16px', fontSize: 13, fontWeight: 700 }
+                  : club.join_mode === 'invite_only'
+                    ? { backgroundColor: 'white', border: '1.5px solid #DDD9D0', color: '#111', borderRadius: 22, padding: '7px 16px', fontSize: 13, fontWeight: 600 }
+                    : { backgroundColor: '#CC2B2B', color: 'white', borderRadius: 22, padding: '7px 16px', fontSize: 13, fontWeight: 700, border: 'none' }
+            }
           >
             {isMember ? 'Joined ✓' : club.join_mode === 'approval' ? 'Request' : 'Join'}
           </button>

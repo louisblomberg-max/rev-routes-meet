@@ -71,15 +71,7 @@ const MyClubs = () => {
                 </Button>
               )}
               <Button
-                onClick={() => {
-                  if (currentPlan !== 'enthusiast') {
-                    toast.info('Creating clubs requires the Enthusiast plan', {
-                      action: { label: 'Upgrade', onClick: () => navigate('/upgrade') }
-                    });
-                    return;
-                  }
-                  navigate('/add/club');
-                }}
+                onClick={() => navigate('/add/club')}
                 className="bg-clubs hover:bg-clubs/90 text-clubs-foreground"
               >
                 <Plus className="w-4 h-4 mr-1" /> Create Club
