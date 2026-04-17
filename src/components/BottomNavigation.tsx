@@ -1,46 +1,77 @@
-import { Compass, Users, ShoppingBag, User } from 'lucide-react';
+import { Compass, Clock, Users, User, Plus } from 'lucide-react';
 
-type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
+type Tab = 'discovery' | 'drive' | 'community' | 'you';
 
 interface BottomNavigationProps {
   activeTab: Tab;
   onTabChange: (tab: Tab) => void;
+  onCreatePress: () => void;
 }
 
-const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
-  const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
-    { id: 'discovery', label: 'Discovery', icon: Compass, activeColor: '#d30d37' },
-    { id: 'community', label: 'Community', icon: Users, activeColor: '#274C77' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, activeColor: '#3A5A40' },
-    { id: 'you', label: 'You', icon: User, activeColor: '#161616' },
+const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavigationProps) => {
+  const leftTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
+    { id: 'discovery', label: 'Discovery', icon: Compass },
+    { id: 'drive', label: 'Drive', icon: Clock },
   ];
 
+  const rightTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
+    { id: 'community', label: 'Community', icon: Users },
+    { id: 'you', label: 'You', icon: User },
+  ];
+
+  const renderTab = (tab: { id: Tab; label: string; icon: typeof Compass }) => {
+    const Icon = tab.icon;
+    const isActive = activeTab === tab.id;
+    return (
+      <button
+        key={tab.id}
+        onClick={() => onTabChange(tab.id)}
+        className="flex flex-col items-center justify-center gap-0.5 flex-1 pt-2 pb-1"
+      >
+        <Icon
+          className="w-5 h-5"
+          style={{ color: isActive ? '#CC2B2B' : '#B0A89E', strokeWidth: isActive ? 2.5 : 1.5 }}
+        />
+        <span
+          className="text-[10px] font-semibold tracking-wide"
+          style={{ color: isActive ? '#CC2B2B' : '#B0A89E' }}
+        >
+          {tab.label}
+        </span>
+        {isActive && (
+          <div className="w-4 h-[2.5px] rounded-full" style={{ backgroundColor: '#CC2B2B' }} />
+        )}
+      </button>
+    );
+  };
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 safe-bottom px-3 pb-3 pt-1 md:hidden" style={{ backgroundColor: '#f3f3e8' }}>
-      <div className="grid grid-cols-4 gap-1.5">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition-all duration-200 bg-white shadow-sm ${
-                isActive ? 'border-black/20' : 'border-black/10 text-foreground hover:text-foreground'
-              }`}
-              style={isActive ? { color: tab.activeColor, borderColor: `${tab.activeColor}33` } : undefined}
-            >
-              <Icon className={`w-3.5 h-3.5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`} />
-              <span className={`text-[11px] font-semibold tracking-wide ${isActive ? 'font-bold' : ''}`}>
-                {tab.label}
-              </span>
-              {isActive && (
-                <div className="w-6 h-[2px] rounded-full mt-0.5" style={{ backgroundColor: tab.activeColor }} />
-              )}
-            </button>
-          );
-        })}
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
+      style={{ backgroundColor: '#FFFFFF', borderTop: '1px solid #E8E4DC' }}
+    >
+      <div className="flex items-end justify-around px-2 pb-safe">
+        {leftTabs.map(renderTab)}
+
+        {/* FAB */}
+        <div className="flex flex-col items-center justify-end pb-2" style={{ marginBottom: '2px' }}>
+          <button
+            onClick={onCreatePress}
+            className="flex items-center justify-center rounded-full shadow-lg"
+            style={{
+              width: 52,
+              height: 52,
+              backgroundColor: '#CC2B2B',
+              marginTop: -20,
+              border: '3px solid #FFFFFF',
+              boxShadow: '0 4px 14px rgba(204, 43, 43, 0.4)',
+            }}
+          >
+            <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {rightTabs.map(renderTab)}
       </div>
     </nav>
   );

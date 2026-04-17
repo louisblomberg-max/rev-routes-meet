@@ -29,7 +29,7 @@ import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
+type Tab = 'discovery' | 'drive' | 'community' | 'you';
 
 interface TappedLocation {
   lat: number;
@@ -81,9 +81,9 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
-    if (tabParam && ['discovery', 'community', 'marketplace', 'you'].includes(tabParam)) return tabParam;
+    if (tabParam && ['discovery', 'drive', 'community', 'you'].includes(tabParam)) return tabParam;
     const stored = sessionStorage.getItem('revnet_active_tab') as Tab | null;
-    if (stored && ['discovery', 'community', 'marketplace', 'you'].includes(stored)) return stored;
+    if (stored && ['discovery', 'drive', 'community', 'you'].includes(stored)) return stored;
     return 'discovery';
   });
 
@@ -1103,11 +1103,11 @@ const Home = () => {
       <div className="mobile-container">
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'community' && <CommunityTab />}
-        {activeTab === 'marketplace' && <MarketplaceTab />}
+        {activeTab === 'drive' && <div className="h-full flex items-center justify-center pb-24"><p className="text-muted-foreground">Drive tab coming soon</p></div>}
         {activeTab === 'you' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => console.log('create pressed')} />
         <div className="hidden md:block">
           <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
@@ -1268,7 +1268,7 @@ const Home = () => {
 
       {/* Mobile: original bottom nav bar */}
       {!isNavigating && (
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => console.log('create pressed')} />
       )}
       {/* Desktop: floating pill nav */}
       {!isNavigating && (
