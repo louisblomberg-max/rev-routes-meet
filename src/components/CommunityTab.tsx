@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Users, MessageSquare, Mail, ChevronRight, AlertTriangle } from 'lucide-react';
+import { Users, MessageSquare, Mail } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
 const CommunityTab = () => {
   const navigate = useNavigate();
+
+  // Keep SOS count in case needed elsewhere but not rendered here
   const [sosCount, setSosCount] = useState(0);
 
   useEffect(() => {
@@ -16,7 +18,6 @@ const CommunityTab = () => {
       setSosCount(count || 0);
     };
     fetchCount();
-
     const channel = supabase
       .channel('community-help-requests-count')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'help_requests' }, () => {
@@ -26,51 +27,247 @@ const CommunityTab = () => {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const sections = [
-    { id: 'sos', icon: AlertTriangle, title: 'Breakdown Help', description: 'Request help or assist nearby members', color: 'bg-red-500', route: '/sos-feed', badge: sosCount },
-    { id: 'clubs', icon: Users, title: 'Clubs', description: 'Discover and join automotive clubs', color: 'bg-community', route: '/clubs' },
-    { id: 'forums', icon: MessageSquare, title: 'Advice & Forums', description: 'Ask questions, share insights, and discuss', color: 'bg-community', route: '/forums' },
-    { id: 'messages', icon: Mail, title: 'Messages', description: 'Message friends and stay connected', color: 'bg-community', route: '/messages' },
-  ];
-
   return (
-    <div className="h-full overflow-y-auto pb-24 md:max-w-[768px] md:mx-auto" style={{ backgroundColor: 'hsl(var(--background-warm))' }}>
+    <div
+      className="h-full overflow-y-auto pb-28 md:max-w-[768px] md:mx-auto"
+      style={{ backgroundColor: '#ECEAE4' }}
+    >
       {/* Header */}
-      <div className="px-5 pt-12 pb-4 safe-top">
-        <p className="text-label mb-1 text-community text-center">Your Network</p>
-        <h1 className="heading-display text-foreground text-center">Community</h1>
+      <div className="px-5 pt-12 pb-6 safe-top">
+        <h1
+          className="text-foreground"
+          style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.5px' }}
+        >
+          Community
+        </h1>
+        <p style={{ fontSize: 14, color: '#8C867E', marginTop: 4 }}>
+          Connect with drivers and riders near you
+        </p>
       </div>
 
-      {/* Navigation Sections */}
-      <div className="px-4 space-y-3">
-        {sections.map((section) => {
-          const Icon = section.icon;
-          const isSos = section.id === 'sos';
-          return (
-            <button
-              key={section.id}
-              onClick={() => navigate(section.route)}
-              className="relative w-full bg-card rounded-xl p-4 flex items-center gap-4 text-left border border-border/50 shadow-card hover:shadow-elevated hover:border-community/30 active:scale-[0.99] transition-all duration-200"
+      {/* Three destination cards */}
+      <div className="px-4 flex flex-col gap-3">
+
+        {/* Clubs */}
+        <button
+          onClick={() => navigate('/clubs')}
+          className="w-full text-left active:scale-[0.98] transition-transform duration-150"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: 18,
+            border: '1px solid #E8E4DC',
+            overflow: 'hidden',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
+          }}
+        >
+          <div
+            style={{
+              height: 80,
+              background: 'linear-gradient(135deg, #1C1C2E 0%, #2D1B69 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 13,
+                background: '#CC2B2B',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
             >
-              <div className={`relative w-12 h-12 rounded-xl ${section.color} flex items-center justify-center flex-shrink-0`}>
-                <Icon className="w-5 h-5 text-white" />
-                {isSos && section.badge != null && section.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full bg-red-600 border-2 border-card text-white text-[10px] font-bold flex items-center justify-center animate-pulse">
-                    {section.badge > 99 ? '99+' : section.badge}
-                  </span>
-                )}
+              <Users className="w-5 h-5 text-white" strokeWidth={1.8} />
+            </div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-0.2px' }}>
+                Clubs
               </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="heading-sm text-foreground">{section.title}</h3>
-                <p className="text-caption mt-0.5 leading-relaxed line-clamp-2 text-left">{section.description}</p>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                Discover and join automotive clubs
               </div>
-              <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            </button>
-          );
-        })}
-      </div>
+            </div>
+          </div>
+          <div
+            style={{
+              padding: '12px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>142</div>
+                <div style={{ fontSize: 10, color: '#B0A89E', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: 1 }}>Clubs near you</div>
+              </div>
+            </div>
+            <div
+              style={{
+                background: '#CC2B2B',
+                borderRadius: 22,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#fff',
+              }}
+            >
+              Browse clubs
+            </div>
+          </div>
+        </button>
 
-      <div className="h-4" />
+        {/* Forums & Advice */}
+        <button
+          onClick={() => navigate('/forums')}
+          className="w-full text-left active:scale-[0.98] transition-transform duration-150"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: 18,
+            border: '1px solid #E8E4DC',
+            overflow: 'hidden',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
+          }}
+        >
+          <div
+            style={{
+              height: 80,
+              background: 'linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 13,
+                background: '#1D4ED8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <MessageSquare className="w-5 h-5 text-white" strokeWidth={1.8} />
+            </div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-0.2px' }}>
+                Forums & Advice
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                Ask questions, share knowledge, discuss
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              padding: '12px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ display: 'flex', gap: 20 }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: '#111' }}>Technical</div>
+                <div style={{ fontSize: 10, color: '#B0A89E', textTransform: 'uppercase', letterSpacing: '0.4px', marginTop: 1 }}>Builds · Events · General</div>
+              </div>
+            </div>
+            <div
+              style={{
+                background: '#1D4ED8',
+                borderRadius: 22,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#fff',
+              }}
+            >
+              Browse forums
+            </div>
+          </div>
+        </button>
+
+        {/* Messages */}
+        <button
+          onClick={() => navigate('/messages')}
+          className="w-full text-left active:scale-[0.98] transition-transform duration-150"
+          style={{
+            background: '#FFFFFF',
+            borderRadius: 18,
+            border: '1px solid #E8E4DC',
+            overflow: 'hidden',
+            boxShadow: '0 1px 6px rgba(0,0,0,0.06)',
+          }}
+        >
+          <div
+            style={{
+              height: 80,
+              background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0 18px',
+              gap: 14,
+            }}
+          >
+            <div
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 13,
+                background: '#16803D',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Mail className="w-5 h-5 text-white" strokeWidth={1.8} />
+            </div>
+            <div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: '#fff', letterSpacing: '-0.2px' }}>
+                Messages
+              </div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', marginTop: 2 }}>
+                Chat with friends and club members
+              </div>
+            </div>
+          </div>
+          <div
+            style={{
+              padding: '12px 18px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}
+          >
+            <div style={{ fontSize: 13, color: '#8C867E' }}>
+              Direct messages and group chats
+            </div>
+            <div
+              style={{
+                background: '#16803D',
+                borderRadius: 22,
+                padding: '7px 16px',
+                fontSize: 13,
+                fontWeight: 700,
+                color: '#fff',
+              }}
+            >
+              Open
+            </div>
+          </div>
+        </button>
+
+      </div>
     </div>
   );
 };
