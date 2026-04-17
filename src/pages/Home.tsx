@@ -1110,6 +1110,7 @@ const Home = () => {
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />
+        <CreateSheet open={isCreateOpen} onOpenChange={setIsCreateOpen} />
         <div className="hidden md:block">
           <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
@@ -1220,7 +1221,7 @@ const Home = () => {
       )}
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
-      <CreateSheet open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
@@ -1273,6 +1274,7 @@ const Home = () => {
       {!isNavigating && (
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />
       )}
+      <CreateSheet open={isCreateOpen} onOpenChange={setIsCreateOpen} />
       {/* Desktop: floating pill nav */}
       {!isNavigating && (
         <div className="hidden md:block pointer-events-none">
