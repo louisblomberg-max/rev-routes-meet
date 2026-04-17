@@ -7,27 +7,14 @@ import { toast } from 'sonner';
 
 type ClubsTab = 'discover' | 'my-clubs';
 
-const TYPE_COLORS: Record<string, { fg: string; bg: string; gradient: string }> = {
-  make_model: { fg: '#CC2B2B', bg: '#FEF2F2', gradient: 'linear-gradient(135deg, #CC2B2B, #FF6B6B)' },
-  motorcycles: { fg: '#D97706', bg: '#FFF7ED', gradient: 'linear-gradient(135deg, #D97706, #FBBF24)' },
-  regional: { fg: '#059669', bg: '#F0FDF4', gradient: 'linear-gradient(135deg, #059669, #34D399)' },
-  classics: { fg: '#7C3AED', bg: '#F5F3FF', gradient: 'linear-gradient(135deg, #7C3AED, #A78BFA)' },
-  track_racing: { fg: '#0369A1', bg: '#F0F9FF', gradient: 'linear-gradient(135deg, #0369A1, #38BDF8)' },
-  off_road: { fg: '#92400E', bg: '#FEF3C7', gradient: 'linear-gradient(135deg, #92400E, #D97706)' },
-  general: { fg: '#6B7280', bg: '#F3F4F6', gradient: 'linear-gradient(135deg, #6B7280, #9CA3AF)' },
-};
-
-const getTypeColor = (type?: string) => TYPE_COLORS[type || 'general'] || TYPE_COLORS.general;
-
 export default function CommunityClubsView() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<ClubsTab>('discover');
 
+  const [activeTab, setActiveTab] = useState<ClubsTab>('discover');
   const [clubs, setClubs] = useState<any[]>([]);
   const [myClubIds, setMyClubIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [myClubs, setMyClubs] = useState<any[]>([]);
   const [myClubsLoading, setMyClubsLoading] = useState(true);
 
@@ -62,7 +49,6 @@ export default function CommunityClubsView() {
     ],
   };
 
-  // Fetch discover clubs
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -80,7 +66,6 @@ export default function CommunityClubsView() {
     load();
   }, [user?.id, filters.type]);
 
-  // Fetch my clubs
   useEffect(() => {
     if (!user?.id || activeTab !== 'my-clubs') return;
     const load = async () => {
@@ -143,8 +128,9 @@ export default function CommunityClubsView() {
       <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E8E4DC', padding: '0 16px', display: 'flex' }}>
         {(['discover', 'my-clubs'] as ClubsTab[]).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            flex: 1, background: 'transparent', border: 'none', padding: '16px 0', fontSize: 15,
-            fontWeight: activeTab === tab ? 700 : 600, color: activeTab === tab ? '#CC2B2B' : '#8C867E',
+            flex: 1, background: 'transparent', border: 'none', padding: '16px 0',
+            fontSize: 16, fontWeight: activeTab === tab ? 800 : 600,
+            color: activeTab === tab ? '#CC2B2B' : '#8C867E',
             borderBottom: activeTab === tab ? '3px solid #CC2B2B' : '3px solid transparent',
             cursor: 'pointer', transition: 'all 0.2s ease',
           }}>
@@ -155,62 +141,53 @@ export default function CommunityClubsView() {
 
       {activeTab === 'discover' ? (
         <>
-          {/* Smart search bar */}
-          <div style={{ background: '#FFFFFF', padding: '12px 16px 16px', borderBottom: '1px solid #F0EDE6' }}>
-            <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ background: '#FFFFFF', padding: 16, borderBottom: '1px solid #F0EDE6' }}>
+            <div style={{ display: 'flex', gap: 10 }}>
               <div style={{ flex: 1, position: 'relative' }}>
                 {searchMode === 'search'
-                  ? <Search size={18} color="#8C867E" style={{ position: 'absolute', left: 14, top: 13 }} />
-                  : <Hash size={18} color="#8C867E" style={{ position: 'absolute', left: 14, top: 13 }} />
-                }
+                  ? <Search size={20} color="#8C867E" style={{ position: 'absolute', left: 16, top: 14 }} />
+                  : <Hash size={20} color="#8C867E" style={{ position: 'absolute', left: 16, top: 14 }} />}
                 <input
                   value={searchInput}
                   onChange={e => setSearchInput(searchMode === 'code' ? e.target.value.toUpperCase().replace(/\s/g, '') : e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter' && searchMode === 'code') handleCodeJoin(); }}
                   placeholder={searchMode === 'search' ? 'Search clubs...' : 'Enter club code'}
                   style={{
-                    width: '100%', background: '#F8F7F4', border: '1px solid #F0EDE6', borderRadius: 12,
-                    padding: '12px 80px 12px 44px', fontSize: 15, color: '#111', outline: 'none',
+                    width: '100%', background: '#F8F7F4', border: 'none', borderRadius: 14,
+                    padding: '14px 90px 14px 50px', fontSize: 16, color: '#111', outline: 'none',
                     fontFamily: searchMode === 'code' ? 'monospace' : 'inherit',
-                    letterSpacing: searchMode === 'code' ? '1px' : 'normal',
+                    fontWeight: searchMode === 'code' ? 600 : 400,
+                    letterSpacing: searchMode === 'code' ? '1.2px' : 'normal',
                   }}
                 />
-                <button
-                  onClick={() => { setSearchMode(prev => prev === 'search' ? 'code' : 'search'); setSearchInput(''); }}
-                  style={{
-                    position: 'absolute', right: 8, top: 7,
-                    background: searchMode === 'code' ? '#CC2B2B' : '#E8E4DC',
-                    color: searchMode === 'code' ? '#fff' : '#8C867E',
-                    border: 'none', borderRadius: 8, padding: '5px 10px',
-                    fontSize: 11, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.5px',
-                  }}
-                >
+                <button onClick={() => { setSearchMode(prev => prev === 'search' ? 'code' : 'search'); setSearchInput(''); }} style={{
+                  position: 'absolute', right: 8, top: 8,
+                  background: searchMode === 'code' ? '#CC2B2B' : '#E8E4DC',
+                  color: searchMode === 'code' ? '#fff' : '#8C867E',
+                  border: 'none', borderRadius: 8, padding: '6px 12px',
+                  fontSize: 12, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.5px', textTransform: 'uppercase' as const,
+                }}>
                   {searchMode === 'search' ? 'CODE' : 'SEARCH'}
                 </button>
               </div>
               {searchMode === 'code' && searchInput.trim() && (
-                <button onClick={handleCodeJoin} style={{
-                  background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 12,
-                  padding: '12px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0,
-                }}>Join</button>
+                <button onClick={handleCodeJoin} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Join</button>
               )}
               {searchMode === 'search' && (
                 <button onClick={() => setShowFilters(!showFilters)} style={{
                   background: showFilters ? '#CC2B2B' : '#FFFFFF', color: showFilters ? '#fff' : '#111',
-                  border: '1px solid #E8E4DC', borderRadius: 12, padding: '12px 14px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, fontWeight: 600, flexShrink: 0,
+                  border: '1px solid #E8E4DC', borderRadius: 14, padding: '14px 16px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600,
                 }}>
                   <Filter size={16} /> Filter
                 </button>
               )}
             </div>
-
-            {/* Expandable filters */}
             {showFilters && (
-              <div style={{ background: '#F8F7F4', borderRadius: 12, padding: 10, marginTop: 10, display: 'flex', gap: 8 }}>
+              <div style={{ background: '#F8F7F4', borderRadius: 12, padding: 12, marginTop: 12, display: 'flex', gap: 8 }}>
                 {(Object.entries(filterOptions) as [string, { value: string; label: string }[]][]).map(([key, opts]) => (
                   <select key={key} value={filters[key as keyof typeof filters]} onChange={e => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
-                    style={{ flex: 1, background: '#fff', border: '1px solid #E8E4DC', borderRadius: 8, padding: '7px 8px', fontSize: 12, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
+                    style={{ flex: 1, background: '#fff', border: '1px solid #E8E4DC', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
                     {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 ))}
@@ -218,70 +195,57 @@ export default function CommunityClubsView() {
             )}
           </div>
 
-          {/* Club list */}
-          <div style={{ padding: '12px 16px' }}>
+          <div style={{ padding: 16 }}>
             {loading ? [1, 2, 3].map(i => (
-              <div key={i} style={{ background: '#F8F7F4', borderRadius: 18, height: 96, marginBottom: 12 }} />
+              <div key={i} style={{ background: '#FFFFFF', borderRadius: 16, height: 100, marginBottom: 16, border: '1px solid #F0EDE6' }} />
             )) : filtered.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '64px 20px', color: '#8C867E' }}>
-                <Users size={48} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 20px' }} />
-                <h3 style={{ margin: '0 0 8px', fontSize: 18, fontWeight: 700, color: '#111' }}>No clubs found</h3>
-                <p style={{ margin: 0, fontSize: 14 }}>{searchInput ? 'Try a different search term' : 'Be the first to create a club!'}</p>
-                <button onClick={() => navigate('/add/club')} style={{
-                  background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 22,
-                  padding: '10px 20px', fontSize: 13, fontWeight: 700, cursor: 'pointer', marginTop: 16,
-                }}>Create Club</button>
+              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#8C867E' }}>
+                <Users size={56} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 24px' }} />
+                <h3 style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 800, color: '#111' }}>No clubs found</h3>
+                <p style={{ margin: '0 0 20px', fontSize: 15, lineHeight: 1.5 }}>{searchInput ? 'Try a different search term' : 'Be the first to create a club!'}</p>
+                <button onClick={() => navigate('/add/club')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Create Club</button>
               </div>
             ) : filtered.map(club => {
               const isMember = myClubIds.includes(club.id);
-              const tc = getTypeColor(club.club_type);
               return (
                 <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                  width: '100%', background: '#FFFFFF', border: '1px solid #E8E4DC', borderRadius: 18,
-                  padding: 0, cursor: 'pointer', textAlign: 'left' as const, marginBottom: 12,
-                  overflow: 'hidden', transition: 'all 0.2s ease',
-                }} className="hover:shadow-lg active:scale-[0.98]">
-                  {/* Colour accent bar */}
-                  <div style={{ height: 3, background: tc.gradient }} />
-                  <div style={{ padding: 16 }}>
-                    <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                      {/* Avatar */}
-                      <div style={{
-                        width: 60, height: 60, borderRadius: 16, flexShrink: 0,
-                        background: club.logo_url ? `url(${club.logo_url})` : tc.gradient,
-                        backgroundSize: 'cover', backgroundPosition: 'center',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 22, fontWeight: 800, color: '#fff',
-                      }}>
-                        {!club.logo_url && club.name?.[0]?.toUpperCase()}
+                  width: '100%', background: '#FFFFFF', border: '1px solid #F0EDE6', borderRadius: 16,
+                  padding: 20, cursor: 'pointer', textAlign: 'left' as const, marginBottom: 16,
+                  transition: 'all 0.2s ease',
+                }} className="hover:shadow-lg hover:border-gray-300 active:scale-[0.99]">
+                  <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                    <div style={{
+                      width: 64, height: 64, borderRadius: 16, flexShrink: 0,
+                      background: club.logo_url ? `url(${club.logo_url})` : 'linear-gradient(135deg, #F3F4F6, #E5E7EB)',
+                      backgroundSize: 'cover', backgroundPosition: 'center',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 24, fontWeight: 800, color: '#6B7280', border: '2px solid #F9FAFB',
+                    }}>
+                      {!club.logo_url && club.name?.[0]?.toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{club.name}</h3>
+                        {club.invite_code && <span style={{ fontSize: 11, fontWeight: 700, color: '#8C867E', background: '#F3F4F6', padding: '4px 8px', borderRadius: 8, fontFamily: 'monospace', textTransform: 'uppercase' as const }}>{club.invite_code}</span>}
                       </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
-                          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{club.name}</h3>
-                          {club.invite_code && <span style={{ fontSize: 10, fontWeight: 700, color: '#8C867E', background: '#F2EFE9', padding: '2px 6px', borderRadius: 6, fontFamily: 'monospace', textTransform: 'uppercase' as const }}>{club.invite_code}</span>}
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 5 }}>
-                          <span style={{ color: '#CC2B2B', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Users size={14} /> {(club.member_count || 0).toLocaleString()}
-                          </span>
-                          {club.location && <><span style={{ color: '#D1D5DB' }}>·</span><span style={{ color: '#8C867E', fontSize: 13, display: 'flex', alignItems: 'center', gap: 3 }}><MapPin size={12} />{club.location}</span></>}
-                        </div>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: tc.fg, background: tc.bg, padding: '3px 8px', borderRadius: 6, textTransform: 'capitalize' as const }}>
-                          {club.club_type?.replace(/_/g, ' ') || 'Club'}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                        <span style={{ color: '#CC2B2B', fontSize: 16, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <Users size={16} /> {(club.member_count || 0).toLocaleString()} members
                         </span>
+                        {club.location && <><span style={{ color: '#D1D5DB', fontSize: 18 }}>·</span><span style={{ color: '#8C867E', fontSize: 14, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={14} />{club.location}</span></>}
                       </div>
-
-                      {/* Join */}
-                      <div onClick={e => { e.stopPropagation(); if (!isMember) handleJoin(club, e); }}>
-                        {isMember ? (
-                          <span style={{ background: '#F0FDF4', border: '1.5px solid #10B981', color: '#059669', fontSize: 11, fontWeight: 700, padding: '6px 12px', borderRadius: 16, flexShrink: 0 }}>✓ Joined</span>
-                        ) : (
-                          <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#F8F7F4', border: '1px solid #E8E4DC', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}>
-                            <Plus size={18} color="#B0A89E" />
-                          </div>
-                        )}
-                      </div>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', background: '#F9FAFB', padding: '4px 10px', borderRadius: 8, textTransform: 'capitalize' as const, display: 'inline-block' }}>
+                        {club.club_type?.replace(/_/g, ' ') || 'Club'}
+                      </span>
+                    </div>
+                    <div onClick={e => { e.stopPropagation(); if (!isMember) handleJoin(club, e); }}>
+                      {isMember ? (
+                        <span style={{ background: '#F0FDF4', border: '2px solid #10B981', color: '#059669', fontSize: 12, fontWeight: 700, padding: '8px 16px', borderRadius: 20, flexShrink: 0 }}>✓ Joined</span>
+                      ) : (
+                        <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F9FAFB', border: '2px solid #F3F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }} className="hover:bg-red-50 hover:border-red-200">
+                          <Plus size={20} color="#8C867E" />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -290,70 +254,60 @@ export default function CommunityClubsView() {
           </div>
         </>
       ) : (
-        /* My Clubs */
-        <div style={{ padding: '16px' }}>
-          {/* Code input for My Clubs */}
-          <div style={{ position: 'relative', marginBottom: 16 }}>
-            <Hash size={18} color="#8C867E" style={{ position: 'absolute', left: 14, top: 13 }} />
-            <input
-              value={searchInput} onChange={e => setSearchInput(e.target.value.toUpperCase().replace(/\s/g, ''))}
-              onKeyDown={e => { if (e.key === 'Enter') handleCodeJoin(); }}
+        <div style={{ padding: 16 }}>
+          <div style={{ position: 'relative', marginBottom: 20 }}>
+            <Hash size={20} color="#8C867E" style={{ position: 'absolute', left: 16, top: 14 }} />
+            <input value={searchInput} onChange={e => setSearchInput(e.target.value.toUpperCase().replace(/\s/g, ''))} onKeyDown={e => { if (e.key === 'Enter') handleCodeJoin(); }}
               placeholder="Join with club code"
-              style={{ width: '100%', background: '#F8F7F4', border: '1px solid #F0EDE6', borderRadius: 12, padding: '12px 16px 12px 44px', fontSize: 15, color: '#111', outline: 'none', fontFamily: 'monospace', letterSpacing: '1px' }}
+              style={{ width: '100%', background: '#F8F7F4', border: 'none', borderRadius: 14, padding: '14px 16px 14px 50px', fontSize: 16, color: '#111', outline: 'none', fontFamily: 'monospace', fontWeight: 600, letterSpacing: '1.2px' }}
             />
           </div>
 
-          {myClubsLoading ? [1, 2].map(i => <div key={i} style={{ background: '#F8F7F4', borderRadius: 18, height: 88, marginBottom: 12 }} />) : (
+          {myClubsLoading ? [1, 2].map(i => <div key={i} style={{ background: '#FFFFFF', borderRadius: 16, height: 90, marginBottom: 16, border: '1px solid #F0EDE6' }} />) : (
             <>
               {pendingMyClubs.length > 0 && (
                 <>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#B0A89E', letterSpacing: '0.6px', textTransform: 'uppercase' as const, marginBottom: 8 }}>Pending approval</div>
+                  <h4 style={{ fontSize: 12, fontWeight: 800, color: '#D97706', textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 12, marginTop: 0 }}>Pending Approval</h4>
                   {pendingMyClubs.map(club => (
-                    <div key={club.id} style={{ background: '#FEF3C7', border: '1px solid #FDE68A', borderRadius: 16, padding: 14, display: 'flex', gap: 12, alignItems: 'center', marginBottom: 10 }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 12, flexShrink: 0, background: '#F59E0B', backgroundImage: club.logo_url ? `url(${club.logo_url})` : undefined, backgroundSize: 'cover', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: '#fff' }}>
-                        {!club.logo_url && club.name?.[0]?.toUpperCase()}
-                      </div>
-                      <div><div style={{ fontSize: 14, fontWeight: 700, color: '#92400E' }}>{club.name}</div><div style={{ fontSize: 12, color: '#B45309', marginTop: 2 }}>Awaiting approval</div></div>
+                    <div key={club.id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 16, padding: 16, marginBottom: 12, display: 'flex', gap: 14, alignItems: 'center' }}>
+                      <div style={{ width: 48, height: 48, borderRadius: 12, flexShrink: 0, background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: '#fff' }}>{club.name?.[0]?.toUpperCase()}</div>
+                      <div><div style={{ fontSize: 15, fontWeight: 700, color: '#92400E' }}>{club.name}</div><div style={{ fontSize: 13, color: '#D97706', fontWeight: 600 }}>Awaiting approval</div></div>
                     </div>
                   ))}
                 </>
               )}
 
-              <div style={{ fontSize: 11, fontWeight: 700, color: '#B0A89E', letterSpacing: '0.6px', textTransform: 'uppercase' as const, marginBottom: 8, marginTop: pendingMyClubs.length > 0 ? 16 : 0 }}>Your clubs ({activeMyClubs.length})</div>
+              <h4 style={{ fontSize: 12, fontWeight: 800, color: '#6B7280', textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 12, marginTop: pendingMyClubs.length > 0 ? 20 : 0 }}>Your Clubs ({activeMyClubs.length})</h4>
 
               {activeMyClubs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '48px 20px', color: '#8C867E' }}>
-                  <Users size={48} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 16px' }} />
-                  <p style={{ margin: 0, fontWeight: 600 }}>No clubs joined yet</p>
-                  <p style={{ margin: '4px 0 0', fontSize: 13 }}>Discover clubs or enter a code above</p>
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#8C867E' }}>
+                  <Users size={48} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 20px' }} />
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: 16 }}>No clubs joined yet</p>
+                  <p style={{ margin: '8px 0 0', fontSize: 14 }}>Enter a code above or discover clubs</p>
                 </div>
               ) : activeMyClubs.map(club => {
                 const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
-                const tc = getTypeColor(club.club_type);
                 return (
                   <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                    width: '100%', background: '#FFFFFF', border: isAdmin ? `1px solid ${tc.fg}30` : '1px solid #E8E4DC',
-                    borderRadius: 18, padding: 0, marginBottom: 12, cursor: 'pointer', textAlign: 'left' as const,
-                    overflow: 'hidden',
+                    width: '100%', background: '#FFFFFF', border: isAdmin ? '2px solid #FEE2E2' : '1px solid #F0EDE6',
+                    borderRadius: 16, padding: 16, marginBottom: 12, cursor: 'pointer', textAlign: 'left' as const,
+                    display: 'flex', gap: 14, alignItems: 'center',
                   }}>
-                    <div style={{ height: 3, background: tc.gradient }} />
-                    <div style={{ padding: 16, display: 'flex', gap: 14, alignItems: 'center' }}>
-                      <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, background: club.logo_url ? `url(${club.logo_url})` : tc.gradient, backgroundSize: 'cover', backgroundPosition: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: '#fff' }}>
-                        {!club.logo_url && club.name?.[0]?.toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                          <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</h3>
-                          {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: tc.fg, background: tc.bg, padding: '2px 6px', borderRadius: 4, textTransform: 'uppercase' as const }}>{club.myRole}</span>}
-                        </div>
-                        <span style={{ color: '#8C867E', fontSize: 13 }}>{(club.member_count || 0).toLocaleString()} members</span>
-                      </div>
-                      {isAdmin ? (
-                        <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 34, height: 34, borderRadius: '50%', background: tc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-                          <Settings size={16} color={tc.fg} />
-                        </div>
-                      ) : <ChevronRight size={18} color="#B0A89E" style={{ flexShrink: 0 }} />}
+                    <div style={{ width: 56, height: 56, borderRadius: 14, flexShrink: 0, background: club.logo_url ? `url(${club.logo_url})` : 'linear-gradient(135deg, #F3F4F6, #E5E7EB)', backgroundSize: 'cover', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 800, color: '#6B7280' }}>
+                      {!club.logo_url && club.name?.[0]?.toUpperCase()}
                     </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                        <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: '#111' }}>{club.name}</h3>
+                        {isAdmin && <span style={{ fontSize: 10, fontWeight: 800, color: '#CC2B2B', background: '#FEF2F2', padding: '3px 8px', borderRadius: 6, textTransform: 'uppercase' as const }}>{club.myRole}</span>}
+                      </div>
+                      <span style={{ color: '#8C867E', fontSize: 14, fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()} members</span>
+                    </div>
+                    {isAdmin ? (
+                      <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 36, height: 36, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+                        <Settings size={16} color="#CC2B2B" />
+                      </div>
+                    ) : <ChevronRight size={20} color="#D1D5DB" style={{ flexShrink: 0 }} />}
                   </button>
                 );
               })}
