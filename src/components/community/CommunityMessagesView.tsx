@@ -9,6 +9,7 @@ export default function CommunityMessagesView() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (!user?.id) return;
@@ -64,30 +65,30 @@ export default function CommunityMessagesView() {
     return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   };
 
+  const filtered = searchQuery.trim()
+    ? conversations.filter(c => c.otherName?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : conversations;
+
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
       {/* Search bar */}
-      <div style={{ padding: '12px 16px 8px' }}>
-        <button
-          onClick={() => navigate('/messages')}
+      <div style={{ padding: '12px 16px 8px', position: 'relative' }}>
+        <Search size={16} strokeWidth={2} color="#8C867E" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search messages"
           style={{
             width: '100%',
             background: '#F2EFE9',
             border: 'none',
             borderRadius: 12,
-            padding: '11px 14px',
+            padding: '11px 14px 11px 38px',
             fontSize: 14,
-            color: '#8C867E',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            cursor: 'pointer',
-            textAlign: 'left' as const,
+            color: '#4A443D',
+            outline: 'none',
           }}
-        >
-          <Search size={16} strokeWidth={2} color="#8C867E" />
-          Search messages
-        </button>
+        />
       </div>
 
       {/* Section label */}
@@ -102,12 +103,12 @@ export default function CommunityMessagesView() {
         [1, 2, 3].map((i) => (
           <div key={i} style={{ background: '#F0EDE6', borderRadius: 16, height: 68, margin: '0 16px 8px' }} />
         ))
-      ) : conversations.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <p style={{ fontSize: 14, color: '#8C867E', padding: '32px 16px', textAlign: 'center' }}>
           No messages yet. Start a conversation from a club or profile.
         </p>
       ) : (
-        conversations.map((convo) => (
+        filtered.map((convo) => (
           <button
             key={convo.id}
             onClick={() => navigate(`/messages/${convo.id}`)}

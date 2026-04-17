@@ -3,6 +3,7 @@ import { Search, Plus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function CommunityClubsView() {
   const navigate = useNavigate();
@@ -10,6 +11,27 @@ export default function CommunityClubsView() {
   const [clubs, setClubs] = useState<any[]>([]);
   const [myClubIds, setMyClubIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleJoin = async (club: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user?.id) { navigate('/auth'); return; }
+    if (myClubIds.includes(club.id)) return;
+    if (club.join_mode === 'approval') {
+      await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' });
+      toast.success('Join request sent');
+      return;
+    }
+    if (club.join_mode === 'invite_only') {
+      toast.error('This club is invite only');
+      return;
+    }
+    const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
+    if (!error) {
+      setMyClubIds(prev => [...prev, club.id]);
+      toast.success(`Joined ${club.name}!`);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -36,31 +58,30 @@ export default function CommunityClubsView() {
 
   const featured = clubs.slice(0, 3);
   const rest = clubs.slice(3);
+  const filteredRest = searchQuery.trim()
+    ? rest.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || c.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : rest;
 
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
       {/* Search bar */}
-      <div style={{ padding: '12px 16px 8px' }}>
-        <button
-          onClick={() => navigate('/clubs')}
+      <div style={{ padding: '12px 16px 8px', position: 'relative' }}>
+        <Search size={16} strokeWidth={2} color="#8C867E" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search clubs"
           style={{
             width: '100%',
             background: '#F2EFE9',
             border: 'none',
             borderRadius: 12,
-            padding: '11px 14px',
+            padding: '11px 14px 11px 38px',
             fontSize: 14,
-            color: '#8C867E',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            cursor: 'pointer',
-            textAlign: 'left' as const,
+            color: '#4A443D',
+            outline: 'none',
           }}
-        >
-          <Search size={16} strokeWidth={2} color="#8C867E" />
-          Search clubs
-        </button>
+        />
       </div>
 
       {/* Hero carousel */}
@@ -155,12 +176,12 @@ export default function CommunityClubsView() {
         [1, 2, 3].map((i) => (
           <div key={i} style={{ background: '#F0EDE6', borderRadius: 16, height: 80, margin: '0 16px 8px' }} />
         ))
-      ) : rest.length === 0 ? (
+      ) : filteredRest.length === 0 ? (
         <p style={{ fontSize: 14, color: '#8C867E', padding: '32px 16px', textAlign: 'center' }}>
           No clubs nearby. Try widening your search.
         </p>
       ) : (
-        rest.map((club) => {
+        filteredRest.map((club) => {
           const isMember = myClubIds.includes(club.id);
           return (
             <button
@@ -211,7 +232,7 @@ export default function CommunityClubsView() {
                 }}>Joined</span>
               ) : (
                 <div
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => handleJoin(club, e)}
                   style={{
                     width: 28, height: 28, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', flexShrink: 0, cursor: 'pointer',

@@ -74,6 +74,7 @@ const TicketSuccess = React.lazy(() => import("./pages/TicketSuccess"));
 const OrganizerDashboard = React.lazy(() => import("./pages/OrganizerDashboard"));
 const NavigationPage = React.lazy(() => import("./pages/Navigation"));
 const You = React.lazy(() => import("./pages/You"));
+const SearchPage = React.lazy(() => import("./pages/Search"));
 
 const Privacy = React.lazy(() => import("./pages/Privacy"));
 const Terms = React.lazy(() => import("./pages/Terms"));
@@ -181,6 +182,7 @@ const App = () => (
           <Route path="/subscription" element={<Navigate to="/" replace />} />
           <Route path="/ticket-success" element={<ProtectedRoute><TicketSuccess /></ProtectedRoute>} />
           <Route path="/event/:id/manage" element={<ProtectedRoute><OrganizerDashboard /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><SearchPage /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </Suspense>

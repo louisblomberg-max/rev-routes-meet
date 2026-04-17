@@ -7,20 +7,26 @@ export default function CommunityForumsView() {
   const navigate = useNavigate();
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<'newest' | 'upvoted'>('newest');
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data } = await supabase
+      let query = supabase
         .from('forum_posts')
-        .select('*, profiles:user_id(display_name, avatar_url, username)')
-        .order('created_at', { ascending: false })
-        .limit(30);
+        .select('*, profiles:user_id(display_name, avatar_url, username)');
+      if (selectedCategory) query = query.eq('category', selectedCategory);
+      if (sortBy === 'upvoted') query = query.order('upvotes', { ascending: false });
+      else query = query.order('created_at', { ascending: false });
+      query = query.limit(30);
+      const { data } = await query;
       setPosts(data || []);
       setLoading(false);
     };
     load();
-  }, []);
+  }, [selectedCategory, sortBy]);
 
   const timeAgo = (dateStr: string) => {
     const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
@@ -31,55 +37,82 @@ export default function CommunityForumsView() {
     return `${days}d`;
   };
 
+  const filteredPosts = searchQuery.trim()
+    ? posts.filter(p => p.title?.toLowerCase().includes(searchQuery.toLowerCase()) || p.body?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : posts;
+
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
       {/* Search bar */}
-      <div style={{ padding: '12px 16px 8px' }}>
-        <button
-          onClick={() => navigate('/forums')}
+      <div style={{ padding: '12px 16px 8px', position: 'relative' }}>
+        <Search size={16} strokeWidth={2} color="#8C867E" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
+        <input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search forums"
           style={{
             width: '100%',
             background: '#F2EFE9',
             border: 'none',
             borderRadius: 12,
-            padding: '11px 14px',
+            padding: '11px 14px 11px 38px',
             fontSize: 14,
-            color: '#8C867E',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            cursor: 'pointer',
-            textAlign: 'left' as const,
+            color: '#4A443D',
+            outline: 'none',
           }}
-        >
-          <Search size={16} strokeWidth={2} color="#8C867E" />
-          Search forums
-        </button>
+        />
       </div>
 
-      {/* TODO: wire filters */}
+      {/* Filter pills */}
       <div style={{ display: 'flex', gap: 8, padding: '4px 16px 12px' }}>
-        {[
-          { label: 'CATEGORY', value: 'All' },
-          { label: 'SORT', value: 'Hot' },
-          { label: 'TIME', value: 'Week' },
-        ].map((pill) => (
-          <button
-            key={pill.label}
-            style={{
-              flex: 1,
-              background: '#FFFFFF',
-              border: '1px solid #E8E4DC',
-              borderRadius: 12,
-              padding: '8px 11px',
-              textAlign: 'left' as const,
-              cursor: 'pointer',
-            }}
-          >
-            <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>{pill.label}</div>
-            <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>{pill.value} &#9662;</div>
-          </button>
-        ))}
+        <button
+          onClick={() => {
+            const cats: (string | null)[] = [null, 'general', 'mods', 'troubleshooting', 'buying', 'track', 'insurance'];
+            const idx = cats.indexOf(selectedCategory);
+            setSelectedCategory(cats[(idx + 1) % cats.length]);
+          }}
+          style={{
+            flex: 1,
+            background: '#FFFFFF',
+            border: '1px solid #E8E4DC',
+            borderRadius: 12,
+            padding: '8px 11px',
+            textAlign: 'left' as const,
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>CATEGORY</div>
+          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>{selectedCategory ? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) : 'All'} &#9662;</div>
+        </button>
+        <button
+          onClick={() => setSortBy(prev => prev === 'newest' ? 'upvoted' : 'newest')}
+          style={{
+            flex: 1,
+            background: '#FFFFFF',
+            border: '1px solid #E8E4DC',
+            borderRadius: 12,
+            padding: '8px 11px',
+            textAlign: 'left' as const,
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>SORT</div>
+          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>{sortBy === 'newest' ? 'New' : 'Top'} &#9662;</div>
+        </button>
+        <button
+          style={{
+            flex: 1,
+            background: '#FFFFFF',
+            border: '1px solid #E8E4DC',
+            borderRadius: 12,
+            padding: '8px 11px',
+            textAlign: 'left' as const,
+            cursor: 'pointer',
+          }}
+        >
+          <div style={{ fontSize: 10, color: '#8C867E', fontWeight: 700, letterSpacing: '0.4px' }}>TIME</div>
+          <div style={{ fontSize: 12, color: '#111', fontWeight: 700, marginTop: 2 }}>Week &#9662;</div>
+        </button>
       </div>
 
       {/* Section label */}
@@ -94,12 +127,12 @@ export default function CommunityForumsView() {
         [1, 2, 3].map((i) => (
           <div key={i} style={{ background: '#F0EDE6', borderRadius: 16, height: 100, margin: '0 16px 8px' }} />
         ))
-      ) : posts.length === 0 ? (
+      ) : filteredPosts.length === 0 ? (
         <p style={{ fontSize: 14, color: '#8C867E', padding: '32px 16px', textAlign: 'center' }}>
           No threads yet. Start the conversation.
         </p>
       ) : (
-        posts.map((post) => {
+        filteredPosts.map((post) => {
           const author = post.profiles || {};
           const initials = (author.display_name || author.username || '?')[0].toUpperCase();
           return (
