@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -115,12 +115,24 @@ export default function CommunityForumsView() {
         </button>
       </div>
 
-      {/* Section label */}
-      <div style={{
-        fontSize: 11, fontWeight: 700, color: '#B0A89E',
-        letterSpacing: '0.6px', textTransform: 'uppercase' as const,
-        padding: '0 16px', marginBottom: 8,
-      }}>All threads</div>
+      {/* Section header with create button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px 12px' }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#B0A89E', letterSpacing: '0.6px', textTransform: 'uppercase' as const }}>
+          {filteredPosts.length} threads
+        </div>
+        <button
+          onClick={() => navigate('/forums/create')}
+          style={{
+            background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 22,
+            padding: '7px 14px', fontSize: 12, fontWeight: 700, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', gap: 5,
+            boxShadow: '0 2px 6px rgba(204,43,43,0.28)',
+          }}
+        >
+          <Plus size={14} />
+          New Topic
+        </button>
+      </div>
 
       {/* Thread list */}
       {loading ? (
