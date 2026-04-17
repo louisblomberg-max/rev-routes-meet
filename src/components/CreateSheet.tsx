@@ -29,6 +29,12 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
       action: () => { onOpenChange(false); navigate('/add/route'); },
     },
     {
+      id: 'club',
+      label: 'Club',
+      emoji: '👥',
+      action: () => { onOpenChange(false); navigate('/add/club'); },
+    },
+    {
       id: 'service',
       label: 'Service',
       emoji: '🏢',
@@ -78,7 +84,6 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
                 border: '1px solid #E8E4DC',
                 background: '#FFFFFF',
                 cursor: 'pointer',
-                gridColumn: index === tiles.length - 1 && tiles.length % 2 !== 0 ? 'span 2' : undefined,
               }}
               className="active:scale-[0.97] transition-transform"
             >
