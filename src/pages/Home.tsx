@@ -13,6 +13,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
+import TopAppHeader from '@/components/TopAppHeader';
 import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
@@ -1103,6 +1104,9 @@ const Home = () => {
   if (activeTab !== 'discovery') {
     return (
       <div className="mobile-container">
+        <div className="md:hidden">
+          <TopAppHeader variant="solid" />
+        </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'community' && <CommunityTab />}
         {activeTab === 'drive' && <div className="h-full flex items-center justify-center pb-24"><p className="text-muted-foreground">Drive tab coming soon</p></div>}
