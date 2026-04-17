@@ -17,6 +17,7 @@ import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
 import HelpSheet from '@/components/HelpSheet';
+import CreateSheet from '@/components/CreateSheet';
 import type { MapStyle } from '@/components/MapStyleButton';
 import EventsFiltersPanel, { EventsFilterState } from '@/components/EventsFiltersPanel';
 import RoutesFiltersPanel, { RoutesFilterState } from '@/components/RoutesFiltersPanel';
@@ -175,6 +176,7 @@ const Home = () => {
     distance: 0, types: [], openNow: false,
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [mapStyle, setMapStyle] = useState<MapStyle>('standard');
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -1107,7 +1109,7 @@ const Home = () => {
         {activeTab === 'you' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => console.log('create pressed')} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />
         <div className="hidden md:block">
           <FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
@@ -1218,6 +1220,7 @@ const Home = () => {
       )}
 
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
+      <CreateSheet open={isCreateOpen} onOpenChange={setIsCreateOpen} />
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
@@ -1268,7 +1271,7 @@ const Home = () => {
 
       {/* Mobile: original bottom nav bar */}
       {!isNavigating && (
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => console.log('create pressed')} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />
       )}
       {/* Desktop: floating pill nav */}
       {!isNavigating && (
