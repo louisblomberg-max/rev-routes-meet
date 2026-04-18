@@ -1,17 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Plus, MapPin, Users, Settings, ChevronRight, Hash } from 'lucide-react';
+import { Search, Filter, Plus, MapPin, Users, Settings, ChevronRight, Hash, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 type ClubsTab = 'discover' | 'my-clubs';
 
-export default function CommunityClubsView() {
+interface CommunityClubsViewProps {
+  tab: ClubsTab;
+  onBack: () => void;
+}
+
+export default function CommunityClubsView({ tab, onBack }: CommunityClubsViewProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<ClubsTab>('discover');
+  const activeTab = tab;
   const [clubs, setClubs] = useState<any[]>([]);
   const [myClubIds, setMyClubIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,19 +129,17 @@ export default function CommunityClubsView() {
 
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
-      {/* Tabs */}
-      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E8E4DC', padding: '0 16px', display: 'flex' }}>
-        {(['discover', 'my-clubs'] as ClubsTab[]).map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} style={{
-            flex: 1, background: 'transparent', border: 'none', padding: '16px 0',
-            fontSize: 16, fontWeight: activeTab === tab ? 800 : 600,
-            color: activeTab === tab ? '#CC2B2B' : '#8C867E',
-            borderBottom: activeTab === tab ? '3px solid #CC2B2B' : '3px solid transparent',
-            cursor: 'pointer', transition: 'all 0.2s ease',
-          }}>
-            {tab === 'discover' ? 'Discover Clubs' : `My Clubs (${activeMyClubs.length})`}
-          </button>
-        ))}
+      {/* Back header */}
+      <div style={{
+        background: '#FFFFFF', borderBottom: '1px solid #E8E4DC',
+        padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 12,
+      }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 4 }}>
+          <ArrowLeft size={22} color="#111" />
+        </button>
+        <h2 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.3px' }}>
+          {activeTab === 'discover' ? 'Discover Clubs' : 'My Clubs'}
+        </h2>
       </div>
 
       {activeTab === 'discover' ? (
