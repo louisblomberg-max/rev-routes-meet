@@ -1,15 +1,8 @@
-import { Search, Bell } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-
 interface TopAppHeaderProps {
   variant?: 'solid' | 'floating';
-  onSearchClick?: () => void;
-  onNotificationsClick?: () => void;
 }
 
-const TopAppHeader = ({ variant = 'solid', onSearchClick, onNotificationsClick }: TopAppHeaderProps) => {
-  const navigate = useNavigate();
-
+const TopAppHeader = ({ variant = 'solid' }: TopAppHeaderProps) => {
   const isFloating = variant === 'floating';
 
   return (
@@ -21,7 +14,7 @@ const TopAppHeader = ({ variant = 'solid', onSearchClick, onNotificationsClick }
         paddingRight: 16,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         ...(isFloating
           ? {
               position: 'absolute',
@@ -41,25 +34,14 @@ const TopAppHeader = ({ variant = 'solid', onSearchClick, onNotificationsClick }
             }),
       }}
     >
-      <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', lineHeight: 1 }}>
+      <div style={{
+        fontWeight: 800,
+        fontSize: 18,
+        letterSpacing: '-0.4px',
+        lineHeight: 1,
+      }}>
         <span style={{ color: '#CC2B2B' }}>REV</span>
         <span style={{ color: '#111111' }}>NET</span>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <button
-          aria-label="Search"
-          onClick={onSearchClick ?? (() => navigate('/search'))}
-          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-        >
-          <Search size={22} strokeWidth={2} color="#4A443D" />
-        </button>
-        <button
-          aria-label="Notifications"
-          onClick={onNotificationsClick ?? (() => navigate('/notifications'))}
-          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-        >
-          <Bell size={22} strokeWidth={2} color="#4A443D" />
-        </button>
       </div>
     </header>
   );
