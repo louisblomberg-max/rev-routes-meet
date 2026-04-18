@@ -1,20 +1,12 @@
 import { useState } from 'react';
-import ClubsLanding from './community/ClubsLanding';
 import CommunityClubsView from './community/CommunityClubsView';
 import CommunityForumsView from './community/CommunityForumsView';
 import CommunityMessagesView from './community/CommunityMessagesView';
 
 type SubTab = 'clubs' | 'forums' | 'messages';
-type ClubsView = 'landing' | 'discover' | 'my-clubs';
 
 export default function CommunityTab() {
   const [subTab, setSubTab] = useState<SubTab>('clubs');
-  const [clubsView, setClubsView] = useState<ClubsView>('landing');
-
-  const handleSubTabChange = (tab: SubTab) => {
-    setSubTab(tab);
-    if (tab === 'clubs') setClubsView('landing');
-  };
 
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100vh' }}>
@@ -34,7 +26,7 @@ export default function CommunityTab() {
               key={t}
               role="tab"
               aria-selected={active}
-              onClick={() => handleSubTabChange(t)}
+              onClick={() => setSubTab(t)}
               style={{
                 flex: 1,
                 background: 'transparent',
@@ -56,12 +48,7 @@ export default function CommunityTab() {
         })}
       </nav>
 
-      {subTab === 'clubs' && clubsView === 'landing' && (
-        <ClubsLanding onNavigate={(view) => setClubsView(view)} />
-      )}
-      {subTab === 'clubs' && (clubsView === 'discover' || clubsView === 'my-clubs') && (
-        <CommunityClubsView tab={clubsView} onBack={() => setClubsView('landing')} />
-      )}
+      {subTab === 'clubs' && <CommunityClubsView />}
       {subTab === 'forums' && <CommunityForumsView />}
       {subTab === 'messages' && <CommunityMessagesView />}
     </div>
