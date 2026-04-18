@@ -1,11 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Plus, MapPin, Users, Settings, ChevronRight, Hash } from 'lucide-react';
+import { Search, Filter, Plus, MapPin, Users, Settings, ChevronRight, Hash, Navigation } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 type ClubsTab = 'discover' | 'my-clubs';
+
+function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3959;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export default function CommunityClubsView() {
   const navigate = useNavigate();
@@ -21,11 +29,15 @@ export default function CommunityClubsView() {
   const [searchMode, setSearchMode] = useState<'search' | 'code'>('search');
   const [searchInput, setSearchInput] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ type: 'all', location: 'all', size: 'all' });
+  const [filters, setFilters] = useState({ type: 'all', distance: '25', size: 'all' });
+
+  // Location state
+  const [geoLocation, setGeoLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied' | 'unavailable'>('pending');
 
   // User profile data for personalization
   const [userVehicles, setUserVehicles] = useState<any[]>([]);
-  const [userLocation, setUserLocation] = useState<string>('');
+  const [userProfileLocation, setUserProfileLocation] = useState('');
 
   const filterOptions = {
     type: [
@@ -37,13 +49,12 @@ export default function CommunityClubsView() {
       { value: 'track_racing', label: 'Track & Racing' },
       { value: 'off_road', label: 'Off-Road' },
     ],
-    location: [
-      { value: 'all', label: 'All Locations' },
-      { value: 'london', label: 'London' },
-      { value: 'manchester', label: 'Manchester' },
-      { value: 'birmingham', label: 'Birmingham' },
-      { value: 'scotland', label: 'Scotland' },
-      { value: 'southwest', label: 'South West' },
+    distance: [
+      { value: '10', label: 'Within 10 miles' },
+      { value: '25', label: 'Within 25 miles' },
+      { value: '50', label: 'Within 50 miles' },
+      { value: '100', label: 'Within 100 miles' },
+      { value: 'any', label: 'Any distance' },
     ],
     size: [
       { value: 'all', label: 'Any Size' },
@@ -53,81 +64,88 @@ export default function CommunityClubsView() {
     ],
   };
 
-  // Fetch user vehicles + location for personalized discovery
+  // Request geolocation on mount
+  useEffect(() => {
+    if (!navigator.geolocation) { setLocationStatus('unavailable'); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeoLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationStatus('granted');
+      },
+      () => setLocationStatus('denied'),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
+    );
+  }, []);
+
+  // Fetch user vehicles + profile location for personalization
   useEffect(() => {
     if (!user?.id) return;
     supabase.from('vehicles').select('make, model, vehicle_type').eq('user_id', user.id)
       .then(({ data }) => setUserVehicles(data || []));
     supabase.from('profiles').select('location').eq('id', user.id).single()
-      .then(({ data }) => setUserLocation(data?.location || ''));
+      .then(({ data }) => setUserProfileLocation(data?.location || ''));
   }, [user?.id]);
 
-  // Personalized discover clubs
+  // Apply distance filter to club list
+  const applyDistanceFilter = useCallback((clubList: any[]): any[] => {
+    if (filters.distance === 'any' || !geoLocation) return clubList;
+    const maxMiles = parseInt(filters.distance);
+    return clubList
+      .map(c => {
+        if (!c.lat || !c.lng) return { ...c, _distance: null };
+        const dist = haversineMiles(geoLocation.lat, geoLocation.lng, c.lat, c.lng);
+        return { ...c, _distance: dist };
+      })
+      .filter(c => c._distance === null || c._distance <= maxMiles)
+      .sort((a, b) => {
+        if (a._distance === null) return 1;
+        if (b._distance === null) return -1;
+        return a._distance - b._distance;
+      });
+  }, [geoLocation, filters.distance]);
+
+  // Fetch discover clubs
   useEffect(() => {
     const load = async () => {
       setLoading(true);
 
-      // If user has active filters or search, use standard query
       if (filters.type !== 'all' || (searchMode === 'search' && searchInput.trim())) {
         let query = supabase.from('clubs').select('*').eq('visibility', 'public');
         if (filters.type !== 'all') query = query.eq('club_type', filters.type);
-        query = query.order('member_count', { ascending: false }).limit(20);
+        query = query.order('member_count', { ascending: false }).limit(40);
         const { data } = await query;
-        setClubs(data || []);
+        setClubs(applyDistanceFilter(data || []));
       } else {
-        // Personalized: garage match → location → popular
+        // Personalized: garage → location → popular
         const allClubs: any[] = [];
         const seenIds = new Set<string>();
 
-        // Priority 1: Garage vehicle matches
         if (userVehicles.length > 0) {
           const makes = userVehicles.map(v => v.make).filter(Boolean);
           const types = userVehicles.map(v => v.vehicle_type).filter(Boolean);
-          const hasMotorcycle = types.some(t => t === 'motorcycle');
-          const hasCar = types.some(t => ['car', 'classic', 'van'].includes(t));
-
           if (makes.length > 0) {
-            // Search by make in name, description, or tags
             const makePatterns = makes.map(m => `name.ilike.%${m}%,description.ilike.%${m}%`).join(',');
-            const { data: makeClubs } = await supabase.from('clubs').select('*')
-              .eq('visibility', 'public').or(makePatterns)
-              .order('member_count', { ascending: false }).limit(8);
-            (makeClubs || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
-          }
-
-          // Match by vehicle type
-          if (hasMotorcycle) {
-            const { data } = await supabase.from('clubs').select('*')
-              .eq('visibility', 'public').eq('club_type', 'motorcycles')
-              .order('member_count', { ascending: false }).limit(5);
+            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').or(makePatterns).order('member_count', { ascending: false }).limit(8);
             (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
           }
-          if (hasCar) {
-            const { data } = await supabase.from('clubs').select('*')
-              .eq('visibility', 'public').eq('club_type', 'make_model')
-              .order('member_count', { ascending: false }).limit(5);
+          if (types.some(t => t === 'motorcycle')) {
+            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', 'motorcycles').order('member_count', { ascending: false }).limit(5);
+            (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
+          }
+          if (types.some(t => ['car', 'classic', 'van'].includes(t))) {
+            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', 'make_model').order('member_count', { ascending: false }).limit(5);
             (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
           }
         }
-
-        // Priority 2: Location matches
-        if (userLocation) {
-          const locationLower = userLocation.toLowerCase();
-          const { data: locationClubs } = await supabase.from('clubs').select('*')
-            .eq('visibility', 'public').ilike('location', `%${locationLower}%`)
-            .order('member_count', { ascending: false }).limit(8);
-          (locationClubs || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
+        if (userProfileLocation) {
+          const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').ilike('location', `%${userProfileLocation.toLowerCase()}%`).order('member_count', { ascending: false }).limit(8);
+          (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
         }
-
-        // Priority 3: Popular fallback (fill remaining to 20)
         if (allClubs.length < 20) {
-          const { data: popularClubs } = await supabase.from('clubs').select('*')
-            .eq('visibility', 'public')
-            .order('member_count', { ascending: false }).limit(20);
-          (popularClubs || []).forEach(c => { if (!seenIds.has(c.id) && allClubs.length < 20) { seenIds.add(c.id); allClubs.push(c); } });
+          const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').order('member_count', { ascending: false }).limit(40);
+          (data || []).forEach(c => { if (!seenIds.has(c.id) && allClubs.length < 20) { seenIds.add(c.id); allClubs.push(c); } });
         }
-
-        setClubs(allClubs);
+        setClubs(applyDistanceFilter(allClubs));
       }
 
       if (user?.id) {
@@ -137,25 +155,18 @@ export default function CommunityClubsView() {
       setLoading(false);
     };
     load();
-  }, [user?.id, filters.type, userVehicles, userLocation]);
+  }, [user?.id, filters.type, filters.distance, userVehicles, userProfileLocation, applyDistanceFilter]);
 
   // Fetch my clubs
   useEffect(() => {
     if (!user?.id || activeTab !== 'my-clubs') return;
     const load = async () => {
       setMyClubsLoading(true);
-      const { data: memberships } = await supabase
-        .from('club_memberships')
-        .select('id, role, club_id, joined_at, status')
-        .eq('user_id', user.id)
-        .order('joined_at', { ascending: false });
+      const { data: memberships } = await supabase.from('club_memberships').select('id, role, club_id, joined_at, status').eq('user_id', user.id).order('joined_at', { ascending: false });
       if (memberships?.length) {
         const clubIds = memberships.map(m => m.club_id);
         const { data: clubsData } = await supabase.from('clubs').select('*').in('id', clubIds);
-        setMyClubs(memberships.map(m => {
-          const c = clubsData?.find((cl: any) => cl.id === m.club_id);
-          return c ? { ...c, myRole: m.role, myStatus: m.status } : null;
-        }).filter(Boolean));
+        setMyClubs(memberships.map(m => { const c = clubsData?.find((cl: any) => cl.id === m.club_id); return c ? { ...c, myRole: m.role, myStatus: m.status } : null; }).filter(Boolean));
       } else { setMyClubs([]); }
       setMyClubsLoading(false);
     };
@@ -166,10 +177,7 @@ export default function CommunityClubsView() {
     e.stopPropagation();
     if (!user?.id) { navigate('/auth'); return; }
     if (myClubIds.includes(club.id)) return;
-    if (club.join_mode === 'approval') {
-      await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' });
-      toast.success('Join request sent'); return;
-    }
+    if (club.join_mode === 'approval') { await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' }); toast.success('Join request sent'); return; }
     if (club.join_mode === 'invite_only') { toast.error('This club is invite only'); return; }
     const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
     if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); }
@@ -178,13 +186,10 @@ export default function CommunityClubsView() {
   const handleCodeJoin = async () => {
     if (!searchInput.trim() || !user?.id) return;
     const { data: club } = await supabase.from('clubs').select('*').eq('invite_code', searchInput.trim().toLowerCase()).maybeSingle();
-    if (!club) { toast.error('Club not found. Check the code.'); return; }
+    if (!club) { toast.error('Club not found.'); return; }
     const { data: existing } = await supabase.from('club_memberships').select('id').eq('club_id', club.id).eq('user_id', user.id).maybeSingle();
     if (existing) { toast.error('Already a member.'); return; }
-    if (club.join_mode === 'approval') {
-      await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' });
-      toast.success(`Request sent to ${club.name}`); setSearchInput(''); return;
-    }
+    if (club.join_mode === 'approval') { await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' }); toast.success(`Request sent to ${club.name}`); setSearchInput(''); return; }
     const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
     if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); setSearchInput(''); }
   };
@@ -198,6 +203,12 @@ export default function CommunityClubsView() {
 
   const roleLabel = (role: string) => role === 'owner' ? 'Founder' : role === 'admin' ? 'Admin' : 'Member';
   const roleColor = (role: string) => role === 'owner' ? '#CC2B2B' : role === 'admin' ? '#D97706' : '#6B7280';
+
+  const formatDistance = (d: number | null) => {
+    if (d === null) return null;
+    if (d < 1) return '<1 mi';
+    return `${Math.round(d)} mi`;
+  };
 
   return (
     <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
@@ -218,7 +229,6 @@ export default function CommunityClubsView() {
 
       {activeTab === 'discover' ? (
         <>
-          {/* Search + filters (Discover only) */}
           <div style={{ background: '#FFFFFF', padding: 16, borderBottom: '1px solid #F0EDE6' }}>
             <div style={{ display: 'flex', gap: 10 }}>
               <div style={{ flex: 1, position: 'relative' }}>
@@ -256,13 +266,31 @@ export default function CommunityClubsView() {
               )}
             </div>
             {showFilters && (
-              <div style={{ background: '#F8F7F4', borderRadius: 12, padding: 12, marginTop: 12, display: 'flex', gap: 8 }}>
-                {(Object.entries(filterOptions) as [string, { value: string; label: string }[]][]).map(([key, opts]) => (
-                  <select key={key} value={filters[key as keyof typeof filters]} onChange={e => setFilters(prev => ({ ...prev, [key]: e.target.value }))}
+              <div style={{ background: '#F8F7F4', borderRadius: 12, padding: 12, marginTop: 12 }}>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {/* Type filter */}
+                  <select value={filters.type} onChange={e => setFilters(prev => ({ ...prev, type: e.target.value }))}
                     style={{ flex: 1, background: '#fff', border: '1px solid #E8E4DC', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
-                    {opts.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {filterOptions.type.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
-                ))}
+                  {/* Distance filter */}
+                  <select value={filters.distance} onChange={e => setFilters(prev => ({ ...prev, distance: e.target.value }))}
+                    style={{ flex: 1, background: '#fff', border: '1px solid #E8E4DC', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
+                    {filterOptions.distance.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                  {/* Size filter */}
+                  <select value={filters.size} onChange={e => setFilters(prev => ({ ...prev, size: e.target.value }))}
+                    style={{ flex: 1, background: '#fff', border: '1px solid #E8E4DC', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
+                    {filterOptions.size.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+                {/* Location status indicator */}
+                {filters.distance !== 'any' && locationStatus !== 'granted' && (
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#D97706', fontWeight: 600 }}>
+                    <Navigation size={14} />
+                    {locationStatus === 'denied' ? 'Location denied — showing all clubs' : 'Getting your location...'}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -275,12 +303,13 @@ export default function CommunityClubsView() {
               <div style={{ textAlign: 'center', padding: '80px 20px', color: '#8C867E' }}>
                 <Users size={56} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 24px' }} />
                 <h3 style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 800, color: '#111' }}>No clubs found</h3>
-                <p style={{ margin: '0 0 20px', fontSize: 15 }}>{searchInput ? 'Try a different search' : 'Be the first to create one!'}</p>
+                <p style={{ margin: '0 0 20px', fontSize: 15 }}>{searchInput ? 'Try a different search' : filters.distance !== 'any' ? 'Try a wider distance or "Any distance"' : 'Be the first to create one!'}</p>
                 <button onClick={() => navigate('/add/club')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Create Club</button>
               </div>
             ) : filtered.map(club => {
               const isMember = myClubIds.includes(club.id);
               const hasBanner = club.cover_url || club.logo_url;
+              const dist = formatDistance(club._distance);
               return (
                 <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
                   width: '100%', background: '#FFFFFF', border: '1px solid #F0EDE6', borderRadius: 16,
@@ -312,7 +341,10 @@ export default function CommunityClubsView() {
                     <span style={{ color: '#CC2B2B', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
                       <Users size={14} /> {(club.member_count || 0).toLocaleString()} members
                     </span>
-                    {club.invite_code && <span style={{ fontSize: 10, fontWeight: 700, color: '#8C867E', background: '#F3F4F6', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace', textTransform: 'uppercase' as const }}>{club.invite_code}</span>}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      {dist && <span style={{ fontSize: 12, fontWeight: 600, color: '#8C867E', display: 'flex', alignItems: 'center', gap: 3 }}><Navigation size={11} />{dist}</span>}
+                      {club.invite_code && <span style={{ fontSize: 10, fontWeight: 700, color: '#8C867E', background: '#F3F4F6', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace', textTransform: 'uppercase' as const }}>{club.invite_code}</span>}
+                    </div>
                   </div>
                 </button>
               );
@@ -320,7 +352,7 @@ export default function CommunityClubsView() {
           </div>
         </>
       ) : (
-        /* My Clubs — clean management, no code input */
+        /* My Clubs */
         <div style={{ padding: 16 }}>
           {myClubsLoading ? [1, 2].map(i => <div key={i} style={{ background: '#FFFFFF', borderRadius: 16, height: 160, marginBottom: 16, border: '1px solid #F0EDE6' }} />) : (
             <>
@@ -335,7 +367,6 @@ export default function CommunityClubsView() {
                   ))}
                 </>
               )}
-
               {activeMyClubs.length === 0 && pendingMyClubs.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '80px 20px', color: '#8C867E' }}>
                   <div style={{ fontSize: 48, marginBottom: 20 }}>🏎️</div>
@@ -348,20 +379,13 @@ export default function CommunityClubsView() {
                 const hasBanner = club.cover_url || club.logo_url;
                 return (
                   <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                    width: '100%', background: '#FFFFFF',
-                    border: isAdmin ? `2px solid ${roleColor(club.myRole)}30` : '1px solid #F0EDE6',
+                    width: '100%', background: '#FFFFFF', border: isAdmin ? `2px solid ${roleColor(club.myRole)}30` : '1px solid #F0EDE6',
                     borderRadius: 16, padding: 0, marginBottom: 16, cursor: 'pointer', textAlign: 'left' as const, overflow: 'hidden',
                   }} className="hover:shadow-lg active:scale-[0.99]">
-                    <div style={{
-                      height: 100, position: 'relative',
-                      background: hasBanner ? `url(${club.cover_url || club.logo_url})` : 'linear-gradient(135deg, #374151, #6B7280)',
-                      backgroundSize: 'cover', backgroundPosition: 'center',
-                    }}>
+                    <div style={{ height: 100, position: 'relative', background: hasBanner ? `url(${club.cover_url || club.logo_url})` : 'linear-gradient(135deg, #374151, #6B7280)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.6) 100%)' }} />
                       <div style={{ position: 'absolute', top: 10, right: 10, background: roleColor(club.myRole), color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 8, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>{roleLabel(club.myRole)}</div>
-                      <div style={{ position: 'absolute', bottom: 10, left: 14 }}>
-                        <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{club.name}</h3>
-                      </div>
+                      <div style={{ position: 'absolute', bottom: 10, left: 14 }}><h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{club.name}</h3></div>
                     </div>
                     <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <div style={{ fontSize: 14, color: '#4A443D' }}>
