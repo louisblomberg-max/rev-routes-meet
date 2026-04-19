@@ -13,6 +13,7 @@ import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
+import DriveTab from '@/components/DriveTab';
 import TopAppHeader from '@/components/TopAppHeader';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
@@ -1108,7 +1109,7 @@ const Home = () => {
         </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'social' && <CommunityTab />}
-        {activeTab === 'drive' && <div style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 96 }}><p style={{ color: '#999', fontSize: 15, fontWeight: 500 }}>Drive tab coming soon</p></div>}
+        {activeTab === 'drive' && <DriveTab />}
         {activeTab === 'you' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
