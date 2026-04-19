@@ -1109,7 +1109,7 @@ const Home = () => {
         </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'community' && <CommunityTab />}
-        {activeTab === 'drive' && <div className="h-full flex items-center justify-center pb-24"><p className="text-muted-foreground">Drive tab coming soon</p></div>}
+        {activeTab === 'drive' && <div style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 96 }}><p style={{ color: '#999', fontSize: 15, fontWeight: 500 }}>Drive tab coming soon</p></div>}
         {activeTab === 'you' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}

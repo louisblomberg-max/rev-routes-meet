@@ -70,10 +70,10 @@ export default function CommunityMessagesView() {
     : conversations;
 
   return (
-    <div style={{ background: '#ECEAE4', minHeight: '100%', paddingBottom: 96 }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
       {/* Search bar */}
       <div style={{ padding: '12px 16px 8px', position: 'relative' }}>
-        <Search size={16} strokeWidth={2} color="#8C867E" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
+        <Search size={16} strokeWidth={2} color="#999" style={{ position: 'absolute', left: 30, top: 24, zIndex: 1, pointerEvents: 'none' }} />
         <input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -101,10 +101,10 @@ export default function CommunityMessagesView() {
       {/* Conversation list */}
       {loading ? (
         [1, 2, 3].map((i) => (
-          <div key={i} style={{ background: '#F0EDE6', borderRadius: 16, height: 68, margin: '0 16px 8px' }} />
+          <div key={i} style={{ background: '#F0F0F0', borderRadius: 16, height: 68, margin: '0 16px 8px' }} />
         ))
       ) : filtered.length === 0 ? (
-        <p style={{ fontSize: 14, color: '#8C867E', padding: '32px 16px', textAlign: 'center' }}>
+        <p style={{ fontSize: 14, color: '#999', padding: '32px 16px', textAlign: 'center' }}>
           No messages yet. Start a conversation from a club or profile.
         </p>
       ) : (
@@ -114,7 +114,7 @@ export default function CommunityMessagesView() {
             onClick={() => navigate(`/messages/${convo.id}`)}
             style={{
               background: '#FFFFFF',
-              border: '1px solid #E8E4DC',
+              border: '1px solid #EBEBEB',
               borderRadius: 16,
               padding: 12,
               display: 'flex',
@@ -144,12 +144,12 @@ export default function CommunityMessagesView() {
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{ fontSize: 14, fontWeight: 700, color: '#111' }}>{convo.otherName}</span>
-                <span style={{ fontSize: 11, color: '#8C867E', fontWeight: 600, flexShrink: 0 }}>
+                <span style={{ fontSize: 11, color: '#999', fontWeight: 600, flexShrink: 0 }}>
                   {timeAgo(convo.last_message_at)}
                 </span>
               </div>
               <div style={{
-                fontSize: 12, color: '#8C867E', marginTop: 2,
+                fontSize: 12, color: '#999', marginTop: 2,
                 overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const,
               }}>
                 {convo.last_message_preview || 'No messages yet'}

@@ -53,7 +53,7 @@ const YouTab = () => {
 
   if (!user) {
     return (
-      <div className="mobile-container bg-background min-h-screen px-4 pt-8 md:max-w-[768px] md:mx-auto">
+      <div className="mobile-container min-h-screen px-4 pt-8 md:max-w-[768px] md:mx-auto" style={{ background: '#FFFFFF' }}>
         <div className="flex flex-col items-center gap-3">
           <Skeleton className="w-[72px] h-[72px] rounded-full" />
           <Skeleton className="h-5 w-32" />
@@ -64,7 +64,7 @@ const YouTab = () => {
   }
 
   return (
-    <div className="h-full bg-background pb-20 flex flex-col overflow-y-auto md:max-w-[768px] md:mx-auto">
+    <div className="h-full pb-20 flex flex-col overflow-y-auto md:max-w-[768px] md:mx-auto" style={{ background: '#FFFFFF' }}>
 
       {/* ── Profile Header Card ── */}
       <div className="px-4 pt-5">

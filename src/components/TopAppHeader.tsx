@@ -30,7 +30,7 @@ const TopAppHeader = ({ variant = 'solid' }: TopAppHeaderProps) => {
           : {
               position: 'relative',
               background: '#FFFFFF',
-              borderBottom: '1px solid #E8E4DC',
+              borderBottom: '1px solid #F0F0F0',
             }),
       }}
     >
