@@ -3,43 +3,30 @@ import CommunityClubsView from './community/CommunityClubsView';
 import CommunityForumsView from './community/CommunityForumsView';
 import CommunityMessagesView from './community/CommunityMessagesView';
 
-type SubTab = 'clubs' | 'forums' | 'messages';
+type SubTab = 'discover' | 'my clubs' | 'forums' | 'messages';
 
 export default function CommunityTab() {
-  const [subTab, setSubTab] = useState<SubTab>('clubs');
+  const [subTab, setSubTab] = useState<SubTab>('discover');
 
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
-      {/* Tab bar */}
-      <nav
-        role="tablist"
-        style={{
-          display: 'flex',
-          padding: '0 20px',
-          background: '#FFFFFF',
-          borderBottom: '1px solid #F0F0F0',
-        }}
-      >
-        {(['clubs', 'forums', 'messages'] as SubTab[]).map((t) => {
+      {/* Single flat tab bar */}
+      <nav style={{
+        display: 'flex', padding: '0 4px', background: '#FFFFFF',
+        borderBottom: '1px solid #F0F0F0', overflowX: 'auto',
+      }}>
+        {(['discover', 'my clubs', 'forums', 'messages'] as SubTab[]).map(t => {
           const active = subTab === t;
           return (
             <button
               key={t}
-              role="tab"
-              aria-selected={active}
               onClick={() => setSubTab(t)}
               style={{
-                flex: 1,
-                background: 'transparent',
-                border: 'none',
-                padding: '14px 0 16px',
-                fontSize: 15,
-                fontWeight: active ? 700 : 500,
-                color: active ? '#CC2B2B' : '#999',
+                flex: 'none', background: 'transparent', border: 'none',
+                padding: '14px 16px 16px', fontSize: 14, fontWeight: active ? 700 : 500,
+                color: active ? '#CC2B2B' : '#AAA', whiteSpace: 'nowrap' as const,
                 borderBottom: active ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
-                marginBottom: -1,
-                cursor: 'pointer',
-                transition: 'color 0.15s ease',
+                marginBottom: -1, cursor: 'pointer', transition: 'color 0.15s ease',
                 textTransform: 'capitalize',
               }}
             >
@@ -49,7 +36,8 @@ export default function CommunityTab() {
         })}
       </nav>
 
-      {subTab === 'clubs' && <CommunityClubsView />}
+      {subTab === 'discover' && <CommunityClubsView mode="discover" />}
+      {subTab === 'my clubs' && <CommunityClubsView mode="my-clubs" />}
       {subTab === 'forums' && <CommunityForumsView />}
       {subTab === 'messages' && <CommunityMessagesView />}
     </div>

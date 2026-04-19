@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Plus, MapPin, Users, Settings, ChevronRight, Hash, Navigation } from 'lucide-react';
+import { Search, Plus, Users, Settings, ChevronRight, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-
-type ClubsTab = 'discover' | 'my-clubs';
 
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3959;
@@ -15,69 +13,46 @@ function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number):
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export default function CommunityClubsView() {
+interface Props { mode: 'discover' | 'my-clubs'; }
+
+export default function CommunityClubsView({ mode }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<ClubsTab>('discover');
   const [clubs, setClubs] = useState<any[]>([]);
   const [myClubIds, setMyClubIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [myClubs, setMyClubs] = useState<any[]>([]);
-  const [myClubsLoading, setMyClubsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [showCodeInput, setShowCodeInput] = useState(false);
+  const [codeInput, setCodeInput] = useState('');
 
-  const [searchMode, setSearchMode] = useState<'search' | 'code'>('search');
-  const [searchInput, setSearchInput] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({ type: 'all', distance: '25', size: 'all' });
-
-  // Location state
   const [geoLocation, setGeoLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [locationStatus, setLocationStatus] = useState<'pending' | 'granted' | 'denied' | 'unavailable'>('pending');
-
-  // User profile data for personalization
   const [userVehicles, setUserVehicles] = useState<any[]>([]);
   const [userProfileLocation, setUserProfileLocation] = useState('');
 
-  const filterOptions = {
-    type: [
-      { value: 'all', label: 'All Types' },
-      { value: 'make_model', label: 'Car Clubs' },
-      { value: 'motorcycles', label: 'Motorcycle' },
-      { value: 'regional', label: 'Regional' },
-      { value: 'classics', label: 'Classic Cars' },
-      { value: 'track_racing', label: 'Track & Racing' },
-      { value: 'off_road', label: 'Off-Road' },
-    ],
-    distance: [
-      { value: '10', label: 'Within 10 miles' },
-      { value: '25', label: 'Within 25 miles' },
-      { value: '50', label: 'Within 50 miles' },
-      { value: '100', label: 'Within 100 miles' },
-      { value: 'any', label: 'Any distance' },
-    ],
-    size: [
-      { value: 'all', label: 'Any Size' },
-      { value: 'small', label: 'Small (1-50)' },
-      { value: 'medium', label: 'Medium (51-200)' },
-      { value: 'large', label: 'Large (201+)' },
-    ],
-  };
+  const types = [
+    { value: 'all', label: 'All' },
+    { value: 'make_model', label: 'Cars' },
+    { value: 'motorcycles', label: 'Bikes' },
+    { value: 'classics', label: 'Classic' },
+    { value: 'track_racing', label: 'Track' },
+    { value: 'regional', label: 'Regional' },
+    { value: 'off_road', label: 'Off-Road' },
+  ];
 
-  // Request geolocation on mount
+  // Geolocation
   useEffect(() => {
-    if (!navigator.geolocation) { setLocationStatus('unavailable'); return; }
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setGeoLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setLocationStatus('granted');
-      },
-      () => setLocationStatus('denied'),
+      pos => setGeoLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 },
     );
   }, []);
 
-  // Fetch user vehicles + profile location for personalization
+  // User data for personalisation
   useEffect(() => {
     if (!user?.id) return;
     supabase.from('vehicles').select('make, model, vehicle_type').eq('user_id', user.id)
@@ -86,327 +61,269 @@ export default function CommunityClubsView() {
       .then(({ data }) => setUserProfileLocation(data?.location || ''));
   }, [user?.id]);
 
-  // Apply distance filter to club list
-  const applyDistanceFilter = useCallback((clubList: any[]): any[] => {
-    if (filters.distance === 'any' || !geoLocation) return clubList;
-    const maxMiles = parseInt(filters.distance);
-    return clubList
-      .map(c => {
-        if (!c.lat || !c.lng) return { ...c, _distance: null };
-        const dist = haversineMiles(geoLocation.lat, geoLocation.lng, c.lat, c.lng);
-        return { ...c, _distance: dist };
-      })
-      .filter(c => c._distance === null || c._distance <= maxMiles)
-      .sort((a, b) => {
-        if (a._distance === null) return 1;
-        if (b._distance === null) return -1;
-        return a._distance - b._distance;
-      });
-  }, [geoLocation, filters.distance]);
+  // Enrich with distance
+  const addDistance = useCallback((list: any[]) => {
+    if (!geoLocation) return list;
+    return list.map(c => {
+      if (!c.lat || !c.lng) return c;
+      return { ...c, _dist: haversineMiles(geoLocation.lat, geoLocation.lng, c.lat, c.lng) };
+    }).sort((a, b) => (a._dist ?? 9999) - (b._dist ?? 9999));
+  }, [geoLocation]);
 
   // Fetch discover clubs
   useEffect(() => {
+    if (mode !== 'discover') return;
     const load = async () => {
       setLoading(true);
-
-      if (filters.type !== 'all' || (searchMode === 'search' && searchInput.trim())) {
-        let query = supabase.from('clubs').select('*').eq('visibility', 'public');
-        if (filters.type !== 'all') query = query.eq('club_type', filters.type);
-        query = query.order('member_count', { ascending: false }).limit(40);
-        const { data } = await query;
-        setClubs(applyDistanceFilter(data || []));
+      if (typeFilter !== 'all') {
+        let q = supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', typeFilter).order('member_count', { ascending: false }).limit(30);
+        const { data } = await q;
+        setClubs(addDistance(data || []));
       } else {
-        // Personalized: garage → location → popular
-        const allClubs: any[] = [];
-        const seenIds = new Set<string>();
-
+        const all: any[] = []; const seen = new Set<string>();
         if (userVehicles.length > 0) {
           const makes = userVehicles.map(v => v.make).filter(Boolean);
-          const types = userVehicles.map(v => v.vehicle_type).filter(Boolean);
           if (makes.length > 0) {
-            const makePatterns = makes.map(m => `name.ilike.%${m}%,description.ilike.%${m}%`).join(',');
-            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').or(makePatterns).order('member_count', { ascending: false }).limit(8);
-            (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
-          }
-          if (types.some(t => t === 'motorcycle')) {
-            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', 'motorcycles').order('member_count', { ascending: false }).limit(5);
-            (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
-          }
-          if (types.some(t => ['car', 'classic', 'van'].includes(t))) {
-            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', 'make_model').order('member_count', { ascending: false }).limit(5);
-            (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
+            const p = makes.map(m => `name.ilike.%${m}%,description.ilike.%${m}%`).join(',');
+            const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').or(p).order('member_count', { ascending: false }).limit(8);
+            (data || []).forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); all.push(c); } });
           }
         }
         if (userProfileLocation) {
           const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').ilike('location', `%${userProfileLocation.toLowerCase()}%`).order('member_count', { ascending: false }).limit(8);
-          (data || []).forEach(c => { if (!seenIds.has(c.id)) { seenIds.add(c.id); allClubs.push(c); } });
+          (data || []).forEach(c => { if (!seen.has(c.id)) { seen.add(c.id); all.push(c); } });
         }
-        if (allClubs.length < 20) {
-          const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').order('member_count', { ascending: false }).limit(40);
-          (data || []).forEach(c => { if (!seenIds.has(c.id) && allClubs.length < 20) { seenIds.add(c.id); allClubs.push(c); } });
+        if (all.length < 20) {
+          const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').order('member_count', { ascending: false }).limit(30);
+          (data || []).forEach(c => { if (!seen.has(c.id) && all.length < 20) { seen.add(c.id); all.push(c); } });
         }
-        setClubs(applyDistanceFilter(allClubs));
+        setClubs(addDistance(all));
       }
-
       if (user?.id) {
-        const { data: memberships } = await supabase.from('club_memberships').select('club_id').eq('user_id', user.id);
-        setMyClubIds(memberships?.map(m => m.club_id) || []);
+        const { data: m } = await supabase.from('club_memberships').select('club_id').eq('user_id', user.id);
+        setMyClubIds(m?.map(x => x.club_id) || []);
       }
       setLoading(false);
     };
     load();
-  }, [user?.id, filters.type, filters.distance, userVehicles, userProfileLocation, applyDistanceFilter]);
+  }, [mode, user?.id, typeFilter, userVehicles, userProfileLocation, addDistance]);
 
   // Fetch my clubs
   useEffect(() => {
-    if (!user?.id || activeTab !== 'my-clubs') return;
-    const load = async () => {
-      setMyClubsLoading(true);
-      const { data: memberships } = await supabase.from('club_memberships').select('id, role, club_id, joined_at, status').eq('user_id', user.id).order('joined_at', { ascending: false });
+    if (mode !== 'my-clubs' || !user?.id) return;
+    setLoading(true);
+    (async () => {
+      const { data: memberships } = await supabase.from('club_memberships').select('id, role, club_id, status').eq('user_id', user.id).order('joined_at', { ascending: false });
       if (memberships?.length) {
-        const clubIds = memberships.map(m => m.club_id);
-        const { data: clubsData } = await supabase.from('clubs').select('*').in('id', clubIds);
-        setMyClubs(memberships.map(m => { const c = clubsData?.find((cl: any) => cl.id === m.club_id); return c ? { ...c, myRole: m.role, myStatus: m.status } : null; }).filter(Boolean));
+        const ids = memberships.map(m => m.club_id);
+        const { data: cd } = await supabase.from('clubs').select('*').in('id', ids);
+        setMyClubs(memberships.map(m => { const c = cd?.find((x: any) => x.id === m.club_id); return c ? { ...c, myRole: m.role, myStatus: m.status } : null; }).filter(Boolean));
       } else { setMyClubs([]); }
-      setMyClubsLoading(false);
-    };
-    load();
-  }, [user?.id, activeTab]);
+      setLoading(false);
+    })();
+  }, [mode, user?.id]);
 
   const handleJoin = async (club: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!user?.id) { navigate('/auth'); return; }
     if (myClubIds.includes(club.id)) return;
     if (club.join_mode === 'approval') { await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' }); toast.success('Join request sent'); return; }
-    if (club.join_mode === 'invite_only') { toast.error('This club is invite only'); return; }
+    if (club.join_mode === 'invite_only') { toast.error('Invite only'); return; }
     const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
     if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); }
   };
 
   const handleCodeJoin = async () => {
-    if (!searchInput.trim() || !user?.id) return;
-    const { data: club } = await supabase.from('clubs').select('*').eq('invite_code', searchInput.trim().toLowerCase()).maybeSingle();
-    if (!club) { toast.error('Club not found.'); return; }
-    const { data: existing } = await supabase.from('club_memberships').select('id').eq('club_id', club.id).eq('user_id', user.id).maybeSingle();
-    if (existing) { toast.error('Already a member.'); return; }
-    if (club.join_mode === 'approval') { await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' }); toast.success(`Request sent to ${club.name}`); setSearchInput(''); return; }
+    if (!codeInput.trim() || !user?.id) return;
+    const { data: club } = await supabase.from('clubs').select('*').eq('invite_code', codeInput.trim().toLowerCase()).maybeSingle();
+    if (!club) { toast.error('Club not found'); return; }
+    const { data: ex } = await supabase.from('club_memberships').select('id').eq('club_id', club.id).eq('user_id', user.id).maybeSingle();
+    if (ex) { toast.error('Already a member'); return; }
     const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
-    if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); setSearchInput(''); }
+    if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); setCodeInput(''); setShowCodeInput(false); }
   };
 
-  const filtered = searchMode === 'search' && searchInput.trim()
-    ? clubs.filter(c => c.name?.toLowerCase().includes(searchInput.toLowerCase()) || c.description?.toLowerCase().includes(searchInput.toLowerCase()))
+  const filtered = searchQuery.trim()
+    ? clubs.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || c.description?.toLowerCase().includes(searchQuery.toLowerCase()))
     : clubs;
 
   const activeMyClubs = myClubs.filter(c => c.myStatus !== 'pending');
   const pendingMyClubs = myClubs.filter(c => c.myStatus === 'pending');
+  const roleLabel = (r: string) => r === 'owner' ? 'Founder' : r === 'admin' ? 'Admin' : 'Member';
 
-  const roleLabel = (role: string) => role === 'owner' ? 'Founder' : role === 'admin' ? 'Admin' : 'Member';
-  const roleColor = (role: string) => role === 'owner' ? '#CC2B2B' : role === 'admin' ? '#D97706' : '#6B7280';
+  const fmtDist = (d?: number) => d == null ? null : d < 1 ? '<1 mi' : `${Math.round(d)} mi`;
 
-  const formatDistance = (d: number | null) => {
-    if (d === null) return null;
-    if (d < 1) return '<1 mi';
-    return `${Math.round(d)} mi`;
-  };
+  // ── DISCOVER ──
+  if (mode === 'discover') {
+    return (
+      <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
+        {/* Search */}
+        <div style={{ padding: '12px 16px 0' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={18} color="#BBB" style={{ position: 'absolute', left: 14, top: 12 }} />
+            <input
+              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search clubs..."
+              style={{ width: '100%', background: '#F5F5F5', border: 'none', borderRadius: 12, padding: '12px 14px 12px 42px', fontSize: 15, color: '#111', outline: 'none' }}
+            />
+          </div>
+        </div>
 
-  return (
-    <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
-      {/* Tab bar */}
-      <div style={{ background: '#FFFFFF', borderBottom: '1px solid #EBEBEB', padding: '0 16px', display: 'flex' }}>
-        {(['discover', 'my-clubs'] as ClubsTab[]).map(t => (
-          <button key={t} onClick={() => setActiveTab(t)} style={{
-            flex: 1, background: 'transparent', border: 'none', padding: '16px 0',
-            fontSize: 15, fontWeight: activeTab === t ? 800 : 600,
-            color: activeTab === t ? '#CC2B2B' : '#999',
-            borderBottom: activeTab === t ? '3px solid #CC2B2B' : '3px solid transparent',
-            cursor: 'pointer', transition: 'all 0.2s ease',
-          }}>
-            {t === 'discover' ? 'Discover' : `My Clubs (${activeMyClubs.length})`}
-          </button>
-        ))}
-      </div>
+        {/* Type pills */}
+        <div style={{ display: 'flex', gap: 6, padding: '12px 16px', overflowX: 'auto' }}>
+          {types.map(t => (
+            <button key={t.value} onClick={() => setTypeFilter(t.value)} style={{
+              flexShrink: 0, padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+              border: 'none', cursor: 'pointer',
+              background: typeFilter === t.value ? '#CC2B2B' : '#F5F5F5',
+              color: typeFilter === t.value ? '#fff' : '#666',
+            }}>{t.label}</button>
+          ))}
+        </div>
 
-      {activeTab === 'discover' ? (
-        <>
-          <div style={{ background: '#FFFFFF', padding: 16, borderBottom: '1px solid #F0F0F0' }}>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <div style={{ flex: 1, position: 'relative' }}>
-                {searchMode === 'search'
-                  ? <Search size={20} color="#999" style={{ position: 'absolute', left: 16, top: 14 }} />
-                  : <Hash size={20} color="#999" style={{ position: 'absolute', left: 16, top: 14 }} />}
-                <input
-                  value={searchInput}
-                  onChange={e => setSearchInput(searchMode === 'code' ? e.target.value.toUpperCase().replace(/\s/g, '') : e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && searchMode === 'code') handleCodeJoin(); }}
-                  placeholder={searchMode === 'search' ? 'Search clubs...' : 'Enter club code'}
-                  style={{
-                    width: '100%', background: '#F7F7F7', border: 'none', borderRadius: 14,
-                    padding: '14px 90px 14px 50px', fontSize: 16, color: '#111', outline: 'none',
-                    fontFamily: searchMode === 'code' ? 'monospace' : 'inherit',
-                    fontWeight: searchMode === 'code' ? 600 : 400,
-                    letterSpacing: searchMode === 'code' ? '1.2px' : 'normal',
-                  }}
-                />
-                <button onClick={() => { setSearchMode(prev => prev === 'search' ? 'code' : 'search'); setSearchInput(''); }} style={{
-                  position: 'absolute', right: 8, top: 8, background: searchMode === 'code' ? '#CC2B2B' : '#EBEBEB',
-                  color: searchMode === 'code' ? '#fff' : '#999', border: 'none', borderRadius: 8,
-                  padding: '6px 12px', fontSize: 12, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.5px', textTransform: 'uppercase' as const,
-                }}>{searchMode === 'search' ? 'CODE' : 'SEARCH'}</button>
-              </div>
-              {searchMode === 'code' && searchInput.trim() && (
-                <button onClick={handleCodeJoin} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Join</button>
-              )}
-              {searchMode === 'search' && (
-                <button onClick={() => setShowFilters(!showFilters)} style={{
-                  background: showFilters ? '#CC2B2B' : '#FFFFFF', color: showFilters ? '#fff' : '#111',
-                  border: '1px solid #EBEBEB', borderRadius: 14, padding: '14px 16px', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', gap: 6, fontSize: 14, fontWeight: 600,
-                }}><Filter size={16} /> Filter</button>
-              )}
+        {/* Code link */}
+        {!showCodeInput ? (
+          <div style={{ padding: '0 16px 12px' }}>
+            <button onClick={() => setShowCodeInput(true)} style={{ background: 'none', border: 'none', color: '#CC2B2B', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+              Have a club code?
+            </button>
+          </div>
+        ) : (
+          <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
+            <input value={codeInput} onChange={e => setCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))} onKeyDown={e => { if (e.key === 'Enter') handleCodeJoin(); }}
+              placeholder="Enter code" autoFocus
+              style={{ flex: 1, background: '#F5F5F5', border: 'none', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#111', outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+            <button onClick={handleCodeJoin} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Join</button>
+            <button onClick={() => { setShowCodeInput(false); setCodeInput(''); }} style={{ background: 'none', border: 'none', color: '#999', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+          </div>
+        )}
+
+        {/* Club list */}
+        <div style={{ padding: '0 16px' }}>
+          {loading ? [1, 2, 3, 4].map(i => (
+            <div key={i} style={{ height: 72, borderRadius: 12, background: '#F9F9F9', marginBottom: 8 }} />
+          )) : filtered.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: '#AAA' }}>
+              <Users size={40} color="#DDD" style={{ display: 'block', margin: '0 auto 16px' }} />
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111' }}>No clubs found</p>
+              <p style={{ margin: '6px 0 20px', fontSize: 14 }}>{searchQuery ? 'Try a different search' : 'Be the first to create one'}</p>
+              <button onClick={() => navigate('/add/club')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 20, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Create Club</button>
             </div>
-            {showFilters && (
-              <div style={{ background: '#F7F7F7', borderRadius: 12, padding: 12, marginTop: 12 }}>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {/* Type filter */}
-                  <select value={filters.type} onChange={e => setFilters(prev => ({ ...prev, type: e.target.value }))}
-                    style={{ flex: 1, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
-                    {filterOptions.type.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                  {/* Distance filter */}
-                  <select value={filters.distance} onChange={e => setFilters(prev => ({ ...prev, distance: e.target.value }))}
-                    style={{ flex: 1, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
-                    {filterOptions.distance.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
-                  {/* Size filter */}
-                  <select value={filters.size} onChange={e => setFilters(prev => ({ ...prev, size: e.target.value }))}
-                    style={{ flex: 1, background: '#fff', border: '1px solid #EBEBEB', borderRadius: 8, padding: '8px 10px', fontSize: 13, fontWeight: 600, color: '#111', cursor: 'pointer', outline: 'none' }}>
-                    {filterOptions.size.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select>
+          ) : filtered.map(club => {
+            const isMember = myClubIds.includes(club.id);
+            const dist = fmtDist(club._dist);
+            return (
+              <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 0', borderBottom: '1px solid #F5F5F5',
+                background: 'none', border: 'none', borderBottomStyle: 'solid' as const, borderBottomWidth: 1, borderBottomColor: '#F5F5F5',
+                cursor: 'pointer', textAlign: 'left' as const,
+              }}>
+                {/* Avatar */}
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                  background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 18, fontWeight: 800, color: '#BBB',
+                }}>
+                  {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
                 </div>
-                {/* Location status indicator */}
-                {filters.distance !== 'any' && locationStatus !== 'granted' && (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#D97706', fontWeight: 600 }}>
-                    <Navigation size={14} />
-                    {locationStatus === 'denied' ? 'Location denied — showing all clubs' : 'Getting your location...'}
+
+                {/* Info */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{club.name}</div>
+                  <div style={{ fontSize: 13, color: '#999', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()} members</span>
+                    {dist && <><span>·</span><span>{dist}</span></>}
+                    {club.location && !dist && <><span>·</span><span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><MapPin size={11} />{club.location}</span></>}
+                  </div>
+                </div>
+
+                {/* Action */}
+                {isMember ? (
+                  <span style={{ fontSize: 12, fontWeight: 600, color: '#22C55E', flexShrink: 0 }}>Joined</span>
+                ) : (
+                  <div onClick={e => handleJoin(club, e)} style={{
+                    width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #EEE',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer',
+                  }}>
+                    <Plus size={16} color="#CC2B2B" />
                   </div>
                 )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ── MY CLUBS ──
+  return (
+    <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
+      <div style={{ padding: '0 16px' }}>
+        {loading ? [1, 2, 3].map(i => (
+          <div key={i} style={{ height: 72, borderRadius: 12, background: '#F9F9F9', marginBottom: 8, marginTop: i === 1 ? 16 : 0 }} />
+        )) : (
+          <>
+            {pendingMyClubs.length > 0 && (
+              <div style={{ paddingTop: 16 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: '#D97706', textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 10 }}>Pending</div>
+                {pendingMyClubs.map(club => (
+                  <div key={club.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid #FEF3C7' }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: '#D97706', flexShrink: 0 }}>{club.name?.[0]?.toUpperCase()}</div>
+                    <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</div><div style={{ fontSize: 12, color: '#D97706', marginTop: 1 }}>Awaiting approval</div></div>
+                  </div>
+                ))}
               </div>
             )}
-          </div>
 
-          {/* Discover list */}
-          <div style={{ padding: 16 }}>
-            {loading ? [1, 2, 3].map(i => (
-              <div key={i} style={{ background: '#FFFFFF', borderRadius: 16, height: 180, marginBottom: 16, border: '1px solid #F0F0F0' }} />
-            )) : filtered.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#999' }}>
-                <Users size={56} color="#D1D5DB" style={{ display: 'block', margin: '0 auto 24px' }} />
-                <h3 style={{ margin: '0 0 12px', fontSize: 20, fontWeight: 800, color: '#111' }}>No clubs found</h3>
-                <p style={{ margin: '0 0 20px', fontSize: 15 }}>{searchInput ? 'Try a different search' : filters.distance !== 'any' ? 'Try a wider distance or "Any distance"' : 'Be the first to create one!'}</p>
-                <button onClick={() => navigate('/add/club')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 24px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Create Club</button>
+            {activeMyClubs.length === 0 && pendingMyClubs.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#AAA' }}>
+                <Users size={40} color="#DDD" style={{ display: 'block', margin: '0 auto 16px' }} />
+                <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111' }}>No clubs yet</p>
+                <p style={{ margin: '6px 0', fontSize: 14 }}>Find a club that matches your cars</p>
               </div>
-            ) : filtered.map(club => {
-              const isMember = myClubIds.includes(club.id);
-              const hasBanner = club.cover_url || club.logo_url;
-              const dist = formatDistance(club._distance);
-              return (
-                <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                  width: '100%', background: '#FFFFFF', border: '1px solid #F0F0F0', borderRadius: 16,
-                  padding: 0, cursor: 'pointer', textAlign: 'left' as const, marginBottom: 16,
-                  overflow: 'hidden', transition: 'all 0.2s ease',
-                }} className="hover:shadow-lg active:scale-[0.99]">
-                  <div style={{
-                    height: 120, position: 'relative',
-                    background: hasBanner ? `url(${club.cover_url || club.logo_url})` : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
-                    backgroundSize: 'cover', backgroundPosition: 'center',
-                  }}>
-                    <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)' }} />
-                    <div style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)', color: '#fff', fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 8, letterSpacing: '0.3px', textTransform: 'capitalize' as const }}>{club.club_type?.replace(/_/g, ' ') || 'Club'}</div>
-                    <div style={{ position: 'absolute', bottom: 12, left: 14, right: 60 }}>
-                      <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{club.name}</h3>
-                      {club.location && <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}><MapPin size={11} />{club.location}</div>}
-                    </div>
-                    <div onClick={e => { e.stopPropagation(); if (!isMember) handleJoin(club, e); }} style={{ position: 'absolute', bottom: 10, right: 10 }}>
-                      {isMember ? (
-                        <span style={{ background: 'rgba(255,255,255,0.95)', color: '#059669', fontSize: 11, fontWeight: 700, padding: '6px 12px', borderRadius: 16 }}>✓ Joined</span>
-                      ) : (
-                        <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#CC2B2B', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 8px rgba(204,43,43,0.4)' }}>
-                          <Plus size={20} color="#fff" />
+            ) : (
+              <div style={{ paddingTop: pendingMyClubs.length > 0 ? 16 : 12 }}>
+                {activeMyClubs.map(club => {
+                  const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
+                  return (
+                    <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
+                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                      padding: '14px 0', background: 'none', border: 'none',
+                      borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const,
+                    }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                        background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 18, fontWeight: 800, color: '#BBB',
+                      }}>
+                        {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</span>
+                          {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: '#CC2B2B', background: '#FEF2F2', padding: '2px 6px', borderRadius: 4 }}>{roleLabel(club.myRole)}</span>}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#CC2B2B', fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <Users size={14} /> {(club.member_count || 0).toLocaleString()} members
-                    </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {dist && <span style={{ fontSize: 12, fontWeight: 600, color: '#999', display: 'flex', alignItems: 'center', gap: 3 }}><Navigation size={11} />{dist}</span>}
-                      {club.invite_code && <span style={{ fontSize: 10, fontWeight: 700, color: '#999', background: '#F3F4F6', padding: '3px 8px', borderRadius: 6, fontFamily: 'monospace', textTransform: 'uppercase' as const }}>{club.invite_code}</span>}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      ) : (
-        /* My Clubs */
-        <div style={{ padding: 16 }}>
-          {myClubsLoading ? [1, 2].map(i => <div key={i} style={{ background: '#FFFFFF', borderRadius: 16, height: 160, marginBottom: 16, border: '1px solid #F0F0F0' }} />) : (
-            <>
-              {pendingMyClubs.length > 0 && (
-                <>
-                  <h4 style={{ fontSize: 12, fontWeight: 800, color: '#D97706', textTransform: 'uppercase' as const, letterSpacing: '0.8px', marginBottom: 12, marginTop: 0 }}>Pending Approval</h4>
-                  {pendingMyClubs.map(club => (
-                    <div key={club.id} style={{ background: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: 16, padding: 16, marginBottom: 12, display: 'flex', gap: 14, alignItems: 'center' }}>
-                      <div style={{ width: 48, height: 48, borderRadius: 12, flexShrink: 0, background: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 800, color: '#fff' }}>{club.name?.[0]?.toUpperCase()}</div>
-                      <div><div style={{ fontSize: 15, fontWeight: 700, color: '#92400E' }}>{club.name}</div><div style={{ fontSize: 13, color: '#D97706', fontWeight: 600 }}>Awaiting approval</div></div>
-                    </div>
-                  ))}
-                </>
-              )}
-              {activeMyClubs.length === 0 && pendingMyClubs.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '80px 20px', color: '#999' }}>
-                  <div style={{ fontSize: 48, marginBottom: 20 }}>🏎️</div>
-                  <h3 style={{ margin: '0 0 8px', fontSize: 20, fontWeight: 800, color: '#111' }}>No clubs joined yet</h3>
-                  <p style={{ margin: '0 0 24px', fontSize: 15, lineHeight: 1.5 }}>Ready to join your first automotive community?</p>
-                  <button onClick={() => setActiveTab('discover')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 24, padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>Discover Clubs</button>
-                </div>
-              ) : activeMyClubs.map(club => {
-                const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
-                const hasBanner = club.cover_url || club.logo_url;
-                return (
-                  <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                    width: '100%', background: '#FFFFFF', border: isAdmin ? `2px solid ${roleColor(club.myRole)}30` : '1px solid #F0F0F0',
-                    borderRadius: 16, padding: 0, marginBottom: 16, cursor: 'pointer', textAlign: 'left' as const, overflow: 'hidden',
-                  }} className="hover:shadow-lg active:scale-[0.99]">
-                    <div style={{ height: 100, position: 'relative', background: hasBanner ? `url(${club.cover_url || club.logo_url})` : 'linear-gradient(135deg, #374151, #6B7280)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.6) 100%)' }} />
-                      <div style={{ position: 'absolute', top: 10, right: 10, background: roleColor(club.myRole), color: '#fff', fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 8, textTransform: 'uppercase' as const, letterSpacing: '0.5px' }}>{roleLabel(club.myRole)}</div>
-                      <div style={{ position: 'absolute', bottom: 10, left: 14 }}><h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#fff', textShadow: '0 1px 4px rgba(0,0,0,0.5)' }}>{club.name}</h3></div>
-                    </div>
-                    <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <div style={{ fontSize: 14, color: '#555' }}>
-                        <span style={{ fontWeight: 700, color: '#CC2B2B' }}>{(club.member_count || 0).toLocaleString()}</span>
-                        <span style={{ color: '#999' }}> members</span>
-                        <span style={{ color: '#D1D5DB', margin: '0 6px' }}>·</span>
-                        <span style={{ fontWeight: 700, color: roleColor(club.myRole) }}>{roleLabel(club.myRole)}</span>
+                        <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+                          <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()}</span> members
+                        </div>
                       </div>
                       {isAdmin ? (
-                        <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                          <Settings size={16} color="#CC2B2B" />
+                        <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+                          <Settings size={14} color="#CC2B2B" />
                         </div>
-                      ) : <ChevronRight size={20} color="#D1D5DB" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </>
-          )}
-        </div>
-      )}
+                      ) : <ChevronRight size={18} color="#DDD" style={{ flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
