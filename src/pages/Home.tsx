@@ -14,7 +14,6 @@ import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
 import TopAppHeader from '@/components/TopAppHeader';
-import MarketplaceTab from '@/components/MarketplaceTab';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
 import HelpSheet from '@/components/HelpSheet';
@@ -31,7 +30,7 @@ import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-type Tab = 'discovery' | 'drive' | 'community' | 'you';
+type Tab = 'explore' | 'drive' | 'social' | 'you';
 
 interface TappedLocation {
   lat: number;
@@ -83,16 +82,16 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
-    if (tabParam && ['discovery', 'drive', 'community', 'you'].includes(tabParam)) return tabParam;
+    if (tabParam && ['explore', 'drive', 'social', 'you'].includes(tabParam)) return tabParam;
     const stored = sessionStorage.getItem('revnet_active_tab') as Tab | null;
-    if (stored && ['discovery', 'drive', 'community', 'you'].includes(stored)) return stored;
-    return 'discovery';
+    if (stored && ['explore', 'drive', 'social', 'you'].includes(stored)) return stored;
+    return 'explore';
   });
 
   const setActiveTab = (tab: Tab) => {
     setActiveTabState(tab);
     sessionStorage.setItem('revnet_active_tab', tab);
-    if (tab === 'discovery') {
+    if (tab === 'explore') {
       setSearchParams({}, { replace: true });
     } else {
       setSearchParams({ tab }, { replace: true });
@@ -794,7 +793,7 @@ const Home = () => {
 
   // Re-render pins when switching back to discovery tab
   useEffect(() => {
-    if (activeTab === 'discovery') {
+    if (activeTab === 'explore') {
       setTimeout(() => {
         if (mapRef.current) mapRef.current.resize();
       }, 100);
@@ -806,7 +805,7 @@ const Home = () => {
   // Auto-refresh pin data every 5 minutes
   useEffect(() => {
     const interval = setInterval(() => {
-      if (activeTab === 'discovery' && activeCategory) refreshPins();
+      if (activeTab === 'explore' && activeCategory) refreshPins();
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [activeTab, activeCategory]);
@@ -1101,14 +1100,14 @@ const Home = () => {
   const selectedRouteId = selectedDetail?.type === 'route' ? selectedDetail.data.id : null;
   const selectedRoutePolyline = selectedDetail?.type === 'route' ? (selectedDetail.data.polyline || null) : null;
 
-  if (activeTab !== 'discovery') {
+  if (activeTab !== 'explore') {
     return (
       <div className="mobile-container">
         <div className="md:hidden">
           <TopAppHeader variant="solid" />
         </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
-        {activeTab === 'community' && <CommunityTab />}
+        {activeTab === 'social' && <CommunityTab />}
         {activeTab === 'drive' && <div style={{ background: '#FFFFFF', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', paddingBottom: 96 }}><p style={{ color: '#999', fontSize: 15, fontWeight: 500 }}>Drive tab coming soon</p></div>}
         {activeTab === 'you' && <YouTab />}
         </div>
@@ -1287,7 +1286,7 @@ const Home = () => {
       )}
 
       {/* SOS button — fixed above bottom nav, all screen sizes */}
-      {!isNavigating && activeTab === 'discovery' && (
+      {!isNavigating && activeTab === 'explore' && (
         <div className="fixed bottom-24 right-4 z-30 md:hidden">
           <HelpButton onClick={() => setIsHelpOpen(true)} />
         </div>

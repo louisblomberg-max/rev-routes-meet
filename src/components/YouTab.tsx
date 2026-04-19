@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Car, Users, Route, Calendar, UsersRound, Settings, ChevronRight, MessageSquare, MapPin, Share2, Pencil, Wrench } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, Settings, ChevronRight, MessageSquare, MapPin, Share2, Pencil, Wrench, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -36,20 +36,15 @@ const YouTab = () => {
     })();
   }, [user?.id]);
 
-  const tiles = [
-    { id: 'garage', label: 'My Garage', icon: Car, count: garageCount, desc: 'vehicles', colorClass: 'bg-muted text-foreground', route: '/my-garage' },
-    { id: 'friends', label: 'My Friends', icon: UsersRound, count: friendsCount, desc: 'friends', colorClass: 'bg-muted text-foreground', route: '/my-friends' },
-    { id: 'clubs', label: 'My Clubs', icon: Users, count: clubsCount, desc: 'joined', colorClass: 'bg-clubs/10 text-clubs', route: '/my-clubs' },
-    { id: 'events', label: 'My Events', icon: Calendar, count: eventsCount, desc: 'events', colorClass: 'bg-events/10 text-events', route: '/my-events' },
-    { id: 'routes', label: 'My Routes', icon: Route, count: routesCount, desc: 'saved', colorClass: 'bg-routes/10 text-routes', route: '/my-routes' },
-    { id: 'services', label: 'Saved Services', icon: Wrench, count: savedServicesCount, desc: 'saved', colorClass: 'bg-services/10 text-services', route: '/my-services' },
-    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, count: discussionsCount, desc: 'posts', colorClass: 'bg-services/10 text-services', route: '/my-discussions' },
+  const rows = [
+    { id: 'notifications', label: 'Notifications', icon: Bell, route: '/notifications', count: undefined },
+    { id: 'garage', label: 'My Garage', icon: Car, route: '/my-garage', count: garageCount },
+    { id: 'friends', label: 'My Friends', icon: UsersRound, route: '/my-friends', count: friendsCount },
+    { id: 'events', label: 'My Events', icon: Calendar, route: '/my-events', count: eventsCount },
+    { id: 'routes', label: 'My Routes', icon: Route, route: '/my-routes', count: routesCount },
+    { id: 'services', label: 'Saved Services', icon: Wrench, route: '/my-services', count: savedServicesCount },
+    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, route: '/my-discussions', count: discussionsCount },
   ];
-
-  const handleTileClick = (tile: typeof tiles[0]) => {
-    sessionStorage.setItem('revnet_active_tab', 'you');
-    navigate(tile.route);
-  };
 
   if (!user) {
     return (
@@ -171,46 +166,52 @@ const YouTab = () => {
         </div>
       )}
 
-      {/* ── 6 Action Tiles (2×3) ── */}
+      {/* ── Row Items ── */}
       <div className="px-4 pt-4 flex-1">
-        <div className="grid grid-cols-3 gap-2.5">
-          {tiles.map((tile) => {
-            const Icon = tile.icon;
-            return (
-              <button
-                key={tile.id}
-                onClick={() => handleTileClick(tile)}
-                className="relative bg-card rounded-2xl border border-border/50 shadow-sm p-3 text-center hover:shadow-md hover:border-border transition-all duration-200 flex flex-col items-center gap-1.5 active:scale-[0.97] group"
-              >
-                <div className={`w-11 h-11 rounded-xl ${tile.colorClass} flex items-center justify-center transition-transform group-hover:scale-105`}>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-2xs font-semibold text-foreground leading-tight">{tile.label}</span>
-                  <span className="text-[10px] text-muted-foreground mt-0.5">
-                    {tile.count} {tile.desc}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {rows.map((row) => {
+          const Icon = row.icon;
+          return (
+            <button
+              key={row.id}
+              onClick={() => {
+                sessionStorage.setItem('revnet_active_tab', 'you');
+                navigate(row.route);
+              }}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                padding: '14px 0', background: 'none', border: 'none',
+                borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left',
+              }}
+            >
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon size={18} color="#999" />
+              </div>
+              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: '#111' }}>{row.label}</span>
+              {row.count !== undefined && (
+                <span style={{ fontSize: 13, color: '#999', marginRight: 8 }}>{row.count}</span>
+              )}
+              <ChevronRight size={16} color="#DDD" />
+            </button>
+          );
+        })}
       </div>
 
-      {/* ── Utility ── */}
-      <div className="px-4 pt-4 pb-2">
-        <div className="bg-card rounded-2xl border border-border/50 shadow-sm overflow-hidden">
-          <button
-            onClick={() => navigate('/settings')}
-            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors active:bg-muted"
-          >
-            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-              <Settings className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <span className="flex-1 text-left font-semibold text-foreground text-sm">Settings</span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground" />
-          </button>
-        </div>
+      {/* ── Settings ── */}
+      <div className="px-4 pt-2 pb-2">
+        <button
+          onClick={() => navigate('/settings')}
+          style={{
+            width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+            padding: '14px 0', background: 'none', border: 'none',
+            cursor: 'pointer', textAlign: 'left',
+          }}
+        >
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: '#F5F5F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Settings size={18} color="#999" />
+          </div>
+          <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: '#111' }}>Settings</span>
+          <ChevronRight size={16} color="#DDD" />
+        </button>
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
 /**
  * CreateSheet — bottom sheet triggered by the centre FAB.
- * Core mobile creation actions + redirects/placeholders for upcoming features.
+ * Core mobile creation actions.
  */
 
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Calendar, Route, Users, Wrench, ShoppingBag, Shield } from 'lucide-react';
+import { Calendar, Route, Users } from 'lucide-react';
 
 interface CreateSheetProps {
   open: boolean;
@@ -28,42 +27,15 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
       id: 'route',
       label: 'Route',
       icon: Route,
-      color: '#4f7fff',
+      color: '#CC2B2B',
       action: () => { onOpenChange(false); navigate('/add/route'); },
     },
     {
       id: 'club',
       label: 'Club',
       icon: Users,
-      color: '#274C77',
+      color: '#CC2B2B',
       action: () => { onOpenChange(false); navigate('/add/club'); },
-    },
-    {
-      id: 'service',
-      label: 'Service',
-      icon: Wrench,
-      color: '#ff8000',
-      action: () => { onOpenChange(false); window.open('https://revnet.club/add-service', '_blank'); },
-    },
-    {
-      id: 'listing',
-      label: 'Listing',
-      icon: ShoppingBag,
-      color: '#8C867E',
-      action: () => {
-        toast.info('Marketplace coming soon!', { description: 'Buy and sell will be available in the next update.' });
-        onOpenChange(false);
-      },
-    },
-    {
-      id: 'insurance',
-      label: 'Insurance',
-      icon: Shield,
-      color: '#059669',
-      action: () => {
-        toast.info('Insurance hub coming soon!', { description: 'Compare quotes and manage policies.' });
-        onOpenChange(false);
-      },
     },
   ];
 
@@ -85,7 +57,7 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
         </h2>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: 12,
           paddingBottom: 20,
         }}>

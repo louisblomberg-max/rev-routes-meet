@@ -1,6 +1,6 @@
-import { Compass, Users, ShoppingBag, User } from 'lucide-react';
+import { Compass, Route as RouteIcon, Users, User } from 'lucide-react';
 
-type Tab = 'discovery' | 'community' | 'marketplace' | 'you';
+type Tab = 'explore' | 'drive' | 'social' | 'you';
 
 interface FloatingMapNavProps {
   activeTab: Tab;
@@ -9,10 +9,10 @@ interface FloatingMapNavProps {
 
 const FloatingMapNav = ({ activeTab, onTabChange }: FloatingMapNavProps) => {
   const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
-    { id: 'discovery', label: 'Discovery', icon: Compass, activeColor: '#d30d37' },
-    { id: 'community', label: 'Community', icon: Users, activeColor: '#274C77' },
-    { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag, activeColor: '#3A5A40' },
-    { id: 'you', label: 'You', icon: User, activeColor: '#161616' },
+    { id: 'explore', label: 'Explore', icon: Compass, activeColor: '#CC2B2B' },
+    { id: 'drive', label: 'Drive', icon: RouteIcon, activeColor: '#CC2B2B' },
+    { id: 'social', label: 'Social', icon: Users, activeColor: '#CC2B2B' },
+    { id: 'you', label: 'You', icon: User, activeColor: '#CC2B2B' },
   ];
 
   return (

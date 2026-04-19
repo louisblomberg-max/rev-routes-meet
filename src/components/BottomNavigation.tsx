@@ -1,6 +1,6 @@
-import { Compass, Clock, Users, User, Plus } from 'lucide-react';
+import { Compass, Route as RouteIcon, Users, User, Plus } from 'lucide-react';
 
-type Tab = 'discovery' | 'drive' | 'community' | 'you';
+type Tab = 'explore' | 'drive' | 'social' | 'you';
 
 interface BottomNavigationProps {
   activeTab: Tab;
@@ -10,12 +10,12 @@ interface BottomNavigationProps {
 
 const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavigationProps) => {
   const leftTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
-    { id: 'discovery', label: 'Discovery', icon: Compass },
-    { id: 'drive', label: 'Drive', icon: Clock },
+    { id: 'explore', label: 'Explore', icon: Compass },
+    { id: 'drive', label: 'Drive', icon: RouteIcon },
   ];
 
   const rightTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
-    { id: 'community', label: 'Community', icon: Users },
+    { id: 'social', label: 'Social', icon: Users },
     { id: 'you', label: 'You', icon: User },
   ];
 
