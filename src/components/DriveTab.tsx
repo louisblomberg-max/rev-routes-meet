@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { toast } from 'sonner';
 import MapView from '@/components/MapView';
+import revnetLogo from '@/assets/revnet-logo-header.png';
 
 type SavedTab = 'routes' | 'events' | 'services';
 
@@ -17,7 +18,6 @@ export default function DriveTab() {
   const isNavigating = navStatus === 'navigating' || navStatus === 'previewing';
 
   const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const friendMarkersRef = useRef<Record<string, mapboxgl.Marker>>({});
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,23 +123,7 @@ export default function DriveTab() {
     }
   };
 
-  // Render saved location pins
-  useEffect(() => {
-    const m = mapRef.current;
-    if (!m || !m.loaded()) return;
-    markersRef.current.forEach(mk => mk.remove());
-    markersRef.current = [];
-    const pin = (lat: number, lng: number, color: string) => {
-      const el = document.createElement('div');
-      el.style.cssText = `width:12px;height:12px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);`;
-      markersRef.current.push(new mapboxgl.Marker({ element: el, anchor: 'center' }).setLngLat([lng, lat]).addTo(m));
-    };
-    savedRoutes.forEach(r => { if (r.lat && r.lng) pin(r.lat, r.lng, '#4f7fff'); });
-    savedEvents.forEach(e => { if (e.lat && e.lng) pin(e.lat, e.lng, '#CC2B2B'); });
-    savedServices.forEach(s => { if (s.lat && s.lng) pin(s.lat, s.lng, '#22C55E'); });
-  }, [savedRoutes, savedEvents, savedServices]);
-
-  // Friend markers
+  // Friend markers (only pins on the Drive map)
   useEffect(() => {
     const m = mapRef.current;
     if (!m || !m.loaded()) return;
@@ -175,26 +159,47 @@ export default function DriveTab() {
         </button>
       )}
 
-      {/* Search */}
+      {/* Header — matches Explore page */}
       {!isNavigating && (
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 30, pointerEvents: 'none', paddingTop: 'max(env(safe-area-inset-top), 10px)', padding: '0 16px' }}>
-          <div style={{ pointerEvents: 'auto', paddingTop: 'max(env(safe-area-inset-top), 10px)' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={20} color="#999" style={{ position: 'absolute', left: 16, top: 15, zIndex: 1 }} />
-              <input value={searchQuery} onChange={e => handleSearchInput(e.target.value)} onFocus={() => setSearchFocused(true)}
-                placeholder="Where to?" style={{ width: '100%', background: '#FFF', border: 'none', borderRadius: 16, padding: '15px 44px 15px 48px', fontSize: 16, color: '#111', outline: 'none', boxShadow: '0 2px 12px rgba(0,0,0,0.12)', fontWeight: 500 }} />
-              {searchQuery && <button onClick={() => { setSearchQuery(''); setSearchResults([]); setSearchFocused(false); }} style={{ position: 'absolute', right: 14, top: 14, background: '#F0F0F0', border: 'none', borderRadius: '50%', width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14} color="#999" /></button>}
+        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
+          <div className="pointer-events-auto backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
+            <div className="px-3 pt-2 flex items-center gap-2">
+              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
+                <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
+              </div>
+              {/* Search input */}
+              <div style={{ flex: 1, position: 'relative' }}>
+                <Search size={16} color="#999" style={{ position: 'absolute', left: 12, top: 12, zIndex: 1 }} />
+                <input
+                  value={searchQuery}
+                  onChange={e => handleSearchInput(e.target.value)}
+                  onFocus={() => setSearchFocused(true)}
+                  placeholder="Where to?"
+                  className="h-10 bg-white/90 backdrop-blur-md rounded-xl px-3 border border-black/20 shadow-sm text-sm font-medium w-full outline-none"
+                  style={{ paddingLeft: 36, color: '#111' }}
+                />
+                {searchQuery && (
+                  <button onClick={() => { setSearchQuery(''); setSearchResults([]); setSearchFocused(false); }} style={{ position: 'absolute', right: 10, top: 10, background: '#EEE', border: 'none', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                    <X size={12} color="#999" />
+                  </button>
+                )}
+              </div>
             </div>
+            {/* Search results dropdown */}
             {searchResults.length > 0 && searchFocused && (
-              <div style={{ marginTop: 6, background: '#FFF', borderRadius: 14, boxShadow: '0 4px 20px rgba(0,0,0,0.12)', overflow: 'hidden' }}>
+              <div style={{ margin: '4px 12px 8px', background: '#FFF', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
                 {searchResults.map(r => (
-                  <button key={r.id} onClick={() => handleSelectResult(r)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', background: 'none', border: 'none', borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const }}>
-                    <MapPin size={18} color="#CC2B2B" style={{ flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 600, color: '#111' }}>{r.name}</div><div style={{ fontSize: 12, color: '#999', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{r.address}</div></div>
+                  <button key={r.id} onClick={() => handleSelectResult(r)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const }}>
+                    <MapPin size={16} color="#CC2B2B" style={{ flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#111' }}>{r.name}</div>
+                      <div style={{ fontSize: 12, color: '#999', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{r.address}</div>
+                    </div>
                   </button>
                 ))}
               </div>
             )}
+            <div style={{ height: 8 }} />
           </div>
         </div>
       )}
