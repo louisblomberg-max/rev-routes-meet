@@ -37,20 +37,34 @@ export default function DriveTab() {
   const [sharingEnabled, setSharingEnabled] = useState(false);
   const [tappedLocation, setTappedLocation] = useState<{ lat: number; lng: number; name: string } | null>(null);
 
-  // Search
+  // Search — UK-optimised with postcode support
+  const isUKPostcode = (q: string) => /^[A-Z]{1,2}[0-9]{1,2}[A-Z]?\s?[0-9][A-Z]{2}$/i.test(q.trim());
+
   const searchPlaces = useCallback(async (q: string) => {
     if (!q.trim() || q.length < 2) { setSearchResults([]); return; }
     try {
-      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&language=en&limit=5&types=address,poi,place,locality,postcode`);
+      const res = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(q)}.json?` +
+        `access_token=${import.meta.env.VITE_MAPBOX_TOKEN}&country=gb&language=en&limit=5` +
+        `&types=address,poi,place,locality,postcode&autocomplete=true`
+      );
       const data = await res.json();
       setSearchResults((data.features || []).map((f: any) => ({ id: f.id, name: f.text, address: f.place_name, lat: f.center[1], lng: f.center[0] })));
-    } catch { setSearchResults([]); }
+    } catch (err) {
+      console.error('Search error:', err);
+      setSearchResults([]);
+    }
   }, []);
 
   const handleSearchInput = (val: string) => {
     setSearchQuery(val);
     clearTimeout(searchTimer.current);
-    searchTimer.current = setTimeout(() => searchPlaces(val), 300);
+    // Immediate search for postcodes, debounced for everything else
+    if (isUKPostcode(val)) {
+      searchPlaces(val);
+    } else {
+      searchTimer.current = setTimeout(() => searchPlaces(val), 300);
+    }
   };
 
   const handleSelectResult = (r: any) => {
@@ -94,12 +108,18 @@ export default function DriveTab() {
     });
   }, [user?.id]);
 
-  // Friends (poll 15s)
+  // Friends (poll 15s, only when tab visible)
   useEffect(() => {
     if (!user?.id) return;
-    const load = async () => { const { data } = await supabase.rpc('get_friend_locations', { p_user_id: user.id }); setFriendLocations(data || []); };
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.rpc('get_friend_locations', { p_user_id: user.id });
+        if (error) { console.error('Friend locations error:', error); return; }
+        setFriendLocations(data || []);
+      } catch (err) { console.error('Failed to fetch friend locations:', err); }
+    };
     load();
-    const i = setInterval(load, 15000);
+    const i = setInterval(() => { if (document.visibilityState === 'visible') load(); }, 15000);
     return () => clearInterval(i);
   }, [user?.id]);
 
@@ -113,13 +133,29 @@ export default function DriveTab() {
   const toggleSharing = async () => {
     if (!user?.id) return;
     if (sharingEnabled) {
-      await supabase.from('live_location_sessions').update({ is_active: false, ended_at: new Date().toISOString() }).eq('user_id', user.id);
-      setSharingEnabled(false); toast.success('Location sharing stopped');
+      try {
+        await supabase.from('live_location_sessions').update({ is_active: false, ended_at: new Date().toISOString() }).eq('user_id', user.id);
+        setSharingEnabled(false); toast.success('Location sharing stopped');
+      } catch { toast.error('Failed to stop sharing'); }
     } else {
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        await supabase.from('live_location_sessions').upsert({ user_id: user.id, is_active: true, started_at: new Date().toISOString(), last_lat: pos.coords.latitude, last_lng: pos.coords.longitude, session_type: 'sharing', shared_with: [] });
-        setSharingEnabled(true); toast.success('Sharing location with friends');
-      }, () => toast.error('Location access required'));
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const { error } = await supabase.from('live_location_sessions').upsert({
+              user_id: user.id, is_active: true, started_at: new Date().toISOString(),
+              last_lat: Number(pos.coords.latitude.toFixed(6)),
+              last_lng: Number(pos.coords.longitude.toFixed(6)),
+              accuracy: pos.coords.accuracy || null,
+              session_type: 'sharing', shared_with: [],
+              last_updated: new Date().toISOString(),
+            });
+            if (error) throw error;
+            setSharingEnabled(true); toast.success('Sharing location with friends');
+          } catch { toast.error('Failed to share location'); }
+        },
+        () => toast.error('Location access denied'),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+      );
     }
   };
 
@@ -209,7 +245,7 @@ export default function DriveTab() {
         <div style={{ position: 'absolute', bottom: panelOpen ? 'calc(55% + 16px)' : 156, left: 16, right: 16, zIndex: 25, background: '#FFF', borderRadius: 16, padding: '14px 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
           <MapPin size={20} color="#CC2B2B" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{tappedLocation.name}</div></div>
-          <button onClick={() => { nav('/navigation', { state: { destLat: tappedLocation.lat, destLng: tappedLocation.lng, destTitle: tappedLocation.name } }); setTappedLocation(null); }} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 12, padding: '10px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>Navigate</button>
+          <button onClick={() => { nav('/navigation', { state: { destLat: tappedLocation.lat, destLng: tappedLocation.lng, destTitle: tappedLocation.name } }); setTappedLocation(null); }} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer', flexShrink: 0, minHeight: 44 }}>Navigate</button>
           <button onClick={() => setTappedLocation(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}><X size={16} color="#999" /></button>
         </div>
       )}
@@ -265,7 +301,7 @@ export default function DriveTab() {
                   {savedTab === 'services' && <Wrench size={14} color="#22C55E" />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 13, fontWeight: 600, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{item.name || item.title}</div><div style={{ fontSize: 11, color: '#999' }}>{savedTab === 'routes' && item.distance_meters ? `${(item.distance_meters / 1609).toFixed(1)} mi` : savedTab === 'events' ? item.location : item.service_type || item.address}</div></div>
-                {item.lat && item.lng && <button onClick={e => { e.stopPropagation(); nav('/navigation', { state: { destLat: item.lat, destLng: item.lng, destTitle: item.name || item.title } }); }} style={{ width: 30, height: 30, borderRadius: '50%', background: '#CC2B2B', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}><Navigation size={13} color="#fff" /></button>}
+                {item.lat && item.lng && <button onClick={e => { e.stopPropagation(); nav('/navigation', { state: { destLat: item.lat, destLng: item.lng, destTitle: item.name || item.title } }); }} style={{ width: 36, height: 36, borderRadius: '50%', background: '#CC2B2B', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0 }}><Navigation size={13} color="#fff" /></button>}
               </button>
             ))}
             {panelOpen && recentDrives.length > 0 && (
