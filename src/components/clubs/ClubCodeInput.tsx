@@ -60,7 +60,7 @@ export default function ClubCodeInput({ onJoined }: ClubCodeInputProps) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 8, padding: '0 16px 12px' }}>
       <div style={{ flex: 1, position: 'relative' }}>
-        <Hash size={16} color="#8C867E" style={{ position: 'absolute', left: 14, top: 13, pointerEvents: 'none' }} />
+        <Hash size={16} color="#999" style={{ position: 'absolute', left: 14, top: 13, pointerEvents: 'none' }} />
         <input
           value={code}
           onChange={e => setCode(e.target.value.toUpperCase().replace(/\s/g, ''))}
@@ -68,8 +68,8 @@ export default function ClubCodeInput({ onJoined }: ClubCodeInputProps) {
           maxLength={12}
           disabled={loading}
           style={{
-            width: '100%', background: '#F2EFE9', border: 'none', borderRadius: 12,
-            padding: '11px 14px 11px 38px', fontSize: 14, color: '#4A443D',
+            width: '100%', background: '#F5F5F5', border: 'none', borderRadius: 12,
+            padding: '11px 14px 11px 38px', fontSize: 14, color: '#555',
             outline: 'none', letterSpacing: '0.5px', fontFamily: 'monospace',
           }}
         />

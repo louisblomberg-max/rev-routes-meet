@@ -378,7 +378,7 @@ export default function ClubProfile() {
               <button
                 onClick={handleLeave}
                 className="px-4 py-2.5 text-xs font-medium"
-                style={{ border: '1.5px solid #E8E4DC', color: '#8C867E', borderRadius: 22 }}
+                style={{ border: '1.5px solid #F0F0F0', color: '#999', borderRadius: 22 }}
               >
                 Leave
               </button>
@@ -396,7 +396,7 @@ export default function ClubProfile() {
               onClick={() => setActiveTab(tab.id)}
               className="flex-shrink-0 px-3 py-3 text-[13px] font-semibold transition-all"
               style={{
-                color: activeTab === tab.id ? '#CC2B2B' : '#B0A89E',
+                color: activeTab === tab.id ? '#CC2B2B' : '#AAA',
                 borderBottom: activeTab === tab.id ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
               }}
             >

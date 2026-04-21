@@ -185,7 +185,7 @@ export default function Clubs() {
         </div>
 
         {/* Tab switcher */}
-        <div className="px-4 pb-0 flex border-b" style={{ borderColor: '#E8E4DC' }}>
+        <div className="px-4 pb-0 flex border-b" style={{ borderColor: '#F0F0F0' }}>
           {[
             { id: 'discover' as const, label: 'Discover' },
             { id: 'my' as const, label: 'My Clubs' },
@@ -195,7 +195,7 @@ export default function Clubs() {
               onClick={() => setActiveTab(tab.id)}
               className="pb-3 px-4 text-sm font-semibold transition-all"
               style={{
-                color: activeTab === tab.id ? '#CC2B2B' : '#B0A89E',
+                color: activeTab === tab.id ? '#CC2B2B' : '#AAA',
                 borderBottom: activeTab === tab.id ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
               }}
             >
@@ -226,7 +226,7 @@ export default function Clubs() {
                 className="flex-shrink-0 transition-all"
                 style={activeType === type.id
                   ? { backgroundColor: '#CC2B2B', borderColor: '#CC2B2B', color: '#FFF', borderRadius: 22, padding: '6px 14px', fontSize: 13, fontWeight: 600, boxShadow: '0 2px 6px rgba(204,43,43,0.3)' }
-                  : { backgroundColor: '#FFF', border: '1.5px solid #DDD9D0', color: '#4A443D', borderRadius: 22, padding: '6px 14px', fontSize: 13, fontWeight: 600 }
+                  : { backgroundColor: '#FFF', border: '1.5px solid #DDD9D0', color: '#555', borderRadius: 22, padding: '6px 14px', fontSize: 13, fontWeight: 600 }
                 }
               >
                 {type.label}

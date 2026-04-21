@@ -30,11 +30,11 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavig
       >
         <Icon
           className="w-5 h-5"
-          style={{ color: isActive ? '#CC2B2B' : '#B0A89E', strokeWidth: isActive ? 2.5 : 1.5 }}
+          style={{ color: isActive ? '#CC2B2B' : '#AAA', strokeWidth: isActive ? 2.5 : 1.5 }}
         />
         <span
           className="text-[10px] font-semibold tracking-wide"
-          style={{ color: isActive ? '#CC2B2B' : '#B0A89E' }}
+          style={{ color: isActive ? '#CC2B2B' : '#AAA' }}
         >
           {tab.label}
         </span>

@@ -74,7 +74,7 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
                   gap: 8,
                   padding: 16,
                   borderRadius: 18,
-                  border: '1px solid #E8E4DC',
+                  border: '1px solid #F0F0F0',
                   background: '#FFFFFF',
                   cursor: 'pointer',
                 }}
@@ -88,7 +88,7 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  border: '1px solid #F0EDE6',
+                  border: '1px solid #F0F0F0',
                 }}>
                   <Icon size={22} color={tile.color} strokeWidth={2} />
                 </div>

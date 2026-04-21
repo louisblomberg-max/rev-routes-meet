@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import revnetLogo from '@/assets/revnet-logo-auth.png';
+import revnetLogo from '@/assets/revnet-logo-clean.png';
 
 interface LoadingScreenProps {
   onComplete: () => void;

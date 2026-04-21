@@ -80,12 +80,12 @@ export default function CommunityMessagesView() {
           placeholder="Search messages"
           style={{
             width: '100%',
-            background: '#F2EFE9',
+            background: '#F5F5F5',
             border: 'none',
             borderRadius: 12,
             padding: '11px 14px 11px 38px',
             fontSize: 14,
-            color: '#4A443D',
+            color: '#555',
             outline: 'none',
           }}
         />
@@ -93,7 +93,7 @@ export default function CommunityMessagesView() {
 
       {/* Section label */}
       <div style={{
-        fontSize: 11, fontWeight: 700, color: '#B0A89E',
+        fontSize: 11, fontWeight: 700, color: '#AAA',
         letterSpacing: '0.6px', textTransform: 'uppercase' as const,
         padding: '4px 16px 8px',
       }}>Recent</div>

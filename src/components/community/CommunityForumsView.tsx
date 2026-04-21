@@ -134,7 +134,7 @@ export default function CommunityForumsView() {
                 <span style={{ fontSize: 13, color: '#555', fontWeight: 600 }}>{author.display_name || author.username || 'User'}</span>
                 <span style={{ fontSize: 12, color: '#999' }}>· {timeAgo(post.created_at)}</span>
                 <span style={{ marginLeft: 'auto' }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: '#555', background: '#F2EFE9', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.3px', textTransform: 'uppercase' as const }}>{post.category || 'general'}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#555', background: '#F5F5F5', padding: '3px 8px', borderRadius: 5, letterSpacing: '0.3px', textTransform: 'uppercase' as const }}>{post.category || 'general'}</span>
               </div>
               <div style={{ fontSize: 15, fontWeight: 700, color: '#111', lineHeight: 1.35, marginBottom: 10 }}>{post.title}</div>
               <div style={{ display: 'flex', gap: 14, fontSize: 12, color: '#999' }}>
