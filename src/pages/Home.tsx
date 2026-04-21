@@ -1104,9 +1104,11 @@ const Home = () => {
   if (activeTab !== 'explore') {
     return (
       <div className="mobile-container">
-        <div className="md:hidden">
-          <TopAppHeader variant="solid" />
-        </div>
+        {activeTab !== 'drive' && (
+          <div className="md:hidden">
+            <TopAppHeader variant="solid" />
+          </div>
+        )}
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'social' && <CommunityTab />}
         {activeTab === 'drive' && <DriveTab />}
@@ -1153,8 +1155,8 @@ const Home = () => {
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
           <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
-            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
-              <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.3px' }}><span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111' }}>NET</span></span>
+            <div style={{ textAlign: 'center', paddingTop: 6, paddingBottom: 2 }}>
+              <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '-0.2px' }}><span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111' }}>NET</span></span>
             </div>
             <div className="px-3 pb-1">
               <UniversalSearch
@@ -1205,7 +1207,7 @@ const Home = () => {
 
       {/* ═══ UNIFIED: Filter panels — works on both mobile and desktop ═══ */}
       {!isNavigating && activeCategory && (
-        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: '120px' }}>
+        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: '130px' }}>
           <div className="px-3 pt-2 pointer-events-auto">
             {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
             {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
@@ -1229,7 +1231,7 @@ const Home = () => {
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
-        <div className="absolute top-[120px] md:top-[130px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
+        <div className="absolute top-[130px] md:top-[140px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
           <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
           </div>
