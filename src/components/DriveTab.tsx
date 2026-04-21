@@ -198,9 +198,9 @@ export default function DriveTab() {
       {/* Header — matches Explore page */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
-          <div className="pointer-events-auto backdrop-blur-xl border-b border-border/50 safe-top" style={{ backgroundColor: 'hsla(60, 31%, 93%, 0.95)' }}>
+          <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
             <div className="px-3 pt-2 flex items-center gap-2">
-              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-black/20 shadow-sm overflow-hidden" style={{ backgroundColor: '#f3f3e8' }}>
+              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-white">
                 <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
               </div>
               {/* Search input */}
