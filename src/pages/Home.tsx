@@ -1153,10 +1153,10 @@ const Home = () => {
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
           <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
-            <div className="px-3 pt-2 flex items-center gap-2">
-              <div className="h-10 w-24 flex-shrink-0 flex items-center justify-center rounded-xl border border-gray-200 shadow-sm overflow-hidden bg-white">
-                <img src={revnetLogo} alt="RevNet" className="h-full w-full object-contain scale-[2] translate-y-[3px]" />
-              </div>
+            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
+              <span style={{ fontSize: 14, fontWeight: 800, letterSpacing: '-0.3px' }}><span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111' }}>NET</span></span>
+            </div>
+            <div className="px-3 pb-1">
               <UniversalSearch
                 onSelectPin={handleSearchSelectPin}
                 onSelectPlace={(lat, lng, title) => {
