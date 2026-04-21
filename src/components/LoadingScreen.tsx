@@ -22,7 +22,7 @@ const LoadingScreen = ({ onComplete }: LoadingScreenProps) => {
       className={`fixed inset-0 flex items-center justify-center z-50 transition-opacity duration-500 ${
         isExiting ? 'opacity-0' : 'opacity-100'
       }`}
-      style={{ backgroundColor: '#f3f3e8' }}
+      style={{ backgroundColor: '#ffffff' }}
     >
       <div className="px-12 w-full max-w-md">
         <img 

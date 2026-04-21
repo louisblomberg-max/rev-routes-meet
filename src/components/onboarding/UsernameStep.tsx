@@ -41,7 +41,7 @@ const UsernameStep = () => {
   const canContinue = username.length >= 3 && available === true;
 
   return (
-    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#ffffff' }}>
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
@@ -94,7 +94,7 @@ const UsernameStep = () => {
         <Button
           onClick={next}
           disabled={!canContinue}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10 disabled:opacity-50">
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
           Next <ChevronRight className="w-5 h-5" />
         </Button>
         <button onClick={back} className="w-full text-sm text-black/50 py-2">Back</button>

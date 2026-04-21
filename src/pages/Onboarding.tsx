@@ -307,7 +307,7 @@ const Onboarding = () => {
   const progressPercent = ((step + 1) / TOTAL_STEPS) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#ffffff' }}>
       {/* Progress bar */}
       <div className="w-full h-1 bg-border/30">
         <div className="h-full transition-all duration-300" style={{ width: `${progressPercent}%`, backgroundColor: '#d30d37' }} />

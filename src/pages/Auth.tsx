@@ -6,10 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import revnetLogo from '@/assets/revnet-logo-clean.png';
 
 type AuthMode = 'landing' | 'signin' | 'signup';
-
-const LOGO_URL = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/public/logo/logo.png`;
 
 const FEATURE_PILLS = ['Map', 'Events', 'Routes', 'Clubs', 'Convoy', 'SOS'];
 
@@ -84,10 +83,10 @@ const Auth = () => {
 
   if (mode === 'landing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-4" style={{ backgroundColor: '#f3f3e8' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-4" style={{ backgroundColor: '#ffffff' }}>
         <div className="w-full max-w-sm flex flex-col items-center gap-3">
           <div className="flex flex-col items-center">
-            <img src={LOGO_URL} alt="RevNet logo" className="w-64 h-64 rounded-2xl object-contain" />
+            <img src={revnetLogo} alt="RevNet logo" className="w-64 h-64 rounded-2xl object-contain" />
             <p className="text-muted-foreground text-sm">Everything for drivers and riders</p>
           </div>
 
@@ -102,7 +101,7 @@ const Auth = () => {
 
             <div className="relative my-2">
               <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
-              <div className="relative flex justify-center text-xs"><span className="bg-[#f3f3e8] px-3 text-muted-foreground">or</span></div>
+              <div className="relative flex justify-center text-xs"><span className="bg-[#ffffff] px-3 text-muted-foreground">or</span></div>
             </div>
 
             <Button onClick={handleGoogle} variant="outline" className="w-full h-12 rounded-2xl text-sm font-semibold gap-2">
@@ -124,7 +123,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#ffffff' }}>
       <div className="w-full max-w-sm">
         <button
           onClick={() => setMode('landing')}
@@ -136,7 +135,7 @@ const Auth = () => {
 
         <div className="bg-card rounded-2xl p-6 shadow-sm border border-border/50">
           <div className="flex items-center gap-3 mb-6">
-            <img src={LOGO_URL} alt="RevNet" className="w-10 h-10 rounded-xl object-contain" />
+            <img src={revnetLogo} alt="RevNet" className="w-10 h-10 rounded-xl object-contain" />
             <h2 className="text-lg font-bold text-foreground">
               {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </h2>

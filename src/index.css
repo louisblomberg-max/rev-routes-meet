@@ -29,8 +29,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 0%;
 
-    /* Motorsport Red - Bold Primary */
-    --primary: 115 45% 29%;
+    /* RevNet Red - Brand Primary */
+    --primary: 350 88% 44%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 96%;
@@ -47,7 +47,7 @@
 
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 115 45% 29%;
+    --ring: 350 88% 44%;
 
     --radius: 0.5rem;
 
@@ -90,7 +90,7 @@
     --sidebar-accent: 0 0% 96%;
     --sidebar-accent-foreground: 0 0% 9%;
     --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 115 45% 29%;
+    --sidebar-ring: 350 88% 44%;
   }
 
   .dark {
@@ -105,8 +105,8 @@
     --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
-    /* Bright Red for Dark Mode */
-    --primary: 115 45% 35%;
+    /* RevNet Red - Dark Mode */
+    --primary: 350 88% 48%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 12%;
@@ -123,7 +123,7 @@
 
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 115 45% 35%;
+    --ring: 350 88% 48%;
 
     /* Dark Mode Feature Colors */
     --events: 1 76% 55%;
@@ -157,7 +157,7 @@
     --sidebar-accent: 0 0% 12%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 0 0% 15%;
-    --sidebar-ring: 115 45% 35%;
+    --sidebar-ring: 350 88% 48%;
   }
 }
 

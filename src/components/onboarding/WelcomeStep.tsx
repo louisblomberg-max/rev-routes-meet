@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { useOnboarding } from '@/contexts/OnboardingContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import revnetLogo from '@/assets/revnet-logo-auth.png';
+import revnetLogo from '@/assets/revnet-logo-clean.png';
 
 const WelcomeStep = () => {
   const { next } = useOnboarding();
@@ -12,7 +12,7 @@ const WelcomeStep = () => {
   const { signInWithGoogle, signInWithApple } = useAuth();
 
   return (
-    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#ffffff' }}>
       {/* Hero */}
       <div className="flex-1 flex flex-col items-center justify-start px-6 -mt-4">
         <img src={revnetLogo} alt="RevNet" className="w-full h-auto" />
@@ -22,14 +22,14 @@ const WelcomeStep = () => {
       <div className="px-6 pb-8 safe-bottom space-y-3">
         <Button
           onClick={next}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
           Create Account
           <ChevronRight className="w-5 h-5" />
         </Button>
 
         <Button
           onClick={() => navigate('/auth/login')}
-          className="w-full h-14 text-base font-semibold rounded-full bg-white text-black hover:bg-white/90 border border-black/10">
+          className="w-full h-14 text-base font-semibold rounded-full bg-primary text-primary-foreground hover:bg-primary/90">
           Sign In
         </Button>
 
@@ -40,7 +40,7 @@ const WelcomeStep = () => {
         </div>
 
         <Button
-          className="w-full h-12 rounded-full text-sm font-medium bg-white text-black hover:bg-white/90 border border-black/10"
+          className="w-full h-12 rounded-full text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
           onClick={async () => {
             try {
               await signInWithApple();
@@ -53,7 +53,7 @@ const WelcomeStep = () => {
         </Button>
 
         <Button
-          className="w-full h-12 rounded-full text-sm font-medium bg-white text-black hover:bg-white/90 border border-black/10"
+          className="w-full h-12 rounded-full text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90"
           onClick={async () => {
             try {
               await signInWithGoogle();

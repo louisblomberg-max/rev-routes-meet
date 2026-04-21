@@ -19,7 +19,7 @@ const FeatureSlide = ({ title, description, highlights, slideIndex, totalSlides 
   const Icon = SLIDE_ICONS[slideIndex];
 
   return (
-    <div className="flex-1 flex flex-col relative" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="flex-1 flex flex-col relative" style={{ backgroundColor: '#ffffff' }}>
       {/* Progress dots */}
       <div className="px-6 pt-10 safe-top relative z-10">
         <div className="flex gap-1.5">
@@ -59,7 +59,7 @@ const FeatureSlide = ({ title, description, highlights, slideIndex, totalSlides 
 
       {/* Bottom */}
       <div className="px-6 pb-8 safe-bottom relative z-10 space-y-3">
-        <Button onClick={next} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-white text-black hover:bg-white/90 border border-black/10">
+        <Button onClick={next} className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
           Next
           <ChevronRight className="w-5 h-5" />
         </Button>

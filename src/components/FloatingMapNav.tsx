@@ -16,7 +16,7 @@ const FloatingMapNav = ({ activeTab, onTabChange }: FloatingMapNavProps) => {
   ];
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-3 pt-1 pb-1 bg-[#f3f3e8] rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.20)] md:bg-transparent md:shadow-none md:rounded-none md:px-0 md:py-0">
+    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-3 pt-1 pb-1 bg-[#ffffff] rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.20)] md:bg-transparent md:shadow-none md:rounded-none md:px-0 md:py-0">
       <div className="grid grid-cols-4 gap-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;

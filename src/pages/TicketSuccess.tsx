@@ -96,7 +96,7 @@ const TicketSuccess = () => {
   const refNumber = ticket.id.slice(-8).toUpperCase();
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-6 py-12 md:max-w-2xl md:mx-auto" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="min-h-screen flex flex-col items-center px-6 py-12 md:max-w-2xl md:mx-auto" style={{ backgroundColor: '#ffffff' }}>
       {/* Success header */}
       <div className="w-20 h-20 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: '#dcfce7' }}>
         <Check className="w-10 h-10" style={{ color: '#16a34a' }} />

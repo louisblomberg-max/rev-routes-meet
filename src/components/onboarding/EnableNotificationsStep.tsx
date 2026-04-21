@@ -45,7 +45,7 @@ const EnableNotificationsStep = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#f3f3e8' }}>
+    <div className="flex-1 flex flex-col" style={{ backgroundColor: '#ffffff' }}>
       {/* Progress */}
       <div className="px-6 pt-10 safe-top">
         <div className="flex gap-1.5">
@@ -72,11 +72,11 @@ const EnableNotificationsStep = () => {
       </div>
 
       {/* Bottom CTAs */}
-      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#f3f3e8' }}>
+      <div className="fixed bottom-0 left-0 right-0 px-6 py-4 safe-bottom z-20" style={{ backgroundColor: '#ffffff' }}>
         <Button
           onClick={handleEnable}
           disabled={loading}
-          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-black text-white hover:bg-black/90"
+          className="w-full h-14 text-base font-semibold rounded-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
         >
           {loading ? 'Requesting...' : 'Enable Notifications'} <ChevronRight className="w-5 h-5" />
         </Button>
