@@ -84,7 +84,7 @@ const CreateSheet = ({ open, onOpenChange }: CreateSheetProps) => {
                   width: 48,
                   height: 48,
                   borderRadius: 14,
-                  background: '#F8F7F4',
+                  background: '#F5F5F5',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',

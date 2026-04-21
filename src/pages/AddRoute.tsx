@@ -266,7 +266,7 @@ const AddRoute = () => {
               <Button variant="outline" size="sm" onClick={() => setWaypoints(prev => prev.slice(0, -1))} disabled={waypoints.length === 0} className="gap-1"><Undo2 className="w-3 h-3" /> Undo</Button>
               <Button variant="outline" size="sm" onClick={() => { setWaypoints([]); setRouteGeoJson(null); setDistanceKm(0); setDurationMin(0); }} disabled={waypoints.length === 0} className="gap-1"><Trash2 className="w-3 h-3" /> Clear</Button>
               <div className="flex-1" />
-              <Button onClick={() => setStep(3)} disabled={waypoints.length < 2 || isSnapping} style={{ backgroundColor: '#4f7fff' }} className="text-white gap-1">
+              <Button onClick={() => setStep(3)} disabled={waypoints.length < 2 || isSnapping} className="bg-primary text-primary-foreground gap-1">
                 Next →
               </Button>
             </div>
@@ -283,7 +283,7 @@ const AddRoute = () => {
                 <p className="text-sm font-medium">Upload a .gpx file</p>
                 <p className="text-xs text-muted-foreground mt-1">Supported: Strava, Komoot, Garmin, TomTom</p>
               </div>
-              <label className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-white" style={{ backgroundColor: '#4f7fff' }}>
+              <label className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold cursor-pointer text-white bg-primary">
                 Choose File<input type="file" accept=".gpx" onChange={handleGPXUpload} className="hidden" />
               </label>
             </div>
@@ -297,7 +297,7 @@ const AddRoute = () => {
                   <span>~{durationMin} min</span>
                 </div>
               </div>
-              <Button onClick={() => setStep(3)} className="w-full h-11 rounded-xl text-white" style={{ backgroundColor: '#4f7fff' }}>
+              <Button onClick={() => setStep(3)} className="w-full h-11 rounded-xl bg-primary text-primary-foreground">
                 Looks good — Next →
               </Button>
             </div>
@@ -370,7 +370,7 @@ const AddRoute = () => {
           </div>
 
           <Button onClick={handlePublish} disabled={isPublishing || !title.trim()}
-            className="w-full h-12 rounded-xl text-base font-semibold" style={{ backgroundColor: '#4f7fff' }}>
+            className="w-full h-12 rounded-xl text-base font-semibold bg-primary text-primary-foreground">
             {isPublishing ? (isEdit ? 'Saving...' : 'Publishing...') : isEdit ? 'Save Changes' : 'Publish Route'}
           </Button>
         </div>
