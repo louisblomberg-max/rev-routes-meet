@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { toast } from 'sonner';
 import MapView from '@/components/MapView';
+import revnetLogo from '@/assets/revnet-logo-clean.png';
 
 type SavedTab = 'routes' | 'events' | 'services';
 
@@ -198,8 +199,8 @@ export default function DriveTab() {
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
           <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
-            <div style={{ textAlign: 'center', paddingTop: 6, paddingBottom: 2 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, letterSpacing: '-0.2px' }}><span style={{ color: '#d30d37' }}>REV</span><span style={{ color: '#111' }}>NET</span></span>
+            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
+              <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
             <div className="px-3 pb-2">
               <div style={{ position: 'relative' }}>
