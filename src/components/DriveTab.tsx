@@ -183,7 +183,7 @@ export default function DriveTab() {
   const items = savedTab === 'routes' ? savedRoutes : savedTab === 'events' ? savedEvents : savedServices;
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100dvh', overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, overflow: 'hidden' }}>
       <MapView onMapTap={handleMapTap} onMapReady={m => { mapRef.current = m; }} />
 
       {/* Active nav banner */}
@@ -241,7 +241,7 @@ export default function DriveTab() {
 
       {/* Tap popup */}
       {tappedLocation && !searchFocused && (
-        <div style={{ position: 'absolute', bottom: panelOpen ? 'calc(50vh + 86px)' : 210, left: 16, right: 16, zIndex: 25, background: '#FFF', borderRadius: 16, padding: '14px 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ position: 'absolute', bottom: panelOpen ? 'calc(50% + 80px)' : 'max(210px, calc(env(safe-area-inset-bottom) + 200px))', left: 16, right: 16, zIndex: 25, background: '#FFF', borderRadius: 16, padding: '14px 16px', boxShadow: '0 4px 20px rgba(0,0,0,0.12)', display: 'flex', alignItems: 'center', gap: 12 }}>
           <MapPin size={20} color="#CC2B2B" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{tappedLocation.name}</div></div>
           <button onClick={() => { nav('/navigation', { state: { destLat: tappedLocation.lat, destLng: tappedLocation.lng, destTitle: tappedLocation.name } }); setTappedLocation(null); }} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 20px', fontSize: 15, fontWeight: 700, cursor: 'pointer', flexShrink: 0, minHeight: 44 }}>Navigate</button>
@@ -250,7 +250,7 @@ export default function DriveTab() {
       )}
 
       {/* Bottom panel */}
-      <div style={{ position: 'absolute', bottom: 76, left: 0, right: 0, zIndex: 20, background: '#FFF', borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', maxHeight: panelOpen ? '50vh' : 120, transition: 'max-height 0.3s ease', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', bottom: 'max(76px, calc(env(safe-area-inset-bottom) + 64px))', left: 0, right: 0, zIndex: 20, background: '#FFF', borderRadius: '20px 20px 0 0', boxShadow: '0 -4px 20px rgba(0,0,0,0.08)', maxHeight: panelOpen ? '50vh' : 120, transition: 'max-height 0.3s ease', overflow: 'hidden' }}>
         <button onClick={() => setPanelOpen(!panelOpen)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 0 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: '#DDD' }} />
         </button>
