@@ -19,6 +19,12 @@ export default {
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }],
       },
+      minHeight: {
+        'dvh': '100dvh',
+      },
+      height: {
+        'dvh': '100dvh',
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

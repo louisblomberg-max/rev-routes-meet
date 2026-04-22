@@ -9,7 +9,7 @@ export default function CommunityTab() {
   const [subTab, setSubTab] = useState<SubTab>('clubs');
 
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100vh' }}>
+    <div style={{ background: '#FFFFFF', minHeight: '100dvh' }}>
       <nav style={{
         display: 'flex', padding: '0 16px', background: '#FFFFFF',
         borderBottom: '1px solid #F0F0F0',
