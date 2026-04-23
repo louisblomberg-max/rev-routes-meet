@@ -929,7 +929,6 @@ export default function Navigation() {
                   </div>
                   <button
                     onClick={() => {
-                      if (!canShare) { navigate('/upgrade'); return }
                       setShowFriendPicker(true)
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
@@ -1039,7 +1038,6 @@ export default function Navigation() {
               </button>
               <button
                 onClick={() => {
-                  if (!canShare) { toast.error('Upgrade to Pro to share location'); return }
                   setShowFriendPicker(true)
                 }}
                 className={`flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 border transition-all ${

@@ -175,15 +175,6 @@ const AccountSettings = () => {
           </div>
         </div>
 
-        {/* Plan */}
-        <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
-          <div className="px-4 py-3 border-b border-border/30"><h2 className="text-sm font-semibold text-foreground">Plan & Billing</h2></div>
-          <button onClick={() => navigate('/settings/billing')} className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/50 transition-colors">
-            <span className="text-sm text-foreground">Current plan</span>
-            <div className="flex items-center gap-2"><span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded font-medium">{plan}</span><ChevronRight className="w-4 h-4 text-muted-foreground/50" /></div>
-          </button>
-        </div>
-
         {/* Data & Account Control */}
         <div className="bg-card rounded-xl border border-border/30 shadow-sm overflow-hidden">
           <div className="px-4 py-3 border-b border-border/30"><h2 className="text-sm font-semibold text-foreground">Data & Account</h2></div>
