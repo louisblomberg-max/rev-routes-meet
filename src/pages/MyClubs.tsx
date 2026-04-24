@@ -15,7 +15,7 @@ const MyClubs = () => {
   const displayClubs = activeTab === 'joined' ? joined : managed;
 
   return (
-    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">

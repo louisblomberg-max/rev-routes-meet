@@ -98,7 +98,7 @@ const SocialDiscoverySettings = () => {
   ];
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col pb-6 md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col pb-6 md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="px-4 pt-4 pb-2 safe-top">
         <div className="flex items-center gap-3">

@@ -221,7 +221,7 @@ const Profile = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
           <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
         </div>
@@ -239,7 +239,7 @@ const Profile = () => {
 
   if (error) {
     return (
-      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
           <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
         </div>
@@ -256,7 +256,7 @@ const Profile = () => {
   }
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-dvh">
       <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center justify-between">

@@ -210,7 +210,7 @@ const AddRoute = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen pb-24 md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh pb-24 md:max-w-2xl md:mx-auto">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
@@ -250,7 +250,7 @@ const AddRoute = () => {
 
       {/* ═══ STEP 2: Create Route ═══ */}
       {step === 2 && method === 'draw' && (
-        <div className="flex flex-col" style={{ height: 'calc(100vh - 100px)' }}>
+        <div className="flex flex-col" style={{ height: 'calc(100dvh - 100px)' }}>
           <div ref={mapContainerRef} className="flex-1" />
           <div className="bg-card border-t border-border/30 p-4 space-y-3">
             {waypoints.length === 0 && <p className="text-sm text-muted-foreground text-center">Tap on the map to add waypoints</p>}

@@ -170,7 +170,7 @@ const SOSRequest = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex items-center justify-center">
+      <div className="mobile-container bg-background min-h-dvh flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-destructive border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -182,7 +182,7 @@ const SOSRequest = () => {
   const isResolved = ['resolved', 'cancelled', 'expired'].includes(request.status);
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/30 flex-shrink-0">
         <div className="flex items-center gap-3 px-4 py-3 safe-top">
           <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">

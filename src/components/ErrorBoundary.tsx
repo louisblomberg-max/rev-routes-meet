@@ -13,7 +13,7 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8" style={{ backgroundColor: '#ffffff' }}>
+        <div className="min-h-dvh flex flex-col items-center justify-center p-8" style={{ backgroundColor: '#ffffff' }}>
           <h1 className="text-xl font-bold mb-2">Something went wrong</h1>
           <p className="text-sm text-gray-500 mb-6 text-center">
             Pull down to refresh or tap the button below

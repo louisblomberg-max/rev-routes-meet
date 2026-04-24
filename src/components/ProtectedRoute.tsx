@@ -19,7 +19,7 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   // Still loading and not timed out — show spinner
   if (isLoading && !forceReady) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: '#F5F3EE' }}>
+      <div className="flex items-center justify-center min-h-dvh" style={{ backgroundColor: '#F5F3EE' }}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );

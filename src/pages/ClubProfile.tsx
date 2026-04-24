@@ -182,13 +182,13 @@ export default function ClubProfile() {
   const isMember = !!membership
 
   if (loading) return (
-    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
       <div className="h-44 bg-muted animate-pulse" />
     </div>
   )
 
   if (!club) return (
-    <div className="mobile-container bg-background min-h-screen flex items-center justify-center md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex items-center justify-center md:max-w-2xl md:mx-auto">
       <p className="text-muted-foreground">Club not found</p>
     </div>
   )
@@ -196,7 +196,7 @@ export default function ClubProfile() {
   // Private club locked preview
   if (club.is_private && !isMember) {
     return (
-      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <div className="relative w-full h-44">
           {club.cover_url ? (
             <img src={club.cover_url} className="w-full h-full object-cover" alt="" />
@@ -263,7 +263,7 @@ export default function ClubProfile() {
   const socialLinks = club.social_links as Record<string, string> | null
 
   return (
-    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
       {/* Cover image header */}
       <div className="relative w-full h-44">
         {club.cover_url ? (

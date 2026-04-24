@@ -89,7 +89,7 @@ const Community = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-dvh">
       <div className="px-4 pt-4 pb-6 safe-top">
         <div className="flex items-center gap-4 mb-6">
           <BackButton className="w-10 h-10 rounded-full bg-white shadow-sm" />

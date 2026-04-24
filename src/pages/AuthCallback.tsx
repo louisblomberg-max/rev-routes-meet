@@ -52,7 +52,7 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-background">
       <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       <p className="mt-4 text-muted-foreground">{message}</p>
     </div>
