@@ -50,7 +50,7 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavig
       className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
       style={{ backgroundColor: '#FFFFFF', borderTop: '1px solid #F0F0F0' }}
     >
-      <div className="flex items-end justify-around px-2 pb-safe">
+      <div className="flex items-end justify-around px-2 safe-bottom">
         {leftTabs.map(renderTab)}
 
         {/* FAB */}
