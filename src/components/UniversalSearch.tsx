@@ -63,14 +63,14 @@ const UniversalSearch = ({ onSelectPin, onSelectPlace, variant = 'mobile' }: Uni
     try {
       await Promise.all([
         supabase.from('events')
-          .select('id, title, type, event_types, location, date_start, is_free, lat, lng, banner_url')
+          .select('id, title, type, location, date_start, is_free, lat, lng, banner_url')
           .eq('status', 'published').eq('visibility', 'public')
           .or(`title.ilike.%${kw}%,location.ilike.%${kw}%`)
           .limit(4)
           .then(({ data }) => (data || []).forEach(e => allResults.push({
             id: e.id, type: 'event',
             title: e.title || 'Event',
-            subtitle: `${e.event_types?.[0] || e.type || 'Event'} · ${e.location || ''}${e.is_free ? ' · Free' : ''}`,
+            subtitle: `${e.type || 'Event'} · ${e.location || ''}${e.is_free ? ' · Free' : ''}`,
             lat: e.lat ? Number(e.lat) : undefined, lng: e.lng ? Number(e.lng) : undefined,
             isFree: e.is_free, image: e.banner_url, date: e.date_start,
           }))),

@@ -204,7 +204,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, event_types, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, vehicle_ages')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -231,10 +231,10 @@ const Home = () => {
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          event_types: e.event_types, meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, vehicle_ages: e.vehicle_ages,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -281,7 +281,7 @@ const Home = () => {
       const [eventsRes, routesRes, servicesRes] = await Promise.all([
         supabase
           .from('events')
-          .select('id, title, lat, lng, type, event_types, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, specific_years')
+          .select('id, title, lat, lng, type, date_start, visibility, status, vehicle_focus, vehicle_brands, meet_style_tags, is_free, entry_fee, is_ticketed, ticket_price, location, banner_url, attendee_count, max_attendees, vehicle_ages')
           .eq('visibility', 'public')
           .eq('status', 'published')
           .not('lat', 'is', null)
@@ -314,10 +314,10 @@ const Home = () => {
         ...(eventsRes.data || []).map(e => ({
           id: e.id, title: e.title, lat: Number(e.lat), lng: Number(e.lng),
           type: 'events', subtype: e.type,
-          event_types: e.event_types, meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
+          meet_style_tags: e.meet_style_tags, vehicle_focus: e.vehicle_focus, vehicle_brands: e.vehicle_brands,
           date_start: e.date_start, is_free: e.is_free, entry_fee: e.entry_fee,
           is_ticketed: e.is_ticketed, ticket_price: e.ticket_price,
-          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, specific_years: e.specific_years,
+          location: e.location, banner_url: e.banner_url, attendee_count: e.attendee_count, max_attendees: e.max_attendees, vehicle_ages: e.vehicle_ages,
         })),
         ...(routesRes.data || []).map(r => ({
           id: r.id, title: r.name, lat: Number(r.lat), lng: Number(r.lng),
@@ -514,10 +514,10 @@ const Home = () => {
     if (pin.type !== 'events') return true;
     const ef = eventsFilters;
 
-    // Event type filter — check both event_types array and single type/subtype
+    // Event type filter — check single type/subtype
     if (ef.filterEventTypes && ef.filterEventTypes.length > 0) {
-      const pinTypes = [...(pin.event_types || []), pin.subtype, pin.event_type].filter(Boolean).map((t: string) => t.toLowerCase());
-      const hasMatch = ef.filterEventTypes.some((ft: string) => pinTypes.includes(ft.toLowerCase()));
+      const pinType = (pin.subtype || '').toLowerCase();
+      const hasMatch = pinType && ef.filterEventTypes.some((ft: string) => ft.toLowerCase() === pinType);
       if (!hasMatch) return false;
     }
 
@@ -566,7 +566,7 @@ const Home = () => {
         if (eventMakes.length > 0 && !eventMakes.includes((v.make || '').toLowerCase())) return false;
       }
       if (vf === 'vehicle_era' && v.year) {
-        const pinYears: string[] = pin.specific_years || [];
+        const pinYears: string[] = pin.vehicle_ages || [];
         if (pinYears.length > 0) {
           const yr = parseInt(v.year);
           const hasMatch = pinYears.some((era: string) => {
@@ -595,7 +595,7 @@ const Home = () => {
 
     // Year range filter
     if (ef.specificYears && ef.specificYears.length > 0) {
-      const pinYears: string[] = pin.specific_years || [];
+      const pinYears: string[] = pin.vehicle_ages || [];
       if (pinYears.length > 0) {
         const hasMatch = ef.specificYears.some((y: string) => pinYears.includes(y));
         if (!hasMatch) return false;

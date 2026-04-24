@@ -920,11 +920,9 @@ export default function Navigation() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-gray-900">Share location with friends</p>
                     <p className="text-[10px] text-gray-500">
-                      {canShare
-                        ? isSharingLocation
+                      {isSharingLocation
                           ? `Sharing with ${sharedWithFriends.length} friend${sharedWithFriends.length !== 1 ? 's' : ''}`
-                          : 'Choose who sees your location'
-                        : 'Pro plan required'}
+                          : 'Choose who sees your location'}
                     </p>
                   </div>
                   <button
@@ -932,10 +930,10 @@ export default function Navigation() {
                       setShowFriendPicker(true)
                     }}
                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-                      isSharingLocation ? 'bg-green-500 text-white' : canShare ? 'bg-gray-200 text-gray-700' : 'bg-gray-100 text-gray-400'
+                      isSharingLocation ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-700'
                     }`}
                   >
-                    {isSharingLocation ? 'Sharing ✓' : canShare ? 'Choose friends' : 'Upgrade'}
+                    {isSharingLocation ? 'Sharing ✓' : 'Choose friends'}
                   </button>
                 </div>
               </div>
@@ -1041,7 +1039,7 @@ export default function Navigation() {
                   setShowFriendPicker(true)
                 }}
                 className={`flex-1 h-12 rounded-xl flex flex-col items-center justify-center gap-0.5 border transition-all ${
-                  isSharingLocation ? 'bg-green-900/50 border-green-600 text-green-400' : canShare ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/10 text-white/30'
+                  isSharingLocation ? 'bg-green-900/50 border-green-600 text-green-400' : 'bg-white/10 border-white/20 text-white'
                 }`}
               >
                 <span className="text-sm">{isSharingLocation ? '📡' : '👥'}</span>

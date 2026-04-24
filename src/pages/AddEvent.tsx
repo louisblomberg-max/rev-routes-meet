@@ -128,11 +128,11 @@ const AddEvent = () => {
       setTitle(data.title || '');
       setDescription(data.description || '');
       if (data.banner_url) setBannerPreview(data.banner_url);
-      setEventTypes(data.event_types?.length ? data.event_types : data.type ? [data.type] : []);
+      setEventTypes(data.type ? [data.type] : []);
       setVehicleFocus(data.vehicle_focus || 'all_welcome');
       setSpecificMakes(data.vehicle_brands || []);
       setMeetStyleTags(data.meet_style_tags || []);
-      setSpecificYears(data.specific_years || []);
+      setSpecificYears(data.vehicle_ages || []);
       setLocation(data.location || '');
       setLocationLat(data.lat ? Number(data.lat) : null);
       setLocationLng(data.lng ? Number(data.lng) : null);
@@ -456,9 +456,9 @@ const AddEvent = () => {
         const { error: updateError } = await supabase.from('events').update({
           title: title.trim(), description: description.trim(), banner_url: bannerUrl || null,
           photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls : undefined,
-          type: eventTypes[0] || '', event_types: eventTypes, vehicle_focus: vehicleFocus,
+          type: eventTypes[0] || '', vehicle_focus: vehicleFocus,
           vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
-          meet_style_tags: meetStyleTags, specific_years: specificYears,
+          meet_style_tags: meetStyleTags, vehicle_ages: specificYears,
           location: location.trim(), lat: locationLat, lng: locationLng,
           what3words: what3words.trim() || null,
           max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),
@@ -487,10 +487,10 @@ const AddEvent = () => {
         title: title.trim(), description: description.trim(),
         banner_url: bannerUrl || null,
         photos: uploadedPhotoUrls.length > 0 ? uploadedPhotoUrls : [],
-        type: eventTypes[0] || '', event_types: eventTypes,
+        type: eventTypes[0] || '',
         vehicle_focus: vehicleFocus,
         vehicle_brands: vehicleFocus === 'specific_makes' ? specificMakes : [],
-        meet_style_tags: meetStyleTags, specific_years: specificYears,
+        meet_style_tags: meetStyleTags, vehicle_ages: specificYears,
         location: location.trim(), lat: locationLat, lng: locationLng,
         what3words: what3words.trim() || null,
         max_attendees: unlimitedSpaces ? null : (maxAttendees ? Number(maxAttendees) : null),

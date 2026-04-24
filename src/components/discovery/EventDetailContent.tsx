@@ -306,7 +306,7 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
 
       {/* Event type badges */}
       <div className="flex flex-wrap gap-1.5">
-        {(data.event_types?.length > 0 ? data.event_types : [data.type || data.eventType]).filter(Boolean).map((t: string) => (
+        {[data.type || data.eventType].filter(Boolean).map((t: string) => (
           <span key={t} className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-events/10 text-events">
             {t}
           </span>
@@ -382,8 +382,8 @@ const EventDetailContent = ({ event, onNavigate, isSaved, onToggleSave }: EventD
               {vehicleFocus === 'specific_makes' && vehicleBrands.length === 0 && 'Specific brands'}
               {vehicleFocus === 'event_style' && meetStyleTags.length > 0 && `Style: ${meetStyleTags.join(', ')}`}
               {vehicleFocus === 'event_style' && meetStyleTags.length === 0 && 'Event style'}
-              {vehicleFocus === 'vehicle_era' && data.specific_years?.length > 0 && `Era: ${data.specific_years.join(', ')}`}
-              {vehicleFocus === 'vehicle_era' && (!data.specific_years || data.specific_years.length === 0) && 'Vehicle era'}
+              {vehicleFocus === 'vehicle_era' && data.vehicle_ages?.length > 0 && `Era: ${data.vehicle_ages.join(', ')}`}
+              {vehicleFocus === 'vehicle_era' && (!data.vehicle_ages || data.vehicle_ages.length === 0) && 'Vehicle era'}
             </p>
           </div>
         </div>

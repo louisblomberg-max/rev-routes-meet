@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { SlidersHorizontal, X, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 export interface RoutesFilterState {
   distance: number | 'national' | 'international';
@@ -36,7 +35,6 @@ const DURATION_OPTIONS = [
 const SURFACE_OPTIONS = ['All', 'Tarmac', 'Gravel', 'Dirt', 'Mixed'];
 
 const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProps) => {
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const distNum = typeof filters.distance === 'number' ? filters.distance : 25;
@@ -73,9 +71,6 @@ const RoutesFiltersPanel = ({ filters, onFiltersChange }: RoutesFiltersPanelProp
           {activeFilterCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-routes text-white text-[10px] font-bold flex items-center justify-center shadow-sm">{activeFilterCount}</span>
           )}
-        </button>
-        <button onClick={() => navigate('/add/route')} className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-routes text-routes-foreground shadow-sm hover:bg-routes/90 active:scale-[0.97] transition-all">
-          <Plus className="w-4 h-4" /><span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 
