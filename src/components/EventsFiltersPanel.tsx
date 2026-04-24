@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, Component, type ReactNode, type ErrorInfo } from 'react';
-import { SlidersHorizontal, X, Plus, CalendarIcon } from 'lucide-react';
+import { SlidersHorizontal, X, CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -233,15 +233,6 @@ const EventsFiltersPanelInner = ({ filters, onFiltersChange }: EventsFiltersPane
               {activeFilterCount}
             </span>
           )}
-        </button>
-
-        {/* Add Event Button */}
-        <button
-          onClick={() => navigate('/add/event')}
-          className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-events text-events-foreground shadow-sm hover:bg-events/90 active:scale-[0.97] transition-all"
-        >
-          <Plus className="w-4 h-4" />
-          <span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 

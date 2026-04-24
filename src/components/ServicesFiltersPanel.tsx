@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Switch } from '@/components/ui/switch';
-import { SlidersHorizontal, X, Plus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { SlidersHorizontal, X } from 'lucide-react';
 
 export interface ServicesFilterState {
   distance: number | 'national' | 'international';
@@ -33,7 +32,6 @@ const TYPE_OPTIONS = [
 ];
 
 const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanelProps) => {
-  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   const distNum = typeof filters.distance === 'number' ? filters.distance : 25;
@@ -66,9 +64,6 @@ const ServicesFiltersPanel = ({ filters, onFiltersChange }: ServicesFiltersPanel
           {activeFilterCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-services text-white text-[10px] font-bold flex items-center justify-center shadow-sm">{activeFilterCount}</span>
           )}
-        </button>
-        <button onClick={() => navigate('/add/service')} className="h-10 flex items-center gap-1.5 px-3 rounded-xl bg-services text-services-foreground shadow-sm hover:bg-services/90 active:scale-[0.97] transition-all">
-          <Plus className="w-4 h-4" /><span className="text-[10px] font-semibold whitespace-nowrap">Add</span>
         </button>
       </div>
 
