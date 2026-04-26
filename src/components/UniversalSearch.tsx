@@ -180,7 +180,7 @@ const UniversalSearch = ({ onSelectPin, onSelectPlace, variant = 'mobile' }: Uni
           value={query}
           onChange={e => handleChange(e.target.value)}
           onFocus={() => { if (results.length > 0) setIsOpen(true); }}
-          className="flex-1 bg-transparent outline-none text-sm font-medium text-foreground placeholder:text-muted-foreground placeholder:font-medium"
+          className="flex-1 bg-transparent outline-none text-sm font-semibold tracking-wide text-foreground placeholder:text-muted-foreground placeholder:font-semibold placeholder:tracking-wide"
         />
         {query && (
           <button onClick={clear} className="p-0.5">
