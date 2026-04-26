@@ -12,6 +12,7 @@ import { DataProvider } from "@/contexts/DataContext";
 import { GarageProvider } from "@/contexts/GarageContext";
 import { NavigationProvider } from "@/contexts/NavigationContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { useDeepLinkAuth } from "@/hooks/useDeepLinkAuth";
 
 // Lazy-loaded pages
 const Index = React.lazy(() => import("./pages/Index"));
@@ -87,6 +88,11 @@ const LoadingSpinner = () => (
   </div>
 );
 
+const DeepLinkAuthMount = () => {
+  useDeepLinkAuth();
+  return null;
+};
+
 const App = () => (
   <ErrorBoundary>
   <QueryClientProvider client={queryClient}>
@@ -100,6 +106,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <DeepLinkAuthMount />
         <Suspense fallback={<LoadingSpinner />}>
         <Routes>
           {/* Public legal pages */}

@@ -2,6 +2,25 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback,
 import { supabase } from '@/integrations/supabase/client';
 import type { PlanId } from '@/models';
 import { toast } from 'sonner';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
+
+const NATIVE_OAUTH_REDIRECT = 'com.revnet.app://auth/callback';
+
+async function signInWithOAuthProvider(provider: 'google' | 'apple') {
+  const isNative = Capacitor.isNativePlatform();
+  const redirectTo = isNative ? NATIVE_OAUTH_REDIRECT : `${window.location.origin}/auth/callback`;
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: { redirectTo, skipBrowserRedirect: isNative },
+  });
+  if (error) throw error;
+
+  if (isNative && data?.url) {
+    await Browser.open({ url: data.url, windowName: '_self' });
+  }
+}
 
 export interface NotificationPrefs {
   newEventsNearby: boolean;
@@ -300,19 +319,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) throw error;
+    await signInWithOAuthProvider('google');
   }, []);
 
   const signInWithApple = useCallback(async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) throw error;
+    await signInWithOAuthProvider('apple');
   }, []);
 
   const handleSignOut = useCallback(async () => {
