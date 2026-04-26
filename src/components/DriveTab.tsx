@@ -206,13 +206,19 @@ export default function DriveTab() {
         </button>
       )}
 
-      {/* Header — logo only */}
+      {/* Floating logo pill — top center */}
       {!isNavigating && (
-        <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
-          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FFFFFF', borderBottom: '2px solid #E5E5E5' }}>
-            <div className="px-4 pt-2 pb-2 text-center">
-              <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
-            </div>
+        <div className="absolute left-0 right-0 z-30 pointer-events-none flex justify-center" style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}>
+          <div className="pointer-events-auto" style={{
+            background: 'rgba(255,255,255,0.95)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            borderRadius: 999,
+            padding: '7px 18px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+            border: '1px solid rgba(0,0,0,0.06)',
+          }}>
+            <img src={revnetLogo} alt="RevNet" style={{ height: 22, display: 'block' }} />
           </div>
         </div>
       )}
@@ -221,10 +227,14 @@ export default function DriveTab() {
       {tappedLocation && !isNavigating && !searchOpen && (
         <div style={{
           position: 'absolute',
-          bottom: 'max(420px, calc(env(safe-area-inset-bottom) + 408px))',
+          bottom: 'max(476px, calc(env(safe-area-inset-bottom) + 464px))',
           left: 16, right: 16, zIndex: 25,
-          background: '#FFF', borderRadius: 12, padding: '14px 16px',
-          border: '2px solid #E5E5E5',
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          borderRadius: 14, padding: '14px 16px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.18)',
+          border: '1px solid rgba(0,0,0,0.06)',
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
           <MapPin size={20} color="#CC2B2B" style={{ flexShrink: 0 }} />
@@ -236,18 +246,22 @@ export default function DriveTab() {
         </div>
       )}
 
-      {/* Bottom panel */}
+      {/* Floating bottom panel */}
       {!isNavigating && (
         <div style={{
           position: 'absolute',
-          left: 0, right: 0,
-          bottom: 'max(76px, calc(env(safe-area-inset-bottom) + 64px))',
-          height: 400,
+          left: 12, right: 12,
+          bottom: 'max(80px, calc(env(safe-area-inset-bottom) + 68px))',
+          height: 380,
           zIndex: 20,
-          background: '#FFFFFF',
-          borderTop: '2px solid #E5E5E5',
-          borderTopLeftRadius: 20, borderTopRightRadius: 20,
+          background: 'rgba(255,255,255,0.97)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderRadius: 20,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.18)',
+          border: '1px solid rgba(0,0,0,0.06)',
           display: 'flex', flexDirection: 'column',
+          overflow: 'hidden',
         }}>
           <div style={{ display: 'flex', justifyContent: 'center', padding: '8px 0 4px' }}>
             <div style={{ width: 36, height: 4, borderRadius: 2, background: '#E5E5E5' }} />

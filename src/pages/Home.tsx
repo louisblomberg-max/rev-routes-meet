@@ -1151,14 +1151,27 @@ const Home = () => {
       <RouteLayer map={mapRef.current} />
       <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
-      {/* ═══ MOBILE: Original full-width header ═══ */}
+      {/* ═══ MOBILE: Floating chrome over full-screen map ═══ */}
       {!isNavigating && (
-        <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
-          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FFFFFF', borderBottom: '2px solid #E5E5E5' }}>
-            <div className="px-4 pt-2 pb-2 text-center">
-              <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
+        <>
+          {/* Logo pill */}
+          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none flex justify-center" style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}>
+            <div className="pointer-events-auto" style={{
+              background: 'rgba(255,255,255,0.95)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              borderRadius: 999,
+              padding: '7px 18px',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
+              border: '1px solid rgba(0,0,0,0.06)',
+            }}>
+              <img src={revnetLogo} alt="RevNet" style={{ height: 22, display: 'block' }} />
             </div>
-            <div className="px-4 pb-2">
+          </div>
+
+          {/* Floating search */}
+          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 52px)' }}>
+            <div className="pointer-events-auto">
               <UniversalSearch
                 onSelectPin={handleSearchSelectPin}
                 onSelectPlace={(lat, lng, title) => {
@@ -1167,11 +1180,15 @@ const Home = () => {
                 variant="mobile"
               />
             </div>
-            <div className="px-4 pb-3">
+          </div>
+
+          {/* Floating chips */}
+          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 110px)' }}>
+            <div className="pointer-events-auto">
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ═══ DESKTOP: Floating search pill ═══ */}
@@ -1207,7 +1224,7 @@ const Home = () => {
 
       {/* ═══ UNIFIED: Filter panels — works on both mobile and desktop ═══ */}
       {!isNavigating && activeCategory && (
-        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: '130px' }}>
+        <div className="absolute left-0 right-0 z-30 md:left-1/2 md:-translate-x-1/2 md:w-[600px] pointer-events-none" style={{ top: 'calc(env(safe-area-inset-top) + 168px)' }}>
           <div className="px-3 pt-2 pointer-events-auto">
             {activeCategory === 'events' && <EventsFiltersPanel filters={eventsFilters} onFiltersChange={setEventsFilters} />}
             {activeCategory === 'routes' && <RoutesFiltersPanel filters={routesFilters} onFiltersChange={setRoutesFilters} />}
@@ -1231,8 +1248,8 @@ const Home = () => {
 
       {/* Hint when no category selected */}
       {!activeCategory && !isNavigating && (
-        <div className="absolute top-[130px] md:top-[140px] left-0 right-0 z-20 flex justify-center pointer-events-none safe-top">
-          <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-sm border border-border/30">
+        <div className="absolute left-0 right-0 z-20 flex justify-center pointer-events-none" style={{ top: 'calc(env(safe-area-inset-top) + 168px)' }}>
+          <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-md border border-border/30">
             <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
           </div>
         </div>
