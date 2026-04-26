@@ -13,7 +13,6 @@ import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
 import CommunityTab from '@/components/CommunityTab';
-import DriveTab from '@/components/DriveTab';
 import TopAppHeader from '@/components/TopAppHeader';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
@@ -31,7 +30,7 @@ import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-type Tab = 'explore' | 'drive' | 'social' | 'you';
+type Tab = 'explore' | 'social' | 'you';
 
 interface TappedLocation {
   lat: number;
@@ -83,9 +82,9 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
-    if (tabParam && ['explore', 'drive', 'social', 'you'].includes(tabParam)) return tabParam;
+    if (tabParam && ['explore', 'social', 'you'].includes(tabParam)) return tabParam;
     const stored = sessionStorage.getItem('revnet_active_tab') as Tab | null;
-    if (stored && ['explore', 'drive', 'social', 'you'].includes(stored)) return stored;
+    if (stored && ['explore', 'social', 'you'].includes(stored)) return stored;
     return 'explore';
   });
 
@@ -926,8 +925,6 @@ const Home = () => {
 
   const handleMapTap = async (lngLat: { lng: number; lat: number }) => {
     if (isNavigating) return;
-    // Only navigate on desktop — on mobile use search bar
-    if (window.innerWidth < 768) return;
     const { lng, lat } = lngLat;
 
     try {
@@ -1104,14 +1101,11 @@ const Home = () => {
   if (activeTab !== 'explore') {
     return (
       <div className="mobile-container">
-        {activeTab !== 'drive' && (
-          <div className="md:hidden">
-            <TopAppHeader variant="solid" />
-          </div>
-        )}
+        <div className="md:hidden">
+          <TopAppHeader variant="solid" />
+        </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'social' && <CommunityTab />}
-        {activeTab === 'drive' && <DriveTab />}
         {activeTab === 'you' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}

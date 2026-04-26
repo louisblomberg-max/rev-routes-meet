@@ -1,6 +1,6 @@
-import { Compass, Route as RouteIcon, Users, User } from 'lucide-react';
+import { Compass, Users, User } from 'lucide-react';
 
-type Tab = 'explore' | 'drive' | 'social' | 'you';
+type Tab = 'explore' | 'social' | 'you';
 
 interface FloatingMapNavProps {
   activeTab: Tab;
@@ -10,14 +10,13 @@ interface FloatingMapNavProps {
 const FloatingMapNav = ({ activeTab, onTabChange }: FloatingMapNavProps) => {
   const tabs: { id: Tab; label: string; icon: typeof Compass; activeColor: string }[] = [
     { id: 'explore', label: 'Explore', icon: Compass, activeColor: '#CC2B2B' },
-    { id: 'drive', label: 'Drive', icon: RouteIcon, activeColor: '#CC2B2B' },
     { id: 'social', label: 'Social', icon: Users, activeColor: '#CC2B2B' },
     { id: 'you', label: 'You', icon: User, activeColor: '#CC2B2B' },
   ];
 
   return (
     <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 px-3 pt-1 pb-1 bg-[#ffffff] rounded-[20px] shadow-[0_8px_32px_rgba(0,0,0,0.20)] md:bg-transparent md:shadow-none md:rounded-none md:px-0 md:py-0">
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
