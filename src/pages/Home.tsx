@@ -1236,14 +1236,6 @@ const Home = () => {
       <HelpSheet open={isHelpOpen} onOpenChange={setIsHelpOpen} />
 
 
-      {/* Hint when no category selected */}
-      {!activeCategory && !isNavigating && (
-        <div className="absolute left-0 right-0 z-20 flex justify-center pointer-events-none" style={{ top: 'calc(env(safe-area-inset-top) + 168px)' }}>
-          <div className="bg-white/90 backdrop-blur-sm rounded-[20px] px-4 py-2 shadow-md border border-border/30">
-            <p className="text-[13px] text-muted-foreground">Select Events, Routes or Services to explore</p>
-          </div>
-        </div>
-      )}
 
       {!isNavigating && selectedDetail && (
         <DetailBottomSheet item={selectedDetail} onClose={handleCloseDetail} onViewFull={handleViewFull} />
