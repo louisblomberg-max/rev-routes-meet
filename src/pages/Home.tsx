@@ -1225,10 +1225,11 @@ const Home = () => {
 
       {/* ═══ Map utility buttons ═══ */}
       {!isNavigating && (
-        <div className="absolute right-3 bottom-20 z-20 flex flex-col items-center gap-2.5">
-          <div className="hidden md:block">
-            <HelpButton onClick={() => setIsHelpOpen(true)} />
-          </div>
+        <div
+          className="absolute right-3 z-20 flex flex-col items-end gap-2"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 88px)' }}
+        >
+          <HelpButton onClick={() => setIsHelpOpen(true)} />
           <LocationButton onClick={handleLocateUser} />
         </div>
       )}
@@ -1284,13 +1285,6 @@ const Home = () => {
       {!isNavigating && (
         <div className="hidden md:block pointer-events-none">
           <div className="pointer-events-auto"><FloatingMapNav activeTab={activeTab} onTabChange={setActiveTab} /></div>
-        </div>
-      )}
-
-      {/* SOS button — fixed above bottom nav, all screen sizes */}
-      {!isNavigating && activeTab === 'explore' && (
-        <div className="fixed bottom-24 right-4 z-30 md:hidden">
-          <HelpButton onClick={() => setIsHelpOpen(true)} />
         </div>
       )}
     </div>

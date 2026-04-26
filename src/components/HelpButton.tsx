@@ -6,7 +6,13 @@ const HelpButton = ({ onClick }: HelpButtonProps) => {
   return (
     <button
       onClick={onClick}
-      className="relative flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-destructive shadow-md shadow-destructive/25 transition-all duration-200 active:scale-90"
+      aria-label="Emergency help"
+      className="flex items-center justify-center h-11 px-4 rounded-2xl transition-transform duration-200 active:scale-90"
+      style={{
+        background: 'hsl(var(--destructive))',
+        boxShadow: '0 4px 16px rgba(220,38,38,0.35)',
+        border: '1px solid rgba(0,0,0,0.06)',
+      }}
     >
       <span className="text-sm font-black tracking-wide text-destructive-foreground">SOS</span>
     </button>
