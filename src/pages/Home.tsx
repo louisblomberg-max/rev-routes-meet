@@ -1151,26 +1151,16 @@ const Home = () => {
       <RouteLayer map={mapRef.current} />
       <RoutePreviewLayer map={mapRef.current} polyline={selectedRoutePolyline} routeId={selectedRouteId} />
 
-      {/* ═══ MOBILE: Floating chrome over full-screen map ═══ */}
+      {/* ═══ MOBILE: Rectangular header + floating search/chips below ═══ */}
       {!isNavigating && (
         <>
-          {/* Logo pill */}
-          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none flex justify-center" style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}>
-            <div className="pointer-events-auto" style={{
-              background: 'rgba(255,255,255,0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              borderRadius: 999,
-              padding: '7px 18px',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
-              border: '1px solid rgba(0,0,0,0.06)',
-            }}>
-              <img src={revnetLogo} alt="RevNet" style={{ height: 22, display: 'block' }} />
-            </div>
+          {/* Rectangular RevNet logo header (matches Social/You) */}
+          <div className="md:hidden">
+            <TopAppHeader variant="floating" />
           </div>
 
           {/* Floating search */}
-          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 52px)' }}>
+          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 56px)' }}>
             <div className="pointer-events-auto">
               <UniversalSearch
                 onSelectPin={handleSearchSelectPin}
@@ -1183,7 +1173,7 @@ const Home = () => {
           </div>
 
           {/* Floating chips */}
-          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 110px)' }}>
+          <div className="absolute left-0 right-0 z-30 md:hidden pointer-events-none px-3" style={{ top: 'calc(env(safe-area-inset-top) + 112px)' }}>
             <div className="pointer-events-auto">
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
             </div>

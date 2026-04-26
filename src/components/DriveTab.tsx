@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { toast } from 'sonner';
 import MapView from '@/components/MapView';
-import revnetLogo from '@/assets/revnet-logo-clean.png';
+import TopAppHeader from '@/components/TopAppHeader';
 
 interface SearchHit {
   id: string;
@@ -206,22 +206,8 @@ export default function DriveTab() {
         </button>
       )}
 
-      {/* Floating logo pill — top center */}
-      {!isNavigating && (
-        <div className="absolute left-0 right-0 z-30 pointer-events-none flex justify-center" style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}>
-          <div className="pointer-events-auto" style={{
-            background: 'rgba(255,255,255,0.95)',
-            backdropFilter: 'blur(12px)',
-            WebkitBackdropFilter: 'blur(12px)',
-            borderRadius: 999,
-            padding: '7px 18px',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.12)',
-            border: '1px solid rgba(0,0,0,0.06)',
-          }}>
-            <img src={revnetLogo} alt="RevNet" style={{ height: 22, display: 'block' }} />
-          </div>
-        </div>
-      )}
+      {/* Rectangular RevNet logo header (matches Explore/Social/You) */}
+      {!isNavigating && <TopAppHeader variant="floating" />}
 
       {/* Tap-to-navigate popup */}
       {tappedLocation && !isNavigating && !searchOpen && (
