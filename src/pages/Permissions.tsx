@@ -91,7 +91,7 @@ const Permissions = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col">
       {/* Progress */}
       <div className="px-6 pt-12 safe-top">
         <div className="flex items-center gap-2">

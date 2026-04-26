@@ -25,14 +25,14 @@ const ListingDetail = () => {
   }, [id]);
 
   if (loading) return (
-    <div className="min-h-screen bg-background px-4 pt-12 md:max-w-2xl md:mx-auto">
+    <div className="min-h-dvh bg-background px-4 pt-12 md:max-w-2xl md:mx-auto">
       <Skeleton className="h-64 w-full rounded-xl mb-4" />
       <Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-6 w-32" />
     </div>
   );
 
   if (!listing) return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
+    <div className="min-h-dvh bg-background flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
       <Tag className="w-16 h-16 text-muted-foreground/30 mb-4" />
       <h2 className="text-lg font-bold mb-1">Listing not found</h2>
       <Button variant="outline" onClick={() => navigate(-1)}>Go Back</Button>
@@ -43,7 +43,7 @@ const ListingDetail = () => {
   const seller = listing.profiles;
 
   return (
-    <div className="min-h-screen bg-background pb-24 md:max-w-2xl md:mx-auto">
+    <div className="min-h-dvh bg-background pb-24 md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-12 pb-3 safe-top flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
         <h1 className="flex-1 font-bold truncate">Listing</h1>

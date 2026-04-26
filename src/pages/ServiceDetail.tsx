@@ -76,14 +76,14 @@ const ServiceDetail = () => {
 
   if (loading) {
     return (
-      <div className="mobile-container min-h-screen bg-background flex items-center justify-center md:max-w-2xl md:mx-auto">
+      <div className="mobile-container min-h-dvh bg-background flex items-center justify-center md:max-w-2xl md:mx-auto">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
       </div>
     );
   }
 
   if (!service) return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
       <MapPin className="w-16 h-16 text-muted-foreground/30 mb-4" />
       <h2 className="text-lg font-bold text-foreground mb-1">Service not found</h2>
       <p className="text-sm text-muted-foreground mb-6">This service may have been removed or doesn't exist.</p>
@@ -97,7 +97,7 @@ const ServiceDetail = () => {
   const avgRating = service.rating || 0;
 
   return (
-    <div className="mobile-container min-h-screen bg-background md:max-w-2xl md:mx-auto">
+    <div className="mobile-container min-h-dvh bg-background md:max-w-2xl md:mx-auto">
       {/* Header */}
       {service.cover_url && (
         <div className="relative h-48 w-full">

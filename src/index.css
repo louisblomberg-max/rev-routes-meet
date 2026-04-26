@@ -268,7 +268,7 @@
 
   /* Page Containers */
   .page-container {
-    @apply min-h-screen bg-background;
+    @apply min-h-dvh bg-background;
   }
 
   .mobile-container {

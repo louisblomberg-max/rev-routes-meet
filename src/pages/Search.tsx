@@ -37,7 +37,7 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="mobile-container min-h-screen md:max-w-2xl md:mx-auto" style={{ background: '#FFFFFF' }}>
+    <div className="mobile-container min-h-dvh md:max-w-2xl md:mx-auto" style={{ background: '#FFFFFF' }}>
       <div style={{ background: '#FFFFFF', borderBottom: '1px solid #F0F0F0', padding: '12px 16px', paddingTop: 'max(env(safe-area-inset-top), 12px)', display: 'flex', alignItems: 'center', gap: 12 }}>
         <button onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: 4 }}>
           <ArrowLeft size={22} color="#555" />

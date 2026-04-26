@@ -149,7 +149,7 @@ export default function AddClub() {
   const canProceedStep1 = name.trim().length > 0 && handle.trim().length > 0 && clubType
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-10 h-10 rounded-xl bg-muted/80" iconClassName="w-4 h-4" />

@@ -50,7 +50,7 @@ const NotificationSettings = () => {
 
   if (isLoading) {
     return (
-      <div className="mobile-container bg-background h-screen flex flex-col md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background h-dvh flex flex-col md:max-w-2xl md:mx-auto">
         <div className="px-4 pt-4 pb-2 safe-top shrink-0">
           <div className="flex items-center gap-3">
             <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" />
@@ -69,7 +69,7 @@ const NotificationSettings = () => {
   }
 
   return (
-    <div className="mobile-container bg-background h-screen flex flex-col md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background h-dvh flex flex-col md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-4 pb-2 safe-top shrink-0">
         <div className="flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" />

@@ -62,7 +62,7 @@ const CreateForumPost = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col md:max-w-2xl md:mx-auto">
       <div className="px-4 pt-4 pb-3 safe-top sticky top-0 bg-background z-10 border-b border-border/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">

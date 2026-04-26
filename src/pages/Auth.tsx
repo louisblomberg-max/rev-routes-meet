@@ -83,7 +83,7 @@ const Auth = () => {
 
   if (mode === 'landing') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-4" style={{ backgroundColor: '#ffffff' }}>
+      <div className="min-h-dvh flex flex-col items-center justify-center px-6 py-4" style={{ backgroundColor: '#ffffff' }}>
         <div className="w-full max-w-sm flex flex-col items-center gap-3">
           <div className="flex flex-col items-center">
             <img src={revnetLogo} alt="RevNet logo" className="w-64 h-64 rounded-2xl object-contain" />
@@ -123,7 +123,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#ffffff' }}>
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6" style={{ backgroundColor: '#ffffff' }}>
       <div className="w-full max-w-sm">
         <button
           onClick={() => setMode('landing')}

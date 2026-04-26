@@ -259,7 +259,7 @@ const OrganizerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background px-4 pt-12">
+      <div className="min-h-dvh bg-background px-4 pt-12">
         <Skeleton className="h-8 w-48 mb-2" /><Skeleton className="h-4 w-32 mb-6" />
         <div className="grid grid-cols-4 gap-2">{[1,2,3,4].map(i => <Skeleton key={i} className="h-16 rounded-xl" />)}</div>
       </div>
@@ -267,7 +267,7 @@ const OrganizerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-24">
       {/* Header */}
       <div className="px-4 pt-12 pb-3 safe-top border-b border-border/50 flex items-center gap-3">
         <button onClick={() => navigate('/my-events')} className="w-9 h-9 rounded-lg bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>

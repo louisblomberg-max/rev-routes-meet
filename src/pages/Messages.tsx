@@ -172,7 +172,7 @@ const Messages = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background md:max-w-2xl md:mx-auto">
+    <div className="min-h-dvh bg-background md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border/50">
         <div className="flex items-center gap-3 px-4 py-3">
           <BackButton className="w-10 h-10 rounded-full bg-card" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'community'); navigate('/'); }} />

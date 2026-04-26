@@ -130,7 +130,7 @@ const RouteDetail = () => {
 
   if (routeLoading) {
     return (
-      <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <Skeleton className="h-56 w-full" />
         <div className="px-4 mt-4 space-y-4">
           <Skeleton className="h-8 w-3/4" />
@@ -143,7 +143,7 @@ const RouteDetail = () => {
 
   if (!route) {
     return (
-      <div className="mobile-container bg-background min-h-screen flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
+      <div className="mobile-container bg-background min-h-dvh flex flex-col items-center justify-center px-6 md:max-w-2xl md:mx-auto">
         <Ruler className="w-16 h-16 text-muted-foreground/30 mb-4" />
         <h2 className="text-lg font-bold text-foreground mb-1">Route not found</h2>
         <p className="text-sm text-muted-foreground mb-6">This route may have been removed.</p>
@@ -170,7 +170,7 @@ const RouteDetail = () => {
   const routeStart = { lat: route.lat ?? 51.28, lng: route.lng ?? -1.08, title: route.name };
 
   return (
-    <div className="mobile-container bg-background min-h-screen md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
       {/* Header / Map Preview */}
       {route.polyline ? (
         <div className="relative h-56">

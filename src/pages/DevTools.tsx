@@ -181,7 +181,7 @@ const DevTools = () => {
   }, []);
 
   if (isAdmin === null) {
-    return <div className="mobile-container bg-background min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+    return <div className="mobile-container bg-background min-h-dvh flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   }
   if (isAdmin === false) {
     navigate('/settings', { replace: true });
@@ -263,7 +263,7 @@ const DevTools = () => {
   ];
 
   return (
-    <div className="mobile-container bg-background min-h-screen">
+    <div className="mobile-container bg-background min-h-dvh">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-card/95 backdrop-blur-xl border-b border-border/30 safe-top">
         <div className="px-4 py-3 flex items-center gap-3">

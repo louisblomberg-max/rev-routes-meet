@@ -547,7 +547,7 @@ const AddEvent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background md:max-w-2xl md:mx-auto">
+    <div className="min-h-dvh bg-background pb-24 md:max-w-2xl md:mx-auto">
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBannerSelect} />
       <input ref={photosInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePhotosSelect} />

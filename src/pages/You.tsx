@@ -50,7 +50,7 @@ const You = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background pb-24">
+      <div className="min-h-dvh bg-background pb-24">
         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
           <BackButton />
           <h1 className="text-lg font-bold text-foreground">Profile</h1>
@@ -75,7 +75,7 @@ const You = () => {
   const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-dvh bg-background pb-24">
       <div className="px-4 pt-4 pb-2 flex items-center justify-between">
         <BackButton />
         <h1 className="text-lg font-bold text-foreground">Profile</h1>

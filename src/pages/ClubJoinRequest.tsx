@@ -78,19 +78,19 @@ export default function ClubJoinRequest() {
   }
 
   if (loading) return (
-    <div className="mobile-container bg-background min-h-screen flex items-center justify-center md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex items-center justify-center md:max-w-2xl md:mx-auto">
       <div className="w-10 h-10 rounded-2xl bg-muted/50 animate-pulse" />
     </div>
   )
 
   if (!club) return (
-    <div className="mobile-container bg-background min-h-screen flex items-center justify-center md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh flex items-center justify-center md:max-w-2xl md:mx-auto">
       <p className="text-muted-foreground">Club not found</p>
     </div>
   )
 
   return (
-    <div className="mobile-container bg-background min-h-screen pb-24 md:max-w-2xl md:mx-auto">
+    <div className="mobile-container bg-background min-h-dvh pb-24 md:max-w-2xl md:mx-auto">
       <div className="sticky top-0 z-10 bg-[#FAFAFA] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" />

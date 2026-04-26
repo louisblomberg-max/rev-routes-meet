@@ -866,7 +866,7 @@ export default function Navigation() {
             <span className="text-xl font-bold text-gray-700">‹</span>
           </button>
 
-          <div className="absolute bottom-0 left-0 right-0 z-30 rounded-t-3xl bg-white shadow-2xl" style={{ maxHeight: '60vh' }}>
+          <div className="absolute bottom-0 left-0 right-0 z-30 rounded-t-3xl bg-white shadow-2xl" style={{ maxHeight: '60dvh' }}>
             <div className="overflow-y-auto p-5 pb-8">
               <div className="flex items-start gap-3 mb-4">
                 <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center flex-shrink-0">

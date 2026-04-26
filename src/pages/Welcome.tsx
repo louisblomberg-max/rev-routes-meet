@@ -52,7 +52,7 @@ const Welcome = () => {
   };
 
   return (
-    <div className="mobile-container bg-background min-h-screen flex flex-col">
+    <div className="mobile-container bg-background min-h-dvh flex flex-col">
       {/* Logo */}
       <div className="flex justify-center pt-16 safe-top">
         <img src={revnetLogo} alt="RevNet" className="h-10 w-auto" />
