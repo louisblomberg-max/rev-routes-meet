@@ -24,12 +24,12 @@ const TopAppHeader = ({ variant = 'solid' }: TopAppHeaderProps) => {
               left: 0,
               right: 0,
               zIndex: 30,
-              background: '#E9E6DF',
+              background: '#FFFFFF',
               borderBottom: '2px solid #E5E5E5',
             }
           : {
               position: 'relative',
-              background: '#E9E6DF',
+              background: '#FFFFFF',
               borderBottom: '2px solid #E5E5E5',
             }),
       }}

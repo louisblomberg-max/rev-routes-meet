@@ -198,7 +198,7 @@ export default function DriveTab() {
       {/* Header — matches Explore page */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
-          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#E9E6DF', borderBottom: '2px solid #E5E5E5' }}>
+          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FFFFFF', borderBottom: '2px solid #E5E5E5' }}>
             <div className="px-4 pt-2 pb-2 text-center">
               <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
