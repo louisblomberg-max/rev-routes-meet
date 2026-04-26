@@ -10,8 +10,10 @@ const TopAppHeader = ({ variant = 'solid' }: TopAppHeaderProps) => {
   return (
     <header
       style={{
-        paddingTop: 'max(env(safe-area-inset-top), 10px)',
-        paddingBottom: 10,
+        paddingTop: 'max(env(safe-area-inset-top), 8px)',
+        paddingBottom: 8,
+        paddingLeft: 16,
+        paddingRight: 16,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

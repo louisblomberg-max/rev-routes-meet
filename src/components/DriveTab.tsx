@@ -198,11 +198,11 @@ export default function DriveTab() {
       {/* Header — matches Explore page */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
-          <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
-            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
+          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FAFAFA', borderBottom: '2px solid #E5E5E5' }}>
+            <div className="px-4 pt-2 pb-2 text-center">
               <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
-            <div className="px-3 pb-2">
+            <div className="px-4 pb-3">
               <div style={{ position: 'relative' }}>
                 <Search size={16} color="#999" style={{ position: 'absolute', left: 12, top: 12, zIndex: 1 }} />
                 <input
@@ -210,7 +210,7 @@ export default function DriveTab() {
                   onChange={e => handleSearchInput(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   placeholder="Where to?"
-                  className="h-10 bg-gray-50 rounded-xl px-3 border border-gray-200 text-sm font-medium w-full outline-none"
+                  className="h-10 bg-[#FAFAFA] rounded-xl px-3 border-2 border-[#E5E5E5] text-sm font-medium w-full outline-none"
                   style={{ paddingLeft: 36, color: '#111' }}
                 />
                 {searchQuery && (
@@ -222,7 +222,7 @@ export default function DriveTab() {
             </div>
             {/* Search results dropdown */}
             {searchResults.length > 0 && searchFocused && (
-              <div style={{ margin: '4px 12px 8px', background: '#FFF', borderRadius: 12, boxShadow: '0 4px 16px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+              <div style={{ margin: '0 16px 12px', background: '#FFF', borderRadius: 12, border: '2px solid #E5E5E5', overflow: 'hidden' }}>
                 {searchResults.map(r => (
                   <button key={r.id} onClick={() => handleSelectResult(r)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', background: 'none', border: 'none', borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const }}>
                     <MapPin size={16} color="#CC2B2B" style={{ flexShrink: 0 }} />
@@ -234,7 +234,6 @@ export default function DriveTab() {
                 ))}
               </div>
             )}
-            <div style={{ height: 8 }} />
           </div>
         </div>
       )}

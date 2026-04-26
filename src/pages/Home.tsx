@@ -1155,10 +1155,10 @@ const Home = () => {
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
           <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FAFAFA', borderBottom: '2px solid #E5E5E5' }}>
-            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
+            <div className="px-4 pt-2 pb-2 text-center">
               <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
-            <div className="px-3 pb-1">
+            <div className="px-4 pb-2">
               <UniversalSearch
                 onSelectPin={handleSearchSelectPin}
                 onSelectPlace={(lat, lng, title) => {
@@ -1167,7 +1167,7 @@ const Home = () => {
                 variant="mobile"
               />
             </div>
-            <div className="flex items-center justify-around py-2 px-3">
+            <div className="px-4 pb-3">
               <CategoryChips activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
             </div>
           </div>

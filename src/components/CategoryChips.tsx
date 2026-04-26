@@ -39,8 +39,8 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
               isActive ? activeStyles[category.id] : inactiveStyles
             }`}
           >
-            <Icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
-            <span className={`text-[11px] font-semibold tracking-wide whitespace-nowrap ${isActive ? 'text-white' : ''}`}>
+            <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : ''}`} />
+            <span className={`text-[13px] tracking-wide whitespace-nowrap ${isActive ? 'font-bold text-white' : 'font-semibold'}`}>
               {category.label}
             </span>
           </button>

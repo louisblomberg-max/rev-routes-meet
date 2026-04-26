@@ -11,7 +11,7 @@ export default function CommunityTab() {
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100dvh' }}>
       <nav style={{
-        display: 'flex', padding: '0 16px', background: '#FAFAFA',
+        display: 'flex', padding: '0 16px 12px', background: '#FAFAFA',
         borderBottom: '2px solid #E5E5E5',
       }}>
         {(['clubs', 'forums', 'messages'] as SubTab[]).map(t => {
@@ -21,11 +21,11 @@ export default function CommunityTab() {
               key={t}
               onClick={() => setSubTab(t)}
               style={{
-                flex: 1, background: 'transparent', border: 'none',
-                padding: '14px 0 16px', fontSize: 14, fontWeight: active ? 700 : 500,
+                flex: 1, height: 40, background: 'transparent', border: 'none',
+                fontSize: 13, fontWeight: active ? 700 : 600, letterSpacing: '0.025em',
                 color: active ? '#CC2B2B' : '#AAA',
                 borderBottom: active ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
-                marginBottom: -1, cursor: 'pointer', transition: 'color 0.15s ease',
+                marginBottom: -2, cursor: 'pointer', transition: 'color 0.15s ease',
                 textTransform: 'capitalize',
               }}
             >
