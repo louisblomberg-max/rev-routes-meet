@@ -91,7 +91,7 @@ export default function ClubJoinRequest() {
 
   return (
     <div className="mobile-container bg-background min-h-dvh pb-24 md:max-w-2xl md:mx-auto">
-      <div className="sticky top-0 z-10 bg-[#FAFAFA] border-b-2 border-[#E5E5E5] safe-top">
+      <div className="sticky top-0 z-10 bg-[#E9E6DF] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" />
           <h1 className="text-lg font-bold text-foreground">Request to Join</h1>

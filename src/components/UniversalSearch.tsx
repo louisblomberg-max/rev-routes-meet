@@ -163,7 +163,7 @@ const UniversalSearch = ({ onSelectPin, onSelectPlace, variant = 'mobile' }: Uni
 
   return (
     <div className="relative flex-1 min-w-0">
-      <div className={`flex items-center gap-2 ${variant === 'mobile' ? 'h-10 bg-[#FAFAFA] rounded-xl px-3 border-2 border-[#E5E5E5]' : 'px-2'}`}>
+      <div className={`flex items-center gap-2 ${variant === 'mobile' ? 'h-10 bg-[#FFFFFF] rounded-xl px-3 border-2 border-[#E5E5E5]' : 'px-2'}`}>
         <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
         <input
           type="text"

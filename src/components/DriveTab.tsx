@@ -198,7 +198,7 @@ export default function DriveTab() {
       {/* Header — matches Explore page */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 pointer-events-none">
-          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FAFAFA', borderBottom: '2px solid #E5E5E5' }}>
+          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#E9E6DF', borderBottom: '2px solid #E5E5E5' }}>
             <div className="px-4 pt-2 pb-2 text-center">
               <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
@@ -210,7 +210,7 @@ export default function DriveTab() {
                   onChange={e => handleSearchInput(e.target.value)}
                   onFocus={() => setSearchFocused(true)}
                   placeholder="Where to?"
-                  className="h-10 bg-[#FAFAFA] rounded-xl px-3 border-2 border-[#E5E5E5] text-sm font-medium w-full outline-none"
+                  className="h-10 bg-[#FFFFFF] rounded-xl px-3 border-2 border-[#E5E5E5] text-sm font-medium w-full outline-none"
                   style={{ paddingLeft: 36, color: '#111' }}
                 />
                 {searchQuery && (

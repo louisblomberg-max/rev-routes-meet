@@ -5,7 +5,7 @@ const Terms = () => {
   const navigate = useNavigate();
   return (
     <div className="mobile-container bg-background min-h-dvh">
-      <div className="sticky top-0 z-10 bg-[#FAFAFA] border-b-2 border-[#E5E5E5] safe-top">
+      <div className="sticky top-0 z-10 bg-[#E9E6DF] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50" iconClassName="w-4 h-4" onClick={() => navigate(-1)} />
           <h1 className="text-lg font-bold">Terms of Service</h1>
