@@ -1154,7 +1154,7 @@ const Home = () => {
       {/* ═══ MOBILE: Original full-width header ═══ */}
       {!isNavigating && (
         <div className="absolute top-0 left-0 right-0 z-30 md:hidden pointer-events-none">
-          <div className="pointer-events-auto backdrop-blur-xl border-b safe-top" style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderBottomColor: '#F0F0F0' }}>
+          <div className="pointer-events-auto safe-top" style={{ backgroundColor: '#FAFAFA', borderBottom: '2px solid #E5E5E5' }}>
             <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 4 }}>
               <img src={revnetLogo} alt="RevNet" style={{ height: 28, width: 'auto', display: 'inline-block' }} />
             </div>
@@ -1179,7 +1179,7 @@ const Home = () => {
         <div className="hidden md:block absolute top-4 left-1/2 -translate-x-1/2 min-w-[520px] max-w-[640px] pointer-events-none" style={{ zIndex: 10000 }}>
           <div
             className="flex items-center gap-2 px-4 py-2 pointer-events-auto"
-            style={{ backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 999, boxShadow: '0 4px 20px rgba(0,0,0,0.15)', backdropFilter: 'blur(12px)' }}
+            style={{ backgroundColor: '#FAFAFA', borderRadius: 999, border: '2px solid #E5E5E5' }}
           >
             <img src={revnetLogo} alt="RevNet" className="h-7 w-auto object-contain flex-shrink-0" />
             <UniversalSearch

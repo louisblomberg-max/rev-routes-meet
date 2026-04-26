@@ -24,18 +24,18 @@ const CategoryChips = ({ activeCategory, onCategoryChange }: CategoryChipsProps)
         const isActive = activeCategory === category.id;
 
         const activeStyles: Record<string, string> = {
-          events: 'bg-events/90 text-white border-events shadow-[0_4px_16px_-2px] shadow-events/40',
-          routes: 'bg-routes/90 text-white border-routes shadow-[0_4px_16px_-2px] shadow-routes/40',
-          services: 'bg-services/90 text-white border-services shadow-[0_4px_16px_-2px] shadow-services/40',
+          events: 'bg-events text-white border-events',
+          routes: 'bg-routes text-white border-routes',
+          services: 'bg-services text-white border-services',
         };
 
-        const inactiveStyles = 'bg-white/90 backdrop-blur-md text-foreground border-black/20 shadow-sm hover:shadow-md hover:bg-white';
+        const inactiveStyles = 'bg-[#FAFAFA] text-foreground border-[#E5E5E5] hover:bg-white';
 
         return (
           <button
             key={category.id}
             onClick={() => handleClick(category.id)}
-            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border transition-all duration-300 active:scale-95 ${
+            className={`flex-1 h-10 flex items-center justify-center gap-1.5 px-2 rounded-xl border-2 transition-colors duration-200 active:scale-95 ${
               isActive ? activeStyles[category.id] : inactiveStyles
             }`}
           >

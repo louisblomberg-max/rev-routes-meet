@@ -22,15 +22,13 @@ const TopAppHeader = ({ variant = 'solid' }: TopAppHeaderProps) => {
               left: 0,
               right: 0,
               zIndex: 30,
-              background: 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              borderBottom: '1px solid #F0F0F0',
+              background: '#FAFAFA',
+              borderBottom: '2px solid #E5E5E5',
             }
           : {
               position: 'relative',
-              background: '#FFFFFF',
-              borderBottom: '1px solid #F0F0F0',
+              background: '#FAFAFA',
+              borderBottom: '2px solid #E5E5E5',
             }),
       }}
     >

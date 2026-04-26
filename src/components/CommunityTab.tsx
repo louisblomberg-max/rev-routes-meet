@@ -11,8 +11,8 @@ export default function CommunityTab() {
   return (
     <div style={{ background: '#FFFFFF', minHeight: '100dvh' }}>
       <nav style={{
-        display: 'flex', padding: '0 16px', background: '#FFFFFF',
-        borderBottom: '1px solid #F0F0F0',
+        display: 'flex', padding: '0 16px', background: '#FAFAFA',
+        borderBottom: '2px solid #E5E5E5',
       }}>
         {(['clubs', 'forums', 'messages'] as SubTab[]).map(t => {
           const active = subTab === t;

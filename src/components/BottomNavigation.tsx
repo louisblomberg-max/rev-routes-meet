@@ -48,23 +48,22 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavig
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 md:hidden"
-      style={{ backgroundColor: '#FFFFFF', borderTop: '1px solid #F0F0F0' }}
+      style={{ backgroundColor: '#FAFAFA', borderTop: '2px solid #E5E5E5' }}
     >
-      <div className="flex items-end justify-around px-2 pb-safe">
+      <div className="flex items-end justify-around px-2 safe-bottom">
         {leftTabs.map(renderTab)}
 
         {/* FAB */}
         <div className="flex flex-col items-center justify-end pb-2" style={{ marginBottom: '2px' }}>
           <button
             onClick={onCreatePress}
-            className="flex items-center justify-center rounded-full shadow-lg"
+            className="flex items-center justify-center rounded-full"
             style={{
               width: 52,
               height: 52,
               backgroundColor: '#CC2B2B',
               marginTop: -20,
-              border: '3px solid #FFFFFF',
-              boxShadow: '0 4px 14px rgba(204, 43, 43, 0.4)',
+              border: '2px solid #E5E5E5',
             }}
           >
             <Plus className="w-6 h-6 text-white" strokeWidth={2.5} />

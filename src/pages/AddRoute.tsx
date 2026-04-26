@@ -212,7 +212,7 @@ const AddRoute = () => {
   return (
     <div className="mobile-container bg-background min-h-screen pb-24 md:max-w-2xl md:mx-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-lg border-b border-border/30 safe-top">
+      <div className="sticky top-0 z-10 bg-[#FAFAFA] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center gap-3">
           <button onClick={goBack} className="w-9 h-9 rounded-xl bg-card border border-border/50 flex items-center justify-center"><ArrowLeft className="w-4 h-4" /></button>
           <h1 className="text-lg font-bold flex-1">{isEdit ? 'Edit Route' : 'Create Route'}</h1>
