@@ -1,56 +1,28 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Star, MapPin, Car, Bike, Calendar, Route, Check,
-  Settings, ChevronRight, Bell, UsersRound, Wrench, Users as UsersIcon,
-  Pencil,
+  Camera, Settings as SettingsIcon, Share2, Plus,
+  Bell, Shield, ChevronRight,
 } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { useUserStats } from '@/hooks/useUserStats';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 
 const initials = (name: string | null | undefined) =>
   (name ?? 'U').split(' ').map((n) => n[0]).filter(Boolean).join('').slice(0, 2).toUpperCase();
 
-const formatMemberSince = (iso: string | null) => {
-  if (!iso) return '';
-  return new Date(iso).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-};
+const FRIEND_AVATAR_PALETTE = [
+  'bg-purple-100 text-purple-600',
+  'bg-teal-100 text-teal-600',
+  'bg-pink-100 text-pink-600',
+  'bg-amber-100 text-amber-600',
+];
 
 export default function ProfileView() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { profile, vehicles, recentReviews, loading } = useUserProfile();
-  const { garageCount, friendsCount, eventsCount, routesCount, savedServicesCount } = useUserStats();
-
-  const [myTickets, setMyTickets] = useState<any[]>([]);
-
-  useEffect(() => {
-    if (!user?.id) return;
-    (async () => {
-      try {
-        const result = await Promise.race([
-          Promise.all([
-            supabase.from('event_tickets').select('id, event_id, amount_paid, qr_code_token, status, events(title, date_start)').eq('user_id', user.id).eq('status', 'confirmed'),
-            supabase.from('event_attendees').select('id, event_id, qr_code_token, events(title, date_start)').eq('user_id', user.id).not('qr_code_token', 'is', null),
-          ]),
-          new Promise<null>((r) => setTimeout(() => r(null), 3000)),
-        ]);
-        if (result && Array.isArray(result)) {
-          const [ticketsRes, passesRes] = result;
-          const tickets = (ticketsRes.data || []).map((t: any) => ({
-            ...t, event_title: t.events?.title, event_date: t.events?.date_start, isFree: false,
-          }));
-          const passes = (passesRes.data || [])
-            .filter((p: any) => !tickets.some((t: any) => t.event_id === p.event_id))
-            .map((p: any) => ({ ...p, event_title: p.events?.title, event_date: p.events?.date_start, isFree: true, amount_paid: 0 }));
-          setMyTickets([...tickets, ...passes]);
-        }
-      } catch { /* empty */ }
-    })();
-  }, [user?.id]);
+  const { profile, vehicles, friends, loading, updateUserProfile } = useUserProfile();
 
   if (loading) {
     return (
@@ -62,144 +34,187 @@ export default function ProfileView() {
 
   if (!profile) {
     return (
-      <div className="bg-background min-h-full pb-24 flex items-center justify-center">
+      <div className="bg-background min-h-full flex items-center justify-center pb-24">
         <p className="text-sm text-muted-foreground">Couldn't load your profile.</p>
       </div>
     );
   }
 
-  const memberSince = formatMemberSince(profile.created_at);
+  // "Private" toggle ON means the garage is hidden (show_garage_on_profile = false).
+  const garagePrivate = !profile.show_garage_on_profile;
+  const handleGaragePrivacyToggle = (newPrivate: boolean) => {
+    updateUserProfile({ show_garage_on_profile: !newPrivate });
+  };
 
-  const rows = [
-    { id: 'notifications', label: 'Notifications', icon: Bell, route: '/notifications', count: undefined as number | undefined },
-    { id: 'garage',        label: 'My Garage',     icon: Car,         route: '/my-garage',    count: garageCount },
-    { id: 'friends',       label: 'My Friends',    icon: UsersRound,  route: '/my-friends',   count: friendsCount },
-    { id: 'events',        label: 'My Events',     icon: Calendar,    route: '/my-events',    count: eventsCount },
-    { id: 'routes',        label: 'My Routes',     icon: Route,       route: '/my-routes',    count: routesCount },
-    { id: 'services',      label: 'Saved Services',icon: Wrench,      route: '/my-services',  count: savedServicesCount },
-  ];
+  const handleShare = async () => {
+    const url = `${window.location.origin}/user/${profile.username || ''}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: profile.display_name || 'My RevNet Profile', url }); } catch { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        toast.success('Profile link copied!');
+      } catch { /* clipboard unavailable */ }
+    }
+  };
+
+  const helperRatingDisplay = profile.helper_count > 0 ? profile.helper_rating.toFixed(1) : '—';
 
   return (
-    <div className="bg-background min-h-full pb-24">
-      {/* Header */}
-      <div className="bg-white border-b border-border/50 px-4 py-4">
-        <h1 className="text-xl font-bold text-foreground">Profile</h1>
-      </div>
-
-      <div className="px-4 py-4 space-y-4">
-        {/* ─── Profile Header Card ─── */}
-        <div className="bg-white border border-border/50 rounded-xl p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <button onClick={() => navigate('/profile')} className="w-14 h-14 rounded-full overflow-hidden flex-shrink-0">
+    <div className="space-y-4 p-4 pb-24 md:max-w-2xl md:mx-auto">
+      {/* ─── SECTION 1 · Social Header ─── */}
+      <Card>
+        <CardContent className="p-5">
+          <div className="text-center mb-4">
+            <div className="relative inline-block mb-3">
               {profile.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-14 h-14 rounded-full object-cover" />
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-20 h-20 rounded-full object-cover"
+                />
               ) : (
-                <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center">
-                  <span className="text-red-600 font-semibold text-lg">
-                    {initials(profile.display_name)}
-                  </span>
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-medium text-2xl">
+                  {initials(profile.display_name)}
                 </div>
               )}
-            </button>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-base font-semibold text-foreground truncate">
-                {profile.display_name || 'RevNet User'}
-              </h2>
-              {profile.username && (
-                <p className="text-xs text-muted-foreground">@{profile.username}</p>
-              )}
-              {profile.location && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3" />
-                  {profile.location}
-                </p>
-              )}
-              {memberSince && (
-                <p className="text-xs text-muted-foreground mt-0.5">Member since {memberSince}</p>
-              )}
+              <button
+                onClick={() => navigate('/profile')}
+                aria-label="Edit profile photo"
+                className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 border-2 border-white rounded-full flex items-center justify-center"
+              >
+                <Camera className="w-3 h-3 text-white" />
+              </button>
             </div>
-            <Button variant="outline" size="sm" onClick={() => navigate('/profile')} className="flex-shrink-0">
-              <Pencil className="w-3.5 h-3.5 mr-1.5" />
-              Edit
+
+            <h2 className="text-xl font-medium mb-1 text-foreground">
+              {profile.display_name || 'RevNet User'}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-3">
+              @{profile.username || 'user'}
+              {profile.location ? ` • ${profile.location}` : ''}
+            </p>
+            {profile.bio && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{profile.bio}</p>
+            )}
+          </div>
+
+          {/* Social Stats Grid (real data only — no fake placeholders) */}
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            <button
+              onClick={() => navigate('/my-friends')}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.friends_count}</div>
+              <div className="text-xs text-gray-600">Friends</div>
+            </button>
+            <button
+              onClick={() => navigate('/my-clubs')}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.clubs_joined}</div>
+              <div className="text-xs text-gray-600">Clubs</div>
+            </button>
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <div className="text-lg font-medium text-green-700 mb-1">{helperRatingDisplay}</div>
+              <div className="text-xs text-green-700">★ Helper</div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate('/profile')}
+              className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Edit Profile
+            </Button>
+            <Button variant="outline" className="px-4" onClick={handleShare} aria-label="Share profile">
+              <Share2 className="w-4 h-4" />
             </Button>
           </div>
+        </CardContent>
+      </Card>
 
-          {profile.bio && (
-            <p className="text-sm text-foreground/80 mb-4 leading-relaxed">{profile.bio}</p>
-          )}
+      {/* ─── SECTION 2 · Community Stats ─── */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="font-medium mb-3 text-foreground">Community stats</h3>
 
-          {/* Helper Rating */}
-          {profile.helper_count > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm font-semibold text-green-800">Helper Rating</span>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3, 4, 5].map((s) => (
-                    <Star
-                      key={s}
-                      className={`w-4 h-4 ${s <= Math.round(profile.helper_rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-semibold text-green-800">{profile.helper_rating.toFixed(1)}</span>
-              </div>
-              <p className="text-xs text-green-700">
-                Helped {profile.helper_count} {profile.helper_count === 1 ? 'driver' : 'drivers'}
-              </p>
-            </div>
-          )}
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => navigate('/my-events')} className="text-center p-2 rounded-lg hover:bg-muted/40 transition-colors">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="text-lg font-semibold text-foreground">{profile.events_attended}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Events attended</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <button
+              onClick={() => navigate('/my-events')}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.events_attended}</div>
+              <div className="text-xs text-gray-600">Events attended</div>
             </button>
-            <button onClick={() => navigate('/my-routes')} className="text-center p-2 rounded-lg hover:bg-muted/40 transition-colors">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Route className="w-4 h-4 text-muted-foreground" />
-                <span className="text-lg font-semibold text-foreground">{profile.routes_shared}</span>
-              </div>
-              <p className="text-xs text-muted-foreground">Routes shared</p>
+            <button
+              onClick={() => navigate('/my-routes')}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.routes_shared}</div>
+              <div className="text-xs text-gray-600">Routes shared</div>
             </button>
           </div>
-        </div>
 
-        {/* ─── Vehicles ─── */}
-        <div className="bg-white border border-border/50 rounded-xl p-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center p-3 bg-gray-50 rounded-lg">
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.helper_count}</div>
+              <div className="text-xs text-gray-600">People helped</div>
+            </div>
+            <button
+              onClick={() => navigate('/my-clubs')}
+              className="text-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="text-lg font-medium text-gray-900 mb-1">{profile.clubs_joined}</div>
+              <div className="text-xs text-gray-600">Clubs joined</div>
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ─── SECTION 3 · Vehicles ─── */}
+      <Card>
+        <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-foreground">Vehicles</h3>
-            <Button variant="outline" size="sm" onClick={() => navigate('/add/vehicle')}>
-              Add Vehicle
-            </Button>
+            <h3 className="font-medium text-foreground">Vehicles</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Private</span>
+              <Switch
+                checked={garagePrivate}
+                onCheckedChange={handleGaragePrivacyToggle}
+                aria-label="Hide garage from other users"
+                className="scale-75"
+              />
+              <Button size="sm" variant="outline" className="ml-2" onClick={() => navigate('/add/vehicle')}>
+                <Plus className="w-3 h-3 mr-1" />
+                Add
+              </Button>
+            </div>
           </div>
 
-          {vehicles.length > 0 ? (
+          {vehicles.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-3">
+              No vehicles added yet
+            </p>
+          ) : (
             <div className="space-y-2">
               {vehicles.map((v) => {
-                const VIcon = v.vehicle_type === 'motorcycle' ? Bike : Car;
                 const yearLabel = v.year ? `${v.year} ` : '';
                 const meta = [v.colour, v.transmission].filter(Boolean).join(' • ');
                 return (
                   <button
                     key={v.id}
                     onClick={() => navigate('/my-garage')}
-                    className="w-full border border-border/30 rounded-lg p-3 text-left hover:bg-muted/30 transition-colors"
+                    className="w-full border rounded-lg p-3 text-left hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <VIcon className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span className="font-semibold text-sm truncate">
-                          {yearLabel}{v.make ?? ''} {v.model ?? ''}
-                        </span>
-                      </div>
+                      <span className="font-medium text-sm text-foreground">
+                        {yearLabel}{v.make ?? ''} {v.model ?? ''}
+                      </span>
                       {v.is_primary && (
-                        <span className="bg-blue-100 text-blue-700 text-[10px] font-semibold px-2 py-0.5 rounded flex-shrink-0">
-                          Primary
-                        </span>
+                        <Badge variant="secondary" className="text-xs">Primary</Badge>
                       )}
                     </div>
                     {meta && <p className="text-xs text-muted-foreground">{meta}</p>}
@@ -207,156 +222,108 @@ export default function ProfileView() {
                 );
               })}
             </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              No vehicles added yet
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ─── SECTION 4 · Friends ─── */}
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-medium text-foreground">My friends</h3>
+            <button
+              onClick={() => navigate('/my-friends')}
+              className="text-sm text-blue-500 hover:text-blue-600 transition-colors"
+            >
+              View all
+            </button>
+          </div>
+
+          <div className="flex gap-3 flex-wrap">
+            {friends.map((f, idx) => (
+              <button
+                key={f.id}
+                onClick={() => navigate(`/profile/${f.id}`)}
+                className="text-center"
+              >
+                {f.avatar_url ? (
+                  <img
+                    src={f.avatar_url}
+                    alt=""
+                    className="w-12 h-12 rounded-full object-cover mb-1"
+                  />
+                ) : (
+                  <div
+                    className={`w-12 h-12 rounded-full ${FRIEND_AVATAR_PALETTE[idx % FRIEND_AVATAR_PALETTE.length]} flex items-center justify-center font-medium text-sm mb-1`}
+                  >
+                    {initials(f.display_name)}
+                  </div>
+                )}
+                <span className="text-xs text-muted-foreground block max-w-[60px] truncate">
+                  {f.display_name?.split(' ')[0] ?? 'Friend'}
+                </span>
+              </button>
+            ))}
+            <button
+              onClick={() => navigate('/my-friends')}
+              className="text-center"
+              aria-label="Find friends"
+            >
+              <div className="w-12 h-12 rounded-full bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center mb-1">
+                <Plus className="w-5 h-5 text-gray-400" />
+              </div>
+              <span className="text-xs text-muted-foreground">Add</span>
+            </button>
+          </div>
+          {friends.length === 0 && (
+            <p className="text-xs text-muted-foreground mt-3">
+              No friends yet. Tap Add to find people you've ridden with.
             </p>
           )}
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* ─── Specialties ─── */}
-        {profile.specialties.length > 0 && (
-          <div className="bg-white border border-border/50 rounded-xl p-4">
-            <h3 className="text-base font-semibold text-foreground mb-3">Specialties</h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.specialties.map((s, i) => (
-                <span
-                  key={`${s}-${i}`}
-                  className="bg-muted text-muted-foreground text-xs px-3 py-1 rounded-full border border-border/40"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* ─── SECTION 5 · Settings & support ─── */}
+      <Card>
+        <CardContent className="p-5">
+          <h3 className="font-medium mb-3 text-foreground">Settings &amp; support</h3>
 
-        {/* ─── Recent Reviews ─── */}
-        {recentReviews.length > 0 && (
-          <div className="bg-white border border-border/50 rounded-xl p-4">
-            <h3 className="text-base font-semibold text-foreground mb-3">Recent reviews</h3>
-            <div className="space-y-3">
-              {recentReviews.map((review) => (
-                <div key={review.id} className="border-b border-border/30 last:border-b-0 pb-3 last:pb-0">
-                  <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {review.rater?.avatar_url ? (
-                        <img src={review.rater.avatar_url} alt="" className="w-6 h-6 object-cover" />
-                      ) : (
-                        <span className="text-blue-600 text-[10px] font-semibold">
-                          {initials(review.rater?.display_name)}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-sm font-semibold text-foreground">
-                      {review.rater?.display_name ?? 'Anonymous'}
-                    </span>
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          className={`w-3 h-3 ${s <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-xs text-muted-foreground ml-auto">
-                      {new Date(review.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-                    </span>
-                  </div>
-                  {review.feedback && (
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      &ldquo;{review.feedback}&rdquo;
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ─── Verification ─── */}
-        <div className="bg-white border border-border/50 rounded-xl p-4">
-          <h3 className="text-base font-semibold text-foreground mb-3">Verification</h3>
           <div className="space-y-2">
-            {[
-              { label: 'Phone number verified', verified: profile.phone_verified },
-              { label: 'Email verified',        verified: profile.email_verified },
-              { label: 'Identity verified',     verified: profile.identity_verified },
-            ].map((row) => (
-              <div key={row.label} className="flex items-center gap-2">
-                <Check className={`w-4 h-4 ${row.verified ? 'text-green-600' : 'text-gray-300'}`} />
-                <span className={`text-sm ${row.verified ? 'text-foreground' : 'text-muted-foreground'}`}>
-                  {row.label}
-                </span>
+            <button
+              onClick={() => navigate('/settings/account')}
+              className="w-full p-3 border rounded-lg flex items-center justify-between hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <SettingsIcon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-foreground">Account settings</span>
               </div>
-            ))}
-          </div>
-        </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
 
-        {/* ─── My Tickets (preserved from old YouTab) ─── */}
-        {myTickets.length > 0 && (
-          <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Tickets</p>
-            <div className="flex gap-2.5 overflow-x-auto pb-1">
-              {myTickets.map((t: any) => (
-                <button
-                  key={t.id}
-                  onClick={() => navigate(t.isFree
-                    ? `/ticket-success?ticket_id=free&event_id=${t.event_id}&type=free#token=${t.qr_code_token}`
-                    : `/ticket-success?ticket_id=${t.id}`)}
-                  className="flex-shrink-0 w-[160px] bg-card rounded-xl border border-border/50 shadow-sm p-3 text-left"
-                >
-                  <p className="text-sm font-semibold truncate">{t.event_title || 'Event'}</p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{t.event_date || ''}</p>
-                  <p className="text-[10px] mt-1 text-red-600">
-                    {t.isFree ? 'Free Pass' : `Ticket · £${Number(t.amount_paid || 0).toFixed(2)}`}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">Tap to show QR</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+            <button
+              onClick={() => navigate('/settings/notifications')}
+              className="w-full p-3 border rounded-lg flex items-center justify-between hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-foreground">Notifications</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
 
-        {/* ─── Quick links (preserved row-item nav) ─── */}
-        <div className="bg-white border border-border/50 rounded-xl overflow-hidden">
-          {rows.map((row, i) => {
-            const Icon = row.icon;
-            const isLast = i === rows.length - 1;
-            return (
-              <button
-                key={row.id}
-                onClick={() => {
-                  sessionStorage.setItem('revnet_active_tab', 'profile');
-                  navigate(row.route);
-                }}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors ${isLast ? '' : 'border-b border-border/30'}`}
-              >
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                  <Icon className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <span className="flex-1 text-sm font-semibold text-foreground">{row.label}</span>
-                {row.count !== undefined && (
-                  <span className="text-xs text-muted-foreground">{row.count}</span>
-                )}
-                <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-              </button>
-            );
-          })}
-        </div>
-
-        {/* ─── Settings ─── */}
-        <button
-          onClick={() => navigate('/settings')}
-          className="w-full bg-white border border-border/50 rounded-xl px-4 py-3 flex items-center gap-3 text-left hover:bg-muted/30 transition-colors"
-        >
-          <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-            <Settings className="w-4 h-4 text-muted-foreground" />
+            <button
+              onClick={() => navigate('/settings/privacy')}
+              className="w-full p-3 border rounded-lg flex items-center justify-between hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <Shield className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-foreground">Privacy &amp; safety</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
           </div>
-          <span className="flex-1 text-sm font-semibold text-foreground">Settings</span>
-          <ChevronRight className="w-4 h-4 text-muted-foreground/50" />
-        </button>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
