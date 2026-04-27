@@ -223,7 +223,7 @@ const Profile = () => {
     return (
       <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-[#FFFFFF] border-b-2 border-[#E5E5E5] safe-top">
-          <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
+          <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
         </div>
         <div className="px-4 py-5 space-y-5">
           <div className="bg-card rounded-2xl border border-border/30 p-5">
@@ -241,7 +241,7 @@ const Profile = () => {
     return (
       <div className="mobile-container bg-background min-h-dvh md:max-w-2xl md:mx-auto">
         <div className="sticky top-0 z-10 bg-[#FFFFFF] border-b-2 border-[#E5E5E5] safe-top">
-          <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
+          <div className="px-4 py-3 flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
         </div>
         <div className="px-4 pt-8">
           <div className="bg-card rounded-xl border border-border/30 p-6 text-center">
@@ -260,7 +260,7 @@ const Profile = () => {
       <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleAvatarChange} />
       <div className="sticky top-0 z-10 bg-[#FFFFFF] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" iconClassName="w-5 h-5" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
+          <div className="flex items-center gap-3"><BackButton className="w-9 h-9 rounded-full bg-muted/80" iconClassName="w-5 h-5" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }} /><h1 className="text-lg font-semibold text-foreground">Profile</h1></div>
           <button onClick={handleShare} className="w-9 h-9 rounded-full bg-muted/80 flex items-center justify-center hover:bg-muted transition-colors active:scale-95"><Share2 className="w-4 h-4 text-foreground" /></button>
         </div>
       </div>

@@ -75,7 +75,7 @@ const Settings = () => {
       {/* Header */}
       <div className="px-4 pt-4 pb-2 safe-top">
         <div className="flex items-center gap-3">
-          <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} />
+          <BackButton className="w-9 h-9 rounded-full bg-card shadow-sm border border-border/30" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }} />
           <h1 className="text-lg font-bold text-foreground">Settings</h1>
         </div>
       </div>

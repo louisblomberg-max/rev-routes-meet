@@ -1,6 +1,6 @@
-import { Compass, Users, User, Plus } from 'lucide-react';
+import { Compass, Users, AlertTriangle, User, Plus } from 'lucide-react';
 
-type Tab = 'explore' | 'social' | 'you';
+type Tab = 'explore' | 'clubs' | 'sos' | 'profile';
 
 interface BottomNavigationProps {
   activeTab: Tab;
@@ -11,11 +11,12 @@ interface BottomNavigationProps {
 const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavigationProps) => {
   const leftTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
     { id: 'explore', label: 'Explore', icon: Compass },
-    { id: 'social', label: 'Social', icon: Users },
+    { id: 'clubs', label: 'Clubs', icon: Users },
   ];
 
   const rightTabs: { id: Tab; label: string; icon: typeof Compass }[] = [
-    { id: 'you', label: 'You', icon: User },
+    { id: 'sos', label: 'SOS', icon: AlertTriangle },
+    { id: 'profile', label: 'Profile', icon: User },
   ];
 
   const renderTab = (tab: { id: Tab; label: string; icon: typeof Compass }) => {
@@ -52,10 +53,11 @@ const BottomNavigation = ({ activeTab, onTabChange, onCreatePress }: BottomNavig
       <div className="flex items-end justify-around px-2 safe-bottom">
         {leftTabs.map(renderTab)}
 
-        {/* FAB */}
+        {/* FAB — centered between left pair and right pair */}
         <div className="flex flex-col items-center justify-end pb-2" style={{ marginBottom: '2px' }}>
           <button
             onClick={onCreatePress}
+            aria-label="Create"
             className="flex items-center justify-center rounded-full"
             style={{
               width: 52,

@@ -12,7 +12,8 @@ import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBott
 import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
 import YouTab from '@/components/YouTab';
-import CommunityTab from '@/components/CommunityTab';
+import CommunityClubsView from '@/components/community/CommunityClubsView';
+import CommunitySOSView from '@/components/community/CommunitySOSView';
 import TopAppHeader from '@/components/TopAppHeader';
 import LocationButton from '@/components/LocationButton';
 import HelpButton from '@/components/HelpButton';
@@ -30,7 +31,7 @@ import { useNavigation } from '@/contexts/NavigationContext';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-type Tab = 'explore' | 'social' | 'you';
+type Tab = 'explore' | 'clubs' | 'sos' | 'profile';
 
 interface TappedLocation {
   lat: number;
@@ -82,9 +83,15 @@ const Home = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
   const [activeTab, setActiveTabState] = useState<Tab>(() => {
-    if (tabParam && ['explore', 'social', 'you'].includes(tabParam)) return tabParam;
+    if (tabParam && ['explore', 'clubs', 'sos', 'profile'].includes(tabParam)) return tabParam;
     const stored = sessionStorage.getItem('revnet_active_tab') as Tab | null;
-    if (stored && ['explore', 'social', 'you'].includes(stored)) return stored;
+    if (stored && ['explore', 'clubs', 'sos', 'profile'].includes(stored)) return stored;
+    // Migrate old tab values
+    if (stored === 'social' || stored === 'you') {
+      const migrated = stored === 'you' ? 'profile' : 'clubs';
+      sessionStorage.setItem('revnet_active_tab', migrated);
+      return migrated;
+    }
     return 'explore';
   });
 
@@ -1105,8 +1112,9 @@ const Home = () => {
           <TopAppHeader variant="solid" />
         </div>
         <div className="w-full md:max-w-2xl md:mx-auto">
-        {activeTab === 'social' && <CommunityTab />}
-        {activeTab === 'you' && <YouTab />}
+        {activeTab === 'clubs' && <CommunityClubsView />}
+        {activeTab === 'sos' && <CommunitySOSView />}
+        {activeTab === 'profile' && <YouTab />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />

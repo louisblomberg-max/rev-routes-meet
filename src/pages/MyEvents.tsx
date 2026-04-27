@@ -92,7 +92,7 @@ const MyEvents = () => {
       <div className="sticky top-0 z-10 bg-[#FFFFFF] border-b-2 border-[#E5E5E5] safe-top">
         <div className="px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }} />
+            <BackButton className="w-9 h-9 rounded-xl bg-card border border-border/50 hover:bg-muted" iconClassName="w-4 h-4" onClick={() => { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }} />
             <div>
               <h1 className="text-lg font-bold text-foreground">My Events</h1>
               <p className="text-xs text-muted-foreground">{upcoming.length} upcoming</p>

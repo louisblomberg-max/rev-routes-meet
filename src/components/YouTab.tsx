@@ -173,7 +173,7 @@ const YouTab = () => {
             <button
               key={row.id}
               onClick={() => {
-                sessionStorage.setItem('revnet_active_tab', 'you');
+                sessionStorage.setItem('revnet_active_tab', 'profile');
                 navigate(row.route);
               }}
               style={{

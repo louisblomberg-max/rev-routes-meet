@@ -47,7 +47,7 @@ const AddRoute = () => {
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   const goBack = () => {
-    if (step === 1) { sessionStorage.setItem('revnet_active_tab', 'you'); navigate('/'); }
+    if (step === 1) { sessionStorage.setItem('revnet_active_tab', 'profile'); navigate('/'); }
     else setStep(step - 1);
   };
 
