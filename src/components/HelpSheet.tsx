@@ -7,23 +7,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { sendNotificationToMany } from '@/utils/sendNotification';
 import { toast } from 'sonner';
 
-type Problem = { id: string; label: string; emoji: string };
+type Problem = { id: string; label: string };
 
 const PROBLEMS_URGENT: Problem[] = [
-  { id: 'accident', label: 'Accident / Injury', emoji: '⚠️' },
+  { id: 'accident', label: 'Accident / Injury' },
 ];
 
 const PROBLEMS_BREAKDOWN: Problem[] = [
-  { id: 'breakdown', label: 'Mechanical', emoji: '🚗' },
-  { id: 'flat_tyre', label: 'Flat Tyre', emoji: '🛞' },
-  { id: 'out_of_fuel', label: 'Out of Fuel', emoji: '⛽' },
-  { id: 'electrical', label: 'Electrical', emoji: '⚡' },
-  { id: 'recovery', label: 'Need Recovery', emoji: '🚛' },
+  { id: 'breakdown', label: 'Mechanical Problem' },
+  { id: 'flat_tyre', label: 'Flat Tyre' },
+  { id: 'out_of_fuel', label: 'Out of Fuel' },
+  { id: 'electrical', label: 'Electrical Issue' },
+  { id: 'recovery', label: 'Need Recovery' },
 ];
 
 const PROBLEMS_ASSISTANCE: Problem[] = [
-  { id: 'locked_out', label: 'Locked Out', emoji: '🔑' },
-  { id: 'other', label: 'Other', emoji: '🆘' },
+  { id: 'locked_out', label: 'Locked Out' },
+  { id: 'other', label: 'Other Emergency' },
 ];
 
 // Flat list — used by existing select/handler logic and serves as the
@@ -335,71 +335,63 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
           {step === 1 && (
-            <div className="space-y-5">
-              {/* URGENT */}
+            <div className="space-y-6">
+              {/* CRITICAL */}
               <div>
-                <h3 className="text-xs font-bold text-red-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
-                  <span className="w-2 h-2 rounded-full bg-red-600" /> Urgent
+                <h3 className="text-xs font-bold text-red-700 mb-3 tracking-wide uppercase border-b border-red-200 pb-1">
+                  Critical
                 </h3>
-                <div className="grid grid-cols-1 gap-2">
+                <div className="space-y-2">
                   {PROBLEMS_URGENT.map(p => (
                     <button
                       key={p.id}
                       onClick={() => { setSelectedProblem(p); setStep(2); }}
-                      className="flex items-center gap-3 p-4 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-colors active:scale-[0.98] text-left"
+                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-lg transition-colors text-left group"
                     >
-                      <span className="text-2xl flex-shrink-0">{p.emoji}</span>
-                      <span className="font-bold text-red-900 uppercase tracking-wide">{p.label}</span>
+                      <span className="font-semibold text-gray-900 group-hover:text-red-900">{p.label}</span>
                     </button>
                   ))}
-                  {/* Stolen vehicle uses the dedicated step-5 flow (writes to stolen_vehicle_alerts) */}
+                  {/* Stolen vehicle → dedicated step-5 form (writes to stolen_vehicle_alerts) */}
                   <button
                     onClick={() => setStep(5)}
-                    className="flex items-center gap-3 p-4 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-colors active:scale-[0.98] text-left"
+                    className="w-full p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-lg transition-colors text-left group"
                   >
-                    <span className="text-2xl flex-shrink-0">🚨</span>
-                    <span className="font-bold text-red-900 uppercase tracking-wide">Vehicle Stolen</span>
+                    <span className="font-semibold text-gray-900 group-hover:text-red-900">Vehicle Stolen</span>
                   </button>
                 </div>
               </div>
 
               {/* BREAKDOWN */}
               <div>
-                <h3 className="text-xs font-bold text-amber-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
-                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Breakdown
+                <h3 className="text-xs font-bold text-amber-700 mb-3 tracking-wide uppercase border-b border-amber-200 pb-1">
+                  Breakdown
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {PROBLEMS_BREAKDOWN.map((p, idx) => {
-                    // Last item in an odd-length list spans full width
-                    const isLastSolo = idx === PROBLEMS_BREAKDOWN.length - 1 && PROBLEMS_BREAKDOWN.length % 2 === 1;
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => { setSelectedProblem(p); setStep(2); }}
-                        className={`flex flex-col items-center gap-1.5 p-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors active:scale-[0.98] ${isLastSolo ? 'col-span-2' : ''}`}
-                      >
-                        <span className="text-xl">{p.emoji}</span>
-                        <span className="text-sm font-semibold text-amber-900">{p.label}</span>
-                      </button>
-                    );
-                  })}
+                <div className="space-y-2">
+                  {PROBLEMS_BREAKDOWN.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setSelectedProblem(p); setStep(2); }}
+                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 rounded-lg transition-colors text-left group"
+                    >
+                      <span className="font-semibold text-gray-900 group-hover:text-amber-900">{p.label}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
               {/* ASSISTANCE */}
               <div>
-                <h3 className="text-xs font-bold text-emerald-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Assistance
+                <h3 className="text-xs font-bold text-blue-700 mb-3 tracking-wide uppercase border-b border-blue-200 pb-1">
+                  Assistance
                 </h3>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
                   {PROBLEMS_ASSISTANCE.map(p => (
                     <button
                       key={p.id}
                       onClick={() => { setSelectedProblem(p); setStep(2); }}
-                      className="flex flex-col items-center gap-1 p-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-colors active:scale-[0.98]"
+                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-colors text-left group"
                     >
-                      <span className="text-lg">{p.emoji}</span>
-                      <span className="text-xs font-semibold text-emerald-900">{p.label}</span>
+                      <span className="font-semibold text-gray-900 group-hover:text-blue-900">{p.label}</span>
                     </button>
                   ))}
                 </div>
@@ -410,9 +402,8 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
           {step === 2 && selectedProblem && (
             <div className="space-y-4">
               {/* Selected problem display */}
-              <div className="flex items-center gap-2.5 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <span className="text-xl">{selectedProblem.emoji}</span>
-                <span className="font-semibold text-red-900">{selectedProblem.label}</span>
+              <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <span className="font-semibold text-gray-900">{selectedProblem.label}</span>
               </div>
 
               {/* Details input */}
@@ -465,13 +456,8 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
           {step === 3 && selectedProblem && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">{selectedProblem.emoji}</span>
-                  <div>
-                    <p className="font-bold text-sm">{selectedProblem.label}</p>
-                    {details && <p className="text-xs text-muted-foreground mt-0.5">{details}</p>}
-                  </div>
-                </div>
+                <p className="font-bold text-sm">{selectedProblem.label}</p>
+                {details && <p className="text-xs text-muted-foreground">{details}</p>}
               </div>
               <div className="space-y-2">
                 {[
