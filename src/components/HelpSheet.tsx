@@ -205,11 +205,30 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
       if (error) throw error;
       setRequestId(request.id);
 
-      const { data: helpers } = await supabase.from('profiles').select('id')
+      const { data: helpers } = await supabase.from('profiles')
+        .select('id, quiet_hours_start, quiet_hours_end')
         .eq('available_to_help', true).neq('id', user.id).limit(500);
-      if (helpers && helpers.length > 0) {
+      // Filter helpers currently in their quiet-hours window.
+      // TODO: add radius-based filtering once helper location source is decided.
+      const eligibleHelpers = (helpers ?? []).filter((h: any) => {
+        const start: string | null = h.quiet_hours_start;
+        const end: string | null = h.quiet_hours_end;
+        if (!start || !end || start === end) return true;
+        const trim = (t: string) => (t.length >= 5 ? t.slice(0, 5) : t);
+        const [sh, sm] = trim(start).split(':').map(Number);
+        const [eh, em] = trim(end).split(':').map(Number);
+        const now = new Date();
+        const nowMin = now.getHours() * 60 + now.getMinutes();
+        const startMin = sh * 60 + sm;
+        const endMin = eh * 60 + em;
+        const inQuiet = startMin < endMin
+          ? (nowMin >= startMin && nowMin < endMin)
+          : (nowMin >= startMin || nowMin < endMin);
+        return !inQuiet;
+      });
+      if (eligibleHelpers.length > 0) {
         await sendNotificationToMany({
-          userIds: helpers.map((h: any) => h.id),
+          userIds: eligibleHelpers.map((h: any) => h.id),
           title: '🆘 SOS Alert Nearby',
           body: `Someone needs help: ${selectedProblem.label}${details ? ` — ${details.slice(0, 60)}` : ''}`,
           type: 'sos_request', data: { request_id: request.id },

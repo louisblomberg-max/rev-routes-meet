@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Clock, MapPin, Phone, Users, CheckCircle, MessageSquare } from 'lucide-react';
+import { AlertTriangle, Clock, MapPin, Phone, Users, CheckCircle, MessageSquare, Settings as SettingsIcon, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSOSRequest, type UrgencyLevel } from '@/hooks/useSOSRequest';
+import { useHelperProfile } from '@/hooks/useHelperProfile';
 import { toast } from 'sonner';
 
 type Filter = 'active' | 'helping' | 'history';
@@ -60,6 +61,8 @@ export default function CommunitySOSView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { acceptSOSRequest } = useSOSRequest();
+  const { profile: helperProfile, updateProfile: updateHelperProfile, saving: savingHelper, HELP_RADIUS_OPTIONS } = useHelperProfile();
+  const [showHelperSettings, setShowHelperSettings] = useState(false);
 
   const [requests, setRequests] = useState<SOSRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,6 +198,113 @@ export default function CommunitySOSView() {
         <p className="text-xs text-red-700/90 leading-relaxed">
           Help fellow drivers and riders in their time of need.
         </p>
+      </div>
+
+      {/* Available to Help — opt-in card */}
+      <div className="mx-4 mt-3 mb-2 bg-white border-2 border-neutral-200 rounded-xl p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span
+                className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                  helperProfile.available_to_help ? 'bg-emerald-500' : 'bg-neutral-300'
+                }`}
+              />
+              <span className="text-sm font-bold text-foreground">Available to Help</span>
+              {helperProfile.helper_count > 0 && (
+                <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-amber-600">
+                  <Star className="w-3 h-3 fill-current" />
+                  {helperProfile.helper_rating.toFixed(1)} ({helperProfile.helper_count})
+                </span>
+              )}
+            </div>
+            <p className="text-[12px] text-muted-foreground leading-snug">
+              {helperProfile.available_to_help
+                ? `You'll be notified of emergencies within ${helperProfile.help_radius_miles} mi.`
+                : 'Enable to help fellow drivers in need.'}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={helperProfile.available_to_help}
+              aria-label="Toggle availability to help"
+              onClick={() =>
+                updateHelperProfile({ available_to_help: !helperProfile.available_to_help })
+              }
+              disabled={savingHelper}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-60 ${
+                helperProfile.available_to_help ? 'bg-emerald-600' : 'bg-neutral-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+                  helperProfile.available_to_help ? 'translate-x-5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowHelperSettings((s) => !s)}
+              aria-label="Helper settings"
+              className="p-1.5 text-neutral-500 hover:text-neutral-700 rounded-lg hover:bg-neutral-100 transition-colors"
+            >
+              <SettingsIcon className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {showHelperSettings && (
+          <div className="mt-3 pt-3 border-t border-neutral-200 space-y-3">
+            {/* Radius */}
+            <div>
+              <label className="text-[12px] font-semibold text-foreground">Help radius</label>
+              <div className="flex gap-1.5 mt-1.5">
+                {HELP_RADIUS_OPTIONS.map((r) => {
+                  const active = helperProfile.help_radius_miles === r;
+                  return (
+                    <button
+                      key={r}
+                      onClick={() => updateHelperProfile({ help_radius_miles: r })}
+                      disabled={savingHelper}
+                      className={`px-3 py-1 rounded-full text-[12px] font-semibold transition-colors ${
+                        active
+                          ? 'bg-red-600 text-white'
+                          : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                      }`}
+                    >
+                      {r}mi
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Quiet hours */}
+            <div>
+              <label className="text-[12px] font-semibold text-foreground">Quiet hours</label>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                You won't be notified during these hours.
+              </p>
+              <div className="flex items-center gap-2 mt-1.5">
+                <input
+                  type="time"
+                  value={helperProfile.quiet_hours_start}
+                  onChange={(e) => updateHelperProfile({ quiet_hours_start: e.target.value })}
+                  className="text-[12px] border border-neutral-300 rounded px-2 py-1 bg-white"
+                />
+                <span className="text-[12px] text-neutral-500">to</span>
+                <input
+                  type="time"
+                  value={helperProfile.quiet_hours_end}
+                  onChange={(e) => updateHelperProfile({ quiet_hours_end: e.target.value })}
+                  className="text-[12px] border border-neutral-300 rounded px-2 py-1 bg-white"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Filter tabs */}
