@@ -11,7 +11,7 @@ import CategoryChips from '@/components/CategoryChips';
 import DetailBottomSheet, { DetailItem } from '@/components/discovery/DetailBottomSheet';
 import BottomNavigation from '@/components/BottomNavigation';
 import FloatingMapNav from '@/components/FloatingMapNav';
-import YouTab from '@/components/YouTab';
+import ProfileView from '@/components/profile/ProfileView';
 import CommunityClubsView from '@/components/community/CommunityClubsView';
 import CommunitySOSView from '@/components/community/CommunitySOSView';
 import TopAppHeader from '@/components/TopAppHeader';
@@ -1114,7 +1114,7 @@ const Home = () => {
         <div className="w-full md:max-w-2xl md:mx-auto">
         {activeTab === 'clubs' && <CommunityClubsView />}
         {activeTab === 'sos' && <CommunitySOSView />}
-        {activeTab === 'profile' && <YouTab />}
+        {activeTab === 'profile' && <ProfileView />}
         </div>
         {/* Mobile: original bottom nav bar. Desktop: floating pill nav */}
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} onCreatePress={() => setIsCreateOpen(true)} />
