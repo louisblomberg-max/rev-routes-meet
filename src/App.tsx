@@ -30,11 +30,7 @@ const MyGarage = React.lazy(() => import("./pages/MyGarage"));
 const MyFriends = React.lazy(() => import("./pages/MyFriends"));
 const MyEvents = React.lazy(() => import("./pages/MyEvents"));
 const MyRoutes = React.lazy(() => import("./pages/MyRoutes"));
-const MyDiscussions = React.lazy(() => import("./pages/MyDiscussions"));
 const Community = React.lazy(() => import("./pages/Community"));
-const Forums = React.lazy(() => import("./pages/Forums"));
-const CreateForumPost = React.lazy(() => import("./pages/CreateForumPost"));
-const ForumThread = React.lazy(() => import("./pages/ForumThread"));
 const Clubs = React.lazy(() => import("./pages/Clubs"));
 const MyClubs = React.lazy(() => import("./pages/MyClubs"));
 const ClubSettings = React.lazy(() => import("./pages/ClubSettings"));
@@ -150,11 +146,7 @@ const App = () => (
           <Route path="/manage-services" element={<ProtectedRoute><ManageServices /></ProtectedRoute>} />
           <Route path="/sos-request/:requestId" element={<ProtectedRoute><SOSRequest /></ProtectedRoute>} />
           <Route path="/sos-feed" element={<ProtectedRoute><SosFeed /></ProtectedRoute>} />
-          <Route path="/my-discussions" element={<ProtectedRoute><MyDiscussions /></ProtectedRoute>} />
           <Route path="/community" element={<ProtectedRoute><Community /></ProtectedRoute>} />
-          <Route path="/forums" element={<ProtectedRoute><Forums /></ProtectedRoute>} />
-          <Route path="/forums/create" element={<ProtectedRoute><CreateForumPost /></ProtectedRoute>} />
-          <Route path="/forums/thread/:id" element={<ProtectedRoute><ForumThread /></ProtectedRoute>} />
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/my-clubs" element={<ProtectedRoute><MyClubs /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />

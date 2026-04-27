@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, Users, HelpCircle, Search, UserPlus, Check, Clock, Loader2 } from 'lucide-react';
+import { Users, HelpCircle, Search, UserPlus, Check, Clock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -16,10 +16,9 @@ const Community = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [friendStatuses, setFriendStatuses] = useState<Record<string, string>>({});
   const [isSearching, setIsSearching] = useState(false);
-  const [stats, setStats] = useState({ members: 0, clubs: 0, posts: 0 });
+  const [stats, setStats] = useState({ members: 0, clubs: 0 });
 
   const sections = [
-    { icon: MessageSquare, title: 'Forums & Advice', description: 'Get help, share knowledge, discuss all things automotive', color: 'bg-events', route: '/forums' },
     { icon: Users, title: 'Clubs', description: 'Find and join local car & bike clubs', color: 'bg-clubs', route: '/clubs' },
     { icon: HelpCircle, title: 'Help & Support', description: 'Quick answers to common questions', color: 'bg-routes', route: '/settings/support' },
   ];
@@ -27,15 +26,13 @@ const Community = () => {
   // Load real community stats
   useEffect(() => {
     const loadStats = async () => {
-      const [membersRes, clubsRes, postsRes] = await Promise.all([
+      const [membersRes, clubsRes] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('clubs').select('id', { count: 'exact', head: true }),
-        supabase.from('forum_posts').select('id', { count: 'exact', head: true }),
       ]);
       setStats({
         members: membersRes.count || 0,
         clubs: clubsRes.count || 0,
-        posts: postsRes.count || 0,
       });
     };
     loadStats();
@@ -172,10 +169,9 @@ const Community = () => {
       <div className="px-4 mt-8 pb-8">
         <div className="bg-gradient-to-r from-events/10 to-routes/10 rounded-xl p-6">
           <h3 className="font-semibold text-foreground mb-4">Community Stats</h3>
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div><p className="text-2xl font-bold text-events">{formatStatNumber(stats.members)}</p><p className="text-xs text-muted-foreground">Members</p></div>
             <div><p className="text-2xl font-bold text-routes">{formatStatNumber(stats.clubs)}</p><p className="text-xs text-muted-foreground">Active Clubs</p></div>
-            <div><p className="text-2xl font-bold text-services">{formatStatNumber(stats.posts)}</p><p className="text-xs text-muted-foreground">Forum Posts</p></div>
           </div>
         </div>
       </div>

@@ -1,43 +1,48 @@
 import { useState } from 'react';
+import { AlertTriangle, Users } from 'lucide-react';
 import CommunityClubsView from './community/CommunityClubsView';
-import CommunityForumsView from './community/CommunityForumsView';
-import CommunityMessagesView from './community/CommunityMessagesView';
+import CommunitySOSView from './community/CommunitySOSView';
 
-type SubTab = 'clubs' | 'forums' | 'messages';
+type SubTab = 'clubs' | 'sos';
 
 export default function CommunityTab() {
   const [subTab, setSubTab] = useState<SubTab>('clubs');
 
+  const tabs: { id: SubTab; label: string; icon: typeof Users; activeColor: string }[] = [
+    { id: 'clubs', label: 'Clubs', icon: Users, activeColor: '#CC2B2B' },
+    { id: 'sos', label: 'SOS Messages', icon: AlertTriangle, activeColor: '#EF4444' },
+  ];
+
   return (
-    <div style={{ background: '#FFFFFF', minHeight: '100dvh' }}>
-      <nav style={{
-        display: 'flex', padding: '0 16px 12px', background: '#FFFFFF',
-        borderBottom: '2px solid #E5E5E5',
-      }}>
-        {(['clubs', 'forums', 'messages'] as SubTab[]).map(t => {
-          const active = subTab === t;
+    <div className="bg-background min-h-dvh">
+      <nav className="flex gap-2 px-4 pt-3 pb-3 border-b-2 border-[#E5E5E5] bg-background">
+        {tabs.map((t) => {
+          const Icon = t.icon;
+          const active = subTab === t.id;
           return (
             <button
-              key={t}
-              onClick={() => setSubTab(t)}
-              style={{
-                flex: 1, height: 40, background: 'transparent', border: 'none',
-                fontSize: 13, fontWeight: active ? 700 : 600, letterSpacing: '0.025em',
-                color: active ? '#CC2B2B' : '#AAA',
-                borderBottom: active ? '2.5px solid #CC2B2B' : '2.5px solid transparent',
-                marginBottom: -2, cursor: 'pointer', transition: 'color 0.15s ease',
-                textTransform: 'capitalize',
-              }}
+              key={t.id}
+              onClick={() => setSubTab(t.id)}
+              className={`flex-1 h-10 flex items-center justify-center gap-1.5 rounded-xl text-[13px] font-semibold tracking-wide transition-colors border-2 ${
+                active
+                  ? 'text-white'
+                  : 'bg-white text-foreground border-[#E5E5E5] hover:bg-neutral-50'
+              }`}
+              style={
+                active
+                  ? { background: t.activeColor, borderColor: t.activeColor }
+                  : undefined
+              }
             >
-              {t}
+              <Icon className="w-4 h-4" />
+              <span>{t.label}</span>
             </button>
           );
         })}
       </nav>
 
       {subTab === 'clubs' && <CommunityClubsView mode="discover" />}
-      {subTab === 'forums' && <CommunityForumsView />}
-      {subTab === 'messages' && <CommunityMessagesView />}
+      {subTab === 'sos' && <CommunitySOSView />}
     </div>
   );
 }

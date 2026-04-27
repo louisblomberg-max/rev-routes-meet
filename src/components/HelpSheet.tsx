@@ -188,10 +188,13 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
     }
     setIsSubmitting(true);
     try {
-      const { data: request, error } = await supabase.from('help_requests').insert({
-        user_id: user.id, issue_type: selectedProblem.id,
-        details: details.trim() || null, lat: latRef.current, lng: lngRef.current,
-        status: 'active', help_source: 'members',
+      const { data: request, error } = await supabase.from('sos_requests').insert({
+        user_id: user.id,
+        title: selectedProblem.label,
+        description: details.trim() || null,
+        lat: latRef.current,
+        lng: lngRef.current,
+        status: 'active',
       }).select('id').single();
       if (error) throw error;
       setRequestId(request.id);
@@ -209,9 +212,9 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
       expireTimerRef.current = setTimeout(async () => {
         try {
-          const { data: cur } = await supabase.from('help_requests').select('status').eq('id', request.id).single();
+          const { data: cur } = await supabase.from('sos_requests').select('status').eq('id', request.id).single();
           if (cur?.status === 'active') {
-            await supabase.from('help_requests').update({ status: 'expired', resolved_at: new Date().toISOString() }).eq('id', request.id);
+            await supabase.from('sos_requests').update({ status: 'cancelled', resolved_at: new Date().toISOString() }).eq('id', request.id);
             toast.error('SOS expired after 30 minutes. Call 999 if still needed.', { duration: 10000 });
             handleClose();
           }
@@ -227,7 +230,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
 
   const handleResolve = async () => {
     clearAllTimers();
-    if (requestId) await supabase.from('help_requests').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
+    if (requestId) await supabase.from('sos_requests').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
     toast.success('Glad you got help! Stay safe 🙌');
     handleClose();
   };
@@ -235,7 +238,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const handleCancel = async () => {
     if (!window.confirm('Cancel your SOS request?')) return;
     clearAllTimers();
-    if (requestId) await supabase.from('help_requests').update({ status: 'cancelled', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
+    if (requestId) await supabase.from('sos_requests').update({ status: 'cancelled', resolved_at: new Date().toISOString() }).eq('id', requestId).eq('user_id', user?.id ?? '');
     toast.info('SOS cancelled');
     handleClose();
   };

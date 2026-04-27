@@ -47,13 +47,18 @@ const SOSRequest = () => {
   useEffect(() => {
     if (!requestId) return;
     setIsLoading(true);
-    supabase.from('help_requests')
-      .select('id, issue_type, details, status, created_at, user_id, lat, lng, profiles:user_id(display_name, avatar_url)')
+    supabase.from('sos_requests')
+      .select('id, title, description, status, created_at, user_id, helper_id, lat, lng, location, profiles:user_id(display_name, avatar_url)')
       .eq('id', requestId)
       .single()
       .then(({ data, error }) => {
         if (error || !data) { toast.error('Request not found'); navigate(-1); return; }
-        setRequest(data);
+        // Map new schema to legacy field names the rest of this component expects
+        setRequest({
+          ...data,
+          issue_type: (data as any).title ? (data as any).title.toLowerCase().replace(/\s+/g, '_') : 'other',
+          details: (data as any).description,
+        });
         setIsLoading(false);
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -117,6 +122,11 @@ const SOSRequest = () => {
       await supabase.from('sos_responses').upsert({
         request_id: requestId, responder_id: user.id, status: 'responding',
       });
+      // Mark the new sos_requests row as 'helping' with this user as helper
+      await supabase.from('sos_requests')
+        .update({ status: 'helping', helper_id: user.id })
+        .eq('id', requestId)
+        .eq('status', 'active'); // only flip if still active
       await supabase.from('sos_messages').insert({
         request_id: requestId, sender_id: user.id,
         message: "I'm on my way to help you. Stay safe.",
@@ -178,7 +188,7 @@ const SOSRequest = () => {
 
   if (!request) return null;
 
-  const problem = PROBLEM_LABELS[request.issue_type] || { label: 'Needs Help', emoji: '🆘' };
+  const problem = PROBLEM_LABELS[request.issue_type] || { label: request.title || 'Needs Help', emoji: '🆘' };
   const isResolved = ['resolved', 'cancelled', 'expired'].includes(request.status);
 
   return (

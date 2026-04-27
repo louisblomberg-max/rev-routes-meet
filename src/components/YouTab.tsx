@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Car, Users, Route, Calendar, UsersRound, Settings, ChevronRight, MessageSquare, MapPin, Share2, Pencil, Wrench, Bell } from 'lucide-react';
+import { Car, Users, Route, Calendar, UsersRound, Settings, ChevronRight, MapPin, Share2, Pencil, Wrench, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 const YouTab = () => {
   const navigate = useNavigate();
   const { user } = useCurrentUser();
-  const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, discussionsCount, savedServicesCount } = useUserStats();
+  const { garageCount, friendsCount, clubsCount, eventsCount, routesCount, savedServicesCount } = useUserStats();
   const [myTickets, setMyTickets] = useState<any[]>([]);
 
   useEffect(() => {
@@ -43,7 +43,6 @@ const YouTab = () => {
     { id: 'events', label: 'My Events', icon: Calendar, route: '/my-events', count: eventsCount },
     { id: 'routes', label: 'My Routes', icon: Route, route: '/my-routes', count: routesCount },
     { id: 'services', label: 'Saved Services', icon: Wrench, route: '/my-services', count: savedServicesCount },
-    { id: 'discussions', label: 'My Discussions', icon: MessageSquare, route: '/my-discussions', count: discussionsCount },
   ];
 
   if (!user) {
