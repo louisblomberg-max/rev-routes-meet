@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, MapPin, Clock, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clock, MapPin, Phone, Users, CheckCircle, MessageSquare } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSOSRequest, type UrgencyLevel } from '@/hooks/useSOSRequest';
+import { toast } from 'sonner';
 
 type Filter = 'active' | 'helping' | 'history';
 
@@ -16,11 +18,14 @@ interface SOSRequest {
   lat: number | null;
   lng: number | null;
   status: 'active' | 'helping' | 'resolved' | 'cancelled';
+  urgency_level: UrgencyLevel;
   created_at: string;
   resolved_at: string | null;
-  // joined
-  requester?: { display_name: string | null; username: string | null; avatar_url: string | null };
-  _distMi?: number | null;
+  profiles: {
+    display_name: string | null;
+    avatar_url: string | null;
+    phone: string | null;
+  } | null;
 }
 
 function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -33,36 +38,38 @@ function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number):
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function timeAgo(dateStr: string): string {
-  const mins = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+function formatTimeAgo(timestamp: string): string {
+  const mins = Math.floor((Date.now() - new Date(timestamp).getTime()) / 60000);
   if (mins < 1) return 'Just now';
-  if (mins < 60) return `${mins} min${mins === 1 ? '' : 's'} ago`;
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return new Date(timestamp).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
-const STATUS_META: Record<SOSRequest['status'], { dot: string; label: string; tone: string }> = {
-  active: { dot: 'bg-[#EF4444]', label: 'Active', tone: 'text-[#EF4444]' },
-  helping: { dot: 'bg-amber-500', label: 'Helping', tone: 'text-amber-600' },
-  resolved: { dot: 'bg-emerald-500', label: 'Resolved', tone: 'text-emerald-600' },
-  cancelled: { dot: 'bg-neutral-400', label: 'Cancelled', tone: 'text-neutral-500' },
+const URGENCY_STYLES: Record<UrgencyLevel, string> = {
+  emergency: 'text-red-700 bg-red-100',
+  high: 'text-orange-700 bg-orange-100',
+  medium: 'text-yellow-700 bg-yellow-100',
+  low: 'text-blue-700 bg-blue-100',
 };
 
 export default function CommunitySOSView() {
-  const navigate = useNavigate();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { acceptSOSRequest } = useSOSRequest();
 
-  const [filter, setFilter] = useState<Filter>('active');
   const [requests, setRequests] = useState<SOSRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<Filter>('active');
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
 
-  // User location for distance calc
+  // Geolocation for distance calc
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!('geolocation' in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
       () => {},
@@ -70,48 +77,41 @@ export default function CommunitySOSView() {
     );
   }, []);
 
-  const enrichDistance = useCallback(
-    (rows: SOSRequest[]): SOSRequest[] => {
-      if (!userLoc) return rows;
-      return rows.map((r) => {
-        if (r.lat == null || r.lng == null) return { ...r, _distMi: null };
-        return { ...r, _distMi: haversineMiles(userLoc.lat, userLoc.lng, Number(r.lat), Number(r.lng)) };
-      });
-    },
-    [userLoc],
-  );
-
-  const load = useCallback(async () => {
+  const fetchRequests = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
+
     let q = supabase
       .from('sos_requests')
-      .select('id, user_id, helper_id, title, description, location, lat, lng, status, created_at, resolved_at, requester:profiles!sos_requests_user_id_fkey(display_name, username, avatar_url)')
+      .select(
+        'id, user_id, helper_id, title, description, location, lat, lng, status, urgency_level, created_at, resolved_at, profiles:user_id(display_name, avatar_url, phone)',
+      )
       .order('created_at', { ascending: false })
       .limit(50);
 
     if (filter === 'active') {
-      // Show all active requests (so helpers can see them) + own requests in any active state
-      q = q.in('status', ['active', 'helping']).neq('user_id', user.id);
+      q = q.eq('status', 'active').neq('user_id', user.id);
     } else if (filter === 'helping') {
-      q = q.eq('helper_id', user.id);
+      q = q.eq('status', 'helping').or(`helper_id.eq.${user.id},user_id.eq.${user.id}`);
     } else {
-      // history: own requests + ones I helped on, resolved/cancelled
-      q = q.in('status', ['resolved', 'cancelled']).or(`user_id.eq.${user.id},helper_id.eq.${user.id}`);
+      q = q
+        .in('status', ['resolved', 'cancelled'])
+        .or(`helper_id.eq.${user.id},user_id.eq.${user.id}`);
     }
 
     const { data, error } = await q;
-    if (!error && data) {
-      setRequests(enrichDistance(data as unknown as SOSRequest[]));
-    } else {
+    if (error) {
+      console.error('SOS fetch error:', error);
       setRequests([]);
+    } else {
+      setRequests((data ?? []) as unknown as SOSRequest[]);
     }
     setLoading(false);
-  }, [filter, user?.id, enrichDistance]);
+  }, [filter, user?.id]);
 
   useEffect(() => {
-    load();
-  }, [load]);
+    fetchRequests();
+  }, [fetchRequests]);
 
   // Realtime: refresh on any sos_requests change
   useEffect(() => {
@@ -119,120 +119,220 @@ export default function CommunitySOSView() {
     const channel = supabase
       .channel(`sos-list-${user.id}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'sos_requests' }, () => {
-        load();
+        fetchRequests();
       })
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, load]);
+  }, [user?.id, fetchRequests]);
 
-  const filters: { id: Filter; label: string }[] = [
-    { id: 'active', label: 'Active' },
+  const distanceText = (r: SOSRequest): string | null => {
+    if (!userLoc || r.lat == null || r.lng == null) return r.location ?? null;
+    const d = haversineMiles(userLoc.lat, userLoc.lng, Number(r.lat), Number(r.lng));
+    if (d < 0.1) return 'nearby';
+    if (d < 1) return `${Math.round(d * 5280)} ft away`;
+    return `${d.toFixed(1)} mi away`;
+  };
+
+  const handleAccept = async (r: SOSRequest) => {
+    if (!user?.id || acceptingId) return;
+    setAcceptingId(r.id);
+    try {
+      const conversationId = await acceptSOSRequest(r.id, r.user_id);
+      toast.success('You’re now helping. Stay in contact via chat.');
+      navigate(`/messages/${conversationId}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to accept SOS');
+      fetchRequests();
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
+  const handleOpenThread = (r: SOSRequest) => {
+    navigate(`/sos-request/${r.id}`);
+  };
+
+  const handleCall = (r: SOSRequest) => {
+    const phone = r.profiles?.phone;
+    if (!phone) {
+      toast.error('No phone number on file for this user');
+      return;
+    }
+    window.location.href = `tel:${phone}`;
+  };
+
+  const filterTabs: { id: Filter; label: string }[] = [
+    { id: 'active', label: 'Needs Help' },
     { id: 'helping', label: 'Helping' },
     { id: 'history', label: 'History' },
   ];
 
-  const fmtDistance = (d?: number | null): string | null => {
-    if (d == null) return null;
-    if (d < 0.1) return 'nearby';
-    if (d < 1) return `${(d * 5280).toFixed(0)} ft away`;
-    return `${d.toFixed(1)} mi away`;
+  const getStatusIcon = (status: SOSRequest['status']) => {
+    switch (status) {
+      case 'active':
+        return <AlertTriangle className="w-3.5 h-3.5 text-red-500" />;
+      case 'helping':
+        return <Users className="w-3.5 h-3.5 text-amber-500" />;
+      case 'resolved':
+        return <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />;
+      default:
+        return <Clock className="w-3.5 h-3.5 text-neutral-400" />;
+    }
   };
 
   return (
     <div className="bg-background min-h-full pb-24">
-      {/* Filter pills */}
-      <div className="px-4 pt-3 pb-3 flex gap-2 border-b-2 border-[#E5E5E5]">
-        {filters.map((f) => {
-          const active = filter === f.id;
+      {/* Emergency banner */}
+      <div className="bg-red-50 border-b-2 border-red-100 px-4 py-3">
+        <div className="flex items-center gap-2 mb-1">
+          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+          <h2 className="text-base font-bold text-red-900 tracking-tight">
+            Emergency Assistance
+          </h2>
+        </div>
+        <p className="text-xs text-red-700/90 leading-relaxed">
+          Help fellow drivers and riders in their time of need.
+        </p>
+      </div>
+
+      {/* Filter tabs */}
+      <div className="flex border-b border-neutral-200 bg-background">
+        {filterTabs.map((t) => {
+          const active = filter === t.id;
           return (
             <button
-              key={f.id}
-              onClick={() => setFilter(f.id)}
-              className={`flex-1 h-9 rounded-xl text-[13px] font-semibold tracking-wide transition-colors ${
+              key={t.id}
+              onClick={() => setFilter(t.id)}
+              className={`flex-1 h-11 text-[13px] font-semibold tracking-wide transition-colors ${
                 active
-                  ? 'bg-[#EF4444] text-white border-2 border-[#EF4444]'
-                  : 'bg-white text-foreground border-2 border-[#E5E5E5] hover:bg-neutral-50'
+                  ? 'text-red-600 border-b-2 border-red-600 bg-red-50'
+                  : 'text-neutral-500 hover:text-neutral-700 border-b-2 border-transparent'
               }`}
             >
-              {f.label}
+              {t.label}
             </button>
           );
         })}
       </div>
 
-      {/* List */}
-      <div className="px-4">
+      {/* Body */}
+      <div className="p-4">
         {loading ? (
-          <div className="space-y-2 py-3">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 rounded-xl bg-neutral-100 animate-pulse" />
+              <div key={i} className="bg-neutral-100 rounded-2xl h-32 animate-pulse" />
             ))}
           </div>
         ) : requests.length === 0 ? (
           <EmptyState filter={filter} />
         ) : (
-          <ul className="divide-y divide-[#F0F0F0]">
+          <ul className="space-y-3">
             {requests.map((r) => {
-              const meta = STATUS_META[r.status];
-              const dist = fmtDistance(r._distMi);
-              const requesterName =
-                r.requester?.display_name || r.requester?.username || 'Driver';
+              const requesterName = r.profiles?.display_name || 'Driver';
               const initial = requesterName[0]?.toUpperCase() || '?';
-              const isUrgent = r.status === 'active';
+              const isMine = r.user_id === user?.id;
+              const isHelper = r.helper_id === user?.id;
+              const dist = distanceText(r);
+              const isActiveTab = filter === 'active';
 
               return (
-                <li key={r.id}>
-                  <button
-                    onClick={() => navigate(`/sos-request/${r.id}`)}
-                    className="w-full flex items-start gap-3 py-3 text-left hover:bg-neutral-50 -mx-4 px-4 transition-colors"
-                  >
-                    {/* Avatar with status overlay */}
-                    <div className="relative flex-shrink-0">
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold text-base"
-                        style={{
-                          background: r.requester?.avatar_url
-                            ? `url(${r.requester.avatar_url}) center/cover`
-                            : '#EF4444',
-                        }}
-                      >
-                        {!r.requester?.avatar_url && initial}
-                      </div>
-                      <span
-                        className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-white ${meta.dot}`}
-                      />
+                <li
+                  key={r.id}
+                  className="bg-white border-2 border-red-100 rounded-2xl p-4 shadow-sm"
+                >
+                  {/* Header row */}
+                  <div className="flex items-start gap-3 mb-3">
+                    <div
+                      className="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-red-100 text-red-700 font-bold text-base overflow-hidden"
+                      style={
+                        r.profiles?.avatar_url
+                          ? { backgroundImage: `url(${r.profiles.avatar_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+                          : undefined
+                      }
+                    >
+                      {!r.profiles?.avatar_url && initial}
                     </div>
-
-                    {/* Body */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-[15px] font-bold text-foreground truncate">
-                          {r.title}
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-bold text-foreground text-sm truncate">
+                          {requesterName}
                         </span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wide flex-shrink-0 ${meta.tone}`}>
-                          {meta.label}
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide ${URGENCY_STYLES[r.urgency_level]}`}
+                        >
+                          {r.urgency_level.toUpperCase()}
                         </span>
                       </div>
-                      <div className="text-[12px] text-muted-foreground truncate mt-0.5">
-                        {requesterName}
-                        {r.location ? ` · ${r.location}` : ''}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1.5 text-[11px]">
-                        <span className={`flex items-center gap-1 font-semibold ${isUrgent ? 'text-[#EF4444]' : 'text-muted-foreground'}`}>
+                      <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-wrap">
+                        <span className="flex items-center gap-1 capitalize">
+                          {getStatusIcon(r.status)}
+                          {r.status}
+                        </span>
+                        <span className="flex items-center gap-1 text-red-600 font-semibold">
                           <Clock className="w-3 h-3" />
-                          {timeAgo(r.created_at)}
+                          {formatTimeAgo(r.created_at)}
                         </span>
                         {dist && (
-                          <span className="flex items-center gap-1 text-muted-foreground">
+                          <span className="flex items-center gap-1">
                             <MapPin className="w-3 h-3" />
                             {dist}
                           </span>
                         )}
                       </div>
                     </div>
-                  </button>
+                  </div>
+
+                  {/* Title + description */}
+                  <div className="mb-3">
+                    <h3 className="font-bold text-foreground text-[15px] leading-snug">
+                      {r.title}
+                    </h3>
+                    {r.description && (
+                      <p className="mt-1 text-[13px] text-foreground/80 leading-relaxed">
+                        {r.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    {isActiveTab && !isMine && (
+                      <button
+                        onClick={() => handleAccept(r)}
+                        disabled={acceptingId === r.id}
+                        className="flex-1 bg-red-600 hover:bg-red-700 text-white py-2.5 rounded-xl text-[13px] font-bold transition-colors disabled:opacity-60 disabled:cursor-wait"
+                      >
+                        {acceptingId === r.id ? 'Accepting…' : '🚗 I can help'}
+                      </button>
+                    )}
+                    {(isMine || isHelper) && (
+                      <button
+                        onClick={() => handleOpenThread(r)}
+                        className="flex-1 bg-neutral-100 hover:bg-neutral-200 text-foreground py-2.5 rounded-xl text-[13px] font-semibold transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        View thread
+                      </button>
+                    )}
+                    {!isActiveTab && !isMine && !isHelper && (
+                      <button
+                        onClick={() => handleOpenThread(r)}
+                        className="flex-1 bg-neutral-100 text-foreground py-2.5 rounded-xl text-[13px] font-semibold transition-colors"
+                      >
+                        View thread
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleCall(r)}
+                      title="Call"
+                      aria-label="Call this user"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white p-2.5 rounded-xl transition-colors flex-shrink-0"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </button>
+                  </div>
                 </li>
               );
             })}
@@ -246,30 +346,23 @@ export default function CommunitySOSView() {
 function EmptyState({ filter }: { filter: Filter }) {
   const config = {
     active: {
-      icon: AlertTriangle,
-      title: 'No active SOS requests',
-      body: 'Drivers in trouble nearby will appear here. Be ready to help.',
-      tone: 'text-[#EF4444]',
+      title: 'No active emergencies nearby',
+      body: 'All clear in your area. Drivers needing help will appear here.',
     },
     helping: {
-      icon: ShieldCheck,
-      title: 'You aren’t helping anyone yet',
-      body: 'Tap an active SOS to offer help. They’ll see your status update live.',
-      tone: 'text-amber-600',
+      title: 'No active assistance',
+      body: 'Tap an active SOS to offer help.',
     },
     history: {
-      icon: Clock,
-      title: 'No past SOS yet',
-      body: 'Resolved and cancelled SOS threads appear here.',
-      tone: 'text-muted-foreground',
+      title: 'No assistance history',
+      body: 'Resolved SOS threads will appear here.',
     },
   }[filter];
-  const Icon = config.icon;
   return (
-    <div className="text-center py-16 px-6">
-      <Icon className={`w-12 h-12 mx-auto mb-3 ${config.tone}`} />
-      <p className="text-[15px] font-bold text-foreground">{config.title}</p>
-      <p className="text-[13px] text-muted-foreground mt-1.5">{config.body}</p>
+    <div className="text-center py-12">
+      <AlertTriangle className="w-12 h-12 text-neutral-300 mx-auto mb-4" />
+      <p className="text-neutral-700 text-base font-semibold">{config.title}</p>
+      <p className="text-neutral-500 text-[13px] mt-1">{config.body}</p>
     </div>
   );
 }

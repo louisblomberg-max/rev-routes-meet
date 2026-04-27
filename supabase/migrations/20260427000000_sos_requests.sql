@@ -17,9 +17,22 @@ create table if not exists public.sos_requests (
   lng numeric,
   status text not null default 'active' check (status in ('active', 'helping', 'resolved', 'cancelled')),
   helper_id uuid references public.profiles(id) on delete set null,
+  urgency_level text not null default 'medium' check (urgency_level in ('low', 'medium', 'high', 'emergency')),
   created_at timestamptz not null default now(),
   resolved_at timestamptz
 );
+
+-- Idempotent: add urgency_level if the table already existed without it
+do $$
+begin
+  if not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'sos_requests' and column_name = 'urgency_level'
+  ) then
+    alter table public.sos_requests
+      add column urgency_level text not null default 'medium' check (urgency_level in ('low', 'medium', 'high', 'emergency'));
+  end if;
+end$$;
 
 -- ── Conversation linkage ──
 do $$

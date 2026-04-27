@@ -188,6 +188,11 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
     }
     setIsSubmitting(true);
     try {
+      // Map problem to a default urgency. Crashes/recovery → emergency; mechanical → high; mild → medium.
+      const urgency: 'low' | 'medium' | 'high' | 'emergency' =
+        selectedProblem.id === 'accident' ? 'emergency' :
+        ['breakdown', 'recovery', 'electrical'].includes(selectedProblem.id) ? 'high' :
+        'medium';
       const { data: request, error } = await supabase.from('sos_requests').insert({
         user_id: user.id,
         title: selectedProblem.label,
@@ -195,6 +200,7 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
         lat: latRef.current,
         lng: lngRef.current,
         status: 'active',
+        urgency_level: urgency,
       }).select('id').single();
       if (error) throw error;
       setRequestId(request.id);
