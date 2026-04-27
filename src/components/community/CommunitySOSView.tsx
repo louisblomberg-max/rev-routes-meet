@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSOSRequest, type UrgencyLevel } from '@/hooks/useSOSRequest';
 import { useHelperProfile } from '@/hooks/useHelperProfile';
+import HelpSheet from '@/components/HelpSheet';
 import { toast } from 'sonner';
 
 type Filter = 'active' | 'helping' | 'history';
@@ -63,6 +64,7 @@ export default function CommunitySOSView() {
   const { acceptSOSRequest } = useSOSRequest();
   const { profile: helperProfile, updateProfile: updateHelperProfile, saving: savingHelper, HELP_RADIUS_OPTIONS } = useHelperProfile();
   const [showHelperSettings, setShowHelperSettings] = useState(false);
+  const [isHelpSheetOpen, setIsHelpSheetOpen] = useState(false);
 
   const [requests, setRequests] = useState<SOSRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -294,6 +296,17 @@ export default function CommunitySOSView() {
         )}
       </div>
 
+      {/* Request Emergency Help — opens HelpSheet (same modal as Explore SOS button) */}
+      <div className="px-4 pt-1 pb-3">
+        <button
+          onClick={() => setIsHelpSheetOpen(true)}
+          className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
+        >
+          <AlertTriangle className="w-5 h-5" />
+          Request Emergency Help
+        </button>
+      </div>
+
       {/* Filter tabs */}
       <div className="flex border-b border-neutral-200 bg-background">
         {filterTabs.map((t) => {
@@ -436,6 +449,9 @@ export default function CommunitySOSView() {
           </ul>
         )}
       </div>
+
+      {/* SOS Request modal — same flow as the Explore SOS button */}
+      <HelpSheet open={isHelpSheetOpen} onOpenChange={setIsHelpSheetOpen} />
     </div>
   );
 }
