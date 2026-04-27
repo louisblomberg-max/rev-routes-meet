@@ -41,7 +41,7 @@ export default function CommunityTab() {
         })}
       </nav>
 
-      {subTab === 'clubs' && <CommunityClubsView mode="discover" />}
+      {subTab === 'clubs' && <CommunityClubsView />}
       {subTab === 'sos' && <CommunitySOSView />}
     </div>
   );

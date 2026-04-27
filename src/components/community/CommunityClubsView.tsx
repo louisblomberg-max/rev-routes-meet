@@ -13,12 +13,21 @@ function haversineMiles(lat1: number, lng1: number, lat2: number, lng2: number):
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-interface Props { mode: 'discover' | 'my-clubs'; }
+type ClubsTab = 'my-clubs' | 'discover';
 
-export default function CommunityClubsView({ mode }: Props) {
+interface Props {
+  /** Initial tab. Defaults to 'my-clubs'. */
+  initialTab?: ClubsTab;
+}
+
+export default function CommunityClubsView({ initialTab = 'my-clubs' }: Props) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Toggle state
+  const [activeClubsTab, setActiveClubsTab] = useState<ClubsTab>(initialTab);
+
+  // Data
   const [clubs, setClubs] = useState<any[]>([]);
   const [myClubIds, setMyClubIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,6 +50,13 @@ export default function CommunityClubsView({ mode }: Props) {
     { value: 'regional', label: 'Regional' },
     { value: 'off_road', label: 'Off-Road' },
   ];
+
+  // Clear search when switching tabs
+  const handleTabChange = (tab: ClubsTab) => {
+    if (tab === activeClubsTab) return;
+    setActiveClubsTab(tab);
+    setSearchQuery('');
+  };
 
   // Geolocation
   useEffect(() => {
@@ -72,12 +88,11 @@ export default function CommunityClubsView({ mode }: Props) {
 
   // Fetch discover clubs
   useEffect(() => {
-    if (mode !== 'discover') return;
+    if (activeClubsTab !== 'discover') return;
     const load = async () => {
       setLoading(true);
       if (typeFilter !== 'all') {
-        let q = supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', typeFilter).order('member_count', { ascending: false }).limit(30);
-        const { data } = await q;
+        const { data } = await supabase.from('clubs').select('*').eq('visibility', 'public').eq('club_type', typeFilter).order('member_count', { ascending: false }).limit(30);
         setClubs(addDistance(data || []));
       } else {
         const all: any[] = []; const seen = new Set<string>();
@@ -106,11 +121,11 @@ export default function CommunityClubsView({ mode }: Props) {
       setLoading(false);
     };
     load();
-  }, [mode, user?.id, typeFilter, userVehicles, userProfileLocation, addDistance]);
+  }, [activeClubsTab, user?.id, typeFilter, userVehicles, userProfileLocation, addDistance]);
 
   // Fetch my clubs
   useEffect(() => {
-    if (mode !== 'my-clubs' || !user?.id) return;
+    if (activeClubsTab !== 'my-clubs' || !user?.id) return;
     setLoading(true);
     (async () => {
       const { data: memberships } = await supabase.from('club_memberships').select('id, role, club_id, status').eq('user_id', user.id).order('joined_at', { ascending: false });
@@ -121,7 +136,7 @@ export default function CommunityClubsView({ mode }: Props) {
       } else { setMyClubs([]); }
       setLoading(false);
     })();
-  }, [mode, user?.id]);
+  }, [activeClubsTab, user?.id]);
 
   const handleJoin = async (club: any, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -143,73 +158,106 @@ export default function CommunityClubsView({ mode }: Props) {
     if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); setCodeInput(''); setShowCodeInput(false); }
   };
 
-  const filtered = searchQuery.trim()
+  // Filtered lists per tab
+  const discoverFiltered = searchQuery.trim()
     ? clubs.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || c.description?.toLowerCase().includes(searchQuery.toLowerCase()))
     : clubs;
 
-  const activeMyClubs = myClubs.filter(c => c.myStatus !== 'pending');
-  const pendingMyClubs = myClubs.filter(c => c.myStatus === 'pending');
+  const myFiltered = searchQuery.trim()
+    ? myClubs.filter(c => c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || c.description?.toLowerCase().includes(searchQuery.toLowerCase()))
+    : myClubs;
+
+  const activeMyClubs = myFiltered.filter(c => c.myStatus !== 'pending');
+  const pendingMyClubs = myFiltered.filter(c => c.myStatus === 'pending');
   const roleLabel = (r: string) => r === 'owner' ? 'Founder' : r === 'admin' ? 'Admin' : 'Member';
 
   const fmtDist = (d?: number) => d == null ? null : d < 1 ? '<1 mi' : `${Math.round(d)} mi`;
 
-  // ── DISCOVER ──
-  if (mode === 'discover') {
-    return (
-      <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
-        {/* Search */}
-        <div style={{ padding: '12px 16px 0' }}>
-          <div style={{ position: 'relative' }}>
-            <Search size={18} color="#BBB" style={{ position: 'absolute', left: 14, top: 12 }} />
-            <input
-              value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search clubs..."
-              style={{ width: '100%', background: '#F5F5F5', border: 'none', borderRadius: 12, padding: '12px 14px 12px 42px', fontSize: 15, color: '#111', outline: 'none' }}
-            />
-          </div>
+  return (
+    <div className="bg-background min-h-full pb-24">
+      {/* My Clubs / Discover toggle */}
+      <div className="flex border-b border-neutral-200 bg-white">
+        <button
+          className={`flex-1 h-11 text-[13px] font-semibold tracking-wide transition-colors ${
+            activeClubsTab === 'my-clubs'
+              ? 'text-red-600 border-b-2 border-red-600 bg-red-50'
+              : 'text-neutral-500 hover:text-neutral-700 border-b-2 border-transparent'
+          }`}
+          onClick={() => handleTabChange('my-clubs')}
+        >
+          My Clubs
+        </button>
+        <button
+          className={`flex-1 h-11 text-[13px] font-semibold tracking-wide transition-colors ${
+            activeClubsTab === 'discover'
+              ? 'text-red-600 border-b-2 border-red-600 bg-red-50'
+              : 'text-neutral-500 hover:text-neutral-700 border-b-2 border-transparent'
+          }`}
+          onClick={() => handleTabChange('discover')}
+        >
+          Discover
+        </button>
+      </div>
+
+      {/* Shared search bar (placeholder changes per tab) */}
+      <div style={{ padding: '12px 16px 0' }}>
+        <div style={{ position: 'relative' }}>
+          <Search size={18} color="#BBB" style={{ position: 'absolute', left: 14, top: 12 }} />
+          <input
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder={activeClubsTab === 'my-clubs' ? 'Search my clubs...' : 'Search all clubs...'}
+            style={{ width: '100%', background: '#F5F5F5', border: 'none', borderRadius: 12, padding: '12px 14px 12px 42px', fontSize: 15, color: '#111', outline: 'none' }}
+          />
         </div>
+      </div>
 
-        {/* Type pills */}
-        <div style={{ display: 'flex', gap: 6, padding: '12px 16px', overflowX: 'auto' }}>
-          {types.map(t => (
-            <button key={t.value} onClick={() => setTypeFilter(t.value)} style={{
-              flexShrink: 0, padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
-              border: 'none', cursor: 'pointer',
-              background: typeFilter === t.value ? '#CC2B2B' : '#F5F5F5',
-              color: typeFilter === t.value ? '#fff' : '#666',
-            }}>{t.label}</button>
-          ))}
-        </div>
-
-        {/* Code link */}
-        {!showCodeInput ? (
-          <div style={{ padding: '0 16px 12px' }}>
-            <button onClick={() => setShowCodeInput(true)} style={{ background: 'none', border: 'none', color: '#CC2B2B', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
-              Have a club code?
-            </button>
+      {/* Discover-only: type pills + invite code */}
+      {activeClubsTab === 'discover' && (
+        <>
+          <div style={{ display: 'flex', gap: 6, padding: '12px 16px', overflowX: 'auto' }}>
+            {types.map(t => (
+              <button key={t.value} onClick={() => setTypeFilter(t.value)} style={{
+                flexShrink: 0, padding: '7px 14px', borderRadius: 20, fontSize: 13, fontWeight: 600,
+                border: 'none', cursor: 'pointer',
+                background: typeFilter === t.value ? '#CC2B2B' : '#F5F5F5',
+                color: typeFilter === t.value ? '#fff' : '#666',
+              }}>{t.label}</button>
+            ))}
           </div>
-        ) : (
-          <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
-            <input value={codeInput} onChange={e => setCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))} onKeyDown={e => { if (e.key === 'Enter') handleCodeJoin(); }}
-              placeholder="Enter code" autoFocus
-              style={{ flex: 1, background: '#F5F5F5', border: 'none', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#111', outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
-            <button onClick={handleCodeJoin} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Join</button>
-            <button onClick={() => { setShowCodeInput(false); setCodeInput(''); }} style={{ background: 'none', border: 'none', color: '#999', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
-          </div>
-        )}
 
-        {/* Club list */}
+          {!showCodeInput ? (
+            <div style={{ padding: '0 16px 12px' }}>
+              <button onClick={() => setShowCodeInput(true)} style={{ background: 'none', border: 'none', color: '#CC2B2B', fontSize: 13, fontWeight: 600, cursor: 'pointer', padding: 0 }}>
+                Have a club code?
+              </button>
+            </div>
+          ) : (
+            <div style={{ padding: '0 16px 12px', display: 'flex', gap: 8 }}>
+              <input value={codeInput} onChange={e => setCodeInput(e.target.value.toUpperCase().replace(/\s/g, ''))} onKeyDown={e => { if (e.key === 'Enter') handleCodeJoin(); }}
+                placeholder="Enter code" autoFocus
+                style={{ flex: 1, background: '#F5F5F5', border: 'none', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#111', outline: 'none', fontFamily: 'monospace', letterSpacing: 1 }} />
+              <button onClick={handleCodeJoin} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 10, padding: '10px 16px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Join</button>
+              <button onClick={() => { setShowCodeInput(false); setCodeInput(''); }} style={{ background: 'none', border: 'none', color: '#999', fontSize: 13, cursor: 'pointer' }}>Cancel</button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Lists */}
+      {activeClubsTab === 'discover' ? (
+        // ── DISCOVER LIST ──
         <div style={{ padding: '0 16px' }}>
           {loading ? [1, 2, 3, 4].map(i => (
             <div key={i} style={{ height: 72, borderRadius: 12, background: '#F9F9F9', marginBottom: 8 }} />
-          )) : filtered.length === 0 ? (
+          )) : discoverFiltered.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px', color: '#AAA' }}>
               <Users size={40} color="#DDD" style={{ display: 'block', margin: '0 auto 16px' }} />
               <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111' }}>No clubs found</p>
               <p style={{ margin: '6px 0 20px', fontSize: 14 }}>{searchQuery ? 'Try a different search' : 'Be the first to create one'}</p>
               <button onClick={() => navigate('/add/club')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 20, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Create Club</button>
             </div>
-          ) : filtered.map(club => {
+          ) : discoverFiltered.map(club => {
             const isMember = myClubIds.includes(club.id);
             const dist = fmtDist(club._dist);
             return (
@@ -219,7 +267,6 @@ export default function CommunityClubsView({ mode }: Props) {
                 background: 'none', border: 'none', borderBottomStyle: 'solid' as const, borderBottomWidth: 1, borderBottomColor: '#F5F5F5',
                 cursor: 'pointer', textAlign: 'left' as const,
               }}>
-                {/* Avatar */}
                 <div style={{
                   width: 48, height: 48, borderRadius: 12, flexShrink: 0,
                   background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
@@ -228,8 +275,6 @@ export default function CommunityClubsView({ mode }: Props) {
                 }}>
                   {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
                 </div>
-
-                {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const }}>{club.name}</div>
                   <div style={{ fontSize: 13, color: '#999', marginTop: 2, display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -238,8 +283,6 @@ export default function CommunityClubsView({ mode }: Props) {
                     {club.location && !dist && <><span>·</span><span style={{ display: 'flex', alignItems: 'center', gap: 2 }}><MapPin size={11} />{club.location}</span></>}
                   </div>
                 </div>
-
-                {/* Action */}
                 {isMember ? (
                   <span style={{ fontSize: 12, fontWeight: 600, color: '#22C55E', flexShrink: 0 }}>Joined</span>
                 ) : (
@@ -254,76 +297,79 @@ export default function CommunityClubsView({ mode }: Props) {
             );
           })}
         </div>
-      </div>
-    );
-  }
+      ) : (
+        // ── MY CLUBS LIST ──
+        <div style={{ padding: '12px 16px 0' }}>
+          {loading ? [1, 2, 3].map(i => (
+            <div key={i} style={{ height: 72, borderRadius: 12, background: '#F9F9F9', marginBottom: 8 }} />
+          )) : (
+            <>
+              {pendingMyClubs.length > 0 && (
+                <div style={{ paddingTop: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#D97706', textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 10 }}>Pending</div>
+                  {pendingMyClubs.map(club => (
+                    <div key={club.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid #FEF3C7' }}>
+                      <div style={{ width: 44, height: 44, borderRadius: 12, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: '#D97706', flexShrink: 0 }}>{club.name?.[0]?.toUpperCase()}</div>
+                      <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</div><div style={{ fontSize: 12, color: '#D97706', marginTop: 1 }}>Awaiting approval</div></div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-  // ── MY CLUBS ──
-  return (
-    <div style={{ background: '#FFFFFF', minHeight: '100%', paddingBottom: 96 }}>
-      <div style={{ padding: '0 16px' }}>
-        {loading ? [1, 2, 3].map(i => (
-          <div key={i} style={{ height: 72, borderRadius: 12, background: '#F9F9F9', marginBottom: 8, marginTop: i === 1 ? 16 : 0 }} />
-        )) : (
-          <>
-            {pendingMyClubs.length > 0 && (
-              <div style={{ paddingTop: 16 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: '#D97706', textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 10 }}>Pending</div>
-                {pendingMyClubs.map(club => (
-                  <div key={club.id} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0', borderBottom: '1px solid #FEF3C7' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 12, background: '#FEF3C7', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 800, color: '#D97706', flexShrink: 0 }}>{club.name?.[0]?.toUpperCase()}</div>
-                    <div style={{ flex: 1 }}><div style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</div><div style={{ fontSize: 12, color: '#D97706', marginTop: 1 }}>Awaiting approval</div></div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeMyClubs.length === 0 && pendingMyClubs.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '80px 20px', color: '#AAA' }}>
-                <Users size={40} color="#DDD" style={{ display: 'block', margin: '0 auto 16px' }} />
-                <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111' }}>No clubs yet</p>
-                <p style={{ margin: '6px 0', fontSize: 14 }}>Find a club that matches your cars</p>
-              </div>
-            ) : (
-              <div style={{ paddingTop: pendingMyClubs.length > 0 ? 16 : 12 }}>
-                {activeMyClubs.map(club => {
-                  const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
-                  return (
-                    <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                      width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                      padding: '14px 0', background: 'none', border: 'none',
-                      borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const,
-                    }}>
-                      <div style={{
-                        width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-                        background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: 18, fontWeight: 800, color: '#BBB',
+              {activeMyClubs.length === 0 && pendingMyClubs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 20px', color: '#AAA' }}>
+                  <Users size={40} color="#DDD" style={{ display: 'block', margin: '0 auto 16px' }} />
+                  <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#111' }}>
+                    {searchQuery ? 'No matches' : "You haven't joined any clubs yet"}
+                  </p>
+                  <p style={{ margin: '6px 0 20px', fontSize: 14 }}>
+                    {searchQuery ? 'Try a different search' : 'Discover some below!'}
+                  </p>
+                  {!searchQuery && (
+                    <button onClick={() => handleTabChange('discover')} style={{ background: '#CC2B2B', color: '#fff', border: 'none', borderRadius: 20, padding: '10px 22px', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>Discover Clubs</button>
+                  )}
+                </div>
+              ) : (
+                <div style={{ paddingTop: pendingMyClubs.length > 0 ? 12 : 0 }}>
+                  {activeMyClubs.map(club => {
+                    const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
+                    return (
+                      <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
+                        width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                        padding: '14px 0', background: 'none', border: 'none',
+                        borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const,
                       }}>
-                        {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</span>
-                          {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: '#CC2B2B', background: '#FEF2F2', padding: '2px 6px', borderRadius: 4 }}>{roleLabel(club.myRole)}</span>}
+                        <div style={{
+                          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                          background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: 18, fontWeight: 800, color: '#BBB',
+                        }}>
+                          {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
                         </div>
-                        <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
-                          <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()}</span> members
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</span>
+                            {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: '#CC2B2B', background: '#FEF2F2', padding: '2px 6px', borderRadius: 4 }}>{roleLabel(club.myRole)}</span>}
+                          </div>
+                          <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+                            <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()}</span> members
+                          </div>
                         </div>
-                      </div>
-                      {isAdmin ? (
-                        <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-                          <Settings size={14} color="#CC2B2B" />
-                        </div>
-                      ) : <ChevronRight size={18} color="#DDD" style={{ flexShrink: 0 }} />}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
-      </div>
+                        {isAdmin ? (
+                          <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+                            <Settings size={14} color="#CC2B2B" />
+                          </div>
+                        ) : <ChevronRight size={18} color="#DDD" style={{ flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }
