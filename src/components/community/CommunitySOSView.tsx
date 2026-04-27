@@ -187,21 +187,8 @@ export default function CommunitySOSView() {
 
   return (
     <div className="bg-background min-h-full pb-24">
-      {/* Emergency banner */}
-      <div className="bg-red-50 border-b-2 border-red-100 px-4 py-3">
-        <div className="flex items-center gap-2 mb-1">
-          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-          <h2 className="text-base font-bold text-red-900 tracking-tight">
-            Emergency Assistance
-          </h2>
-        </div>
-        <p className="text-xs text-red-700/90 leading-relaxed">
-          Help fellow drivers and riders in their time of need.
-        </p>
-      </div>
-
       {/* Available to Help — opt-in card */}
-      <div className="mx-4 mt-3 mb-2 bg-white border-2 border-neutral-200 rounded-xl p-3">
+      <div className="mx-4 mt-4 mb-2 bg-white border-2 border-neutral-200 rounded-xl p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
