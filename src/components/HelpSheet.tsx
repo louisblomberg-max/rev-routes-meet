@@ -7,15 +7,31 @@ import { supabase } from '@/integrations/supabase/client';
 import { sendNotificationToMany } from '@/utils/sendNotification';
 import { toast } from 'sonner';
 
-const PROBLEMS = [
-  { id: 'flat_tyre', label: 'Flat Tyre', emoji: '🔧' },
-  { id: 'breakdown', label: 'Breakdown', emoji: '🚗' },
+type Problem = { id: string; label: string; emoji: string };
+
+const PROBLEMS_URGENT: Problem[] = [
+  { id: 'accident', label: 'Accident / Injury', emoji: '⚠️' },
+];
+
+const PROBLEMS_BREAKDOWN: Problem[] = [
+  { id: 'breakdown', label: 'Mechanical', emoji: '🚗' },
+  { id: 'flat_tyre', label: 'Flat Tyre', emoji: '🛞' },
   { id: 'out_of_fuel', label: 'Out of Fuel', emoji: '⛽' },
-  { id: 'locked_out', label: 'Locked Out', emoji: '🔑' },
-  { id: 'accident', label: 'Accident', emoji: '⚠️' },
   { id: 'electrical', label: 'Electrical', emoji: '⚡' },
   { id: 'recovery', label: 'Need Recovery', emoji: '🚛' },
+];
+
+const PROBLEMS_ASSISTANCE: Problem[] = [
+  { id: 'locked_out', label: 'Locked Out', emoji: '🔑' },
   { id: 'other', label: 'Other', emoji: '🆘' },
+];
+
+// Flat list — used by existing select/handler logic and serves as the
+// canonical problem catalog for typing.
+const PROBLEMS: Problem[] = [
+  ...PROBLEMS_URGENT,
+  ...PROBLEMS_BREAKDOWN,
+  ...PROBLEMS_ASSISTANCE,
 ];
 
 const SOSChat = ({ requestId, userId }: { requestId: string; userId: string }) => {
@@ -319,43 +335,129 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
           {step === 1 && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                {PROBLEMS.map(p => (
-                  <button key={p.id} onClick={() => { setSelectedProblem(p); setStep(2); }}
-                    className="flex items-center gap-3 p-4 rounded-2xl border border-border/50 bg-card hover:border-destructive/40 hover:bg-destructive/5 transition-all active:scale-95 text-left">
-                    <span className="text-2xl flex-shrink-0">{p.emoji}</span>
-                    <span className="text-sm font-semibold">{p.label}</span>
+            <div className="space-y-5">
+              {/* URGENT */}
+              <div>
+                <h3 className="text-xs font-bold text-red-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
+                  <span className="w-2 h-2 rounded-full bg-red-600" /> Urgent
+                </h3>
+                <div className="grid grid-cols-1 gap-2">
+                  {PROBLEMS_URGENT.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setSelectedProblem(p); setStep(2); }}
+                      className="flex items-center gap-3 p-4 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-colors active:scale-[0.98] text-left"
+                    >
+                      <span className="text-2xl flex-shrink-0">{p.emoji}</span>
+                      <span className="font-bold text-red-900 uppercase tracking-wide">{p.label}</span>
+                    </button>
+                  ))}
+                  {/* Stolen vehicle uses the dedicated step-5 flow (writes to stolen_vehicle_alerts) */}
+                  <button
+                    onClick={() => setStep(5)}
+                    className="flex items-center gap-3 p-4 bg-red-100 hover:bg-red-200 border-2 border-red-300 rounded-xl transition-colors active:scale-[0.98] text-left"
+                  >
+                    <span className="text-2xl flex-shrink-0">🚨</span>
+                    <span className="font-bold text-red-900 uppercase tracking-wide">Vehicle Stolen</span>
                   </button>
-                ))}
+                </div>
               </div>
-              <button onClick={() => setStep(5)}
-                className="w-full p-4 rounded-2xl border-2 border-destructive/40 bg-destructive/5 text-destructive font-bold text-sm flex items-center justify-center gap-2 active:scale-95">
-                🚨 Vehicle Stolen — Alert Members
-              </button>
+
+              {/* BREAKDOWN */}
+              <div>
+                <h3 className="text-xs font-bold text-amber-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" /> Breakdown
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {PROBLEMS_BREAKDOWN.map((p, idx) => {
+                    // Last item in an odd-length list spans full width
+                    const isLastSolo = idx === PROBLEMS_BREAKDOWN.length - 1 && PROBLEMS_BREAKDOWN.length % 2 === 1;
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => { setSelectedProblem(p); setStep(2); }}
+                        className={`flex flex-col items-center gap-1.5 p-3 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg transition-colors active:scale-[0.98] ${isLastSolo ? 'col-span-2' : ''}`}
+                      >
+                        <span className="text-xl">{p.emoji}</span>
+                        <span className="text-sm font-semibold text-amber-900">{p.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* ASSISTANCE */}
+              <div>
+                <h3 className="text-xs font-bold text-emerald-700 mb-2 flex items-center gap-1.5 tracking-wide uppercase">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" /> Assistance
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {PROBLEMS_ASSISTANCE.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setSelectedProblem(p); setStep(2); }}
+                      className="flex flex-col items-center gap-1 p-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-lg transition-colors active:scale-[0.98]"
+                    >
+                      <span className="text-lg">{p.emoji}</span>
+                      <span className="text-xs font-semibold text-emerald-900">{p.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
           {step === 2 && selectedProblem && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-muted/40 border border-border/30">
-                <span className="text-2xl">{selectedProblem.emoji}</span>
-                <span className="font-semibold text-sm">{selectedProblem.label}</span>
+              {/* Selected problem display */}
+              <div className="flex items-center gap-2.5 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <span className="text-xl">{selectedProblem.emoji}</span>
+                <span className="font-semibold text-red-900">{selectedProblem.label}</span>
               </div>
+
+              {/* Details input */}
               <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-2 block">Describe your situation (optional)</label>
-                <textarea value={details} onChange={e => setDetails(e.target.value)}
-                  placeholder="e.g. On the M25 near junction 10, silver BMW, hazard lights on..."
-                  className="w-full border border-border/40 rounded-xl px-4 py-3 text-sm bg-background resize-none min-h-[100px] outline-none"
-                  maxLength={300} />
-                <p className="text-[10px] text-muted-foreground text-right mt-1">{details.length}/300</p>
+                <label className="block text-sm font-semibold text-foreground mb-2">
+                  ✏️ What's happening? <span className="text-muted-foreground font-normal">(Optional but helpful)</span>
+                </label>
+                <textarea
+                  value={details}
+                  onChange={e => setDetails(e.target.value)}
+                  placeholder="e.g. Silver BMW on M25 Junction 10, hazard lights on, need jump start, safe location..."
+                  className="w-full h-24 p-3 border border-border rounded-lg resize-none text-sm bg-background outline-none focus:border-red-400"
+                  maxLength={300}
+                />
+                <div className="text-[11px] text-muted-foreground text-right mt-1">
+                  {details.length}/300
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground bg-muted/30 rounded-xl p-3">
-                🔒 Your exact location is never shown to helpers. They only see distance. You control what you share in chat.
-              </p>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
-                <Button className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold" onClick={() => setStep(3)}>Continue</Button>
+
+              {/* Privacy notice */}
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <span className="text-base flex-shrink-0">🔒</span>
+                  <div className="text-[11px] text-blue-700 leading-relaxed">
+                    <p className="font-semibold">Privacy: Only distance shown to helpers, never exact location.</p>
+                    <p className="mt-0.5">You control what you share in chat conversations.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action buttons */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1 rounded-xl"
+                  onClick={() => setStep(1)}
+                >
+                  ← Back
+                </Button>
+                <Button
+                  className="flex-[2] rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold disabled:bg-red-400 flex items-center justify-center gap-1.5"
+                  onClick={() => setStep(3)}
+                >
+                  🆘 Continue
+                </Button>
               </div>
             </div>
           )}
