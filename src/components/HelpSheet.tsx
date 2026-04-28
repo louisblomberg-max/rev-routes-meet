@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Phone, CheckCircle, AlertTriangle, Users, Send, MessageCircle } from 'lucide-react';
@@ -115,6 +116,7 @@ interface HelpSheetProps { open: boolean; onOpenChange: (open: boolean) => void;
 
 const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [selectedProblem, setSelectedProblem] = useState<typeof PROBLEMS[0] | null>(null);
   const [details, setDetails] = useState('');
@@ -123,7 +125,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
   const [responders, setResponders] = useState<any[]>([]);
   const [minutesLeft, setMinutesLeft] = useState(30);
   const [locationReady, setLocationReady] = useState(false);
-  const [stolenVehicle, setStolenVehicle] = useState({ make: '', model: '', colour: '', registration: '', description: '' });
 
   const expireTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -180,7 +181,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
     if (respondersChannelRef.current) { supabase.removeChannel(respondersChannelRef.current); respondersChannelRef.current = null; }
     setStep(1); setSelectedProblem(null); setDetails(''); setRequestId(null);
     setResponders([]); setMinutesLeft(30); setLocationReady(false);
-    setStolenVehicle({ make: '', model: '', colour: '', registration: '', description: '' });
     latRef.current = null; lngRef.current = null;
     onOpenChange(false);
   };
@@ -271,32 +271,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
     handleClose();
   };
 
-  const handleStolenVehicle = async () => {
-    if (!stolenVehicle.make || !stolenVehicle.registration) { toast.error('Please enter make and registration'); return; }
-    if (!user?.id) return;
-    setIsSubmitting(true);
-    try {
-      await supabase.from('stolen_vehicle_alerts').insert({
-        user_id: user.id,
-        last_seen_lat: latRef.current, last_seen_lng: lngRef.current,
-        status: 'active',
-        description: `${stolenVehicle.colour} ${stolenVehicle.make} ${stolenVehicle.model} — Reg: ${stolenVehicle.registration}. ${stolenVehicle.description}`.trim(),
-      });
-      const { data: helpers } = await supabase.from('profiles').select('id').eq('available_to_help', true).neq('id', user.id).limit(500);
-      if (helpers && helpers.length > 0) {
-        await sendNotificationToMany({
-          userIds: helpers.map((h: any) => h.id),
-          title: '🚨 Stolen Vehicle Alert',
-          body: `${stolenVehicle.colour} ${stolenVehicle.make} ${stolenVehicle.model} — ${stolenVehicle.registration}`,
-          type: 'stolen_vehicle', data: {},
-        });
-      }
-      toast.success('Alert sent to nearby members');
-      setStep(6);
-    } catch (err: any) { toast.error(err?.message || 'Failed'); }
-    finally { setIsSubmitting(false); }
-  };
-
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) handleClose(); }}>
       <SheetContent side="bottom" className="rounded-t-2xl max-h-[90vh] flex flex-col p-0 gap-0">
@@ -311,8 +285,6 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                 {step === 2 && 'Add details'}
                 {step === 3 && 'Confirm SOS'}
                 {step === 4 && 'Help is coming'}
-                {step === 5 && 'Stolen Vehicle'}
-                {step === 6 && 'Alert Sent'}
               </h2>
               <p className="text-[10px] text-muted-foreground">{locationReady ? '📍 Location ready' : '📍 Getting location...'}</p>
             </div>
@@ -339,9 +311,12 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
                 ))}
               </div>
 
-              {/* Vehicle Stolen — full-width, red emphasis. Routes to step 5 (existing dedicated form). */}
+              {/* Vehicle Stolen — routes to dedicated /stolen-vehicles page (richer form: reg, police ref, reward, photos slot). */}
               <button
-                onClick={() => setStep(5)}
+                onClick={() => {
+                  onOpenChange(false);
+                  navigate('/stolen-vehicles?action=report&from=sos');
+                }}
                 className="w-full p-4 bg-red-50 border-2 border-red-500 rounded-lg hover:bg-red-100 transition-colors active:scale-[0.99] mt-1"
               >
                 <div className="flex items-center justify-center gap-3">
@@ -489,68 +464,8 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
             </div>
           )}
 
-          {step === 5 && (
-            <div className="space-y-4">
-              <div className="p-3 rounded-2xl bg-destructive/5 border border-destructive/20">
-                <p className="text-sm font-bold text-destructive">🚨 Stolen Vehicle Alert</p>
-                <p className="text-xs text-muted-foreground mt-1">This will alert all nearby RevNet members who have "Available to Help" on.</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Make *</label>
-                  <input value={stolenVehicle.make} onChange={e => setStolenVehicle(p => ({ ...p, make: e.target.value }))}
-                    placeholder="e.g. BMW" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Model</label>
-                  <input value={stolenVehicle.model} onChange={e => setStolenVehicle(p => ({ ...p, model: e.target.value }))}
-                    placeholder="e.g. M3" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Colour</label>
-                  <input value={stolenVehicle.colour} onChange={e => setStolenVehicle(p => ({ ...p, colour: e.target.value }))}
-                    placeholder="e.g. Black" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none" />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Registration *</label>
-                  <input value={stolenVehicle.registration} onChange={e => setStolenVehicle(p => ({ ...p, registration: e.target.value.toUpperCase() }))}
-                    placeholder="e.g. AB12 CDE" className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background outline-none uppercase" />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-muted-foreground mb-1.5 block">Additional details</label>
-                <textarea value={stolenVehicle.description} onChange={e => setStolenVehicle(p => ({ ...p, description: e.target.value }))}
-                  placeholder="Distinguishing features, last seen location..."
-                  className="w-full border border-border/50 rounded-xl px-3 py-2.5 text-sm bg-background resize-none min-h-[80px] outline-none" />
-              </div>
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setStep(1)}>Back</Button>
-                <Button disabled={isSubmitting || !stolenVehicle.make || !stolenVehicle.registration} onClick={handleStolenVehicle}
-                  className="flex-1 rounded-xl bg-destructive hover:bg-destructive/90 text-white font-bold">
-                  {isSubmitting ? 'Sending...' : 'Send Alert'}
-                </Button>
-              </div>
-              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-destructive/20 text-destructive text-sm font-medium">
-                <Phone className="w-4 h-4" /> Call 999 First
-              </a>
-            </div>
-          )}
-
-          {step === 6 && (
-            <div className="space-y-4 text-center py-4">
-              <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-                <span className="text-3xl">🚨</span>
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Alert Sent</h3>
-                <p className="text-sm text-muted-foreground mt-1">Nearby members have been notified</p>
-              </div>
-              <a href="tel:999" className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-destructive text-white font-bold text-base">
-                <Phone className="w-5 h-5" /> Call 999 Now
-              </a>
-              <button onClick={handleClose} className="w-full py-2.5 text-sm text-muted-foreground">Close</button>
-            </div>
-          )}
+          {/* Steps 5/6 (legacy embedded stolen-vehicle form) removed —
+              flow now navigates to /stolen-vehicles?action=report&from=sos */}
 
         </div>
       </SheetContent>

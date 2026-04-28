@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, HelpCircle, Search, UserPlus, Check, Clock, Loader2 } from 'lucide-react';
+import { Users, HelpCircle, AlertTriangle, Search, UserPlus, Check, Clock, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,6 +20,7 @@ const Community = () => {
 
   const sections = [
     { icon: Users, title: 'Clubs', description: 'Find and join local car & bike clubs', color: 'bg-clubs', route: '/clubs' },
+    { icon: AlertTriangle, title: 'Stolen Vehicle Alerts', description: 'Report or search community-reported thefts', color: 'bg-events', route: '/stolen-vehicles' },
     { icon: HelpCircle, title: 'Help & Support', description: 'Quick answers to common questions', color: 'bg-routes', route: '/settings/support' },
   ];
 

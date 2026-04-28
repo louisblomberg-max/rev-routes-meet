@@ -8,9 +8,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { MapPin, Search, Plus, Car, Calendar, Phone, Award, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { MapPin, Search, Plus, Car, Calendar, Phone, Award, AlertTriangle, ArrowLeft, Shield, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { sendNotificationToMany } from '@/utils/sendNotification';
 
 interface StolenVehicle {
   alert_id: string;
@@ -206,7 +207,7 @@ export default function StolenVehicles() {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase
+    const { data: inserted, error } = await supabase
       .from('stolen_vehicle_alerts')
       .insert({
         user_id: user.id,
@@ -223,23 +224,62 @@ export default function StolenVehicles() {
         last_seen_lat: formData.last_seen_lat || null,
         last_seen_lng: formData.last_seen_lng || null,
         status: 'active',
-      });
+      })
+      .select('id')
+      .single();
     setSubmitting(false);
-    if (error) {
+    if (error || !inserted) {
       console.error('stolen_vehicle_alerts insert error:', error);
       toast.error('Failed to submit report');
       return;
     }
+
+    // Broadcast in-app notification to opted-in helpers (same pipeline HelpSheet uses for SOS).
+    // Note: this is a flat broadcast to anyone with `available_to_help=true`. Distance-based
+    // filtering would need lat/lng tracking on profiles, which isn't wired yet.
+    try {
+      const { data: helpers } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('available_to_help', true)
+        .neq('id', user.id)
+        .limit(500);
+      if (helpers && helpers.length > 0) {
+        const plate = formData.registration_plate.toUpperCase();
+        const veh = [formData.colour, formData.make, formData.model].filter(Boolean).join(' ');
+        await sendNotificationToMany({
+          userIds: helpers.map((h: any) => h.id),
+          title: '🚨 Stolen Vehicle Alert',
+          body: `${veh || 'Vehicle'} — ${plate}. Keep an eye out.`,
+          type: 'stolen_vehicle',
+          data: { alert_id: (inserted as any).id, registration_plate: plate },
+        });
+      }
+    } catch (notifyErr) {
+      // Don't block the user — the alert is already filed.
+      console.warn('Failed to dispatch stolen vehicle notifications:', notifyErr);
+    }
+
     toast.success('Stolen vehicle reported. Stay safe.');
     setFormData(EMPTY_FORM(formData.last_seen_lat, formData.last_seen_lng));
     closeReportForm();
     void loadList();
   };
 
+  const fromSos = searchParams.get('from') === 'sos';
+
   // ─── REPORT FORM ───
   if (showReportForm) {
     return (
       <div className="container mx-auto p-4 max-w-2xl pb-24">
+        {fromSos && (
+          <div className="mb-3 flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Shield className="h-3.5 w-3.5" />
+            <span>Emergency SOS</span>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground font-medium">Vehicle Theft Report</span>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={closeReportForm} aria-label="Back">

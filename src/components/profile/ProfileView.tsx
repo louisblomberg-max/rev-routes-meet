@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import {
   Camera, Settings as SettingsIcon, Share2, Plus,
-  Bell, Shield, ChevronRight,
+  Bell, Shield, ChevronRight, AlertTriangle,
 } from 'lucide-react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Card, CardContent } from '@/components/ui/card';
@@ -318,6 +318,17 @@ export default function ProfileView() {
               <div className="flex items-center gap-3">
                 <Shield className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-foreground">Privacy &amp; safety</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+            </button>
+
+            <button
+              onClick={() => navigate('/stolen-vehicles')}
+              className="w-full p-3 border rounded-lg flex items-center justify-between hover:bg-muted/30 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                <span className="text-sm text-foreground">Stolen vehicle alerts</span>
               </div>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
             </button>
