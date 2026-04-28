@@ -7,31 +7,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { sendNotificationToMany } from '@/utils/sendNotification';
 import { toast } from 'sonner';
 
-type Problem = { id: string; label: string };
+type Problem = { id: string; label: string; emoji: string };
 
-const PROBLEMS_URGENT: Problem[] = [
-  { id: 'accident', label: 'Accident / Injury' },
-];
-
-const PROBLEMS_BREAKDOWN: Problem[] = [
-  { id: 'breakdown', label: 'Mechanical Problem' },
-  { id: 'flat_tyre', label: 'Flat Tyre' },
-  { id: 'out_of_fuel', label: 'Out of Fuel' },
-  { id: 'electrical', label: 'Electrical Issue' },
-  { id: 'recovery', label: 'Need Recovery' },
-];
-
-const PROBLEMS_ASSISTANCE: Problem[] = [
-  { id: 'locked_out', label: 'Locked Out' },
-  { id: 'other', label: 'Other Emergency' },
-];
-
-// Flat list — used by existing select/handler logic and serves as the
-// canonical problem catalog for typing.
+// Flat 6-item grid for step 1. Order matches design: 2 cols × 3 rows.
+// (Accident / Injury is intentionally not in the picker per current spec — if
+// surfaced as an emergency it would be re-added to PROBLEMS_URGENT.)
 const PROBLEMS: Problem[] = [
-  ...PROBLEMS_URGENT,
-  ...PROBLEMS_BREAKDOWN,
-  ...PROBLEMS_ASSISTANCE,
+  { id: 'breakdown',   label: 'Mechanical', emoji: '🔧' },
+  { id: 'electrical',  label: 'Electrical', emoji: '⚡' },
+  { id: 'flat_tyre',   label: 'Flat tyre',  emoji: '🛞' },
+  { id: 'out_of_fuel', label: 'Out of fuel', emoji: '⛽' },
+  { id: 'locked_out',  label: 'Locked out', emoji: '🔐' },
+  { id: 'other',       label: 'Other',      emoji: '❓' },
 ];
 
 const SOSChat = ({ requestId, userId }: { requestId: string; userId: string }) => {
@@ -335,67 +322,33 @@ const HelpSheet = ({ open, onOpenChange }: HelpSheetProps) => {
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
 
           {step === 1 && (
-            <div className="space-y-6">
-              {/* CRITICAL */}
-              <div>
-                <h3 className="text-xs font-bold text-red-700 mb-3 tracking-wide uppercase border-b border-red-200 pb-1">
-                  Critical
-                </h3>
-                <div className="space-y-2">
-                  {PROBLEMS_URGENT.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => { setSelectedProblem(p); setStep(2); }}
-                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-lg transition-colors text-left group"
-                    >
-                      <span className="font-semibold text-gray-900 group-hover:text-red-900">{p.label}</span>
-                    </button>
-                  ))}
-                  {/* Stolen vehicle → dedicated step-5 form (writes to stolen_vehicle_alerts) */}
+            <div className="space-y-3">
+              <h2 className="text-base font-medium text-gray-900 mb-1">What do you need help with?</h2>
+
+              {/* 2 × 3 grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {PROBLEMS.map((p) => (
                   <button
-                    onClick={() => setStep(5)}
-                    className="w-full p-4 bg-white border-2 border-gray-200 hover:border-red-400 hover:bg-red-50 rounded-lg transition-colors text-left group"
+                    key={p.id}
+                    onClick={() => { setSelectedProblem(p); setStep(2); }}
+                    className="p-5 bg-gray-50 border border-gray-200 rounded-lg text-center hover:bg-gray-100 transition-colors active:scale-[0.98]"
                   >
-                    <span className="font-semibold text-gray-900 group-hover:text-red-900">Vehicle Stolen</span>
+                    <div className="text-2xl mb-2 leading-none">{p.emoji}</div>
+                    <h3 className="text-sm font-medium text-gray-900">{p.label}</h3>
                   </button>
-                </div>
+                ))}
               </div>
 
-              {/* BREAKDOWN */}
-              <div>
-                <h3 className="text-xs font-bold text-amber-700 mb-3 tracking-wide uppercase border-b border-amber-200 pb-1">
-                  Breakdown
-                </h3>
-                <div className="space-y-2">
-                  {PROBLEMS_BREAKDOWN.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => { setSelectedProblem(p); setStep(2); }}
-                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-amber-400 hover:bg-amber-50 rounded-lg transition-colors text-left group"
-                    >
-                      <span className="font-semibold text-gray-900 group-hover:text-amber-900">{p.label}</span>
-                    </button>
-                  ))}
+              {/* Vehicle Stolen — full-width, red emphasis. Routes to step 5 (existing dedicated form). */}
+              <button
+                onClick={() => setStep(5)}
+                className="w-full p-4 bg-red-50 border-2 border-red-500 rounded-lg hover:bg-red-100 transition-colors active:scale-[0.99] mt-1"
+              >
+                <div className="flex items-center justify-center gap-3">
+                  <div className="text-xl leading-none">🚔</div>
+                  <h3 className="text-sm font-medium text-red-600">Vehicle stolen</h3>
                 </div>
-              </div>
-
-              {/* ASSISTANCE */}
-              <div>
-                <h3 className="text-xs font-bold text-blue-700 mb-3 tracking-wide uppercase border-b border-blue-200 pb-1">
-                  Assistance
-                </h3>
-                <div className="space-y-2">
-                  {PROBLEMS_ASSISTANCE.map(p => (
-                    <button
-                      key={p.id}
-                      onClick={() => { setSelectedProblem(p); setStep(2); }}
-                      className="w-full p-4 bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-colors text-left group"
-                    >
-                      <span className="font-semibold text-gray-900 group-hover:text-blue-900">{p.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              </button>
             </div>
           )}
 
