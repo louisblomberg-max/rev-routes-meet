@@ -536,7 +536,7 @@ export default function ClubProfile() {
             {club.profiles && (
               <button
                 onClick={() => navigate(`/user/${club.profiles?.username}`)}
-                className="w-full bg-card rounded-2xl border border-border/50 p-4 flex items-center gap-3 text-left"
+                className="w-full bg-card rounded-2xl border border-border/50 p-4 flex items-center gap-3 text-left hover:bg-muted/30 active:scale-[0.99] transition-colors"
               >
                 <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
                   {club.profiles?.avatar_url ? (

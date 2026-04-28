@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
-import { Trophy, Star, Heart, Calendar } from 'lucide-react'
+import { Trophy } from 'lucide-react'
 
 export default function ClubLeaderboard({ clubId, currentUserId }: {
   clubId: string
@@ -88,25 +88,6 @@ export default function ClubLeaderboard({ clubId, currentUserId }: {
         ))}
       </div>
 
-      {/* How points work */}
-      <div className="bg-card rounded-2xl border border-border/50 p-4">
-        <p className="text-sm font-bold text-foreground mb-3">How to earn points</p>
-        <div className="space-y-2">
-          {[
-            { icon: Heart, label: 'Post gets a like', points: '+1' },
-            { icon: Star, label: 'Create a post', points: '+2' },
-            { icon: Calendar, label: 'Attend club event', points: '+5' },
-            { icon: Trophy, label: 'Host club event', points: '+10' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3 text-xs text-muted-foreground">
-              <item.icon className="w-3.5 h-3.5" />
-              <span className="flex-1">{item.label}</span>
-              <span className="font-semibold text-foreground">{item.points}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* My rank */}
       {myRank && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center gap-4">
@@ -133,9 +114,8 @@ export default function ClubLeaderboard({ clubId, currentUserId }: {
         ))
       ) : leaderboard.length === 0 ? (
         <div className="text-center py-12 space-y-2">
-          <p className="text-3xl">🏆</p>
-          <p className="font-semibold text-foreground">No points yet</p>
-          <p className="text-sm text-muted-foreground">Post, attend events and earn points!</p>
+          <p className="font-semibold text-foreground">No members yet</p>
+          <p className="text-sm text-muted-foreground">Invite friends to get started.</p>
         </div>
       ) : (
         leaderboard.map((member, index) => {
