@@ -142,10 +142,15 @@ export default function CommunityClubsView({ initialTab = 'my-clubs' }: Props) {
     e.stopPropagation();
     if (!user?.id) { navigate('/auth'); return; }
     if (myClubIds.includes(club.id)) return;
-    if (club.join_mode === 'approval') { await supabase.from('club_join_requests').upsert({ club_id: club.id, user_id: user.id, status: 'pending' }); toast.success('Join request sent'); return; }
     if (club.join_mode === 'invite_only') { toast.error('Invite only'); return; }
-    const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
-    if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); }
+    const { data, error } = await supabase.rpc('join_club', { p_club_id: club.id, p_join_message: null });
+    if (error) { toast.error('Failed to join club'); return; }
+    const result = (data ?? {}) as { success: boolean; status?: string; error?: string };
+    if (!result.success) { toast.error(result.error || 'Failed to join club'); return; }
+    if (result.status === 'pending_approval') { toast.success('Join request sent'); return; }
+    // joined
+    setMyClubIds(prev => [...prev, club.id]);
+    toast.success(`Joined ${club.name}!`);
   };
 
   const handleCodeJoin = async () => {

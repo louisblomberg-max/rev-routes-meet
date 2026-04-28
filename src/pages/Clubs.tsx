@@ -120,30 +120,33 @@ export default function Clubs() {
       setShowInviteInput(true)
       return
     }
-    if (club.join_mode === 'approval') {
-      await supabase.from('club_join_requests').upsert({
-        club_id: club.id, user_id: user.id, status: 'pending'
-      })
+    const { data, error } = await supabase.rpc('join_club', {
+      p_club_id: club.id,
+      p_join_message: null,
+    })
+    if (error) { toast.error('Failed to join club'); return }
+    const result = (data ?? {}) as { success: boolean; status?: string; error?: string }
+    if (!result.success) {
+      toast.error(result.error || 'Failed to join club')
+      return
+    }
+    if (result.status === 'pending_approval') {
       toast.success('Join request sent to club admin')
       return
     }
-    const { error } = await supabase.from('club_memberships').insert({
-      club_id: club.id, user_id: user.id, role: 'member'
-    })
-    if (!error) {
-      setMyClubIds(prev => [...prev, club.id])
-      if (club.created_by) {
-        await supabase.rpc('send_notification', {
-          p_user_id: club.created_by,
-          p_type: 'club_join',
-          p_title: 'New member joined',
-          p_body: `Someone joined your club ${club.name}`,
-          p_data: { club_id: club.id }
-        })
-      }
-      toast.success(`Joined ${club.name}!`)
-      navigate(`/club/${club.id}`)
+    // status === 'joined'
+    setMyClubIds(prev => [...prev, club.id])
+    if (club.created_by) {
+      await supabase.rpc('send_notification', {
+        p_user_id: club.created_by,
+        p_type: 'club_join',
+        p_title: 'New member joined',
+        p_body: `Someone joined your club ${club.name}`,
+        p_data: { club_id: club.id },
+      })
     }
+    toast.success(`Joined ${club.name}!`)
+    navigate(`/club/${club.id}`)
   }
 
   const handleJoinWithCode = async () => {

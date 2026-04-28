@@ -9,15 +9,11 @@ import ClubFeed from '@/components/clubs/ClubFeed'
 import ClubMembers from '@/components/clubs/ClubMembers'
 import ClubEvents from '@/components/clubs/ClubEvents'
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard'
-import ClubGarage from '@/components/clubs/ClubGarage'
-import ClubRoutes from '@/components/clubs/ClubRoutes'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
   { id: 'events', label: 'Events' },
-  { id: 'routes', label: 'Routes' },
   { id: 'members', label: 'Members' },
-  { id: 'garage', label: 'Garage' },
   { id: 'about', label: 'About' },
 ]
 
@@ -38,7 +34,7 @@ export default function ClubProfile() {
     loadClub()
 
     // Realtime subscription for club posts
-    const channel = supabase
+    const postsChannel = supabase
       .channel(`club-posts-${clubId}`)
       .on('postgres_changes', {
         event: 'INSERT',
@@ -50,7 +46,29 @@ export default function ClubProfile() {
       })
       .subscribe()
 
-    return () => { supabase.removeChannel(channel) }
+    // Realtime subscription for member count (no full refetch — bumps the local count)
+    const membershipsChannel = supabase
+      .channel(`club-members-${clubId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'club_memberships',
+        filter: `club_id=eq.${clubId}`,
+      }, (payload) => {
+        setClub((prev: any) => {
+          if (!prev) return prev
+          const current = Number(prev.member_count ?? 0)
+          if (payload.eventType === 'INSERT') return { ...prev, member_count: current + 1 }
+          if (payload.eventType === 'DELETE') return { ...prev, member_count: Math.max(0, current - 1) }
+          return prev
+        })
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(postsChannel)
+      supabase.removeChannel(membershipsChannel)
+    }
   }, [clubId, user?.id])
 
   const loadClub = async () => {
@@ -107,46 +125,49 @@ export default function ClubProfile() {
 
   const handleJoin = async () => {
     if (!user?.id) { navigate('/auth'); return }
-
-    // Check if user is blocked
     if (club.blocked_users?.includes(user.id)) {
       toast.error('You cannot join this club')
       return
     }
-
-    if (club.join_mode === 'approval') {
-      navigate(`/club/${clubId}/join`)
-      return
-    }
-
     if (club.join_mode === 'invite_only') {
+      // Existing UX: route the user to the dedicated join-with-code page
       toast.error('This club is invite only — you need an invite code to join')
       return
     }
 
     setJoining(true)
     try {
-      const { error: joinError } = await supabase.from('club_memberships').insert({
-        club_id: clubId, user_id: user.id, role: 'member'
+      const { data, error } = await supabase.rpc('join_club', {
+        p_club_id: clubId!,
+        p_join_message: null,
       })
-      if (joinError) { toast.error('Failed to join club'); return }
+      if (error) { toast.error('Failed to join club'); return }
+      const result = (data ?? {}) as { success: boolean; status?: string; error?: string }
+      if (!result.success) {
+        toast.error(result.error || 'Failed to join club')
+        return
+      }
+      if (result.status === 'pending_approval') {
+        toast.success('Join request sent! You’ll be notified when approved.')
+        return
+      }
 
-      // Check founding member
-      if (club.member_count < 10) {
+      // Founding-member promotion (existing behaviour preserved)
+      if ((club.member_count ?? 0) < 10) {
         await supabase.from('club_memberships').update({
           is_founding_member: true,
           points: 20,
-          badges: ['founding_member']
+          badges: ['founding_member'],
         }).eq('club_id', clubId!).eq('user_id', user.id)
       }
-
+      // Notify owner (existing behaviour preserved)
       if (club.created_by) {
         await supabase.rpc('send_notification', {
           p_user_id: club.created_by,
           p_type: 'club_join',
           p_title: 'New member joined',
           p_body: `Someone joined ${club.name}`,
-          p_data: { club_id: clubId }
+          p_data: { club_id: clubId },
         })
       }
       toast.success(`Welcome to ${club.name}!`)
@@ -157,13 +178,14 @@ export default function ClubProfile() {
   }
 
   const handleLeave = async () => {
-    if (membership?.role === 'owner') {
-      toast.error('Transfer ownership before leaving')
+    if (!user?.id || !clubId) return
+    const { data, error } = await supabase.rpc('leave_club', { p_club_id: clubId })
+    if (error) { toast.error('Failed to leave club'); return }
+    const result = (data ?? {}) as { success: boolean; error?: string }
+    if (!result.success) {
+      toast.error(result.error || 'Failed to leave club')
       return
     }
-    const { error: leaveError } = await supabase.from('club_memberships').delete()
-      .eq('club_id', clubId!).eq('user_id', user?.id!)
-    if (leaveError) { toast.error('Failed to leave club'); return }
     setMembership(null)
     toast.success('Left club')
   }
@@ -413,12 +435,6 @@ export default function ClubProfile() {
         )}
         {activeTab === 'events' && (
           <ClubEvents clubId={clubId!} isMember={isMember} isAdmin={isAdmin} />
-        )}
-        {activeTab === 'garage' && (
-          <ClubGarage clubId={clubId!} isMember={isMember} />
-        )}
-        {activeTab === 'routes' && (
-          <ClubRoutes clubId={clubId!} isMember={isMember} />
         )}
         {activeTab === 'members' && (
           <ClubMembers clubId={clubId!} isAdmin={isAdmin} currentUserId={user?.id} />
