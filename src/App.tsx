@@ -63,7 +63,7 @@ const Auth = React.lazy(() => import("./pages/Auth"));
 const AuthCallback = React.lazy(() => import("./pages/AuthCallback"));
 const Onboarding = React.lazy(() => import("./pages/Onboarding"));
 const DevTools = React.lazy(() => import("./pages/DevTools"));
-const StolenVehicles = React.lazy(() => import("./pages/StolenVehicles"));
+const StolenVehicles = React.lazy(() => import("./components/StolenVehicles"));
 const UserProfile = React.lazy(() => import("./pages/UserProfile"));
 const ListingDetail = React.lazy(() => import("./pages/ListingDetail"));
 const CreateListing = React.lazy(() => import("./pages/CreateListing"));
