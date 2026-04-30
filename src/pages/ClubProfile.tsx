@@ -62,6 +62,9 @@ export default function ClubProfile() {
           if (payload.eventType === 'DELETE') return { ...prev, member_count: Math.max(0, current - 1) }
           return prev
         })
+        if (payload.eventType === 'INSERT' && (payload.new as any)?.user_id !== user?.id) {
+          toast('Someone joined the club!')
+        }
       })
       .subscribe()
 
