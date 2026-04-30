@@ -338,37 +338,54 @@ export default function CommunityClubsView({ initialTab = 'my-clubs' }: Props) {
                 </div>
               ) : (
                 <div style={{ paddingTop: pendingMyClubs.length > 0 ? 12 : 0 }}>
-                  {activeMyClubs.map(club => {
-                    const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
+                  {([
+                    { role: 'owner', label: 'Clubs you own' },
+                    { role: 'admin', label: 'Clubs you admin' },
+                    { role: 'member', label: 'Member of' },
+                  ] as const).map(group => {
+                    const groupClubs = activeMyClubs.filter(c =>
+                      group.role === 'member' ? (c.myRole !== 'owner' && c.myRole !== 'admin') : c.myRole === group.role
+                    );
+                    if (groupClubs.length === 0) return null;
                     return (
-                      <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
-                        width: '100%', display: 'flex', alignItems: 'center', gap: 14,
-                        padding: '14px 0', background: 'none', border: 'none',
-                        borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const,
-                      }}>
-                        <div style={{
-                          width: 48, height: 48, borderRadius: 12, flexShrink: 0,
-                          background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: 18, fontWeight: 800, color: '#BBB',
-                        }}>
-                          {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
+                      <div key={group.role} style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#999', textTransform: 'uppercase' as const, letterSpacing: 0.8, marginBottom: 8 }}>
+                          {group.label} <span style={{ color: '#CCC' }}>· {groupClubs.length}</span>
                         </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</span>
-                            {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: '#CC2B2B', background: '#FEF2F2', padding: '2px 6px', borderRadius: 4 }}>{roleLabel(club.myRole)}</span>}
-                          </div>
-                          <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
-                            <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()}</span> members
-                          </div>
-                        </div>
-                        {isAdmin ? (
-                          <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
-                            <Settings size={14} color="#CC2B2B" />
-                          </div>
-                        ) : <ChevronRight size={18} color="#DDD" style={{ flexShrink: 0 }} />}
-                      </button>
+                        {groupClubs.map(club => {
+                          const isAdmin = club.myRole === 'owner' || club.myRole === 'admin';
+                          return (
+                            <button key={club.id} onClick={() => navigate(`/club/${club.id}`)} style={{
+                              width: '100%', display: 'flex', alignItems: 'center', gap: 14,
+                              padding: '14px 0', background: 'none', border: 'none',
+                              borderBottom: '1px solid #F5F5F5', cursor: 'pointer', textAlign: 'left' as const,
+                            }}>
+                              <div style={{
+                                width: 48, height: 48, borderRadius: 12, flexShrink: 0,
+                                background: club.logo_url ? `url(${club.logo_url}) center/cover` : '#F0F0F0',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 18, fontWeight: 800, color: '#BBB',
+                              }}>
+                                {!club.logo_url && (club.name?.[0]?.toUpperCase() || '?')}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <span style={{ fontSize: 15, fontWeight: 700, color: '#111' }}>{club.name}</span>
+                                  {isAdmin && <span style={{ fontSize: 10, fontWeight: 700, color: '#CC2B2B', background: '#FEF2F2', padding: '2px 6px', borderRadius: 4 }}>{roleLabel(club.myRole)}</span>}
+                                </div>
+                                <div style={{ fontSize: 13, color: '#999', marginTop: 2 }}>
+                                  <span style={{ color: '#CC2B2B', fontWeight: 600 }}>{(club.member_count || 0).toLocaleString()}</span> members
+                                </div>
+                              </div>
+                              {isAdmin ? (
+                                <div onClick={e => { e.stopPropagation(); navigate(`/club/${club.id}/settings`); }} style={{ width: 32, height: 32, borderRadius: '50%', background: '#FEF2F2', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
+                                  <Settings size={14} color="#CC2B2B" />
+                                </div>
+                              ) : <ChevronRight size={18} color="#DDD" style={{ flexShrink: 0 }} />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     );
                   })}
                 </div>
