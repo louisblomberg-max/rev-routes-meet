@@ -128,7 +128,9 @@ export default function CommunityClubsView({ initialTab = 'my-clubs' }: Props) {
     if (activeClubsTab !== 'my-clubs' || !user?.id) return;
     setLoading(true);
     (async () => {
-      const { data: memberships } = await supabase.from('club_memberships').select('id, role, club_id, status').eq('user_id', user.id).order('joined_at', { ascending: false });
+      // NB: club_memberships has no `id` column (composite PK on user_id+club_id).
+      // Selecting `id` returns 400 from PostgREST → memberships=null → empty My Clubs.
+      const { data: memberships } = await supabase.from('club_memberships').select('role, club_id, status').eq('user_id', user.id).order('joined_at', { ascending: false });
       if (memberships?.length) {
         const ids = memberships.map(m => m.club_id);
         const { data: cd } = await supabase.from('clubs').select('*').in('id', ids);
@@ -157,7 +159,7 @@ export default function CommunityClubsView({ initialTab = 'my-clubs' }: Props) {
     if (!codeInput.trim() || !user?.id) return;
     const { data: club } = await supabase.from('clubs').select('*').eq('invite_code', codeInput.trim().toLowerCase()).maybeSingle();
     if (!club) { toast.error('Club not found'); return; }
-    const { data: ex } = await supabase.from('club_memberships').select('id').eq('club_id', club.id).eq('user_id', user.id).maybeSingle();
+    const { data: ex } = await supabase.from('club_memberships').select('club_id').eq('club_id', club.id).eq('user_id', user.id).maybeSingle();
     if (ex) { toast.error('Already a member'); return; }
     const { error } = await supabase.from('club_memberships').insert({ club_id: club.id, user_id: user.id, role: 'member' });
     if (!error) { setMyClubIds(prev => [...prev, club.id]); toast.success(`Joined ${club.name}!`); setCodeInput(''); setShowCodeInput(false); }
