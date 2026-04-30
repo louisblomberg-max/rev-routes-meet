@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuth } from '@/contexts/AuthContext'
-import { Search, Users, Star } from 'lucide-react'
+import { Search, Users, Star, BadgeCheck, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 import BackButton from '@/components/BackButton'
@@ -24,6 +24,16 @@ const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest' },
 ]
 
+const MIN_MEMBERS_OPTIONS = [
+  { value: 0, label: 'Any size' },
+  { value: 10, label: '10+' },
+  { value: 50, label: '50+' },
+  { value: 100, label: '100+' },
+  { value: 500, label: '500+' },
+]
+
+const PAGE_SIZE = 20
+
 export default function Clubs() {
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -38,6 +48,13 @@ export default function Clubs() {
   const [inviteCode, setInviteCode] = useState('')
   const [showInviteInput, setShowInviteInput] = useState(false)
   const [suggestedClubs, setSuggestedClubs] = useState<any[]>([])
+  const [verifiedOnly, setVerifiedOnly] = useState(false)
+  const [minMembers, setMinMembers] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [approvalModalClub, setApprovalModalClub] = useState<any>(null)
+  const [approvalMessage, setApprovalMessage] = useState('')
+  const [submittingApproval, setSubmittingApproval] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -62,11 +79,30 @@ export default function Clubs() {
   }, [user?.id])
 
   useEffect(() => {
-    fetchClubs()
-  }, [activeType, sortBy, searchQuery, activeTab, user?.id])
+    fetchClubs(false)
+  }, [activeType, sortBy, searchQuery, activeTab, verifiedOnly, minMembers, user?.id])
 
-  const fetchClubs = async () => {
-    setLoading(true)
+  const buildDiscoverQuery = () => {
+    let query = supabase
+      .from('clubs')
+      .select('*')
+      .eq('visibility', 'public')
+
+    if (activeType !== 'all') query = query.eq('club_type', activeType)
+    if (verifiedOnly) query = query.eq('is_verified', true)
+    if (minMembers > 0) query = query.gte('member_count', minMembers)
+    if (searchQuery.trim()) {
+      query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,handle.ilike.%${searchQuery}%`)
+    }
+    if (sortBy === 'members') query = query.order('member_count', { ascending: false })
+    else if (sortBy === 'active') query = query.order('post_count', { ascending: false })
+    else query = query.order('created_at', { ascending: false })
+    return query
+  }
+
+  const fetchClubs = async (append: boolean) => {
+    if (append) setLoadingMore(true)
+    else setLoading(true)
     try {
       if (activeTab === 'my') {
         if (!user?.id) { setMyClubs([]); return }
@@ -92,25 +128,15 @@ export default function Clubs() {
           setMyClubs([])
         }
       } else {
-        let query = supabase
-          .from('clubs')
-          .select('*')
-          .eq('visibility', 'public')
-
-        if (activeType !== 'all') query = query.eq('club_type', activeType)
-        if (searchQuery.trim()) {
-          query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,handle.ilike.%${searchQuery}%`)
-        }
-        if (sortBy === 'members') query = query.order('member_count', { ascending: false })
-        else if (sortBy === 'active') query = query.order('post_count', { ascending: false })
-        else query = query.order('created_at', { ascending: false })
-
-        query = query.limit(30)
-        const { data } = await query
-        setClubs(data || [])
+        const offset = append ? clubs.length : 0
+        const { data } = await buildDiscoverQuery().range(offset, offset + PAGE_SIZE - 1)
+        const rows = data || []
+        setClubs(prev => append ? [...prev, ...rows] : rows)
+        setHasMore(rows.length === PAGE_SIZE)
       }
     } finally {
-      setLoading(false)
+      if (append) setLoadingMore(false)
+      else setLoading(false)
     }
   }
 
@@ -118,6 +144,11 @@ export default function Clubs() {
     if (!user?.id) { navigate('/auth'); return }
     if (club.join_mode === 'invite_only') {
       setShowInviteInput(true)
+      return
+    }
+    if (club.join_mode === 'approval') {
+      setApprovalMessage('')
+      setApprovalModalClub(club)
       return
     }
     const { data, error } = await supabase.rpc('join_club', {
@@ -147,6 +178,28 @@ export default function Clubs() {
     }
     toast.success(`Joined ${club.name}!`)
     navigate(`/club/${club.id}`)
+  }
+
+  const submitApprovalRequest = async () => {
+    if (!approvalModalClub || !user?.id) return
+    setSubmittingApproval(true)
+    try {
+      const { data, error } = await supabase.rpc('join_club', {
+        p_club_id: approvalModalClub.id,
+        p_join_message: approvalMessage.trim() || null,
+      })
+      if (error) { toast.error('Failed to send request'); return }
+      const result = (data ?? {}) as { success: boolean; status?: string; error?: string }
+      if (!result.success) {
+        toast.error(result.error || 'Failed to send request')
+        return
+      }
+      toast.success('Join request sent to club admin')
+      setApprovalModalClub(null)
+      setApprovalMessage('')
+    } finally {
+      setSubmittingApproval(false)
+    }
   }
 
   const handleJoinWithCode = async () => {
@@ -267,14 +320,14 @@ export default function Clubs() {
         </div>
       )}
 
-      {/* Sort bar — discover only */}
+      {/* Sort + filter bar — discover only */}
       {activeTab === 'discover' && (
-        <div className="px-4 py-2 flex gap-2">
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto scrollbar-none">
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt.id}
               onClick={() => setSortBy(opt.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                 sortBy === opt.id
                   ? 'bg-foreground text-background border-foreground'
                   : 'bg-muted/30 text-muted-foreground border-border/30'
@@ -283,6 +336,28 @@ export default function Clubs() {
               {opt.label}
             </button>
           ))}
+          <button
+            onClick={() => setVerifiedOnly(v => !v)}
+            className={`flex-shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              verifiedOnly
+                ? 'bg-blue-500 text-white border-blue-500'
+                : 'bg-muted/30 text-muted-foreground border-border/30'
+            }`}
+          >
+            <BadgeCheck className="w-3 h-3" />
+            Verified
+          </button>
+          <select
+            value={minMembers}
+            onChange={e => setMinMembers(Number(e.target.value))}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all bg-muted/30 text-muted-foreground border-border/30 ${
+              minMembers > 0 ? 'bg-foreground text-background border-foreground' : ''
+            }`}
+          >
+            {MIN_MEMBERS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -340,17 +415,69 @@ export default function Clubs() {
             )}
           </div>
         ) : (
-          displayClubs.map((club: any) => (
-            <ClubDiscoveryCard
-              key={club.id}
-              club={club}
-              isMember={myClubIds.includes(club.id)}
-              onJoin={() => handleJoin(club)}
-              onView={() => navigate(`/club/${club.id}`)}
-            />
-          ))
+          <>
+            {displayClubs.map((club: any) => (
+              <ClubDiscoveryCard
+                key={club.id}
+                club={club}
+                isMember={myClubIds.includes(club.id)}
+                onJoin={() => handleJoin(club)}
+                onView={() => navigate(`/club/${club.id}`)}
+              />
+            ))}
+            {activeTab === 'discover' && hasMore && displayClubs.length > 0 && (
+              <button
+                onClick={() => fetchClubs(true)}
+                disabled={loadingMore}
+                className="w-full py-3 mt-2 rounded-xl border border-border/50 bg-card text-sm font-semibold text-foreground disabled:opacity-50"
+              >
+                {loadingMore ? 'Loading…' : 'Load more'}
+              </button>
+            )}
+          </>
         )}
       </div>
+
+      {/* Approval-mode join request modal */}
+      {approvalModalClub && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end md:items-center justify-center p-4" onClick={() => !submittingApproval && setApprovalModalClub(null)}>
+          <div className="w-full max-w-md bg-background rounded-2xl p-5 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-base font-bold text-foreground">Request to join</p>
+                <p className="text-sm text-muted-foreground">{approvalModalClub.name}</p>
+              </div>
+              <button
+                onClick={() => setApprovalModalClub(null)}
+                disabled={submittingApproval}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:bg-muted/50 disabled:opacity-50"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              This club approves new members manually. Add a short message for the admins (optional).
+            </p>
+            <textarea
+              value={approvalMessage}
+              onChange={e => setApprovalMessage(e.target.value.slice(0, 500))}
+              placeholder="Tell the admins why you'd like to join…"
+              rows={4}
+              className="w-full bg-muted/50 border border-border/30 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+            />
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+              <span>{approvalMessage.length}/500</span>
+            </div>
+            <button
+              onClick={submitApprovalRequest}
+              disabled={submittingApproval}
+              className="w-full py-3 rounded-xl bg-foreground text-background text-sm font-semibold disabled:opacity-50"
+            >
+              {submittingApproval ? 'Sending…' : 'Send request'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
