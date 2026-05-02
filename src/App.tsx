@@ -36,6 +36,7 @@ const MyClubs = React.lazy(() => import("./pages/MyClubs"));
 const ClubSettings = React.lazy(() => import("./pages/ClubSettings"));
 const ClubJoinRequest = React.lazy(() => import("./pages/ClubJoinRequest"));
 const ClubProfile = React.lazy(() => import("./pages/ClubProfile"));
+const CrossClubDashboard = React.lazy(() => import("./pages/CrossClubDashboard"));
 const Marketplace = React.lazy(() => import("./pages/Marketplace"));
 const Messages = React.lazy(() => import("./pages/Messages"));
 const Conversation = React.lazy(() => import("./pages/Conversation"));
@@ -151,6 +152,7 @@ const App = () => (
           <Route path="/my-clubs" element={<ProtectedRoute><MyClubs /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><ClubProfile /></ProtectedRoute>} />
           <Route path="/club/:clubId/settings" element={<ProtectedRoute><ClubSettings /></ProtectedRoute>} />
+          <Route path="/cross-club" element={<ProtectedRoute><CrossClubDashboard /></ProtectedRoute>} />
           <Route path="/club/:clubId/join" element={<ProtectedRoute><ClubJoinRequest /></ProtectedRoute>} />
           <Route path="/marketplace" element={<ProtectedRoute><Marketplace /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

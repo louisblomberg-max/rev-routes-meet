@@ -327,12 +327,26 @@ const Profile = () => {
             </button>
           );
 
+          const ownedCount = groups.find(g => g.key === 'owner')?.rows.length || 0;
+
           return (
             <div className="space-y-4">
               <div className="flex items-center justify-between px-1">
                 <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clubs ({clubMemberships.length})</h2>
                 <button onClick={() => navigate('/my-clubs')} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">View all</button>
               </div>
+              {ownedCount >= 2 && (
+                <button
+                  onClick={() => navigate('/cross-club')}
+                  className="w-full bg-card border border-border/50 rounded-xl px-4 py-3 flex items-center justify-between hover:bg-muted/30 active:scale-[0.99] transition-all"
+                >
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Cross-club dashboard</p>
+                    <p className="text-[11px] text-muted-foreground">Manage all {ownedCount} clubs you own</p>
+                  </div>
+                  <span className="text-muted-foreground">›</span>
+                </button>
+              )}
               {groups.map(g => (
                 <div key={g.key} className="space-y-2">
                   <p className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider px-1">
