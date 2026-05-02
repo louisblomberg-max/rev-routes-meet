@@ -309,24 +309,43 @@ const Profile = () => {
 
         {vehicles.length > 0 && <GarageSection vehicles={vehicles as any} isOwnProfile={true} />}
 
-        {clubMemberships.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clubs ({clubMemberships.length})</h2>
-              <button onClick={() => navigate('/my-clubs')} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">View all</button>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-              {clubMemberships.map((m: any) => (
-                <button key={m.club_id} onClick={() => navigate(`/club/${m.club_id}`)}
-                  className="flex-shrink-0 bg-card rounded-xl border border-border/30 shadow-sm p-3 hover:shadow-md hover:border-border/50 transition-all active:scale-[0.98] min-w-[140px]">
-                  <div className="w-10 h-10 rounded-lg bg-clubs/10 flex items-center justify-center mb-2"><Users className="w-5 h-5 text-clubs" /></div>
-                  <p className="text-sm font-medium text-foreground truncate">{m.clubs?.name || 'Club'}</p>
-                  <Badge variant={m.role === 'owner' || m.role === 'admin' ? 'default' : 'secondary'} className="text-[10px] mt-1.5 px-1.5 py-0">{m.role === 'owner' || m.role === 'admin' ? 'Admin' : 'Member'}</Badge>
-                </button>
+        {clubMemberships.length > 0 && (() => {
+          const groups: { key: 'owner' | 'admin' | 'member'; label: string; rows: any[] }[] = [
+            { key: 'owner',  label: 'Clubs you own',   rows: clubMemberships.filter((m: any) => m.role === 'owner') },
+            { key: 'admin',  label: 'Clubs you admin', rows: clubMemberships.filter((m: any) => m.role === 'admin') },
+            { key: 'member', label: 'Member of',      rows: clubMemberships.filter((m: any) => m.role !== 'owner' && m.role !== 'admin') },
+          ].filter(g => g.rows.length > 0);
+
+          const renderCard = (m: any) => (
+            <button key={m.club_id} onClick={() => navigate(`/club/${m.club_id}`)}
+              className="flex-shrink-0 bg-card rounded-xl border border-border/30 shadow-sm p-3 hover:shadow-md hover:border-border/50 transition-all active:scale-[0.98] min-w-[140px]">
+              <div className="w-10 h-10 rounded-lg bg-clubs/10 flex items-center justify-center mb-2"><Users className="w-5 h-5 text-clubs" /></div>
+              <p className="text-sm font-medium text-foreground truncate">{m.clubs?.name || 'Club'}</p>
+              <Badge variant={m.role === 'owner' || m.role === 'admin' ? 'default' : 'secondary'} className="text-[10px] mt-1.5 px-1.5 py-0">
+                {m.role === 'owner' ? 'Founder' : m.role === 'admin' ? 'Admin' : 'Member'}
+              </Badge>
+            </button>
+          );
+
+          return (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between px-1">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clubs ({clubMemberships.length})</h2>
+                <button onClick={() => navigate('/my-clubs')} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">View all</button>
+              </div>
+              {groups.map(g => (
+                <div key={g.key} className="space-y-2">
+                  <p className="text-[11px] font-semibold text-muted-foreground/80 uppercase tracking-wider px-1">
+                    {g.label} <span className="text-muted-foreground/50">· {g.rows.length}</span>
+                  </p>
+                  <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
+                    {g.rows.map(renderCard)}
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
 
       <Sheet open={isEditOpen} onOpenChange={setIsEditOpen}>
