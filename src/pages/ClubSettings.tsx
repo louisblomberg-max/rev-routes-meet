@@ -66,6 +66,9 @@ export default function ClubSettings() {
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [transferToUserId, setTransferToUserId] = useState('')
   const [shareOpen, setShareOpen] = useState(false)
+  const [memberSearch, setMemberSearch] = useState('')
+  const [memberRoleFilter, setMemberRoleFilter] = useState<'all' | 'owner' | 'admin' | 'member'>('all')
+  const [memberSort, setMemberSort] = useState<'joined_desc' | 'joined_asc' | 'role' | 'name'>('joined_desc')
 
   useEffect(() => {
     loadClub()
@@ -89,7 +92,7 @@ export default function ClubSettings() {
   const loadClub = async () => {
     const { data } = await supabase
       .from('clubs')
-      .select('*, club_memberships(user_id, role, profiles!user_id(id, username, display_name, avatar_url))')
+      .select('*, club_memberships(user_id, role, joined_at, profiles!user_id(id, username, display_name, avatar_url))')
       .eq('id', clubId!)
       .single()
 
@@ -652,52 +655,145 @@ export default function ClubSettings() {
         )}
 
         {/* MEMBERS MANAGEMENT */}
-        {activeSection === 'members' && (
-          <div className="space-y-2">
-            {members.map((m: any) => {
-              const isOwner = m.role === 'owner'
-              const isMe = m.user_id === user?.id
-              return (
-                <div key={m.user_id} className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/50">
-                  <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                    {m.profiles?.avatar_url ? (
-                      <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
-                        {(m.profiles?.display_name || m.profiles?.username || '?')[0].toUpperCase()}
+        {activeSection === 'members' && (() => {
+          const ROLE_RANK: Record<string, number> = { owner: 0, admin: 1, member: 2 }
+          const memberName = (m: any) =>
+            (m.profiles?.display_name || m.profiles?.username || '').toLowerCase()
+
+          const filtered = members.filter((m: any) => {
+            if (memberRoleFilter !== 'all' && m.role !== memberRoleFilter) return false
+            const q = memberSearch.trim().toLowerCase()
+            if (!q) return true
+            return (
+              (m.profiles?.display_name || '').toLowerCase().includes(q) ||
+              (m.profiles?.username || '').toLowerCase().includes(q)
+            )
+          })
+
+          const sorted = [...filtered].sort((a, b) => {
+            switch (memberSort) {
+              case 'joined_asc':  return (a.joined_at || '').localeCompare(b.joined_at || '')
+              case 'joined_desc': return (b.joined_at || '').localeCompare(a.joined_at || '')
+              case 'role':        return (ROLE_RANK[a.role] ?? 99) - (ROLE_RANK[b.role] ?? 99)
+              case 'name':        return memberName(a).localeCompare(memberName(b))
+              default:            return 0
+            }
+          })
+
+          const exportCsv = () => {
+            const header = ['name', 'username', 'role', 'joined_at']
+            const rows = sorted.map((m: any) => [
+              m.profiles?.display_name || '',
+              m.profiles?.username || '',
+              m.role || '',
+              m.joined_at || '',
+            ])
+            const escape = (v: string) => /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v
+            const csv = [header, ...rows].map(r => r.map(escape).join(',')).join('\n')
+            const blob = new Blob([csv], { type: 'text/csv' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `${(club?.name || 'club').replace(/[^\w-]+/g, '_').toLowerCase()}-members.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+            toast.success(`Exported ${rows.length} members`)
+          }
+
+          return (
+            <div className="space-y-3">
+              <input
+                value={memberSearch}
+                onChange={e => setMemberSearch(e.target.value)}
+                placeholder="Search members…"
+                className="w-full bg-muted/40 border border-border/50 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+
+              <div className="flex flex-wrap items-center gap-2">
+                {(['all', 'owner', 'admin', 'member'] as const).map(r => (
+                  <button
+                    key={r}
+                    onClick={() => setMemberRoleFilter(r)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+                      memberRoleFilter === r
+                        ? 'bg-foreground text-background border-foreground'
+                        : 'bg-muted/30 text-muted-foreground border-border/40'
+                    }`}
+                  >
+                    {r === 'all' ? 'All' : r[0].toUpperCase() + r.slice(1)}
+                  </button>
+                ))}
+                <select
+                  value={memberSort}
+                  onChange={e => setMemberSort(e.target.value as any)}
+                  className="ml-auto bg-muted/30 border border-border/40 rounded-full px-2 py-1 text-[11px] font-semibold text-muted-foreground"
+                >
+                  <option value="joined_desc">Newest first</option>
+                  <option value="joined_asc">Oldest first</option>
+                  <option value="role">By role</option>
+                  <option value="name">By name</option>
+                </select>
+                <button
+                  onClick={exportCsv}
+                  className="px-2.5 py-1 rounded-full bg-muted/30 border border-border/40 text-[11px] font-semibold text-muted-foreground"
+                >
+                  Export CSV
+                </button>
+              </div>
+
+              <p className="text-[11px] text-muted-foreground">
+                Showing {sorted.length} of {members.length}
+              </p>
+
+              <div className="space-y-2">
+                {sorted.length === 0 ? (
+                  <div className="text-center py-10 text-sm text-muted-foreground">No members match.</div>
+                ) : sorted.map((m: any) => {
+                  const isOwner = m.role === 'owner'
+                  const isMe = m.user_id === user?.id
+                  return (
+                    <div key={m.user_id} className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/50">
+                      <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
+                        {m.profiles?.avatar_url ? (
+                          <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-muted-foreground">
+                            {(m.profiles?.display_name || m.profiles?.username || '?')[0].toUpperCase()}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-foreground truncate">
-                      {m.profiles?.display_name || m.profiles?.username}
-                      {isOwner && <span className="ml-1">👑</span>}
-                    </p>
-                    <p className="text-[10px] text-muted-foreground">{m.role}</p>
-                  </div>
-                  {!isMe && !isOwner && (
-                    <div className="flex gap-1.5 flex-shrink-0">
-                      {m.role === 'member' && (
-                        <button onClick={() => handlePromoteMember(m.user_id, 'admin')}
-                          className="px-2.5 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-semibold">
-                          Make Admin
-                        </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">
+                          {m.profiles?.display_name || m.profiles?.username}
+                          {isOwner && <span className="ml-1">👑</span>}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">{m.role}</p>
+                      </div>
+                      {!isMe && !isOwner && (
+                        <div className="flex gap-1.5 flex-shrink-0">
+                          {m.role === 'member' && (
+                            <button onClick={() => handlePromoteMember(m.user_id, 'admin')}
+                              className="px-2.5 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-[10px] font-semibold">
+                              Make Admin
+                            </button>
+                          )}
+                          {m.role === 'admin' && (
+                            <button onClick={() => handlePromoteMember(m.user_id, 'member')}
+                              className="px-2.5 py-1.5 rounded-lg bg-muted text-[10px] font-semibold">Demote</button>
+                          )}
+                          <button onClick={() => handleRemoveMember(m.user_id)}
+                            className="px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-semibold">Remove</button>
+                          <button onClick={() => handleBlockUser(m.user_id)}
+                            className="px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-semibold">Block</button>
+                        </div>
                       )}
-                      {m.role === 'admin' && (
-                        <button onClick={() => handlePromoteMember(m.user_id, 'member')}
-                          className="px-2.5 py-1.5 rounded-lg bg-muted text-[10px] font-semibold">Demote</button>
-                      )}
-                      <button onClick={() => handleRemoveMember(m.user_id)}
-                        className="px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-semibold">Remove</button>
-                      <button onClick={() => handleBlockUser(m.user_id)}
-                        className="px-2.5 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 text-[10px] font-semibold">Block</button>
                     </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        )}
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
 
         {/* ANALYTICS */}
         {activeSection === 'analytics' && clubId && (
