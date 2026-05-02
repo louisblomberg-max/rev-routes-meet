@@ -7,6 +7,7 @@ import { validateImageFile } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
 import { X, ImagePlus, RefreshCw, Crown, AlertTriangle } from 'lucide-react'
 import ClubAnalyticsSection from '@/components/clubs/ClubAnalyticsSection'
+import ClubShareSheet from '@/components/clubs/ClubShareSheet'
 
 const CLUB_TYPES = [
   { id: 'make_model', label: 'Make & Model', emoji: '🏎' },
@@ -64,6 +65,7 @@ export default function ClubSettings() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [transferToUserId, setTransferToUserId] = useState('')
+  const [shareOpen, setShareOpen] = useState(false)
 
   useEffect(() => {
     loadClub()
@@ -520,11 +522,17 @@ export default function ClubSettings() {
                 <button onClick={() => { navigator.clipboard.writeText(club?.invite_code?.toUpperCase() || ''); toast.success('Copied!') }}
                   className="px-4 py-3 rounded-xl bg-muted text-sm font-semibold border border-border/50">Copy</button>
               </div>
-              <button onClick={handleRegenerateInviteCode}
-                className="flex items-center gap-2 text-xs text-muted-foreground">
-                <RefreshCw className="w-3.5 h-3.5" />
-                Regenerate code
-              </button>
+              <div className="flex items-center justify-between">
+                <button onClick={handleRegenerateInviteCode}
+                  className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Regenerate code
+                </button>
+                <button onClick={() => setShareOpen(true)}
+                  className="text-xs font-semibold text-foreground underline-offset-2 hover:underline">
+                  Show QR / share
+                </button>
+              </div>
             </div>
           </>
         )}
@@ -787,6 +795,16 @@ export default function ClubSettings() {
           </div>
         )}
       </div>
+
+      {clubId && (
+        <ClubShareSheet
+          open={shareOpen}
+          onClose={() => setShareOpen(false)}
+          clubId={clubId}
+          clubName={club?.name || name || 'Club'}
+          inviteCode={club?.invite_code}
+        />
+      )}
     </div>
   )
 }

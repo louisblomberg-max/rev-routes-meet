@@ -9,6 +9,7 @@ import ClubFeed from '@/components/clubs/ClubFeed'
 import ClubMembers from '@/components/clubs/ClubMembers'
 import ClubEvents from '@/components/clubs/ClubEvents'
 import ClubLeaderboard from '@/components/clubs/ClubLeaderboard'
+import ClubShareSheet from '@/components/clubs/ClubShareSheet'
 
 const TABS = [
   { id: 'feed', label: 'Feed' },
@@ -28,6 +29,7 @@ export default function ClubProfile() {
   const [joining, setJoining] = useState(false)
   const [mutualFriends, setMutualFriends] = useState<any[]>([])
   const [inviteCodeInput, setInviteCodeInput] = useState('')
+  const [shareOpen, setShareOpen] = useState(false)
 
   useEffect(() => {
     if (!clubId) return
@@ -193,15 +195,7 @@ export default function ClubProfile() {
     toast.success('Left club')
   }
 
-  const handleShare = async () => {
-    const text = `Join ${club.name} on RevNet! Use invite code: ${club.invite_code}`
-    if (navigator.share) {
-      try { await navigator.share({ title: club.name, text, url: window.location.href }) } catch {}
-    } else {
-      await navigator.clipboard.writeText(text)
-      toast.success('Invite link copied!')
-    }
-  }
+  const handleShare = () => setShareOpen(true)
 
   const isAdmin = membership?.role === 'owner' || membership?.role === 'admin'
   const isMember = !!membership
@@ -564,6 +558,14 @@ export default function ClubProfile() {
           </div>
         )}
       </div>
+
+      <ClubShareSheet
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        clubId={clubId!}
+        clubName={club?.name || 'Club'}
+        inviteCode={club?.invite_code}
+      />
     </div>
   )
 }
