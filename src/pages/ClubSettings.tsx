@@ -69,6 +69,19 @@ export default function ClubSettings() {
     loadClub()
     loadJoinRequests()
     loadBlockedUsers()
+
+    if (!clubId) return
+    const channel = supabase
+      .channel(`club-join-requests-${clubId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'club_join_requests',
+        filter: `club_id=eq.${clubId}`,
+      }, () => loadJoinRequests())
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
   }, [clubId])
 
   const loadClub = async () => {
