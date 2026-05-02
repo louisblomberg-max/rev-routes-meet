@@ -69,6 +69,9 @@ export default function ClubSettings() {
   const [memberSearch, setMemberSearch] = useState('')
   const [memberRoleFilter, setMemberRoleFilter] = useState<'all' | 'owner' | 'admin' | 'member'>('all')
   const [memberSort, setMemberSort] = useState<'joined_desc' | 'joined_asc' | 'role' | 'name'>('joined_desc')
+  const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set())
+  const [bulkRemoveOpen, setBulkRemoveOpen] = useState(false)
+  const [bulkRemoving, setBulkRemoving] = useState(false)
 
   useEffect(() => {
     loadClub()
@@ -261,6 +264,38 @@ export default function ClubSettings() {
     })
     toast.success('Member removed')
     loadClub()
+  }
+
+  const handleBulkRemoveMembers = async () => {
+    const ids = Array.from(selectedMemberIds)
+    if (ids.length === 0) return
+    setBulkRemoving(true)
+    try {
+      const results = await Promise.allSettled(
+        ids.map(uid => supabase.from('club_memberships').delete().eq('club_id', clubId!).eq('user_id', uid))
+      )
+      const failed = results.filter(r => r.status === 'rejected' || (r.status === 'fulfilled' && (r.value as any)?.error)).length
+      const succeeded = ids.length - failed
+
+      if (succeeded > 0) {
+        await Promise.allSettled(ids.map(uid => supabase.rpc('send_notification', {
+          p_user_id: uid,
+          p_type: 'club_removed',
+          p_title: 'Removed from club',
+          p_body: `You have been removed from ${club.name}`,
+          p_data: { club_id: clubId },
+        })))
+      }
+
+      if (failed > 0) toast.error(`Removed ${succeeded}, ${failed} failed`)
+      else toast.success(`Removed ${succeeded} member${succeeded === 1 ? '' : 's'}`)
+
+      setSelectedMemberIds(new Set())
+      setBulkRemoveOpen(false)
+      loadClub()
+    } finally {
+      setBulkRemoving(false)
+    }
   }
 
   const handlePromoteMember = async (userId: string, role: string) => {
@@ -680,6 +715,30 @@ export default function ClubSettings() {
             }
           })
 
+          const selectableIds = sorted
+            .filter((m: any) => m.role !== 'owner' && m.user_id !== user?.id)
+            .map((m: any) => m.user_id as string)
+          const allSelectableSelected =
+            selectableIds.length > 0 &&
+            selectableIds.every(id => selectedMemberIds.has(id))
+
+          const toggleSelected = (id: string) => {
+            setSelectedMemberIds(prev => {
+              const next = new Set(prev)
+              if (next.has(id)) next.delete(id)
+              else next.add(id)
+              return next
+            })
+          }
+          const toggleAllVisible = () => {
+            setSelectedMemberIds(prev => {
+              const next = new Set(prev)
+              if (allSelectableSelected) selectableIds.forEach(id => next.delete(id))
+              else selectableIds.forEach(id => next.add(id))
+              return next
+            })
+          }
+
           const exportCsv = () => {
             const header = ['name', 'username', 'role', 'joined_at']
             const rows = sorted.map((m: any) => [
@@ -741,9 +800,39 @@ export default function ClubSettings() {
                 </button>
               </div>
 
-              <p className="text-[11px] text-muted-foreground">
-                Showing {sorted.length} of {members.length}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] text-muted-foreground">
+                  Showing {sorted.length} of {members.length}
+                </p>
+                {selectableIds.length > 0 && (
+                  <button
+                    onClick={toggleAllVisible}
+                    className="text-[11px] font-semibold text-muted-foreground"
+                  >
+                    {allSelectableSelected ? 'Deselect all' : 'Select all'}
+                  </button>
+                )}
+              </div>
+
+              {selectedMemberIds.size > 0 && (
+                <div className="sticky top-[88px] z-10 flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-foreground text-background shadow-md">
+                  <p className="text-xs font-semibold">{selectedMemberIds.size} selected</p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedMemberIds(new Set())}
+                      className="text-[11px] font-medium opacity-80 hover:opacity-100"
+                    >
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => setBulkRemoveOpen(true)}
+                      className="px-3 py-1.5 rounded-lg bg-red-500 text-white text-[11px] font-semibold"
+                    >
+                      Remove {selectedMemberIds.size}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-2">
                 {sorted.length === 0 ? (
@@ -751,8 +840,21 @@ export default function ClubSettings() {
                 ) : sorted.map((m: any) => {
                   const isOwner = m.role === 'owner'
                   const isMe = m.user_id === user?.id
+                  const selectable = !isOwner && !isMe
+                  const isSelected = selectedMemberIds.has(m.user_id)
                   return (
-                    <div key={m.user_id} className="flex items-center gap-3 p-3 bg-card rounded-2xl border border-border/50">
+                    <div key={m.user_id} className={`flex items-center gap-3 p-3 bg-card rounded-2xl border ${isSelected ? 'border-foreground' : 'border-border/50'}`}>
+                      {selectable ? (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelected(m.user_id)}
+                          className="w-4 h-4 flex-shrink-0 accent-foreground cursor-pointer"
+                          aria-label={`Select ${m.profiles?.display_name || m.profiles?.username || 'member'}`}
+                        />
+                      ) : (
+                        <div className="w-4 flex-shrink-0" />
+                      )}
                       <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
                         {m.profiles?.avatar_url ? (
                           <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" />
@@ -900,6 +1002,41 @@ export default function ClubSettings() {
           clubName={club?.name || name || 'Club'}
           inviteCode={club?.invite_code}
         />
+      )}
+
+      {bulkRemoveOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4"
+          onClick={() => !bulkRemoving && setBulkRemoveOpen(false)}
+        >
+          <div className="w-full max-w-sm bg-background rounded-2xl p-5 space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-base font-bold text-foreground">Remove {selectedMemberIds.size} member{selectedMemberIds.size === 1 ? '' : 's'}?</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  They will be notified and lose access to the club. Owners are never affected.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setBulkRemoveOpen(false)}
+                disabled={bulkRemoving}
+                className="flex-1 py-2.5 rounded-xl bg-muted text-sm font-medium disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleBulkRemoveMembers}
+                disabled={bulkRemoving}
+                className="flex-1 py-2.5 rounded-xl bg-destructive text-white text-sm font-semibold disabled:opacity-50"
+              >
+                {bulkRemoving ? 'Removing…' : 'Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
