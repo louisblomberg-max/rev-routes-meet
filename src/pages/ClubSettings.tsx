@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 import { validateImageFile } from '@/lib/utils'
 import BackButton from '@/components/BackButton'
 import { X, ImagePlus, RefreshCw, Crown, AlertTriangle } from 'lucide-react'
+import ClubAnalyticsSection from '@/components/clubs/ClubAnalyticsSection'
 
 const CLUB_TYPES = [
   { id: 'make_model', label: 'Make & Model', emoji: '🏎' },
@@ -300,6 +301,7 @@ export default function ClubSettings() {
     { id: 'branding', label: 'Branding' },
     { id: 'requests', label: `Requests${joinRequests.length > 0 ? ` (${joinRequests.length})` : ''}` },
     { id: 'members', label: 'Members' },
+    { id: 'analytics', label: 'Analytics' },
     { id: 'blocked', label: 'Blocked' },
     { id: 'danger', label: 'Danger Zone' },
   ]
@@ -674,6 +676,11 @@ export default function ClubSettings() {
               )
             })}
           </div>
+        )}
+
+        {/* ANALYTICS */}
+        {activeSection === 'analytics' && clubId && (
+          <ClubAnalyticsSection clubId={clubId} />
         )}
 
         {/* BLOCKED USERS */}
